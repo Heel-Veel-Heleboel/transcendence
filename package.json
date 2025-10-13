@@ -1,6 +1,7 @@
 {
   "name": "api-gateway",
   "version": "1.0.0",
+  "type": "module",
   "description": "API Gateway for microservices architecture using Fastify",
   "main": "dist/main.js",
   "scripts": {

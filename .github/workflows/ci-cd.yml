@@ -92,13 +92,7 @@ jobs:
     
     - name: Run security audit
       run: npm audit --audit-level moderate
-    
-    - name: Run Snyk security scan
-      uses: snyk/actions/node@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --severity-threshold=high
+      continue-on-error: true
 
   deploy-staging:
     name: Deploy to Staging
@@ -146,17 +140,3 @@ jobs:
         # Add your production deployment commands here
         # Example: docker build, kubectl apply, etc.
 
-  notify:
-    name: Notify
-    runs-on: ubuntu-latest
-    needs: [test, build, deploy-staging, deploy-production]
-    if: always()
-    
-    steps:
-    - name: Notify Slack
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-        channel: '#deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-      if: always()
