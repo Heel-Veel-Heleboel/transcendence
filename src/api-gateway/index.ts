@@ -15,14 +15,14 @@ export const createServer = () => {
   });
 
   // Basic health check endpoint
-  server.get('/health', async (request, reply) => {
+  server.get('/health', async (_request, _reply) => {
     return { status: 'healthy', timestamp: new Date().toISOString() };
   });
 
   server.register(require('@fastify/http-proxy'), {
     upstream: 'http://localhost:3001',
     prefix: '/api/test',
-    rewritePrefix: '/test',
+    rewritePrefix: '/test'
   });
 
   return server;
@@ -35,7 +35,7 @@ const start = async () => {
   try {
     const port = process.env.PORT ? parseInt(process.env.PORT) : 3002;
     const host = process.env.HOST || '0.0.0.0';
-    
+
     await server.listen(port, host);
     server.log.info(`API Gateway is running on http://${host}:${port}`);
   } catch (err) {
