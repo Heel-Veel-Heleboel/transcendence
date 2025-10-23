@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "rootDir": "./"   // can be project root or "./test"
+  },
+  "include": [
+    "test/**/*.ts",
+    "src/**/src/**/*.ts"
+  ]
+}
