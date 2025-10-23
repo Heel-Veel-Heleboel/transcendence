@@ -14,5 +14,9 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true
-  }
+  },
+   "include": [
+    "src/**/src/**/*.ts",  // include all service source files
+    "test/**/*.ts"         // include all tests
+  ] 
 }
