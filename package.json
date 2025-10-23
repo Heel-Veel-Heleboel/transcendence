@@ -1,42 +1,26 @@
 {
-  "name": "api-gateway",
+  "name": "transcendence-dev-tools",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
-  "description": "API Gateway for microservices architecture using Fastify",
-  "main": "dist/main.js",
+  "description": "Development tools and shared configuration for the Transcendence microservices project.",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/api-gateway/index.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/api-gateway/index.ts",
-    "clean": "rm -rf dist",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
-    "lint": "eslint src/**/*.ts test/**/*.ts --ext .ts",
-    "lint:fix": "eslint src/**/*.ts test/**/*.ts --ext .ts --fix",
-    "format": "prettier --write src/**/*.ts test/**/*.ts",
-    "format:check": "prettier --check src/**/*.ts test/**/*.ts",
-    "install-deps": "npm install fastify @fastify/http-proxy @fastify/cors @fastify/helmet pino pino-pretty && npm install -D typescript @types/node ts-node-dev"
+    "lint": "eslint 'src/**/src/**/*.ts' 'test/**/*.ts' --ext .ts",
+    "lint:fix": "eslint 'src/**/src/**/*.ts' 'test/**/*.ts' --ext .ts --fix",
+    "format": "prettier --write 'src/**/src/**/*.ts' 'test/**/*.ts'",
+    "format:check": "prettier --check 'src/**/src/**/*.ts' 'test/**/*.ts'"
   },
   "keywords": [
-    "api-gateway",
     "microservices",
     "fastify",
     "typescript"
   ],
-  "author": "vshkonda", 
+  "author": "vshkonda, amysiv, spenning",
   "license": "MIT",
-  "dependencies": {
-    "@fastify/cors": "^9.0.1",
-    "@fastify/helmet": "^11.1.1",
-    "@fastify/http-proxy": "^9.3.1",
-    "fastify": "^4.28.1",
-    "pino": "^8.17.2",
-    "pino-pretty": "^10.3.1",
-    "pretty": "^2.0.0",
-    "print": "^1.2.0"
-  },
   "devDependencies": {
     "@types/node": "^20.11.17",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
