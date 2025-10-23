@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "composite": false,
-    "rootDir": "./"   // can be project root or "./test"
+    "rootDir": "./" 
   },
   "include": [
     "test/**/*.ts",
