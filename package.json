@@ -1,26 +1,24 @@
 {
-  "name": "transcendence-dev-tools",
-  "version": "1.0.0",
+  "name": "transcendence",
   "private": true,
+  "version": "1.0.0",
+  "description": "Microservices architecture for Transcendence project",
   "type": "module",
-  "description": "Development tools and shared configuration for the Transcendence microservices project.",
+  "workspaces": [
+    "src/*"
+  ],
   "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
-    "lint": "eslint 'src/**/src/**/*.ts' 'test/**/*.ts' --ext .ts",
-    "lint:fix": "eslint 'src/**/src/**/*.ts' 'test/**/*.ts' --ext .ts --fix",
-    "format": "prettier --write 'src/**/src/**/*.ts' 'test/**/*.ts'",
-    "format:check": "prettier --check 'src/**/src/**/*.ts' 'test/**/*.ts'"
+    "lint": "eslint src/**/src/**/*.ts test/**/*.ts --ext .ts",
+    "lint:fix": "eslint src/**/src/**/*.ts test/**/*.ts --ext .ts --fix",
+    "format": "prettier --write src/**/src/**/*.ts test/**/*.ts",
+    "format:check": "prettier --check src/**/src/**/*.ts test/**/*.ts"
   },
-  "keywords": [
-    "microservices",
-    "fastify",
-    "typescript"
-  ],
-  "author": "vshkonda, amysiv, spenning",
-  "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.11.17",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
@@ -31,6 +29,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
     "ts-node-dev": "^2.0.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.3.3",
     "vitest": "^3.2.4"
   }

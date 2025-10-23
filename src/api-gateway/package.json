@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "type": "module",
   "description": "API Gateway for Transcendence microservices architecture using Fastify",
-  "main": "dist/main.js",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/main.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
-    "clean": "rm -rf dist"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node ../../dist/api-gateway/index.js",
+    "clean": "rm -rf ../../dist/api-gateway"
   },
   "keywords": [
     "api-gateway",
