@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { createServer } from '../../src/api-gateway/index';
+import { createServer } from '../../src/api-gateway/src/index';
 import type { FastifyInstance } from 'fastify';
 
 describe('API Gateway', () => {
