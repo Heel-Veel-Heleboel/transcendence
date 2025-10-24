@@ -1,4 +1,5 @@
 import fastify from 'fastify';
+import httpProxy from '@fastify/http-proxy';
 
 // Create Fastify instance with logging
 export const createServer = () => {
@@ -19,7 +20,7 @@ export const createServer = () => {
     return { status: 'healthy', timestamp: new Date().toISOString() };
   });
 
-  server.register(require('@fastify/http-proxy'), {
+  server.register(httpProxy, {
     upstream: 'http://localhost:3001',
     prefix: '/api/test',
     rewritePrefix: '/test'
