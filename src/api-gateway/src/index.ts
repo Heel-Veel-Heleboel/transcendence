@@ -35,7 +35,7 @@ export const start = async (server = createServer()) => {
     const port = process.env.PORT ? parseInt(process.env.PORT) : 3002;
     const host = process.env.HOST || '0.0.0.0';
 
-    await server.listen({port, host});
+    await server.listen({ port, host });
     server.log.info(`API Gateway is running on http://${host}:${port}`);
     return server;
   } catch (err) {
@@ -45,12 +45,14 @@ export const start = async (server = createServer()) => {
 };
 
 // Handle graceful shutdown
-export const setupGracefulShutdown = (server: ReturnType<typeof createServer>) => {
-process.on('SIGTERM', async () => {
-  server.log.info('Received SIGTERM, shutting down gracefully');
-  await server.close();
-  process.exit(0);
-});
+export const setupGracefulShutdown = (
+  server: ReturnType<typeof createServer>
+) => {
+  process.on('SIGTERM', async () => {
+    server.log.info('Received SIGTERM, shutting down gracefully');
+    await server.close();
+    process.exit(0);
+  });
 
   process.on('SIGINT', async () => {
     server.log.info('Received SIGINT, shutting down gracefully');
