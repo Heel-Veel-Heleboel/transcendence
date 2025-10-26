@@ -1,9 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import {
-  createServer,
-  setupGracefulShutdown,
-  start
-} from '../../src/api-gateway/src/index';
+import { createServer, setupGracefulShutdown, start } from '../../src/api-gateway/src/index';
 import * as apiGatewayModule from '../../src/api-gateway/src/index';
 import type { FastifyInstance } from 'fastify';
 
@@ -63,9 +59,7 @@ describe('API Gateway', () => {
         log: { error: vi.fn(), info: vi.fn() }
       } as any;
 
-      const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {
-        throw new Error('exit');
-      }) as any);
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => { throw new Error('exit'); }) as any);
 
       await expect(start(mockServer)).rejects.toThrow('exit');
       expect(mockServer.log.error).toHaveBeenCalled();
@@ -75,70 +69,58 @@ describe('API Gateway', () => {
 
   describe('Graceful Shutdown', () => {
     it('should handle SIGTERM and exit gracefully', async () => {
-      const mockServer = {
-        log: { info: vi.fn() },
-        close: vi.fn().mockResolvedValue(undefined)
-      } as any;
-      const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {
-        throw new Error('exit');
-      }) as any);
+      const mockServer = { log: { info: vi.fn() }, close: vi.fn().mockResolvedValue(undefined) } as any;
+    const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {});
 
       setupGracefulShutdown(mockServer);
 
       process.emit('SIGTERM');
       await vi.waitFor(() => {
-        expect(mockServer.log.info).toHaveBeenCalledWith(
-          'Received SIGTERM, shutting down gracefully'
-        );
+        expect(mockServer.log.info).toHaveBeenCalledWith('Received SIGTERM, shutting down gracefully');
         expect(mockServer.close).toHaveBeenCalled();
         expect(mockExit).toHaveBeenCalledWith(0);
       });
+      mockExit.mockRestore();
     });
 
+    
+
     it('should handle SIGINT and exit gracefully', async () => {
-      const mockServer = {
-        log: { info: vi.fn() },
-        close: vi.fn().mockResolvedValue(undefined)
-      } as any;
-      const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {
-        throw new Error('exit');
-      }) as any);
+      const mockServer = { log: { info: vi.fn() }, close: vi.fn().mockResolvedValue(undefined) } as any;
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {});
 
       setupGracefulShutdown(mockServer);
 
       process.emit('SIGINT');
       await vi.waitFor(() => {
-        expect(mockServer.log.info).toHaveBeenCalledWith(
-          'Received SIGINT, shutting down gracefully'
-        );
+        expect(mockServer.log.info).toHaveBeenCalledWith('Received SIGINT, shutting down gracefully');
         expect(mockServer.close).toHaveBeenCalled();
         expect(mockExit).toHaveBeenCalledWith(0);
       });
+      mockExit.mockRestore();
     });
   });
 
   describe('Main entry point', () => {
-    it('should start the server without errors in production mode', async () => {
-      process.env.NODE_ENV = 'production';
+  it('should start the server without errors in production mode', async () => {
+    process.env.NODE_ENV = 'production';
 
-      const { createServer, start } = await import(
-        '../../src/api-gateway/src/index'
-      );
+    const { createServer, start } = await import('../../src/api-gateway/src/index');
 
-      const server = await start(createServer());
-      expect(server).toBeDefined();
-      await server.close();
-    });
-
-    it('should not start the server in test mode', async () => {
-      process.env.NODE_ENV = 'test';
-
-      const startSpy = vi.spyOn(apiGatewayModule, 'start');
-
-      // Re-import the module to trigger the conditional logic
-      await import('../../src/api-gateway/src/index');
-
-      expect(startSpy).not.toHaveBeenCalled();
-    });
+    const server = await start(createServer());
+    expect(server).toBeDefined();
+    await server.close();
   });
+
+  it('should not start the server in test mode', async () => {
+    process.env.NODE_ENV = 'test';
+
+    const startSpy = vi.spyOn(apiGatewayModule, 'start');
+
+    // Re-import the module to trigger the conditional logic
+    await import('../../src/api-gateway/src/index');
+
+    expect(startSpy).not.toHaveBeenCalled();
+  });
+});
 });
