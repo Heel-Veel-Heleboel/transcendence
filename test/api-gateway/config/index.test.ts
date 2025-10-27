@@ -1,7 +1,4 @@
-import { describe, it, expect,vi } from 'vitest';
-import { config } from '../../../src/api-gateway/src/config/index';
-import { GatewayConfig } from '../../../src/api-gateway/src/entities/common';
-import { before, beforeEach } from 'node:test';
+import { describe, it, expect, vi } from 'vitest';
 
 describe("Configuration loading", () => {
   it("loads default general configurations", async () => {
@@ -38,8 +35,9 @@ describe("validateConfig()", () => {
   it("throws an error in production if JWT_SECRET is missing", async () => {
     process.env.NODE_ENV = 'production';
     vi.resetModules();
-    const { validateConfig } = await import('../../../src/api-gateway/src/config/index');
-    expect(() => validateConfig()).toThrow('Missing required environment variables');
+    await expect(async () => {
+      await import('../../../src/api-gateway/src/config/index');
+    }).rejects.toThrow('JWT_SECRET environment variable must be set in production.');
   });
 
   it("does not throw in development mode", async () => {

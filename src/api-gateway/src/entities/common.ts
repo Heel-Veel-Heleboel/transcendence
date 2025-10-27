@@ -27,10 +27,13 @@ export interface RateLimitConfig {
     max: number;
     timeWindow: string;
   };
-  endpoints: Record<string, {
-    max: number;
-    timeWindow: string;
-  }>;
+  endpoints: Record<
+    string,
+    {
+      max: number;
+      timeWindow: string;
+    }
+  >;
 }
 
 export interface JWTPayload {
@@ -52,5 +55,3 @@ export interface ServiceHealth {
   responseTime?: number;
   error?: string;
 }
-
-

@@ -1,12 +1,28 @@
 import { GatewayConfig } from '../entities/common';
 
+// Determine JWT secret with proper checks
+let jwtSecret: string | undefined = process.env.JWT_SECRET;
+const nodeEnv = process.env.NODE_ENV || 'development';
+if (!jwtSecret) {
+  if (nodeEnv === 'production') {
+    throw new Error(
+      'JWT_SECRET environment variable must be set in production.'
+    );
+  } else {
+    jwtSecret = 'secret-key-change-in-production';
+    console.warn(
+      '[WARNING] Using default JWT secret. Set JWT_SECRET in environment variables for better security.'
+    );
+  }
+}
+
 // Load configuration from environment variables
 export const config: GatewayConfig = {
   port: parseInt(process.env.PORT || '3000'),
   host: process.env.HOST || '0.0.0.0',
-  nodeEnv: process.env.NODE_ENV || 'development',
-  jwtSecret: process.env.JWT_SECRET || 'secret-key-change-in-production',
-  
+  nodeEnv,
+  jwtSecret,
+
   // Service configurations
   services: [
     {
@@ -27,7 +43,9 @@ export const config: GatewayConfig = {
     },
     {
       name: 'matchmaking-service',
-      upstream: process.env.MATCHMAKING_SERVICE_URL || 'http://matchmaking-service:3003',
+      upstream:
+        process.env.MATCHMAKING_SERVICE_URL ||
+        'http://matchmaking-service:3003',
       prefix: '/api/matchmaking',
       rewritePrefix: '/matchmaking',
       timeout: 5000,
@@ -43,7 +61,8 @@ export const config: GatewayConfig = {
     },
     {
       name: 'tournament-service',
-      upstream: process.env.TOURNAMENT_SERVICE_URL || 'http://tournament-service:3005',
+      upstream:
+        process.env.TOURNAMENT_SERVICE_URL || 'http://tournament-service:3005',
       prefix: '/api/tournaments',
       rewritePrefix: '/tournaments',
       timeout: 5000,
@@ -51,7 +70,9 @@ export const config: GatewayConfig = {
     },
     {
       name: 'localization-service',
-      upstream: process.env.LOCALIZATION_SERVICE_URL || 'http://localization-service:3006',
+      upstream:
+        process.env.LOCALIZATION_SERVICE_URL ||
+        'http://localization-service:3006',
       prefix: '/api/localization',
       rewritePrefix: '/localization',
       timeout: 2000,
@@ -93,11 +114,13 @@ export const config: GatewayConfig = {
 // Validate required environment variables
 export function validateConfig(): void {
   const required = ['JWT_SECRET'];
-  const missing = required.filter(key => !process.env[key] && config.nodeEnv === 'production');
-  
+  const missing = required.filter(
+    key => !process.env[key] && config.nodeEnv === 'production'
+  );
+
   if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+    throw new Error(
+      `Missing required environment variables: ${missing.join(', ')}`
+    );
   }
 }
-
-
