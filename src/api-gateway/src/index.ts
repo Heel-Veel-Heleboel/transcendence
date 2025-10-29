@@ -30,7 +30,9 @@ export const createServer = () => {
 };
 
 // Start the server
-export const start = async (server = createServer()) => {
+export const start = async (
+  server: ReturnType<typeof createServer> = createServer()
+) => {
   try {
     const port = process.env.PORT ? parseInt(process.env.PORT) : 3002;
     const host = process.env.HOST || '0.0.0.0';
@@ -48,19 +50,16 @@ export const start = async (server = createServer()) => {
 export const setupGracefulShutdown = (
   server: ReturnType<typeof createServer>
 ) => {
-  process.on('SIGTERM', async () => {
-    server.log.info('Received SIGTERM, shutting down gracefully');
+  const handleShutdown = async (signal: string) => {
+    server.log.info(`Received ${signal}, shutting down gracefully`);
     await server.close();
     process.exit(0);
-  });
+  };
 
-  process.on('SIGINT', async () => {
-    server.log.info('Received SIGINT, shutting down gracefully');
-    await server.close();
-    process.exit(0);
-  });
+  ['SIGTERM', 'SIGINT'].forEach(signal => process.on(signal, () => handleShutdown(signal)));
 };
 
+// Run only when not in test mode
 if (process.env.NODE_ENV !== 'test') {
   const server = createServer();
   setupGracefulShutdown(server);
