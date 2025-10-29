@@ -56,7 +56,7 @@ export const setupGracefulShutdown = (
     process.exit(0);
   };
 
-  ['SIGTERM', 'SIGINT'].forEach(signal => process.on(signal, () => handleShutdown(signal)));
+  ['SIGTERM', 'SIGINT'].forEach(signal => process.on(signal, async () => await handleShutdown(signal)));
 };
 
 // Run only when not in test mode
