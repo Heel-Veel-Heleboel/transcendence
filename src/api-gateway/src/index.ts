@@ -22,8 +22,8 @@ export const createServer = () => {
 
   server.register(httpProxy, {
     upstream: 'http://localhost:3001',
-    prefix: '/api/test',
-    rewritePrefix: '/test'
+    prefix: '/api/user',
+    rewritePrefix: '/user'
   });
 
   return server;
