@@ -29,13 +29,15 @@ export async function authMiddleware(
       return;
     }
 
-    const token = authHeader.substring(7);
+    if (authHeader.split(' ').length !== 2) {
+      return reply.code(400).send({ error: 'Malformed Authorization header' });
+    }
+
+    const token = authHeader.split(' ')[1];
 
     try {
       const decoded = jwt.verify(token, config.jwtSecret) as JWTPayload;
       request.user = decoded;
-
-      // Add user context to logs
       request.log.info({ userId: decoded.sub }, 'Authenticated request');
     } catch (jwtError: any) {
       if (jwtError.name === 'TokenExpiredError') {
