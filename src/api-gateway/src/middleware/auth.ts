@@ -14,48 +14,53 @@ export async function authMiddleware(
   request: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
-  try {
-    const authHeader = request.headers.authorization;
-
-    if (config.nodeEnv !== 'production' && !authHeader) {
-      request.log.debug('No Authorization header provided (non-production)');
-      request.user = undefined;
-      return;
-    }
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      // No token provided - continue as anonymous user
-      request.user = undefined;
-      return;
-    }
-
-    if (authHeader.split(' ').length !== 2) {
-      return reply.code(400).send({ error: 'Malformed Authorization header' });
-    }
-
-    const token = authHeader.split(' ')[1];
-
-    try {
-      const decoded = jwt.verify(token, config.jwtSecret) as JWTPayload;
-      request.user = decoded;
-      request.log.info({ userId: decoded.sub }, 'Authenticated request');
-    } catch (jwtError: any) {
-      if (jwtError.name === 'TokenExpiredError') {
-        request.log.warn('Expired JWT token');
-      } else {
-        request.log.warn({ error: jwtError }, 'Invalid JWT token');
-      }
-      request.user = undefined;
-    }
-  } catch (error) {
-    request.log.error({ error }, 'Auth middleware error');
+  const authHeader = request.headers.authorization;
+  if (config.nodeEnv !== 'production' && !authHeader) {
     request.user = undefined;
+    return;
+  }
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    request.user = undefined;
+    return;
+  }
+  const bearerInfo = authHeader.split(' ');
+  if (bearerInfo.length !== 2) {
+    reply.code(400).send({ error: 'Malformed Authorization header' });
+    return;
+  }
+  const token = bearerInfo[1];
+  const decoded = verifyToken(token, request);
+  if (!decoded) {
+    request.user = undefined;
+    return;
+  }
+  request.user = decoded;
+  request.log.info({ userId: decoded.sub }, 'Authenticated request');
+}
+
+// Verify JWT token and return payload or null
+export function verifyToken(token: string, request: FastifyRequest): JWTPayload | null {
+  try {
+    return jwt.verify(token, config.jwtSecret) as JWTPayload;
+  } catch (error: any) {
+    if (error.name === 'TokenExpiredError') {
+      request.log.warn('Expired JWT token');
+    } else if (error.name === 'JsonWebTokenError') {
+      request.log.warn({ error }, 'Invalid JWT token');
+    } else {
+      request.log.error({ error }, 'Unexpected JWT verification error');
+    }
+    return null;
   }
 }
 
+
 // Middleware factory: checks authentication and optionally roles
 export function authGuard(roles?: string[]) {
-  return async function middleware(request: FastifyRequest, reply: FastifyReply) {
+  return async function middleware(
+    request: FastifyRequest,
+    reply: FastifyReply
+  ) {
     if (!request.user) {
       return reply.code(401).send({ error: 'Unauthorized' });
     }
