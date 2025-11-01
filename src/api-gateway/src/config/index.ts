@@ -1,4 +1,4 @@
-import { GatewayConfig } from '../entities/common';
+import { GatewayConfig } from '../entity/common';
 
 // Determine JWT secret with proper checks
 let jwtSecret: string | undefined = process.env.JWT_SECRET;

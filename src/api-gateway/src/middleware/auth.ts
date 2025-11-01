@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
-import { JWTPayload } from '../entities';
+import { JWTPayload } from '../entity/common';
 
 // Extend FastifyRequest to include user
 declare module 'fastify' {
@@ -51,23 +51,15 @@ export async function authMiddleware(
   }
 }
 
-export const requireAuth = async (
-  request: FastifyRequest,
-  reply: FastifyReply
-) => {
-  if (!request.user) {
-    return reply.code(401).send({ error: 'Unauthorized' });
-  }
-};
-
-export const requireRole = (roles: string[]) => {
-  return async (request: FastifyRequest, reply: FastifyReply) => {
+// Middleware factory: checks authentication and optionally roles
+export function authGuard(roles?: string[]) {
+  return async function middleware(request: FastifyRequest, reply: FastifyReply) {
     if (!request.user) {
       return reply.code(401).send({ error: 'Unauthorized' });
     }
 
-    if (!roles.includes(request.user.role)) {
+    if (roles && !roles.includes(request.user.role)) {
       return reply.code(403).send({ error: 'Forbidden' });
     }
   };
-};
+}
