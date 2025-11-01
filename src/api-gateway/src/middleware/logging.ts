@@ -1,25 +1,26 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
 
+// Extend FastifyRequest to include correlationId
+declare module 'fastify' {
+  interface FastifyRequest {
+    correlationId?: string;
+  }
+}
+
 // Add correlation ID to all requests for distributed tracing
 export async function correlationIdMiddleware(
   request: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
   const correlationId =
-    (request.headers['x-correlation-id'] as string) || uuidv4();
-
-  // Add to request for use in other middleware
-  (request as any).correlationId = correlationId;
-
-  // Add to response headers
+    request.headers['x-correlation-id'] as string | undefined || uuidv4();
+  request.correlationId = correlationId;
   reply.header('x-correlation-id', correlationId);
-
-  // Add to log context
   request.log = request.log.child({ correlationId });
 }
 
-// Log all requests and responses
+// Log request details and response status
 export async function requestLoggingMiddleware(
   request: FastifyRequest,
   reply: FastifyReply
@@ -33,12 +34,13 @@ export async function requestLoggingMiddleware(
       url: request.url,
       userAgent: request.headers['user-agent'],
       userId: request.user?.sub,
-      ip: request.ip
+      ip: request.ip,
+      correlationId: request.correlationId
     },
     'Incoming request'
   );
 
-  // Hook into response to log completion
+  // Hook into response completion
   reply.raw.on('finish', () => {
     const duration = Date.now() - startTime;
 
@@ -48,7 +50,8 @@ export async function requestLoggingMiddleware(
         url: request.url,
         statusCode: reply.raw.statusCode,
         duration,
-        userId: request.user?.sub
+        userId: request.user?.sub,
+        correlationId: request.correlationId
       },
       'Request completed'
     );
