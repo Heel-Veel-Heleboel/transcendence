@@ -6,7 +6,7 @@ import { JWTPayload } from '../entity/common';
 // Extend FastifyRequest to include user
 declare module 'fastify' {
   interface FastifyRequest {
-    user?: JWTPayload | undefined;
+    user?: JWTPayload;
   }
 }
 
