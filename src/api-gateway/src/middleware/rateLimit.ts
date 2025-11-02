@@ -45,10 +45,14 @@ function parseTimeWindow(timeWindow: string): number {
   const unit = match[2].toLowerCase();
 
   switch (unit) {
-    case 'second': return value * 1000;
-    case 'minute': return value * 60 * 1000;
-    case 'hour': return value * 60 * 60 * 1000;
-    default: throw new Error(`Unknown unit: ${unit}`);
+    case 'second':
+      return value * 1000;
+    case 'minute':
+      return value * 60 * 1000;
+    case 'hour':
+      return value * 60 * 60 * 1000;
+    default:
+      throw new Error(`Unknown unit: ${unit}`);
   }
 }
 
@@ -70,14 +74,16 @@ export async function rateLimitMiddleware(
           statusCode: 429,
           error: 'Too Many Requests',
           message: `Rate limit exceeded for ${endpoint}`,
-          retryAfter: Math.ceil(windowMs / 1000),
+          retryAfter: Math.ceil(windowMs / 1000)
         });
         return;
       }
     }
 
     // Check global/user limits
-    const userLimit = request.user ? config.rateLimits.authenticated : config.rateLimits.global;
+    const userLimit = request.user
+      ? config.rateLimits.authenticated
+      : config.rateLimits.global;
     const windowMs = parseTimeWindow(userLimit.timeWindow);
     const key = `user:${clientId}`;
 
@@ -86,7 +92,7 @@ export async function rateLimitMiddleware(
         statusCode: 429,
         error: 'Too Many Requests',
         message: 'Rate limit exceeded',
-        retryAfter: Math.ceil(windowMs / 1000),
+        retryAfter: Math.ceil(windowMs / 1000)
       });
       return;
     }
