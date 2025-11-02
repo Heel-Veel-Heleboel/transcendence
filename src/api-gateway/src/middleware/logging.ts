@@ -14,7 +14,7 @@ export async function correlationIdMiddleware(
   reply: FastifyReply
 ): Promise<void> {
   const correlationId =
-    request.headers['x-correlation-id'] as string | undefined || uuidv4();
+    (request.headers['x-correlation-id'] as string | undefined) || uuidv4();
   request.correlationId = correlationId;
   reply.header('x-correlation-id', correlationId);
   request.log = request.log.child({ correlationId });
