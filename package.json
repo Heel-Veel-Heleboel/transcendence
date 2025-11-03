@@ -13,6 +13,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:user": "vitest run test/user-service/",
     "test:watch": "vitest --watch",
     "lint": "eslint src/**/src/**/*.ts test/**/*.ts --ext .ts",
     "lint:fix": "eslint src/**/src/**/*.ts test/**/*.ts --ext .ts --fix",
