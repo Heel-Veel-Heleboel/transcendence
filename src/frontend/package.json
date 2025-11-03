@@ -5,7 +5,13 @@
   "description": "frontend for Transcendance microservices architecture using Typescript",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node ./dist/index.js",
+    "webserver": "python3 -m http.server",
+    "make": "npm run build && npm run webserver",
+    "clean": "rm -rf ./dist/"
   },
   "keywords": [],
   "author": "",
