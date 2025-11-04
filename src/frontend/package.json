@@ -1,11 +1,14 @@
 {
   "name": "frontend",
   "version": "1.0.0",
-  "type" : "module",
+  "type": "module",
   "description": "frontend for Transcendance microservices architecture using Typescript",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest --watch",
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node ./dist/index.js",
@@ -15,5 +18,8 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "vitest": "^4.0.6"
+  }
 }
