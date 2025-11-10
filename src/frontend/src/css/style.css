@@ -1,5 +1,5 @@
 body {
-    background-color: #ADA0FF
+    background-color: rgba(0, 0, 0, 0);
 }
 
 #bgVideo{
@@ -16,6 +16,10 @@ div.main_div{
 
 div.video_div{
   position: fixed; 
+  right: 0;
+  bottom: 0;
+  min-width: 100%;
+  min-height: 100%;
   z-index: -1; 
 }
 
