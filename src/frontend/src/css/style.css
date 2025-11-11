@@ -1,3 +1,8 @@
+@font-face{
+    font-family: Monofett;
+    src: url('../../public/Monofett-Regular.ttf')
+}
+
 body {
     background-color: rgba(0, 0, 0, 0);
 }
@@ -47,8 +52,9 @@ div.title{
 }
 
 div.title h1{
-    font-size: 4em;
-    color: #FF2A00
+    font-size: 6em;
+    color: #fF2A00;
+    font-family: Monofett;
 }
 
 div.options_container{
