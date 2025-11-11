@@ -60,6 +60,8 @@ div.image_container > img{
     justify-content: center;
     margin-left: auto;
     margin-right: auto;
+    opacity: 0.95;
+    filter: contrast(200%);
 }
 
 div.option{
