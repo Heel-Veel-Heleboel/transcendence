@@ -15,7 +15,7 @@ export async function healthRoutes(fastify: FastifyInstance): Promise<void> {
  * Register simple gateway health check route
  */
 function registerGatewayHealthRoute(fastify: FastifyInstance): void {
-  fastify.get('/health', async (request, reply) => {
+  fastify.get('/health', async (_request, _reply) => {
     return {
       status: 'healthy',
       service: 'api-gateway',
@@ -30,9 +30,11 @@ function registerGatewayHealthRoute(fastify: FastifyInstance): void {
  * Register detailed health check route including all services
  */
 function registerDetailedHealthRoute(fastify: FastifyInstance): void {
-  fastify.get('/health/detailed', async (request, reply) => {
+  fastify.get('/health/detailed', async (_request, _reply) => {
     const services = await checkAllServicesHealth();
-    const overallStatus = services.every(s => s.status === 'healthy') ? 'healthy' : 'degraded';
+    const overallStatus = services.every(s => s.status === 'healthy')
+      ? 'healthy'
+      : 'degraded';
 
     return {
       status: overallStatus,
@@ -50,12 +52,14 @@ function registerDetailedHealthRoute(fastify: FastifyInstance): void {
  */
 async function checkAllServicesHealth(): Promise<ServiceHealth[]> {
   const serviceHealthChecks = await Promise.allSettled(
-    config.services.map(service => checkServiceHealth(service.name, service.upstream))
+    config.services.map(service =>
+      checkServiceHealth(service.name, service.upstream)
+    )
   );
 
   return serviceHealthChecks.map((result, index) => {
     const service = config.services[index];
-    
+
     if (result.status === 'fulfilled') {
       return result.value;
     } else {
@@ -72,24 +76,32 @@ async function checkAllServicesHealth(): Promise<ServiceHealth[]> {
 /**
  * Check health of a single service
  */
-async function checkServiceHealth(serviceName: string, upstream: string): Promise<ServiceHealth> {
+async function checkServiceHealth(
+  serviceName: string,
+  upstream: string
+): Promise<ServiceHealth> {
   const startTime = Date.now();
-  
+
   try {
     const response = await axios.get(`${upstream}/health`, {
       timeout: 3000,
-      validateStatus: (status) => status < 500 // Accept 4xx as healthy
+      validateStatus: status => status < 500 // Accept 4xx as healthy
     });
-    
+
     const responseTime = Date.now() - startTime;
     const isHealthy = response.status < 400;
-    
+
     return createServiceHealthResponse(serviceName, isHealthy, responseTime);
   } catch (error: unknown) {
     const responseTime = Date.now() - startTime;
     const errorMessage = extractErrorMessage(error);
-    
-    return createServiceHealthResponse(serviceName, false, responseTime, errorMessage);
+
+    return createServiceHealthResponse(
+      serviceName,
+      false,
+      responseTime,
+      errorMessage
+    );
   }
 }
 
@@ -122,5 +134,3 @@ function createServiceHealthResponse(
 function extractErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Unknown error';
 }
-
-

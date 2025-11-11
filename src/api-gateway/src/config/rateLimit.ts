@@ -12,12 +12,16 @@ export function getRateLimitConfig(): RateLimitConfig {
       if (rateLimitsJson && typeof rateLimitsJson === 'object') {
         return {
           global: rateLimitsJson.global || getDefaultGlobal(),
-          authenticated: rateLimitsJson.authenticated || getDefaultAuthenticated(),
+          authenticated:
+            rateLimitsJson.authenticated || getDefaultAuthenticated(),
           endpoints: rateLimitsJson.endpoints || getDefaultEndpoints()
         };
       }
     } catch (error) {
-      console.warn('[WARNING] Failed to parse RATE_LIMITS JSON, falling back to defaults:', error);
+      console.warn(
+        '[WARNING] Failed to parse RATE_LIMITS JSON, falling back to defaults:',
+        error
+      );
     }
   }
 
@@ -40,11 +44,14 @@ export function getRateLimitConfig(): RateLimitConfig {
 /**
  * Parse endpoint-specific rate limits from environment variables.
  * Pattern: RATE_LIMIT_ENDPOINT_<ENDPOINT_PATH>_MAX and RATE_LIMIT_ENDPOINT_<ENDPOINT_PATH>_WINDOW
- * Example: 
+ * Example:
  *   - RATE_LIMIT_ENDPOINT_/api/auth/login_MAX=10
  *   - RATE_LIMIT_ENDPOINT_API_AUTH_LOGIN_MAX=10 (underscores converted to slashes)
  */
-function getEndpointRateLimits(): Record<string, { max: number; timeWindow: string }> {
+function getEndpointRateLimits(): Record<
+  string,
+  { max: number; timeWindow: string }
+  > {
   const endpoints: Record<string, { max: number; timeWindow: string }> = {};
 
   // Look for endpoint-specific rate limit env vars
@@ -58,9 +65,9 @@ function getEndpointRateLimits(): Record<string, { max: number; timeWindow: stri
       if (!endpointPath.startsWith('/')) {
         endpointPath = '/' + endpointPath.toLowerCase().replace(/_/g, '/');
       }
-      
+
       const max = parseInt(value || '100');
-      
+
       // Look for corresponding window config
       const windowKey = `RATE_LIMIT_ENDPOINT_${maxMatch[1]}_WINDOW`;
       const timeWindow = process.env[windowKey] || '1 minute';
@@ -97,7 +104,10 @@ function getDefaultAuthenticated(): { max: number; timeWindow: string } {
 /**
  * Get default endpoint-specific rate limit configuration
  */
-function getDefaultEndpoints(): Record<string, { max: number; timeWindow: string }> {
+function getDefaultEndpoints(): Record<
+  string,
+  { max: number; timeWindow: string }
+  > {
   return {
     '/api/auth/login': {
       max: 10,
@@ -117,4 +127,3 @@ function getDefaultEndpoints(): Record<string, { max: number; timeWindow: string
     }
   };
 }
-
