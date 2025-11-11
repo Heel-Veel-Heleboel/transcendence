@@ -8,7 +8,7 @@
   </head>
   <body>
     <div id="app"></div>
-    <!-- <script type="module" src="/src/main.ts"></script> -->
+    <script type="module" src="/src/main.ts"></script>
     <main>
       <div class="main_div">
         <div class="video_div">
@@ -22,12 +22,14 @@
         </div>
         <div class="options_container">
           <div class="option">
-            <button class="option_button">[something cool]</button>
+            <button id="optionCool" class="option_button">
+              [something cool]
+            </button>
           </div>
-          <div class="option">
+          <div id="optionStart" class="option">
             <button class="option_button">Press X to start</button>
           </div>
-          <div class="option">
+          <div id="optionLogin" class="option">
             <button class="option_button">login</button>
           </div>
         </div>
