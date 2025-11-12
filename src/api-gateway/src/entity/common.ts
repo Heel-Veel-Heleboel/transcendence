@@ -7,6 +7,11 @@ export interface ServiceConfig {
   rewritePrefix?: string;
   timeout?: number;
   retries?: number;
+  // Route configuration
+  requiresAuth?: boolean; // Whether this service requires authentication
+  requiresAuthRoles?: string[]; // Optional: specific roles required (only if requiresAuth is true)
+  websocket?: boolean; // Whether this service supports WebSocket connections
+  websocketPath?: string; // Optional: custom WebSocket path (defaults to prefix if websocket is true)
 }
 
 export interface GatewayConfig {

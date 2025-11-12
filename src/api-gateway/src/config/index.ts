@@ -1,4 +1,6 @@
 import { GatewayConfig } from '../entity/common';
+import { getServicesConfig } from './service';
+import { getRateLimitConfig } from './rateLimit';
 
 // Determine JWT secret with proper checks
 let jwtSecret: string | undefined = process.env.JWT_SECRET;
@@ -22,93 +24,8 @@ export const config: GatewayConfig = {
   host: process.env.HOST || '0.0.0.0',
   nodeEnv,
   jwtSecret,
-
-  // Service configurations
-  services: [
-    {
-      name: 'user-service',
-      upstream: process.env.USER_SERVICE_URL || 'http://user-service:3001',
-      prefix: '/api/users',
-      rewritePrefix: '/users',
-      timeout: 5000,
-      retries: 3
-    },
-    {
-      name: 'game-service',
-      upstream: process.env.GAME_SERVICE_URL || 'http://game-service:3002',
-      prefix: '/api/games',
-      rewritePrefix: '/games',
-      timeout: 10000,
-      retries: 2
-    },
-    {
-      name: 'matchmaking-service',
-      upstream:
-        process.env.MATCHMAKING_SERVICE_URL ||
-        'http://matchmaking-service:3003',
-      prefix: '/api/matchmaking',
-      rewritePrefix: '/matchmaking',
-      timeout: 5000,
-      retries: 3
-    },
-    {
-      name: 'chat-service',
-      upstream: process.env.CHAT_SERVICE_URL || 'http://chat-service:3004',
-      prefix: '/api/chat',
-      rewritePrefix: '/chat',
-      timeout: 3000,
-      retries: 2
-    },
-    {
-      name: 'tournament-service',
-      upstream:
-        process.env.TOURNAMENT_SERVICE_URL || 'http://tournament-service:3005',
-      prefix: '/api/tournaments',
-      rewritePrefix: '/tournaments',
-      timeout: 5000,
-      retries: 3
-    },
-    {
-      name: 'localization-service',
-      upstream:
-        process.env.LOCALIZATION_SERVICE_URL ||
-        'http://localization-service:3006',
-      prefix: '/api/localization',
-      rewritePrefix: '/localization',
-      timeout: 2000,
-      retries: 1
-    }
-  ],
-
-  // Rate limiting configuration
-  rateLimits: {
-    global: {
-      max: 1000,
-      timeWindow: '1 minute'
-    },
-    authenticated: {
-      max: 2000,
-      timeWindow: '1 minute'
-    },
-    endpoints: {
-      '/api/auth/login': {
-        max: 10,
-        timeWindow: '1 minute'
-      },
-      '/api/games': {
-        max: 500,
-        timeWindow: '1 minute'
-      },
-      '/api/users': {
-        max: 100,
-        timeWindow: '1 minute'
-      },
-      '/api/chat': {
-        max: 200,
-        timeWindow: '1 minute'
-      }
-    }
-  }
+  services: getServicesConfig(),
+  rateLimits: getRateLimitConfig()
 };
 
 // Validate required environment variables
