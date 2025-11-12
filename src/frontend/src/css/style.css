@@ -1,6 +1,6 @@
 @font-face{
     font-family: Monofett;
-    src: url('../../public/Monofett-Regular.ttf')
+    src: url('/Monofett-Regular.ttf')
 }
 
 body {
