@@ -1,0 +1,33 @@
+div.main{
+    height: 100%;
+    width: 100%;
+}
+
+div.toolbar{
+    height: 10%;
+    width: 100%;
+    padding: 10px;
+    margin: 10px;
+    border: 10px;
+    background-color: #FF00FF
+}
+
+div.icon {
+    padding: 10px;
+    margin: 10px;
+}
+
+div.pong{
+    height: 10%;
+    width: 100%;
+    background-color: #FFFF00;
+}
+
+div.pong > section{
+    display: flex;
+}
+
+div.toolbar > section {
+    display: flex;
+    justify-content: right;
+}

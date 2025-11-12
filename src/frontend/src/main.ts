@@ -12,7 +12,7 @@ const initApp = (): void => {
   document
     .getElementById('optionLogin')
     ?.addEventListener('click', function () {
-      window.location.href = 'https://ra.co/';
+      window.location.href = 'src/menu.html';
     });
 };
 
