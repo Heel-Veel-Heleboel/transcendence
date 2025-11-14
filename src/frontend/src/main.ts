@@ -6,7 +6,7 @@ const initApp = (): void => {
   document
     .getElementById('optionStart')
     ?.addEventListener('click', function () {
-      window.location.href = 'https://www.ad.nl/';
+      window.location.href = 'src/game.html';
     });
 
   document
