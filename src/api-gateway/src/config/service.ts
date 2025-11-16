@@ -1,117 +1,148 @@
+import fs from 'fs';
+import { z } from 'zod';
 import { ServiceConfig } from '../entity/common';
 
-/**
- * Parse services from environment variables.
- * Supports two formats:
- * 1. JSON array in SERVICES env var: SERVICES='[{"name":"user-service","upstream":"http://...",...}]'
- * 2. Individual service vars: USER_SERVICE_URL, USER_SERVICE_PREFIX, etc.
- */
-export function parseServicesFromEnv(): ServiceConfig[] {
-  const services: ServiceConfig[] = [];
+// Minimal zod schema to validate core types after normalization
+const serviceSchema = z.object({
+  name: z.string(),
+  upstream: z.string(),
+  prefix: z.string().optional(),
+  rewritePrefix: z.string().optional(),
+  timeout: z.number().int().optional(),
+  retries: z.number().int().optional(),
+  requiresAuth: z.boolean().optional(),
+  requiresAuthRoles: z.array(z.string()).optional(),
+  websocket: z.boolean().optional(),
+  websocketPath: z.string().optional()
+});
 
-  if (process.env.SERVICES) {
-    try {
-      const servicesJson = JSON.parse(process.env.SERVICES);
-      if (Array.isArray(servicesJson)) {
-        return servicesJson.map((service: any) => ({
-          name: service.name || 'unknown-service',
-          upstream: service.upstream || service.url || '',
-          prefix:
-            service.prefix || `/api/${service.name.replace('-service', '')}`,
-          rewritePrefix:
-            service.rewritePrefix ||
-            service.rewrite ||
-            service.prefix?.replace('/api/', '') ||
-            '',
-          timeout:
-            service.timeout || parseInt(process.env.DEFAULT_TIMEOUT || '5000'),
-          retries:
-            service.retries || parseInt(process.env.DEFAULT_RETRIES || '2'),
-          requiresAuth: service.requiresAuth ?? service.auth ?? false,
-          requiresAuthRoles:
-            service.requiresAuthRoles || service.roles || undefined,
-          websocket: service.websocket ?? service.ws ?? false,
-          websocketPath: service.websocketPath || service.wsPath || undefined
-        }));
-      }
-    } catch (error) {
-      console.warn(
-        '[WARNING] Failed to parse SERVICES JSON, falling back to individual service vars:',
-        error
-      );
-    }
+function normalizeService(raw: any): ServiceConfig | null {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const name = (raw.name || raw.service || 'unknown-service').toString();
+  const upstream = (raw.upstream || raw.url || '').toString();
+  if (!upstream) {
+    console.warn(`[WARNING] Skipping service ${name}: missing upstream/url`);
+    return null;
   }
 
-  // Method 2: Individual service environment variables
-  // Pattern: <SERVICE_NAME>_SERVICE_URL=<url>
-  // Optional: <SERVICE_NAME>_SERVICE_PREFIX, <SERVICE_NAME>_SERVICE_REWRITE, etc.
-  const serviceNames = new Set<string>();
+  const prefix = raw.prefix || `/api/${name.replace(/-service$/, '')}`;
+  const rewritePrefix =
+    raw.rewritePrefix ?? raw.rewrite ?? (typeof raw.prefix === 'string' ? raw.prefix.replace('/api/', '') : prefix.replace('/api/', ''));
 
-  // Extract service names from env vars matching pattern: <NAME>_SERVICE_URL
-  for (const [key] of Object.entries(process.env)) {
-    const match = key.match(/^([A-Z_]+)_SERVICE_URL$/);
-    if (match) {
-      serviceNames.add(match[1].toLowerCase());
-    }
+  const timeout = raw.timeout !== undefined ? Number(raw.timeout) : undefined;
+  const retries = raw.retries !== undefined ? Number(raw.retries) : undefined;
+
+  const requiresAuth = raw.requiresAuth ?? raw.auth ?? false;
+
+  let requiresAuthRoles: string[] | undefined;
+  if (raw.requiresAuthRoles) {
+    requiresAuthRoles = Array.isArray(raw.requiresAuthRoles)
+      ? raw.requiresAuthRoles.map((r: any) => String(r))
+      : String(raw.requiresAuthRoles).split(',').map((r: string) => r.trim());
+  } else if (raw.roles) {
+    requiresAuthRoles = String(raw.roles).split(',').map((r: string) => r.trim());
   }
 
-  // Build service configs from individual env vars
-  for (const serviceName of serviceNames) {
-    const upstream = process.env[`${serviceName}_SERVICE_URL`];
-    if (!upstream) {
-      continue; // Skip if no URL defined
-    }
+  const websocket = raw.websocket ?? raw.ws ?? false;
+  const websocketPath = raw.websocketPath || raw.wsPath || undefined;
 
-    const prefixEnv = process.env[`${serviceName}_SERVICE_PREFIX`];
-    const rewriteEnv = process.env[`${serviceName}_SERVICE_REWRITE`];
-    const timeoutEnv = process.env[`${serviceName}_SERVICE_TIMEOUT`];
-    const retriesEnv = process.env[`${serviceName}_SERVICE_RETRIES`];
-    const requiresAuthEnv = process.env[`${serviceName}_SERVICE_AUTH`];
-    const requiresAuthRolesEnv = process.env[`${serviceName}_SERVICE_ROLES`];
-    const websocketEnv = process.env[`${serviceName}_SERVICE_WEBSOCKET`];
-    const websocketPathEnv =
-      process.env[`${serviceName}_SERVICE_WEBSOCKET_PATH`];
-
-    // Default prefix: /api/{service-name-without-service-suffix}
-    const defaultPrefix =
-      prefixEnv ||
-      `/api/${serviceName.replace(/_/g, '-').replace(/-service$/, '')}`;
-
-    // Default rewrite: remove /api prefix
-    const defaultRewrite =
-      rewriteEnv !== undefined
-        ? rewriteEnv
-        : defaultPrefix.replace('/api/', '');
-
-    services.push({
-      name: serviceName.replace(/_/g, '-'),
+  // Validate (soft) with zod: log validation errors but continue (fail-open)
+  try {
+    serviceSchema.parse({
+      name,
       upstream,
-      prefix: defaultPrefix,
-      rewritePrefix: defaultRewrite,
-      timeout: timeoutEnv
-        ? parseInt(timeoutEnv)
-        : parseInt(process.env.DEFAULT_TIMEOUT || '5000'),
-      retries: retriesEnv
-        ? parseInt(retriesEnv)
-        : parseInt(process.env.DEFAULT_RETRIES || '2'),
-      requiresAuth: requiresAuthEnv
-        ? requiresAuthEnv.toLowerCase() === 'true'
-        : undefined,
-      requiresAuthRoles: requiresAuthRolesEnv
-        ? requiresAuthRolesEnv.split(',').map(r => r.trim())
-        : undefined,
-      websocket: websocketEnv
-        ? websocketEnv.toLowerCase() === 'true'
-        : undefined,
-      websocketPath: websocketPathEnv || undefined
+      prefix,
+      rewritePrefix,
+      timeout: timeout !== undefined ? Number(timeout) : undefined,
+      retries: retries !== undefined ? Number(retries) : undefined,
+      requiresAuth: Boolean(requiresAuth),
+      requiresAuthRoles,
+      websocket: Boolean(websocket),
+      websocketPath
     });
+  } catch (e) {
+    console.warn(`[WARNING] Service ${name} failed schema validation:`, e);
+    // continue — we still return normalized object if it has required fields
   }
 
-  return services;
+  const svc: ServiceConfig = {
+    name: name.replace(/_/g, '-'),
+    upstream,
+    prefix,
+    rewritePrefix,
+    timeout: timeout !== undefined ? Number(timeout) : undefined,
+    retries: retries !== undefined ? Number(retries) : undefined,
+    requiresAuth: requiresAuth === true || String(requiresAuth) === 'true' ? true : undefined,
+    requiresAuthRoles,
+    websocket: websocket === true || String(websocket) === 'true' ? true : undefined,
+    websocketPath
+  };
+
+  return svc;
+}
+
+function parseJsonServicesInput(input: any, source: string): ServiceConfig[] {
+  const out: ServiceConfig[] = [];
+  if (!input) return out;
+  if (!Array.isArray(input)) {
+    console.warn(`[WARNING] ${source} must be a JSON array of services`);
+    return out;
+  }
+
+  input.forEach((raw: any, idx: number) => {
+    const s = normalizeService(raw);
+    if (s) out.push(s);
+    else console.warn(`[WARNING] Skipping invalid service at index ${idx} in ${source}`);
+  });
+
+  return out;
 }
 
 /**
- * Get default services (fallback when no env vars are set)
+ * Parse services from configuration sources.
+ * Precedence: SERVICES_FILE -> SERVICES env var -> [] (caller may fallback to defaults)
+ * Fail-open: on errors we log and continue to next source.
+ */
+export function parseServicesFromEnv(): ServiceConfig[] {
+  // 1) File mounted JSON if SERVICES_FILE is set
+  const servicesFromFile: ServiceConfig[] = [];
+  const servicesFile = process.env.SERVICES_FILE;
+  if (servicesFile) {
+    try {
+      if (fs.existsSync(servicesFile)) {
+        const raw = fs.readFileSync(servicesFile, 'utf8');
+        const parsed = JSON.parse(raw);
+        const parsedServices = parseJsonServicesInput(parsed, `SERVICES_FILE(${servicesFile})`);
+        if (parsedServices.length > 0) return parsedServices;
+        console.warn(`[WARNING] No valid services parsed from ${servicesFile}`);
+      } else {
+        console.warn(`[WARNING] SERVICES_FILE is set but file does not exist: ${servicesFile}`);
+      }
+    } catch (err) {
+      console.warn(`[WARNING] Failed to read/parse SERVICES_FILE ${servicesFile}:`, err);
+      // fail-open: continue to next source
+    }
+  }
+
+  // 2) SERVICES env var
+  if (process.env.SERVICES) {
+    try {
+      const parsed = JSON.parse(process.env.SERVICES);
+      const parsedServices = parseJsonServicesInput(parsed, 'SERVICES env var');
+      if (parsedServices.length > 0) return parsedServices;
+      console.warn('[WARNING] No valid services parsed from SERVICES env var');
+    } catch (err) {
+      console.warn('[WARNING] Failed to parse SERVICES env var JSON:', err);
+    }
+  }
+
+  // 3) No env-defined services — return empty so caller can fall back to defaults
+  return [];
+}
+
+/**
+ * Get default services (fallback when no env vars or files are set)
  */
 export function getDefaultServices(): ServiceConfig[] {
   return [
@@ -168,12 +199,12 @@ export function getDefaultServices(): ServiceConfig[] {
 
 /**
  * Merge environment-defined services with defaults.
- * Env services take priority, defaults fill in gaps.
+ * Env/file services take priority, defaults fill in gaps.
  */
 export function getServicesConfig(): ServiceConfig[] {
   const envServices = parseServicesFromEnv();
 
-  // If services are defined in env, use them
+  // If services are defined in env/file, use them
   if (envServices.length > 0) {
     return envServices;
   }

@@ -1,5 +1,4 @@
 import { FastifyInstance } from 'fastify';
-import axios from 'axios';
 import { config } from '../config';
 import { ServiceHealth } from '../entity/common';
 
@@ -74,25 +73,29 @@ async function checkAllServicesHealth(): Promise<ServiceHealth[]> {
 }
 
 /**
- * Check health of a single service
+ * Check health of a single service using native fetch with timeout via AbortController
  */
 async function checkServiceHealth(
   serviceName: string,
   upstream: string
 ): Promise<ServiceHealth> {
   const startTime = Date.now();
+  const timeoutMs = 3000;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await axios.get(`${upstream}/health`, {
-      timeout: 3000,
-      validateStatus: status => status < 500 // Accept 4xx as healthy
+    const response = await fetch(`${upstream}/health`, {
+      signal: controller.signal
     });
 
+    clearTimeout(timeout);
     const responseTime = Date.now() - startTime;
-    const isHealthy = response.status < 400;
+    const isHealthy = response.status < 500; // Accept 4xx as healthy for availability
 
     return createServiceHealthResponse(serviceName, isHealthy, responseTime);
   } catch (error: unknown) {
+    clearTimeout(timeout);
     const responseTime = Date.now() - startTime;
     const errorMessage = extractErrorMessage(error);
 
@@ -132,5 +135,8 @@ function createServiceHealthResponse(
  * Extract error message from unknown error type
  */
 function extractErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'Unknown error';
+  if (error instanceof Error) return error.message;
+  // Node's AbortController throws a DOMException/AbortError which may not be an Error instance
+  if ((error as any)?.name === 'AbortError') return 'timeout';
+  return 'Unknown error';
 }

@@ -9,14 +9,16 @@ describe("Configuration loading", () => {
     expect(config.nodeEnv).toBe("development");
   });
 
-  // Need to fix parsing of the SERVICES env vars
-//   it("loads service configurations from environment variables", async () => {
-//     process.env.USER_SERVICE_URL = 'http://localhost:9001';
-//     vi.resetModules();
-//     const { config } = await import('../../../src/api-gateway/src/config/index');
-//     const userService = config.services.find(s => s.name === 'user-service');
-//     expect(userService?.upstream).toBe('http://localhost:9001');
-//   });
+  // Updated: use SERVICES JSON env var instead of individual USER_SERVICE_URL
+  it("loads service configurations from environment variables", async () => {
+    process.env.SERVICES = JSON.stringify([
+      { name: 'user-service', upstream: 'http://localhost:9001' }
+    ]);
+    vi.resetModules();
+    const { config } = await import('../../../src/api-gateway/src/config/index');
+    const userService = config.services.find(s => s.name === 'user-service');
+    expect(userService?.upstream).toBe('http://localhost:9001');
+  });
 
   it("handles invalid environment variable formats gracefully", async () => {
     process.env.PORT = 'not-a-number';

@@ -93,7 +93,9 @@ async function registerHttpProxy(
   await fastify.register(httpProxy, {
     upstream: service.upstream,
     prefix: service.prefix,
-    rewritePrefix: service.rewritePrefix || ''
+    rewritePrefix: service.rewritePrefix || '',
+    proxyTimeout: service.timeout || 5000,
+    timeout: service.timeout || 5000,
   });
 }
 

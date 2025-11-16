@@ -1,3 +1,5 @@
+import fs from 'fs';
+import { z } from 'zod';
 import { RateLimitConfig } from '../entity/common';
 
 /**
@@ -5,27 +7,38 @@ import { RateLimitConfig } from '../entity/common';
  * Supports JSON configuration or individual env vars.
  */
 export function getRateLimitConfig(): RateLimitConfig {
-  // Method 1: JSON configuration (highest priority)
-  if (process.env.RATE_LIMITS) {
+  // 1) File-mounted JSON if RATE_LIMITS_FILE is set
+  const limitsFile = process.env.RATE_LIMITS_FILE;
+  if (limitsFile) {
     try {
-      const rateLimitsJson = JSON.parse(process.env.RATE_LIMITS);
-      if (rateLimitsJson && typeof rateLimitsJson === 'object') {
-        return {
-          global: rateLimitsJson.global || getDefaultGlobal(),
-          authenticated:
-            rateLimitsJson.authenticated || getDefaultAuthenticated(),
-          endpoints: rateLimitsJson.endpoints || getDefaultEndpoints()
-        };
+      if (fs.existsSync(limitsFile)) {
+        const raw = fs.readFileSync(limitsFile, 'utf8');
+        const parsed = JSON.parse(raw);
+        const cfg = parseJsonRateLimitsInput(parsed, `RATE_LIMITS_FILE(${limitsFile})`);
+        if (cfg) return cfg;
+        console.warn(`[WARNING] No valid rate limits parsed from ${limitsFile}`);
+      } else {
+        console.warn(`[WARNING] RATE_LIMITS_FILE is set but file does not exist: ${limitsFile}`);
       }
-    } catch (error) {
-      console.warn(
-        '[WARNING] Failed to parse RATE_LIMITS JSON, falling back to defaults:',
-        error
-      );
+    } catch (err) {
+      console.warn(`[WARNING] Failed to read/parse RATE_LIMITS_FILE ${limitsFile}:`, err);
+      // fail-open: continue to next source
     }
   }
 
-  // Method 2: Individual environment variables
+  // 2) RATE_LIMITS env var (JSON)
+  if (process.env.RATE_LIMITS) {
+    try {
+      const parsed = JSON.parse(process.env.RATE_LIMITS);
+      const cfg = parseJsonRateLimitsInput(parsed, 'RATE_LIMITS env var');
+      if (cfg) return cfg;
+      console.warn('[WARNING] No valid rate limits parsed from RATE_LIMITS env var');
+    } catch (err) {
+      console.warn('[WARNING] Failed to parse RATE_LIMITS JSON, falling back to env vars:', err);
+    }
+  }
+
+  // 3) Individual environment variables fallback (keep existing behavior)
   const config: RateLimitConfig = {
     global: {
       max: parseInt(process.env.RATE_LIMIT_GLOBAL_MAX || '1000'),
@@ -126,4 +139,68 @@ function getDefaultEndpoints(): Record<
       timeWindow: '1 minute'
     }
   };
+}
+
+// Zod schema for rate limit config (soft validation)
+const endpointLimitSchema = z.object({
+  max: z.number().int(),
+  timeWindow: z.string()
+});
+
+const rateLimitSchema = z.object({
+  global: endpointLimitSchema.optional(),
+  authenticated: endpointLimitSchema.optional(),
+  endpoints: z.record(endpointLimitSchema).optional()
+});
+
+function parseJsonRateLimitsInput(input: any, source: string): RateLimitConfig | null {
+  if (!input || typeof input !== 'object') {
+    console.warn(`[WARNING] ${source} must be an object`);
+    return null;
+  }
+
+  // Safe parse with zod — if it fails, we log but attempt to coerce basic fields
+  const parsed = rateLimitSchema.safeParse(input);
+  if (parsed.success) {
+    const value = parsed.data;
+    return {
+      global: value.global || getDefaultGlobal(),
+      authenticated: value.authenticated || getDefaultAuthenticated(),
+      endpoints: value.endpoints || getDefaultEndpoints()
+    };
+  }
+
+  console.warn(`[WARNING] ${source} failed schema validation:`, parsed.error);
+
+  // Attempt to coerce minimally: pick values if present, otherwise fall back to defaults
+  try {
+    const global = input.global
+      ? { max: Number(input.global.max) || getDefaultGlobal().max, timeWindow: String(input.global.timeWindow || getDefaultGlobal().timeWindow) }
+      : getDefaultGlobal();
+
+    const authenticated = input.authenticated
+      ? { max: Number(input.authenticated.max) || getDefaultAuthenticated().max, timeWindow: String(input.authenticated.timeWindow || getDefaultAuthenticated().timeWindow) }
+      : getDefaultAuthenticated();
+
+    const endpointsRaw = input.endpoints || {};
+    const endpoints: Record<string, { max: number; timeWindow: string }> = {};
+    if (typeof endpointsRaw === 'object') {
+      for (const [path, val] of Object.entries(endpointsRaw)) {
+        try {
+          const max = Number((val as any).max) || 100;
+          const timeWindow = String((val as any).timeWindow || '1 minute');
+          endpoints[path] = { max, timeWindow };
+        } catch (e) {
+          console.warn(`[WARNING] Skipping invalid endpoint limit for ${path} in ${source}`);
+        }
+      }
+    }
+
+    const mergedEndpoints = { ...getDefaultEndpoints(), ...endpoints };
+
+    return { global, authenticated, endpoints: mergedEndpoints };
+  } catch (e) {
+    console.warn(`[WARNING] Failed to coerce ${source} into RateLimitConfig:`, e);
+    return null;
+  }
 }
