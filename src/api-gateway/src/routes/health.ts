@@ -1,3 +1,4 @@
+/* global fetch, AbortController, setTimeout, clearTimeout */
 import { FastifyInstance } from 'fastify';
 import { config } from '../config';
 import { ServiceHealth } from '../entity/common';
@@ -50,26 +51,29 @@ function registerDetailedHealthRoute(fastify: FastifyInstance): void {
  * Check health of all configured services
  */
 async function checkAllServicesHealth(): Promise<ServiceHealth[]> {
-  const serviceHealthChecks = await Promise.allSettled(
-    config.services.map(service =>
-      checkServiceHealth(service.name, service.upstream)
-    )
-  );
+  const serviceHealthChecks: PromiseSettledResult<ServiceHealth>[] =
+    await Promise.allSettled(
+      config.services.map(service =>
+        checkServiceHealth(service.name, service.upstream)
+      )
+    );
 
-  return serviceHealthChecks.map((result, index) => {
-    const service = config.services[index];
+  return serviceHealthChecks.map(
+    (result: PromiseSettledResult<ServiceHealth>, index: number) => {
+      const service = config.services[index];
 
-    if (result.status === 'fulfilled') {
-      return result.value;
-    } else {
-      return {
-        service: service.name,
-        status: 'unhealthy',
-        timestamp: new Date().toISOString(),
-        error: extractErrorMessage(result.reason)
-      };
+      if (result.status === 'fulfilled') {
+        return result.value;
+      } else {
+        return {
+          service: service.name,
+          status: 'unhealthy',
+          timestamp: new Date().toISOString(),
+          error: extractErrorMessage(result.reason)
+        };
+      }
     }
-  });
+  );
 }
 
 /**

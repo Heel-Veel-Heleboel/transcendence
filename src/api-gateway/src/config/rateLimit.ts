@@ -14,14 +14,24 @@ export function getRateLimitConfig(): RateLimitConfig {
       if (fs.existsSync(limitsFile)) {
         const raw = fs.readFileSync(limitsFile, 'utf8');
         const parsed = JSON.parse(raw);
-        const cfg = parseJsonRateLimitsInput(parsed, `RATE_LIMITS_FILE(${limitsFile})`);
+        const cfg = parseJsonRateLimitsInput(
+          parsed,
+          `RATE_LIMITS_FILE(${limitsFile})`
+        );
         if (cfg) return cfg;
-        console.warn(`[WARNING] No valid rate limits parsed from ${limitsFile}`);
+        console.warn(
+          `[WARNING] No valid rate limits parsed from ${limitsFile}`
+        );
       } else {
-        console.warn(`[WARNING] RATE_LIMITS_FILE is set but file does not exist: ${limitsFile}`);
+        console.warn(
+          `[WARNING] RATE_LIMITS_FILE is set but file does not exist: ${limitsFile}`
+        );
       }
     } catch (err) {
-      console.warn(`[WARNING] Failed to read/parse RATE_LIMITS_FILE ${limitsFile}:`, err);
+      console.warn(
+        `[WARNING] Failed to read/parse RATE_LIMITS_FILE ${limitsFile}:`,
+        err
+      );
       // fail-open: continue to next source
     }
   }
@@ -32,9 +42,15 @@ export function getRateLimitConfig(): RateLimitConfig {
       const parsed = JSON.parse(process.env.RATE_LIMITS);
       const cfg = parseJsonRateLimitsInput(parsed, 'RATE_LIMITS env var');
       if (cfg) return cfg;
-      console.warn('[WARNING] No valid rate limits parsed from RATE_LIMITS env var');
+      console.warn(
+        '[WARNING] No valid rate limits parsed from RATE_LIMITS env var'
+      );
     } catch (err) {
-      console.warn('[WARNING] Failed to parse RATE_LIMITS JSON, falling back to env vars:', err);
+      // log the error so eslint doesn't complain about unused catch binding
+      console.warn(
+        '[WARNING] Failed to parse RATE_LIMITS JSON, falling back to env vars:',
+        err
+      );
     }
   }
 
@@ -153,7 +169,10 @@ const rateLimitSchema = z.object({
   endpoints: z.record(endpointLimitSchema).optional()
 });
 
-function parseJsonRateLimitsInput(input: any, source: string): RateLimitConfig | null {
+function parseJsonRateLimitsInput(
+  input: any,
+  source: string
+): RateLimitConfig | null {
   if (!input || typeof input !== 'object') {
     console.warn(`[WARNING] ${source} must be an object`);
     return null;
@@ -175,11 +194,22 @@ function parseJsonRateLimitsInput(input: any, source: string): RateLimitConfig |
   // Attempt to coerce minimally: pick values if present, otherwise fall back to defaults
   try {
     const global = input.global
-      ? { max: Number(input.global.max) || getDefaultGlobal().max, timeWindow: String(input.global.timeWindow || getDefaultGlobal().timeWindow) }
+      ? {
+        max: Number(input.global.max) || getDefaultGlobal().max,
+        timeWindow: String(
+          input.global.timeWindow || getDefaultGlobal().timeWindow
+        )
+      }
       : getDefaultGlobal();
 
     const authenticated = input.authenticated
-      ? { max: Number(input.authenticated.max) || getDefaultAuthenticated().max, timeWindow: String(input.authenticated.timeWindow || getDefaultAuthenticated().timeWindow) }
+      ? {
+        max: Number(input.authenticated.max) || getDefaultAuthenticated().max,
+        timeWindow: String(
+          input.authenticated.timeWindow ||
+              getDefaultAuthenticated().timeWindow
+        )
+      }
       : getDefaultAuthenticated();
 
     const endpointsRaw = input.endpoints || {};
@@ -191,7 +221,10 @@ function parseJsonRateLimitsInput(input: any, source: string): RateLimitConfig |
           const timeWindow = String((val as any).timeWindow || '1 minute');
           endpoints[path] = { max, timeWindow };
         } catch (e) {
-          console.warn(`[WARNING] Skipping invalid endpoint limit for ${path} in ${source}`);
+          console.warn(
+            `[WARNING] Skipping invalid endpoint limit for ${path} in ${source}`,
+            e
+          );
         }
       }
     }
@@ -200,7 +233,10 @@ function parseJsonRateLimitsInput(input: any, source: string): RateLimitConfig |
 
     return { global, authenticated, endpoints: mergedEndpoints };
   } catch (e) {
-    console.warn(`[WARNING] Failed to coerce ${source} into RateLimitConfig:`, e);
+    console.warn(
+      `[WARNING] Failed to coerce ${source} into RateLimitConfig:`,
+      e
+    );
     return null;
   }
 }

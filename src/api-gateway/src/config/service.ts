@@ -28,7 +28,11 @@ function normalizeService(raw: any): ServiceConfig | null {
 
   const prefix = raw.prefix || `/api/${name.replace(/-service$/, '')}`;
   const rewritePrefix =
-    raw.rewritePrefix ?? raw.rewrite ?? (typeof raw.prefix === 'string' ? raw.prefix.replace('/api/', '') : prefix.replace('/api/', ''));
+    raw.rewritePrefix ??
+    raw.rewrite ??
+    (typeof raw.prefix === 'string'
+      ? raw.prefix.replace('/api/', '')
+      : prefix.replace('/api/', ''));
 
   const timeout = raw.timeout !== undefined ? Number(raw.timeout) : undefined;
   const retries = raw.retries !== undefined ? Number(raw.retries) : undefined;
@@ -39,9 +43,13 @@ function normalizeService(raw: any): ServiceConfig | null {
   if (raw.requiresAuthRoles) {
     requiresAuthRoles = Array.isArray(raw.requiresAuthRoles)
       ? raw.requiresAuthRoles.map((r: any) => String(r))
-      : String(raw.requiresAuthRoles).split(',').map((r: string) => r.trim());
+      : String(raw.requiresAuthRoles)
+        .split(',')
+        .map((r: string) => r.trim());
   } else if (raw.roles) {
-    requiresAuthRoles = String(raw.roles).split(',').map((r: string) => r.trim());
+    requiresAuthRoles = String(raw.roles)
+      .split(',')
+      .map((r: string) => r.trim());
   }
 
   const websocket = raw.websocket ?? raw.ws ?? false;
@@ -73,9 +81,13 @@ function normalizeService(raw: any): ServiceConfig | null {
     rewritePrefix,
     timeout: timeout !== undefined ? Number(timeout) : undefined,
     retries: retries !== undefined ? Number(retries) : undefined,
-    requiresAuth: requiresAuth === true || String(requiresAuth) === 'true' ? true : undefined,
+    requiresAuth:
+      requiresAuth === true || String(requiresAuth) === 'true'
+        ? true
+        : undefined,
     requiresAuthRoles,
-    websocket: websocket === true || String(websocket) === 'true' ? true : undefined,
+    websocket:
+      websocket === true || String(websocket) === 'true' ? true : undefined,
     websocketPath
   };
 
@@ -93,7 +105,10 @@ function parseJsonServicesInput(input: any, source: string): ServiceConfig[] {
   input.forEach((raw: any, idx: number) => {
     const s = normalizeService(raw);
     if (s) out.push(s);
-    else console.warn(`[WARNING] Skipping invalid service at index ${idx} in ${source}`);
+    else
+      console.warn(
+        `[WARNING] Skipping invalid service at index ${idx} in ${source}`
+      );
   });
 
   return out;
@@ -106,21 +121,28 @@ function parseJsonServicesInput(input: any, source: string): ServiceConfig[] {
  */
 export function parseServicesFromEnv(): ServiceConfig[] {
   // 1) File mounted JSON if SERVICES_FILE is set
-  const servicesFromFile: ServiceConfig[] = [];
   const servicesFile = process.env.SERVICES_FILE;
   if (servicesFile) {
     try {
       if (fs.existsSync(servicesFile)) {
         const raw = fs.readFileSync(servicesFile, 'utf8');
         const parsed = JSON.parse(raw);
-        const parsedServices = parseJsonServicesInput(parsed, `SERVICES_FILE(${servicesFile})`);
+        const parsedServices = parseJsonServicesInput(
+          parsed,
+          `SERVICES_FILE(${servicesFile})`
+        );
         if (parsedServices.length > 0) return parsedServices;
         console.warn(`[WARNING] No valid services parsed from ${servicesFile}`);
       } else {
-        console.warn(`[WARNING] SERVICES_FILE is set but file does not exist: ${servicesFile}`);
+        console.warn(
+          `[WARNING] SERVICES_FILE is set but file does not exist: ${servicesFile}`
+        );
       }
     } catch (err) {
-      console.warn(`[WARNING] Failed to read/parse SERVICES_FILE ${servicesFile}:`, err);
+      console.warn(
+        `[WARNING] Failed to read/parse SERVICES_FILE ${servicesFile}:`,
+        err
+      );
       // fail-open: continue to next source
     }
   }
