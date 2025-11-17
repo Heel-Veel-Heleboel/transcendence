@@ -6,6 +6,67 @@ const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
 
 const engine = new BABYLON.Engine(canvas) as BABYLON.AbstractEngine;
 
+interface IBall {
+  ball: BABYLON.Mesh;
+  acceleration: BABYLON.Vector3;
+  velocity: BABYLON.Vector3;
+}
+
+class Ball implements IBall {
+  public ball: BABYLON.Mesh;
+  public acceleration: BABYLON.Vector3;
+  public velocity: BABYLON.Vector3;
+
+  constructor(ball: BABYLON.Mesh, position: BABYLON.Vector3) {
+    this.ball = ball;
+    this.ball.position = position;
+    this.acceleration = new BABYLON.Vector3(0.001, 0.001, 0);
+    this.velocity = new BABYLON.Vector3();
+  }
+
+  // get ball(): BABYLON.Mesh {
+  //   return this.ball;
+  // }
+  // set ball(ball: BABYLON.Mesh) {
+  //   this.ball = ball;
+  // }
+  //
+  // get acceleration(): BABYLON.Vector3 {
+  //   return this.acceleration;
+  // }
+  // set acceleration(acceleration: BABYLON.Vector3) {
+  //   this.acceleration = acceleration;
+  // }
+  //
+  // get velocity(): BABYLON.Vector3 {
+  //   return this.velocity;
+  // }
+  // set velocity(velocity: BABYLON.Vector3) {
+  //   this.velocity = velocity;
+  // }
+
+  checkBorders(arena: BABYLON.Mesh[]): void {
+    if (this.ball.position.x > arena[0].position.x) {
+      this.ball.position.x *= -1;
+    }
+    if (this.ball.position.x < arena[1].position.x) {
+      this.ball.position.x *= -1;
+    }
+    if (this.ball.position.y > arena[2].position.y) {
+      this.ball.position.y *= -1;
+    }
+    if (this.ball.position.y < arena[3].position.y) {
+      this.ball.position.y *= -1;
+    }
+  }
+
+  update(): void {
+    this.velocity.addInPlace(this.acceleration);
+    this.velocity.normalize();
+    this.ball.position.addInPlace(this.velocity);
+  }
+}
+
 const createScene = function () {
   const sceneObj = new BABYLON.Scene(engine);
 
@@ -32,7 +93,7 @@ const createScene = function () {
   //
   // BABYLON.SceneLoader.ImportMesh('', '/', 'coffee_table.gltf', sceneObj);
 
-  const _arenaMaterial = new BABYLON.StandardMaterial('arenaTexture', sceneObj);
+  // const _arenaMaterial = new BABYLON.StandardMaterial('arenaTexture', sceneObj);
 
   // const _arena = BABYLON.MeshBuilder.CreateBox(
   //   'arena',
@@ -70,6 +131,30 @@ const createScene = function () {
   _leftSide.rotation = new BABYLON.Vector3(0, Math.PI / 2, Math.PI / 2);
   _leftSide.position = new BABYLON.Vector3(1, 0, 0);
 
+  const _upside = BABYLON.MeshBuilder.CreatePlane(
+    'upside',
+    {
+      height: 2,
+      width: 2,
+      sideOrientation: BABYLON.Mesh.DOUBLESIDE
+    },
+    sceneObj
+  );
+  _upside.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+  _upside.position = new BABYLON.Vector3(0, 0.5, 0);
+
+  const _downside = BABYLON.MeshBuilder.CreatePlane(
+    'downside',
+    {
+      height: 2,
+      width: 2,
+      sideOrientation: BABYLON.Mesh.DOUBLESIDE
+    },
+    sceneObj
+  );
+  _downside.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+  _downside.position = new BABYLON.Vector3(0, -0.5, 0);
+
   const _ball = BABYLON.MeshBuilder.CreateSphere(
     'ball',
     {
@@ -78,28 +163,18 @@ const createScene = function () {
     sceneObj
   );
 
-  const sides: BABYLON.Mesh[] = [];
+  const ball = new Ball(_ball, new BABYLON.Vector3(0, 0, 0));
 
-  sides.push(_rightSide);
-  sides.push(_leftSide);
+  const arena: BABYLON.Mesh[] = [];
 
-  let direction = true;
+  arena.push(_leftSide);
+  arena.push(_rightSide);
+  arena.push(_upside);
+  arena.push(_downside);
+
   sceneObj.onBeforeRenderObservable.add(() => {
-    if (direction) {
-      _ball.position.x += 0.01;
-    } else {
-      _ball.position.x -= 0.01;
-    }
-    for (const side of sides) {
-      if (_ball.intersectsMesh(side)) {
-        direction = !direction;
-        if (direction) {
-          _ball.position.x += 0.05;
-        } else {
-          _ball.position.x -= 0.05;
-        }
-      }
-    }
+    ball.update();
+    ball.checkBorders(arena);
   });
   return sceneObj;
 };
