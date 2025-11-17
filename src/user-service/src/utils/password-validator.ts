@@ -1,12 +1,12 @@
 
 type PasswordPolicy = {
-  minLength?:number;
-  maxLength?:number;
-  requireUppercase?:boolean;
-  requireLowercase?:boolean;
-  requireNumbers?:boolean;
-  requireSpecialChars?:boolean;
-  noSpaces?:boolean;
+  minLength?: number;
+  maxLength?: number;
+  requireUppercase?: boolean;
+  requireLowercase?: boolean;
+  requireNumbers?: boolean;
+  requireSpecialChars?: boolean;
+  noSpaces?: boolean;
 };
 
 export function validatePassword(
