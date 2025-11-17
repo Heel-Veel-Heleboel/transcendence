@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt';
-//import { error } from 'console';
 
 export async function  hashPassword(password: string) : Promise<string> {
   const salt = 10;
