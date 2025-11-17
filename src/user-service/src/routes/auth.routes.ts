@@ -5,8 +5,6 @@ export default async function authRoutes(fastify: FastifyInstance) {
 
   fastify.post('/register',  registerUserController);
 
-  // fastify.post('/login', async () => {
-  //   return { message: 'User logged in successfully' };
-  // });
+  // TODO: Implement /login route
 
 }
