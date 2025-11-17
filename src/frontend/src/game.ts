@@ -9,41 +9,7 @@ const engine = new BABYLON.Engine(canvas) as BABYLON.AbstractEngine;
 const createScene = function () {
   const sceneObj = new BABYLON.Scene(engine);
 
-  sceneObj.createDefaultLight();
-  const _camera = new BABYLON.UniversalCamera(
-    'camera',
-    new BABYLON.Vector3(0, 5, -10),
-    sceneObj
-  );
-  _camera.attachControl(true);
-  _camera.inputs.addMouseWheel();
-  _camera.setTarget(BABYLON.Vector3.Zero());
-  // const _sphere = BABYLON.MeshBuilder.CreateSphere(
-  //   'sphere',
-  //   { diameter: 2, segments: 32 },
-  //   sceneObj
-  // );
-  //
-  // const sphereMaterial = new BABYLON.StandardMaterial();
-  // _sphere.material = sphereMaterial;
-  //
-  // sphereMaterial.ambientColor = new BABYLON.Color3(0, 1, 0);
-  // sceneObj.ambientColor = new BABYLON.Color3(1, 1, 0);
-  //
-  // sphereMaterial.emissiveColor = new BABYLON.Color3(0.5, 1, 0.5);
-  //
-  // const _ground = BABYLON.MeshBuilder.CreateGround(
-  //   'ground',
-  //   {
-  //     height: 10,
-  //     width: 10
-  //   },
-  //   sceneObj
-  // );
-
-  BABYLON.SceneLoader.ImportMesh('', '/', 'coffee_table.gltf', sceneObj);
-
-  const bgMusic = new BABYLON.Sound(
+  const _bgMusic = new BABYLON.Sound(
     'mySong',
     '/public/loop.mp3',
     sceneObj,
@@ -54,8 +20,87 @@ const createScene = function () {
     }
   );
 
-  // _ground.material = new BABYLON.StandardMaterial();
-  // _ground.material.wireframe = true;
+  sceneObj.createDefaultCameraOrLight(true, false, true);
+  // const _camera = new BABYLON.UniversalCamera(
+  //   'camera',
+  //   new BABYLON.Vector3(0, 5, -10),
+  //   sceneObj
+  // );
+  // _camera.attachControl(true);
+  // _camera.inputs.addMouseWheel();
+  // _camera.setTarget(BABYLON.Vector3.Zero());
+  //
+  // BABYLON.SceneLoader.ImportMesh('', '/', 'coffee_table.gltf', sceneObj);
+
+  const _arenaMaterial = new BABYLON.StandardMaterial('arenaTexture', sceneObj);
+
+  // const _arena = BABYLON.MeshBuilder.CreateBox(
+  //   'arena',
+  //   { height: 3, width: 3, depth: 8 },
+  //   sceneObj
+  // );
+  //
+  // _arena.material = _arenaMaterial;
+  // if (_arena.material) {
+  //   _arena.material.wireframe = true;
+  // }
+  //
+
+  const _rightSide = BABYLON.MeshBuilder.CreatePlane(
+    'rightSide',
+    {
+      height: 2,
+      width: 1,
+      sideOrientation: BABYLON.Mesh.DOUBLESIDE
+    },
+    sceneObj
+  );
+  _rightSide.rotation = new BABYLON.Vector3(0, Math.PI / 2, Math.PI / 2);
+  _rightSide.position = new BABYLON.Vector3(-1, 0, 0);
+
+  const _leftSide = BABYLON.MeshBuilder.CreatePlane(
+    'leftSide',
+    {
+      height: 2,
+      width: 1,
+      sideOrientation: BABYLON.Mesh.DOUBLESIDE
+    },
+    sceneObj
+  );
+  _leftSide.rotation = new BABYLON.Vector3(0, Math.PI / 2, Math.PI / 2);
+  _leftSide.position = new BABYLON.Vector3(1, 0, 0);
+
+  const _ball = BABYLON.MeshBuilder.CreateSphere(
+    'ball',
+    {
+      diameter: 0.1
+    },
+    sceneObj
+  );
+
+  const sides: BABYLON.Mesh[] = [];
+
+  sides.push(_rightSide);
+  sides.push(_leftSide);
+
+  let direction = true;
+  sceneObj.onBeforeRenderObservable.add(() => {
+    if (direction) {
+      _ball.position.x += 0.01;
+    } else {
+      _ball.position.x -= 0.01;
+    }
+    for (const side of sides) {
+      if (_ball.intersectsMesh(side)) {
+        direction = !direction;
+        if (direction) {
+          _ball.position.x += 0.05;
+        } else {
+          _ball.position.x -= 0.05;
+        }
+      }
+    }
+  });
   return sceneObj;
 };
 
