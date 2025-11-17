@@ -1,8 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import prismaPlugin from '../../../src/user-service/src/plugins/prisma-plugin.js';
 import fastify from 'fastify';
-//
-
 describe('Prisma plugin', () => {
 
   it('should decorate fastify instance with prisma client', async () => {
