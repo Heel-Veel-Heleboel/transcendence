@@ -25,7 +25,6 @@ export async function createUser(prisma: PrismaClient, data: CreateUserData) : P
         //console.log('Duplicate entry error meta:', error.meta);
         const targets = error.meta?.target as string[] | undefined;
         const field = targets?.[0] || 'field';
-        //console.log('Field is ' + field);
         throw new DuplicateEntryError(field);
       }
       // Other Prisma errors (P2003, P2025, etc.)
