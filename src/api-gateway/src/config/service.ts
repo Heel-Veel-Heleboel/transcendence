@@ -16,7 +16,7 @@ const serviceSchema = z.object({
   websocketPath: z.string().optional()
 });
 
-function normalizeService(raw: any): ServiceConfig | null {
+export function normalizeService(raw: any): ServiceConfig | null {
   if (!raw || typeof raw !== 'object') return null;
 
   const name = (raw.name || raw.service || 'unknown-service').toString();
@@ -94,7 +94,7 @@ function normalizeService(raw: any): ServiceConfig | null {
   return svc;
 }
 
-function parseJsonServicesInput(input: any, source: string): ServiceConfig[] {
+export function parseJsonServicesInput(input: any, source: string): ServiceConfig[] {
   const out: ServiceConfig[] = [];
   if (!input) return out;
   if (!Array.isArray(input)) {

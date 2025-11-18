@@ -169,7 +169,7 @@ const rateLimitSchema = z.object({
   endpoints: z.record(endpointLimitSchema).optional()
 });
 
-function parseJsonRateLimitsInput(
+export function parseJsonRateLimitsInput(
   input: any,
   source: string
 ): RateLimitConfig | null {
