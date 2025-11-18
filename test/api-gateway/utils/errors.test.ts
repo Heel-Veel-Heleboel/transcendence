@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { errorHandler, ValidationError, ServiceUnavailableError, AuthenticationError } from '../../../src/api-gateway/src/utils/errors';
+import { errorHandler, ValidationError, ServiceUnavailableError, AuthenticationError, AuthorizationError } from '../../../src/api-gateway/src/utils/errors';
 
 function makeFakeReqReply(correlationId?: string) {
   const req: any = {
@@ -96,5 +96,49 @@ describe('errorHandler', () => {
     expect(reply.sent.statusCode).toBe(500);
     expect(reply.sent.error).toBe('Internal Server Error');
     expect(reply.sent.message).toBe('detailed internal');
+  });
+
+  it('handles AuthorizationError as 403', () => {
+    const err = new AuthorizationError();
+    const { req, reply } = makeFakeReqReply('auth-corr');
+
+    errorHandler(err as any, req, reply);
+
+    expect(reply.status).toBe(403);
+    expect(reply.sent.statusCode).toBe(403);
+    expect(reply.sent.error).toBe('Forbidden');
+    expect(reply.sent.correlationId).toBe('auth-corr');
+  });
+
+  it('maps various status codes to correct error names', () => {
+    const cases: Array<[number, string]> = [
+      [403, 'Forbidden'],
+      [404, 'Not Found'],
+      [409, 'Conflict'],
+      [422, 'Unprocessable Entity'],
+      [429, 'Too Many Requests'],
+      [502, 'Bad Gateway'],
+      [504, 'Gateway Timeout']
+    ];
+
+    for (const [status, name] of cases) {
+      const err: any = new Error('x');
+      err.statusCode = status;
+      const { req, reply } = makeFakeReqReply();
+      errorHandler(err as any, req, reply);
+      expect(reply.status).toBe(status);
+      expect(reply.sent.statusCode).toBe(status);
+      expect(reply.sent.error).toBe(name);
+    }
+  });
+
+  it('returns generic "Error" for unknown status codes', () => {
+    const err: any = new Error('teapot');
+    err.statusCode = 418; // not defined in mapping
+    const { req, reply } = makeFakeReqReply();
+    errorHandler(err as any, req, reply);
+    expect(reply.status).toBe(418);
+    expect(reply.sent.statusCode).toBe(418);
+    expect(reply.sent.error).toBe('Error');
   });
 });
