@@ -43,12 +43,14 @@ export async function registerUserController(request: FastifyRequest<{ Body: Cre
 
   } catch (error: unknown) {
 
+
     if (error instanceof DuplicateEntryError) {
       return reply.status(409).send({
         error: error.message,
         field: error.field
       });
     }
+
 
     if (error instanceof DatabaseError) {
 
@@ -59,9 +61,10 @@ export async function registerUserController(request: FastifyRequest<{ Body: Cre
       });
     }
 
+
     request.log.error(error instanceof Error ? error : { error }, 'Unexpected error');
     return reply.status(500).send({
-      error: 'Internal server error.'
+      error: 'An unexpected error occurred.'
     });
   }
 }
