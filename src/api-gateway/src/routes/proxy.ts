@@ -256,3 +256,18 @@ function handleGenericError(
       : (Object.assign(error, { statusCode: 500 }) as FastifyError);
   errorHandler(fastifyError, request, reply);
 }
+
+export {
+  registerWebSocketRoute,
+  findServiceByUrl,
+  handleProxyError,
+  handleGenericError,
+  registerWebSocketPluginIfNeeded,
+  setupServiceAuth,
+  setupServiceHooks,
+  setupHeaderForwardingHooks,
+  registerHttpProxy,
+  registerServiceProxy,
+  handleWebSocketConnection,
+  setupProxyErrorHandler
+};

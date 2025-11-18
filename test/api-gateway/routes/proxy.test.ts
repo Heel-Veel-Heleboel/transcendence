@@ -387,4 +387,140 @@ describe('Proxy Routes', () => {
     });
   });
 
+  describe('proxy internal helpers (unit)', () => {
+    it('findServiceByUrl matches configured prefixes', async () => {
+      const { findServiceByUrl } = await import('../../../src/api-gateway/src/routes/proxy');
+      // update mocked config services for this assertion
+      mockConfig.services = [
+        { name: 'user-service', upstream: 'http://u', prefix: '/api/users', rewritePrefix: '/users', timeout: 5000, requiresAuth: false }
+      ];
+
+      expect(findServiceByUrl('/api/users/test')).toBeDefined();
+      expect(findServiceByUrl('/no/match')).toBeUndefined();
+    });
+
+    it('handleProxyError creates ServiceUnavailableError and triggers errorHandler', async () => {
+      const { handleProxyError } = await import('../../../src/api-gateway/src/routes/proxy');
+      const modConfig = await import('../../../src/api-gateway/src/config');
+      // ensure a service exists on mocked config
+      modConfig.config.services = [{ name: 'user', upstream: 'http://u', prefix: '/api/users', rewritePrefix: '/users', timeout: 5000, requiresAuth: false }];
+
+      const fakeReq: any = { url: '/api/users/X', method: 'GET', log: { error: vi.fn() } };
+      const fakeReply: any = { sent: false, code(s: number) { return { send: (p: any) => { fakeReply.status = s; fakeReply.sent = p; } }; }, send(p: any) { fakeReply.sent = p; } };
+      const err = new Error('boom') as any;
+
+      handleProxyError(err, modConfig.config.services[0], fakeReq, fakeReply);
+
+      expect(fakeReply.status).toBe(503);
+      expect(fakeReply.sent).toHaveProperty('statusCode', 503);
+    });
+
+    it('handleGenericError wraps non-fastify errors into 500', async () => {
+      const { handleGenericError } = await import('../../../src/api-gateway/src/routes/proxy');
+      const fakeReq: any = { url: '/x', method: 'GET', log: { error: vi.fn() } };
+      const fakeReply: any = { sent: false, code(s: number) { return { send: (p: any) => { fakeReply.status = s; fakeReply.sent = p; } }; }, send(p: any) { fakeReply.sent = p; } };
+      const plainErr: any = { message: 'oops' };
+
+      handleGenericError(plainErr as any, fakeReq as any, fakeReply as any);
+      expect(fakeReply.status).toBe(500);
+      expect(fakeReply.sent.statusCode).toBe(500);
+    });
+
+    it('registerWebSocketPluginIfNeeded registers websocket plugin when a service needs it', async () => {
+      const { registerWebSocketPluginIfNeeded } = await import('../../../src/api-gateway/src/routes/proxy');
+      const mod = await import('../../../src/api-gateway/src/config');
+      mod.config.services = [{ name: 'c', upstream: 'http://c', prefix: '/api/c', rewritePrefix: '/c', websocket: true, timeout: 3000, requiresAuth: false }];
+      const Fastify = (await import('fastify')).default;
+      const fastify = Fastify();
+      await registerWebSocketPluginIfNeeded(fastify as any);
+      await fastify.close();
+    });
+  });
+
+  describe('proxy internals additional unit tests', () => {
+    it('setupServiceAuth registers preHandler when requiresAuth is true', async () => {
+      const { setupServiceAuth } = await import('../../../src/api-gateway/src/routes/proxy');
+      const hooks: any[] = [];
+      const fakeFastify: any = { addHook: (name: string, fn: any) => hooks.push({ name, fn }) };
+      const svc = { name: 's', upstream: 'http://u', prefix: '/p', rewritePrefix: '/r', requiresAuth: true, timeout: 1000 };
+
+      setupServiceAuth(fakeFastify, svc as any);
+      expect(hooks.find(h => h.name === 'preHandler')).toBeTruthy();
+    });
+
+    it('setupServiceHooks attaches serviceInfo on request via onRequest hook', async () => {
+      const { setupServiceHooks } = await import('../../../src/api-gateway/src/routes/proxy');
+      let storedHandler: any = null;
+      const fakeFastify: any = { addHook: (name: string, fn: any) => { if (name === 'onRequest') storedHandler = fn; } };
+      const svc = { name: 'svc', upstream: 'http://u', prefix: '/p', rewritePrefix: '/r' };
+
+      setupServiceHooks(fakeFastify, svc as any);
+      expect(typeof storedHandler).toBe('function');
+
+      const fakeReq: any = {};
+      const fakeReply: any = {};
+      await storedHandler(fakeReq, fakeReply);
+      expect((fakeReq as any).serviceInfo).toBe(svc);
+    });
+
+    it('registerHttpProxy calls fastify.register with http-proxy options', async () => {
+      const { registerHttpProxy } = await import('../../../src/api-gateway/src/routes/proxy');
+      let captured: any = null;
+      const fakeFastify: any = { register: (plugin: any, opts: any) => { captured = { plugin, opts }; return Promise.resolve(); } };
+      const svc = { name: 's', upstream: 'http://up', prefix: '/api/s', rewritePrefix: '/s', timeout: 1234 } as any;
+
+      await registerHttpProxy(fakeFastify, svc);
+      expect(captured).not.toBeNull();
+      expect(captured.opts.upstream).toBe('http://up');
+      expect(captured.opts.prefix).toBe('/api/s');
+      expect(captured.opts.proxyTimeout).toBe(1234);
+    });
+
+    it('setupHeaderForwardingHooks logs user and correlationId when present', async () => {
+      const { setupHeaderForwardingHooks } = await import('../../../src/api-gateway/src/routes/proxy');
+      let handler: any = null;
+      const fakeFastify: any = { addHook: (name: string, fn: any) => { if (name === 'preHandler') handler = fn; } };
+      const svc = { name: 'svc', upstream: 'http://u', prefix: '/p', rewritePrefix: '/r' };
+      const debugSpy = vi.fn();
+
+      const fakeReq: any = { user: { sub: '42', email: 'a@b', role: 'user' }, correlationId: 'corr-1', log: { debug: debugSpy } };
+      const fakeReply: any = {};
+
+      setupHeaderForwardingHooks(fakeFastify as any, svc as any);
+      expect(typeof handler).toBe('function');
+      await handler(fakeReq, fakeReply);
+      expect(debugSpy).toHaveBeenCalled();
+    });
+
+    it('registerWebSocketRoute registers get and handler attaches socket listeners', async () => {
+      const { registerWebSocketRoute } = await import('../../../src/api-gateway/src/routes/proxy');
+      let registered: any = null;
+      const fakeFastify: any = { get: (path: string, opts: any, handler: any) => { registered = { path, opts, handler }; } };
+      const svc = { name: 'svc', upstream: 'http://u', prefix: '/api/svc', rewritePrefix: '/svc', websocketPath: '/ws/svc' } as any;
+      const logInfo = vi.fn();
+      const logDebug = vi.fn();
+      const logError = vi.fn();
+      const fastifyMock: any = { log: { info: logInfo, debug: logDebug, error: logError } };
+
+      registerWebSocketRoute(fakeFastify as any, svc as any);
+      expect(registered).not.toBeNull();
+      // simulate a ws connection
+      const socketHandlers: Record<string, Function> = {};
+      const conn = { socket: { on: (ev: string, cb: any) => { socketHandlers[ev] = cb; } } };
+      const req: any = { user: { sub: 'u1' } };
+      // call handler (note: handler uses handleWebSocketConnection which logs to fastify passed earlier in file; pass fastifyMock)
+      // We need to import handleWebSocketConnection directly to call with fastifyMock
+      const { handleWebSocketConnection } = await import('../../../src/api-gateway/src/routes/proxy');
+      handleWebSocketConnection(fastifyMock as any, svc as any, svc.websocketPath, conn as any, req as any);
+      // simulate events
+      socketHandlers['message']?.(Buffer.from('hello'));
+      socketHandlers['close']?.();
+      socketHandlers['error']?.(new Error('oops'));
+
+      expect(logInfo).toHaveBeenCalled();
+      expect(logDebug).toHaveBeenCalled();
+      expect(logError).toHaveBeenCalled();
+    });
+  });
+
 });
