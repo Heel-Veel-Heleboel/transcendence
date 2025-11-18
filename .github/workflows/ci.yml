@@ -10,6 +10,9 @@ jobs:
   ci:
     name: CI Pipeline
     runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: "file:./dev.db"
     
     steps:
     - name: Checkout code
@@ -23,7 +26,15 @@ jobs:
     
     - name: Install dependencies
       run: npm ci
-    
+
+    - name: Generate Prisma Client
+      run: npx prisma generate
+      working-directory: ./src/user-service
+
+    - name: Run database migrations (SQLite)
+      run: npx prisma migrate deploy
+      working-directory: ./src/user-service
+
     - name: Run tests
       run: npm run test:run
     
