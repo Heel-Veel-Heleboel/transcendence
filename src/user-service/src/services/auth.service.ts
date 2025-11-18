@@ -7,6 +7,7 @@ import { DatabaseError, DuplicateEntryError, isPrismaKnownError } from '../error
 
 export async function createUser(prisma: PrismaClient, data: CreateUserData) : Promise<SafeUser> {
   try {
+
     const hashedPassword = await hashPassword(data.password);
     const user = await prisma.user.create({
       data: {
@@ -17,21 +18,18 @@ export async function createUser(prisma: PrismaClient, data: CreateUserData) : P
     });
     const  { password: _password, ...safeUser } = user;
     return safeUser;
+
   } catch (error: unknown) {
 
     if (isPrismaKnownError(error)) {
-      //console.log('PrismaClientKnownRequestError:', error.code);
       if (error.code === 'P2002') {
-        //console.log('Duplicate entry error meta:', error.meta);
         const targets = error.meta?.target as string[] | undefined;
         const field = targets?.[0] || 'field';
-        //console.log('Field is ' + field);
         throw new DuplicateEntryError(field);
       }
-      // Other Prisma errors (P2003, P2025, etc.)
       throw new DatabaseError(error.message || 'Database operation failed');
     }
-
     throw new DatabaseError(error instanceof Error ? error.message : 'Unknown database error');
+
   }
 }

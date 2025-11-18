@@ -3,7 +3,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -19,15 +18,5 @@ model User {
   password   String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  //profile    Profile?
 }
-
-// model Profile {
-//   id        Int     @id @default(autoincrement())
-//   bio       String?
-//   avatarUrl String?
-//   user      User    @relation(fields: [userId], references: [id])
-//   userId    Int     @unique
-// }
-
 

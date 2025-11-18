@@ -43,7 +43,6 @@ export async function registerUserController(request: FastifyRequest<{ Body: Cre
 
   } catch (error: unknown) {
 
-    // Handle duplicate email/username (409 Conflict)
     if (error instanceof DuplicateEntryError) {
       return reply.status(409).send({
         error: error.message,
@@ -51,7 +50,6 @@ export async function registerUserController(request: FastifyRequest<{ Body: Cre
       });
     }
 
-    // Handle database errors (500 Internal Server Error)
     if (error instanceof DatabaseError) {
 
       request.log.error(error);
@@ -61,10 +59,9 @@ export async function registerUserController(request: FastifyRequest<{ Body: Cre
       });
     }
 
-    // Unexpected errors (should rarely happen)
     request.log.error(error instanceof Error ? error : { error }, 'Unexpected error');
     return reply.status(500).send({
-      error: 'An unexpected error occurred.'
+      error: 'Internal server error.'
     });
   }
 }

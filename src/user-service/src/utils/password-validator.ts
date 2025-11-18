@@ -29,15 +29,15 @@ export function validatePassword(
   if (policy.maxLength && password.length > policy.maxLength)
     errors.push(`Password must be no more than ${policy.maxLength} characters long.`);
   if (policy.requireUppercase && !/[A-Z]/.test(password))
-    errors.push('Password must contain an uppercase letter');
+    errors.push('Password must contain an uppercase letter.');
   if (policy.requireLowercase && !/[a-z]/.test(password))
-    errors.push('Password must contain a lowercase letter');
+    errors.push('Password must contain a lowercase letter.');
   if (policy.requireNumbers && !/[0-9]/.test(password))
-    errors.push('Password must contain a number');
+    errors.push('Password must contain a number.');
   if (policy.requireSpecialChars && !/[^A-Za-z0-9]/.test(password))
-    errors.push('Password must contain special character');
+    errors.push('Password must contain special character.');
   if (policy.noSpaces && /\s/.test(password))
     errors.push('Password must not contain spaces.');
 
   return { valid: errors.length === 0, errors };
-}
+} 
