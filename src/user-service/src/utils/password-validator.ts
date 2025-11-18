@@ -35,7 +35,7 @@ export function validatePassword(
   if (policy.requireNumbers && !/[0-9]/.test(password))
     errors.push('Password must contain a number.');
   if (policy.requireSpecialChars && !/[^A-Za-z0-9]/.test(password))
-    errors.push('Password must contain special character.');
+    errors.push('Password must contain a special character.');
   if (policy.noSpaces && /\s/.test(password))
     errors.push('Password must not contain spaces.');
 

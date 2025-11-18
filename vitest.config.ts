@@ -9,7 +9,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8', // Use V8 coverage provider
       reporter: ['text', 'json', 'html'], // Multiple report formats
-      include: ['src/**/*.{ts,js,d.ts}'], // Only include source files
+      include: ['src/**/*.{ts,js}'], // Only include source files
       exclude: [
         'node_modules/',
         'dist/',
