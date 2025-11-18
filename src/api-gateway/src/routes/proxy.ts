@@ -90,13 +90,17 @@ async function registerHttpProxy(
   fastify: FastifyInstance,
   service: ServiceConfig
 ): Promise<void> {
-  await fastify.register(httpProxy, {
+  // NOTE: some versions of @fastify/http-proxy have slightly different TS typings
+  // which may not include fields like `proxyTimeout`/`timeout` on the registration
+  // options. Keep the options minimal and cast the plugin to any to avoid type errors.
+  await fastify.register(httpProxy as any, {
     upstream: service.upstream,
     prefix: service.prefix,
     rewritePrefix: service.rewritePrefix || '',
+    // include timeout options for runtime behavior and tests
     proxyTimeout: service.timeout || 5000,
     timeout: service.timeout || 5000
-  });
+  } as any);
 }
 
 /**
