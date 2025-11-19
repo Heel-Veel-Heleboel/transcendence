@@ -1,5 +1,5 @@
 import { createUser } from '../services/auth.service.js';
-import { validatePassword } from '../utils/password-validator.js';
+import { validatePassword } from '../utils/password-utils.js';
 import { CreateUserData } from '../types/user.js';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { DuplicateEntryError, DatabaseError } from '../error/prisma-error.js';

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'; 
-import { hashPassword } from '../../../src/user-service/src/utils/hash.ts';
+import { hashPassword } from '../../../src/user-service/src/utils/password-utils.js';
 
 
 

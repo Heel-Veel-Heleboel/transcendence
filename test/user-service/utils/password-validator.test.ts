@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { validatePassword } from '../../../src/user-service/src/utils/password-validator.ts';
+import { validatePassword } from '../../../src/user-service/src/utils/password-utils.js';
 
 describe('Password validator',() => {
 

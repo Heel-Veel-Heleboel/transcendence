@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { createUser } from '../../../src/user-service/src/services/auth.service.js';
-import { hashPassword } from '../../../src/user-service/src/utils/hash.js';
+import { hashPassword } from '../../../src/user-service/src/utils/password-utils.js';
 import { DuplicateEntryError, DatabaseError } from '../../../src/user-service/src/error/prisma-error.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library.js';
 
 // Mock the hash utility
-vi.mock('../../../src/user-service/src/utils/hash.js');
+vi.mock('../../../src/user-service/src/utils/password-utils.js');
 
 describe('Auth Service - createUser', () => {
   let mockPrisma: any;

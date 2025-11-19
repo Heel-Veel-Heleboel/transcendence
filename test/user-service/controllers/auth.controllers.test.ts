@@ -1,12 +1,12 @@
 import { describe, it, beforeEach, expect, vi, Mock } from 'vitest';
 import { registerUserController } from '../../../src/user-service/src/controllers/auth.controller.js';
 import { createUser } from '../../../src/user-service/src/services/auth.service.js';
-import { validatePassword } from '../../../src/user-service/src/utils/password-validator.js';
+import { validatePassword } from '../../../src/user-service/src/utils/password-utils.js';
 import { DuplicateEntryError, DatabaseError } from '../../../src/user-service/src/error/prisma-error.js';
 
 // Mock the dependencies
 vi.mock('../../../src/user-service/src/services/auth.service.js');
-vi.mock('../../../src/user-service/src/utils/password-validator.js');
+vi.mock('../../../src/user-service/src/utils/password-utils.js');
 
 describe('Auth Controller - registerUserController', () => {
   let mockRequest: any;

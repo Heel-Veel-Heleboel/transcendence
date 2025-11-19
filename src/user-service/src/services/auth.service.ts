@@ -1,5 +1,5 @@
 import type { SafeUser, CreateUserData } from '../types/user.js';
-import { hashPassword } from '../utils/hash.js';
+import { hashPassword } from '../utils/password-utils.js';
 import { PrismaClient } from '@prisma/client';
 import { DatabaseError, DuplicateEntryError, isPrismaKnownError } from '../error/prisma-error.js';
 

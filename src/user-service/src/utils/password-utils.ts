@@ -1,13 +1,18 @@
+import bcrypt from 'bcrypt';
+import { PasswordPolicy } from '../types/password';
 
-type PasswordPolicy = {
-  minLength?:number;
-  maxLength?:number;
-  requireUppercase?:boolean;
-  requireLowercase?:boolean;
-  requireNumbers?:boolean;
-  requireSpecialChars?:boolean;
-  noSpaces?:boolean;
-};
+
+
+
+export async function  hashPassword(password: string) : Promise<string> {
+  const saltRounds = 10;
+  return (bcrypt.hash(password, saltRounds));
+}
+
+export async function comparePassword(password: string, hashedPassword: string) : Promise<boolean> {
+  return (bcrypt.compare(password, hashedPassword));
+}
+
 
 export function validatePassword(
   password: string,
@@ -40,4 +45,4 @@ export function validatePassword(
     errors.push('Password must not contain spaces.');
 
   return { valid: errors.length === 0, errors };
-} 
+}
