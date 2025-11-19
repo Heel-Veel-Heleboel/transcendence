@@ -68,3 +68,12 @@ export async function registerUserController(request: FastifyRequest<{ Body: Cre
     });
   }
 }
+
+
+
+export async function loginUserController(request: FastifyRequest, reply: FastifyReply) {
+
+  reply.status(200).send({
+    message: 'Login successful!'
+  });
+}
