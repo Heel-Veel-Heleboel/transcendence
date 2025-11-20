@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./src/css/style.css" type="text/css" />
+    <title>Transcendence</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+    <main>
+      <div class="main_div">
+        <div class="video_div">
+          <video autoplay muted loop id="bgVideo">
+            <source src="/bg.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div class="title"><h1>Counter-pong</h1></div>
+        <div class="image_container">
+          <img src="/logo.png" alt="Login Page Logo" />
+        </div>
+        <div class="options_container">
+          <div class="option">
+            <button id="optionCool" class="option_button">
+              [something cool]
+            </button>
+          </div>
+          <div id="optionStart" class="option">
+            <button class="option_button">Press X to start</button>
+          </div>
+          <div id="optionLogin" class="option">
+            <button class="option_button">login</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
