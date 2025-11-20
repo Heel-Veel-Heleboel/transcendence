@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "frontend for Transcendance microservices architecture using Typescript",
+  "description": "frontend for Transcendence microservices architecture using Typescript",
   "main": "dist/index.js",
   "scripts": {
     "dev": "vite",
