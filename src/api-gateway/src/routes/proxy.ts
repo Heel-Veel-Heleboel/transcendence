@@ -143,9 +143,13 @@ function registerWebSocketRoute(
   // derive ws path from service prefix; remove optional per-service websocketPath
   const wsPath = service.prefix.replace('/api/', '/ws/');
 
-  fastify.get(wsPath, { websocket: true }, (connection: { socket: any }, req: FastifyRequest) => {
-    handleWebSocketConnection(fastify, service, wsPath, connection, req);
-  });
+  fastify.get(
+    wsPath,
+    { websocket: true },
+    (connection: { socket: any }, req: FastifyRequest) => {
+      handleWebSocketConnection(fastify, service, wsPath, connection, req);
+    }
+  );
 }
 
 /**
@@ -171,7 +175,10 @@ function handleWebSocketConnection(
 
   socket.on('message', (data: Buffer | string) => {
     const messageString = typeof data === 'string' ? data : data.toString();
-    fastify.log.debug({ service: service.name, message: messageString }, 'WebSocket message received');
+    fastify.log.debug(
+      { service: service.name, message: messageString },
+      'WebSocket message received'
+    );
   });
 
   socket.on('close', () => {
@@ -180,7 +187,10 @@ function handleWebSocketConnection(
 
   socket.on('error', (err: Error) => {
     const errMsg = err?.message ?? String(err ?? 'Unknown');
-    fastify.log.error({ service: service.name, error: errMsg }, 'WebSocket error');
+    fastify.log.error(
+      { service: service.name, error: errMsg },
+      'WebSocket error'
+    );
   });
 }
 
