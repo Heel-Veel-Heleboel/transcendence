@@ -45,14 +45,14 @@ function parseTimeWindow(timeWindow: string): number {
   const unit = match[2].toLowerCase();
 
   switch (unit) {
-  case 'second':
-    return value * 1000;
-  case 'minute':
-    return value * 60 * 1000;
-  case 'hour':
-    return value * 60 * 60 * 1000;
-  default:
-    throw new Error(`Unknown unit: ${unit}`);
+    case 'second':
+      return value * 1000;
+    case 'minute':
+      return value * 60 * 1000;
+    case 'hour':
+      return value * 60 * 60 * 1000;
+    default:
+      throw new Error(`Unknown unit: ${unit}`);
   }
 }
 

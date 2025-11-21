@@ -1,4 +1,9 @@
-import { FastifyError, FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
+import {
+  FastifyError,
+  FastifyRequest,
+  FastifyReply,
+  FastifyInstance
+} from 'fastify';
 import type { StandardError, ServiceConfig } from '../entity/common';
 
 // Global error handler
@@ -43,30 +48,30 @@ export function errorHandler(
 
 function getErrorName(statusCode: number): string {
   switch (statusCode) {
-  case 400:
-    return 'Bad Request';
-  case 401:
-    return 'Unauthorized';
-  case 403:
-    return 'Forbidden';
-  case 404:
-    return 'Not Found';
-  case 409:
-    return 'Conflict';
-  case 422:
-    return 'Unprocessable Entity';
-  case 429:
-    return 'Too Many Requests';
-  case 500:
-    return 'Internal Server Error';
-  case 502:
-    return 'Bad Gateway';
-  case 503:
-    return 'Service Unavailable';
-  case 504:
-    return 'Gateway Timeout';
-  default:
-    return 'Error';
+    case 400:
+      return 'Bad Request';
+    case 401:
+      return 'Unauthorized';
+    case 403:
+      return 'Forbidden';
+    case 404:
+      return 'Not Found';
+    case 409:
+      return 'Conflict';
+    case 422:
+      return 'Unprocessable Entity';
+    case 429:
+      return 'Too Many Requests';
+    case 500:
+      return 'Internal Server Error';
+    case 502:
+      return 'Bad Gateway';
+    case 503:
+      return 'Service Unavailable';
+    case 504:
+      return 'Gateway Timeout';
+    default:
+      return 'Error';
   }
 }
 
@@ -113,8 +118,8 @@ export class ServiceUnavailableError extends Error {
 export function setupProxyErrorHandler(fastify: FastifyInstance): void {
   fastify.setErrorHandler(
     (error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
-//      const service = findServiceByUrl(request.url); replace the stub after the PR is merged
-        const service = 'stub' as unknown as ServiceConfig;
+      //      const service = findServiceByUrl(request.url); replace the stub after the PR is merged
+      const service = 'stub' as unknown as ServiceConfig;
       if (service && !reply.sent) {
         handleProxyError(error, service, request, reply);
       } else if (!reply.sent) {
