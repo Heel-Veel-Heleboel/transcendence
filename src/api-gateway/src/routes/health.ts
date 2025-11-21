@@ -84,7 +84,6 @@ async function checkServiceHealth(
   upstream: string,
   attempts = 2
 ): Promise<ServiceHealth> {
-
   const timeoutMs = 3000;
 
   for (let attempt = 1; attempt <= attempts; attempt++) {
@@ -92,37 +91,39 @@ async function checkServiceHealth(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
-  try {
-    const response = await fetch(`${upstream}/health`, {
-      signal: controller.signal
-    });
+    try {
+      const response = await fetch(`${upstream}/health`, {
+        signal: controller.signal
+      });
 
-    clearTimeout(timeout);
-    const responseTime = Date.now() - startTime;
-    const isHealthy = response.status < 500; // Accept 4xx as healthy for availability
+      clearTimeout(timeout);
+      const responseTime = Date.now() - startTime;
+      const isHealthy = response.status < 500; // Accept 4xx as healthy for availability
 
-    return createServiceHealthResponse(serviceName, isHealthy, responseTime);
-  } catch (error: unknown) {
-    clearTimeout(timeout);
-    const responseTime = Date.now() - startTime;
-    const errorMessage = extractErrorMessage(error);
+      return createServiceHealthResponse(serviceName, isHealthy, responseTime);
+    } catch (error: unknown) {
+      clearTimeout(timeout);
+      const responseTime = Date.now() - startTime;
+      const errorMessage = extractErrorMessage(error);
 
-     // Retry only on timeout/AbortError; otherwise return immediately
+      // Retry only on timeout/AbortError; otherwise return immediately
       if (errorMessage === 'timeout' && attempt < attempts) {
         // small exponential backoff
-        await new Promise(res => setTimeout(res, 100 * Math.pow(2, attempt - 1)));
+        await new Promise(res =>
+          setTimeout(res, 100 * Math.pow(2, attempt - 1))
+        );
         continue;
       }
 
-    return createServiceHealthResponse(
-      serviceName,
-      false,
-      responseTime,
-      errorMessage
-    );
+      return createServiceHealthResponse(
+        serviceName,
+        false,
+        responseTime,
+        errorMessage
+      );
+    }
   }
-}
-// Fallback - should not be hit
+  // Fallback - should not be hit
   return createServiceHealthResponse(
     serviceName,
     false,
