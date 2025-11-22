@@ -1,6 +1,6 @@
-import { createUser } from '../services/auth.service.js';
+import { createUser, loginUser } from '../services/auth.service.js';
 import { validatePassword } from '../utils/password-utils.js';
-import { CreateUserData } from '../types/user.js';
+import { CreateUserData, LoginUserData} from '../types/user.js';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { DuplicateEntryError, DatabaseError } from '../error/prisma-error.js';
 
@@ -73,7 +73,14 @@ export async function registerUserController(request: FastifyRequest<{ Body: Cre
 
 export async function loginUserController(request: FastifyRequest, reply: FastifyReply) {
 
-  reply.status(200).send({
+  const user = await loginUser(request.server.prisma, request.body as LoginUserData);
+  if (!user) {
+    return reply.status(401).send({
+      error: 'Invalid credentials.'
+    });
+  }
+
+  return reply.status(200).send({
     message: 'Login successful!'
   });
 }

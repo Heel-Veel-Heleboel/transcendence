@@ -1,7 +1,8 @@
-import type { SafeUser, CreateUserData } from '../types/user.js';
-import { hashPassword } from '../utils/password-utils.js';
+import type { SafeUser, CreateUserData, AuthResponse, LoginUserData } from '../types/user.js';
+import { hashPassword, comparePassword } from '../utils/password-utils.js';
 import { PrismaClient } from '@prisma/client';
 import { DatabaseError, DuplicateEntryError, isPrismaKnownError } from '../error/prisma-error.js';
+
 
 
 
@@ -31,5 +32,34 @@ export async function createUser(prisma: PrismaClient, data: CreateUserData) : P
     }
     throw new DatabaseError(error instanceof Error ? error.message : 'Unknown database error');
 
+  }
+}
+
+
+
+export async function loginUser(prisma: PrismaClient, data: LoginUserData): Promise<AuthResponse> {
+  try {
+
+    const user = await prisma.user.findUnique({
+      where : {
+        email: data.email
+      }
+    });
+    if(!user) {
+      throw new Error('Invalid credentials!');
+    }
+
+    const isValidPassword = await comparePassword(data.password, user.password);
+    if (!isValidPassword) {
+      throw new Error('Invalid credentials!');
+    }
+
+    const { password: _password, ...safeUser }  = user;
+    return ({ token: 'token', user: safeUser, expiresIn: '5d' });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new DatabaseError(error.message);
+    }
+    throw new DatabaseError('Login failed.');
   }
 }
