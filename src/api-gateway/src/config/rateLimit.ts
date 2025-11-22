@@ -1,7 +1,6 @@
 import {
   RateLimitConfig,
   RateLimitEntry,
-  EndpointRateLimit
 } from '../entity/common';
 import fs from 'fs';
 

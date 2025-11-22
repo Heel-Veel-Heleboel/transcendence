@@ -164,7 +164,7 @@ export function getServicesConfig(): ServiceConfig[] {
   for (const s of services) {
     if (nameSet.has(s.name)) duplicates.push(`name:${s.name}`);
     nameSet.add(s.name);
-    const p = s.prefix;
+    const p = s.prefix ?? '';
     if (prefixSet.has(p)) duplicates.push(`prefix:${p}`);
     prefixSet.add(p);
   }
