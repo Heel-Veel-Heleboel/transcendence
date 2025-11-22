@@ -469,7 +469,7 @@ describe('Proxy Routes', () => {
       const { registerWebSocketRoute } = await import('../../../src/api-gateway/src/routes/proxy');
       let registered: any = null;
       const fakeFastify: any = { get: (path: string, opts: any, handler: any) => { registered = { path, opts, handler }; } };
-      const svc = { name: 'svc', upstream: 'http://u', prefix: '/api/svc', rewritePrefix: '/svc', websocketPath: '/ws/svc' } as any;
+      const svc = { name: 'svc', upstream: 'http://u', prefix: '/api/svc', rewritePrefix: '/svc' } as any;
       const logInfo = vi.fn();
       const logDebug = vi.fn();
       const logError = vi.fn();
