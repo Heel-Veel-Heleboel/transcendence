@@ -141,7 +141,6 @@ export function handleProxyError(
   const proxyError: FastifyError = new ServiceUnavailableError(
     service.name
   ) as FastifyError;
-  proxyError.statusCode = 503;
 
   request.log.error(
     {
