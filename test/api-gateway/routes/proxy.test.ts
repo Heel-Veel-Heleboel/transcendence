@@ -22,8 +22,7 @@ const mockConfig = {
       prefix: '/api/games',
       rewritePrefix: '/games',
       timeout: 10000,
-      requiresAuth: true,
-      requiresAuthRoles: ['user', 'admin']
+      requiresAuth: true
     },
     {
       name: 'chat-service',
