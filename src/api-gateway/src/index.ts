@@ -22,23 +22,24 @@ export const createServer = () => {
 
   server.register(httpProxy, {
     upstream: 'http://localhost:3001',
-    prefix: '/api/test',
-    rewritePrefix: '/test'
+    prefix: '/api/user',
+    rewritePrefix: '/user'
   });
 
   return server;
 };
 
-const server = createServer();
-
 // Start the server
-const start = async () => {
+export const start = async (
+  server: ReturnType<typeof createServer> = createServer()
+) => {
   try {
     const port = process.env.PORT ? parseInt(process.env.PORT) : 3002;
     const host = process.env.HOST || '0.0.0.0';
 
-    await server.listen(port, host);
+    await server.listen({ port, host });
     server.log.info(`API Gateway is running on http://${host}:${port}`);
+    return server;
   } catch (err) {
     server.log.error(err);
     process.exit(1);
@@ -46,16 +47,21 @@ const start = async () => {
 };
 
 // Handle graceful shutdown
-process.on('SIGTERM', async () => {
-  server.log.info('Received SIGTERM, shutting down gracefully');
-  await server.close();
-  process.exit(0);
-});
+export const setupGracefulShutdown = (
+  server: ReturnType<typeof createServer>
+) => {
+  const handleShutdown = async (signal: string) => {
+    server.log.info(`Received ${signal}, shutting down gracefully`);
+    await server.close();
+    process.exit(0);
+  };
 
-process.on('SIGINT', async () => {
-  server.log.info('Received SIGINT, shutting down gracefully');
-  await server.close();
-  process.exit(0);
-});
+  ['SIGTERM', 'SIGINT'].forEach(signal => process.on(signal, async () => await handleShutdown(signal)));
+};
 
-start();
+// Run only when not in test mode
+if (process.env.NODE_ENV !== 'test') {
+  const server = createServer();
+  setupGracefulShutdown(server);
+  start(server);
+}

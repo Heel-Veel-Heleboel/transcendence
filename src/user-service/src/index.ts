@@ -1,22 +1,14 @@
-import fastify from 'fastify'
+import { app } from './app.js';
 
-const server = fastify()
 
-server.get('/user', async (request, reply) => {
-  return {message : "Hello from User Service"}
-})
-
-server.listen({ port: 3001 }, (err, address) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
+const start = async () => {
+  try {
+    await app.listen({ port: 3000, host: '0.0.0.0' });
+    console.log('User service is running on http://localhost:3000.');
+  } catch (err) {
+    app.log.error(err);
+    process.exit(1);
   }
-  console.log(`Server listening at ${address}`)
-})
+};
 
-
-
-
-let  counter = 0;
-
-counter = 'Hello world';
+start();
