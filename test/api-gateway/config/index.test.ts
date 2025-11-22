@@ -9,8 +9,11 @@ describe("Configuration loading", () => {
     expect(config.nodeEnv).toBe("development");
   });
 
+  // Updated: use SERVICES JSON env var instead of individual USER_SERVICE_URL
   it("loads service configurations from environment variables", async () => {
-    process.env.USER_SERVICE_URL = 'http://localhost:9001';
+    process.env.SERVICES = JSON.stringify([
+      { name: 'user-service', upstream: 'http://localhost:9001' }
+    ]);
     vi.resetModules();
     const { config } = await import('../../../src/api-gateway/src/config/index');
     const userService = config.services.find(s => s.name === 'user-service');
