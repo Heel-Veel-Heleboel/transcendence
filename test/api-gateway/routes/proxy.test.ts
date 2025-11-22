@@ -493,7 +493,7 @@ describe('Proxy Routes', () => {
       // call handler (note: handler uses handleWebSocketConnection which logs to fastify passed earlier in file; pass fastifyMock)
       // We need to import handleWebSocketConnection directly to call with fastifyMock
       const { handleWebSocketConnection } = await import('../../../src/api-gateway/src/routes/proxy');
-      handleWebSocketConnection(fastifyMock as any, svc as any, svc.websocketPath, conn as any, req as any);
+      handleWebSocketConnection(fastifyMock as any, svc as any, svc.prefix, conn as any, req as any);
       // simulate events
       socketHandlers['message']?.({ data: Buffer.from('hello') });
       socketHandlers['close']?.();
