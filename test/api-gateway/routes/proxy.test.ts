@@ -41,7 +41,7 @@ vi.mock('../../../src/api-gateway/src/config', () => ({
 }));
 
 // Mock auth middleware
-vi.mock('../middleware/auth', () => ({
+vi.mock('../../../src/api-gateway/src/middleware/auth', () => ({
   authGuard: vi.fn(() => async (req: any, reply: any) => {
     if (!req.user) {
       reply.code(401).send({ error: 'Unauthorized' });
