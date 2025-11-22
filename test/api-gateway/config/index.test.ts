@@ -28,6 +28,11 @@ describe("Configuration loading", () => {
   });
 
   it("loads rate limiting configurations correctly", async () => {
+    process.env.RATE_LIMITS = JSON.stringify({
+      global: { max: 1000, windowMs: 60000 },
+      endpoints: { '/api/auth/login': { max: 10, windowMs: 60000 } }
+    });
+    vi.resetModules();
     const { config } = await import('../../../src/api-gateway/src/config/index');
     expect(config.rateLimits.global.max).toBe(1000);
     expect(config.rateLimits.endpoints['/api/auth/login'].max).toBe(10);

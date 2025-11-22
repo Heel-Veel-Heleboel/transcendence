@@ -1,183 +1,103 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { parseJsonRateLimitsInput } from '../../../src/api-gateway/src/config/rateLimit';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
+import { describe, it, expect, vi } from 'vitest';
 
-const RATE_LIMITS_KEY = 'RATE_LIMITS';
-const GLOBAL_MAX = 'RATE_LIMIT_GLOBAL_MAX';
-const ENDPOINT_USERS_MAX = 'RATE_LIMIT_ENDPOINT_API_USERS_MAX';
-const ENDPOINT_USERS_WINDOW = 'RATE_LIMIT_ENDPOINT_API_USERS_WINDOW';
+describe('Rate limit config parsing', () => {
+  it('parses array-shaped endpoints into a map', async () => {
+    const { parseRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
 
-beforeEach(() => {
-  vi.resetModules();
-  delete process.env[RATE_LIMITS_KEY];
-  delete process.env[GLOBAL_MAX];
-  delete process.env[ENDPOINT_USERS_MAX];
-  delete process.env[ENDPOINT_USERS_WINDOW];
-});
+    const raw = {
+      global: { max: 1000, timeWindow: '1 minute' },
+      authenticated: { max: 2000, timeWindow: '1 minute' },
+      endpoints: [
+        { path: '/api/auth/login', limit: { max: 10, timeWindow: '1 minute' } }
+      ]
+    };
 
-afterEach(() => {
-  delete process.env[RATE_LIMITS_KEY];
-  delete process.env[GLOBAL_MAX];
-  delete process.env[ENDPOINT_USERS_MAX];
-  delete process.env[ENDPOINT_USERS_WINDOW];
-});
+    const cfg = parseRateLimitConfig(raw);
+    expect(cfg.global.max).toBe(1000);
+    expect(cfg.endpoints['/api/auth/login'].max).toBe(10);
+  });
 
-describe('getRateLimitConfig', () => {
-  it('parses valid RATE_LIMITS JSON (zod success path)', async () => {
-    process.env[RATE_LIMITS_KEY] = JSON.stringify({
-      global: { max: 1500, timeWindow: '2 minutes' },
-      authenticated: { max: 3000, timeWindow: '1 minute' },
+  it('parses object-shaped endpoints into a map', async () => {
+    const { parseRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
+
+    const raw = {
       endpoints: {
-        '/api/users': { max: 250, timeWindow: '1 minute' },
-        '/api/games': { max: 600, timeWindow: '30 seconds' }
-      }
-    });
-
-    // import after env set (dynamic import to support TS modules)
-    const mod = await import('../../../src/api-gateway/src/config/rateLimit');
-    const { getRateLimitConfig } = mod;
-    const cfg = getRateLimitConfig();
-
-    expect(cfg.global?.max).toBe(1500);
-    expect(cfg.global?.timeWindow).toBe('2 minutes');
-    expect(cfg.authenticated?.max).toBe(3000);
-    expect(cfg.endpoints['/api/users'].max).toBe(250);
-    expect(cfg.endpoints['/api/games'].timeWindow).toBe('30 seconds');
-  });
-
-  it('coerces string numbers and uses defaults for missing fields (coercion path)', async () => {
-    // invalid with strings for numbers -> should be coerced
-    process.env[RATE_LIMITS_KEY] = JSON.stringify({
-      global: { max: '1800', timeWindow: '1 minute' },
-      endpoints: {
-        '/api/users': { max: '275', timeWindow: '2 minutes' }
-      }
-    });
-
-    const mod = await import('../../../src/api-gateway/src/config/rateLimit');
-    const { getRateLimitConfig } = mod;
-    const cfg = getRateLimitConfig();
-
-    expect(cfg.global?.max).toBe(1800);
-    expect(cfg.endpoints['/api/users'].max).toBe(275);
-    // other default endpoints should still exist
-    expect(cfg.endpoints['/api/auth/login']).toBeDefined();
-  });
-
-  it('handles endpoints as non-object and falls back to defaults', async () => {
-    process.env[RATE_LIMITS_KEY] = JSON.stringify({
-      // endpoints intentionally set to a primitive to hit the "not object" branch
-      endpoints: 'not-an-object'
-    });
-
-    const mod = await import('../../../src/api-gateway/src/config/rateLimit');
-    const { getRateLimitConfig } = mod;
-    const cfg = getRateLimitConfig();
-
-    // default endpoints must be present
-    expect(cfg.endpoints['/api/auth/login']).toBeDefined();
-    expect(cfg.endpoints['/api/users']).toBeDefined();
-    expect(cfg.endpoints['/api/games']).toBeDefined();
-  });
-
-  it('falls back to individual env vars when RATE_LIMITS JSON is malformed', async () => {
-    // malformed JSON
-    process.env[RATE_LIMITS_KEY] = '{ this is : not json';
-    // set individual env var fallbacks
-    process.env[GLOBAL_MAX] = '2222';
-    process.env[ENDPOINT_USERS_MAX] = '123';
-    process.env[ENDPOINT_USERS_WINDOW] = '30 seconds';
-
-    const mod = await import('../../../src/api-gateway/src/config/rateLimit');
-    const { getRateLimitConfig } = mod;
-    const cfg = getRateLimitConfig();
-
-    expect(cfg.global?.max).toBe(2222);
-    expect(cfg.endpoints['/api/users'].max).toBe(123);
-    expect(cfg.endpoints['/api/users'].timeWindow).toBe('30 seconds');
-  });
-
-  it('loads RATE_LIMITS from RATE_LIMITS_FILE when present', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'rate-limits-'));
-    const filePath = path.join(tmpDir, 'limits.json');
-    const payload = {
-      global: { max: 9999, timeWindow: '5 minutes' },
-      endpoints: {
-        '/api/users': { max: 11, timeWindow: '10 seconds' }
+        '/health': { max: 50, timeWindow: '1 minute' }
       }
     };
-    fs.writeFileSync(filePath, JSON.stringify(payload), 'utf8');
-    process.env['RATE_LIMITS_FILE'] = filePath;
 
+    const cfg = parseRateLimitConfig(raw);
+    expect(cfg.endpoints['/health'].max).toBe(50);
+  });
+
+  it('returns sensible defaults when input is undefined', async () => {
+    const { parseRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
+    const cfg = parseRateLimitConfig(undefined);
+    expect(cfg.global.max).toBe(1000);
+    expect(Object.keys(cfg.endpoints).length).toBe(0);
+  });
+
+  it('parseJsonEndpointRateLimits throws when path missing', () => {
+    // dynamic import to match other tests
+    return (async () => {
+      const { parseJsonEndpointRateLimits } = await import('../../../src/api-gateway/src/config/rateLimit');
+      const defaultEntry = { max: 2000, timeWindow: '1 minute' };
+      expect(() => parseJsonEndpointRateLimits({ limit: { max: 1 } }, defaultEntry)).toThrow();
+    })();
+  });
+
+  it('getRateLimitConfig reads RATE_LIMITS env var', async () => {
     vi.resetModules();
-    const mod = await import('../../../src/api-gateway/src/config/rateLimit');
-    const { getRateLimitConfig } = mod;
+    process.env.RATE_LIMITS = JSON.stringify({
+      global: { max: 1234, timeWindow: '1 minute' },
+      endpoints: { '/login': { max: 5, timeWindow: '1 minute' } }
+    });
+
+    const { getRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
     const cfg = getRateLimitConfig();
+    expect(cfg.global.max).toBe(1234);
+    expect(cfg.endpoints['/login'].max).toBe(5);
 
-    expect(cfg.global?.max).toBe(9999);
-    expect(cfg.endpoints['/api/users'].max).toBe(11);
-
-    // cleanup
-    delete process.env['RATE_LIMITS_FILE'];
-    try { fs.unlinkSync(filePath); fs.rmdirSync(tmpDir); } catch (_) {}
-  });
-
-  it('falls back when RATE_LIMITS JSON is not an object (primitive)', async () => {
-    process.env[RATE_LIMITS_KEY] = JSON.stringify('just-a-string');
+    delete process.env.RATE_LIMITS;
     vi.resetModules();
-    const mod = await import('../../../src/api-gateway/src/config/rateLimit');
-    const { getRateLimitConfig } = mod;
-    const cfg = getRateLimitConfig();
-
-    // should fall back to defaults
-    expect(cfg.global?.max).toBe(1000);
-    expect(cfg.endpoints['/api/auth/login']).toBeDefined();
   });
 
-  it('skips invalid endpoint entries during coercion (null value)', async () => {
-    process.env[RATE_LIMITS_KEY] = JSON.stringify({ endpoints: { '/bad': null, '/api/users': { max: '40' } } });
+  it('parseJsonRateLimits falls back to defaults and warns on invalid input', async () => {
+    const { parseJsonRateLimits } = await import('../../../src/api-gateway/src/config/rateLimit');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const def = { max: 5, timeWindow: '1 minute' };
+    const res = parseJsonRateLimits('not-an-object' as any, def);
+    expect(res).toEqual(def);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it('parseJsonEndpointRateLimits throws when raw is not an object', async () => {
+    const { parseJsonEndpointRateLimits } = await import('../../../src/api-gateway/src/config/rateLimit');
+    const defaultEntry = { max: 2000, timeWindow: '1 minute' };
+    expect(() => parseJsonEndpointRateLimits(null as any, defaultEntry)).toThrow(/must be an object/);
+  });
+
+  it('object-shaped endpoints: skips empty key and warns', async () => {
     vi.resetModules();
-    const mod = await import('../../../src/api-gateway/src/config/rateLimit');
-    const { getRateLimitConfig } = mod;
-    const cfg = getRateLimitConfig();
-
-    // '/bad' should have been skipped and not present on endpoints
-    expect(cfg.endpoints['/bad']).toBeUndefined();
-    // '/api/users' should be coerced to number
-    expect(cfg.endpoints['/api/users'].max).toBe(40);
+    const { parseRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const raw = { endpoints: { '': { max: 10, timeWindow: '1 minute' } } };
+    const cfg = parseRateLimitConfig(raw as any);
+    expect(Object.keys(cfg.endpoints).length).toBe(0);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 
-  it('parseJsonRateLimitsInput coercion path returns merged defaults and coerced endpoints', () => {
-    const input = {
-      global: { max: '700', timeWindow: '1 minute' },
-      authenticated: { max: '1200', timeWindow: '2 minutes' },
-      endpoints: {
-        '/api/users': { max: '55', timeWindow: '15 seconds' },
-        '/bad': { max: 'not-a-number', timeWindow: null }
-      }
-    } as any;
-
-    const result = parseJsonRateLimitsInput(input, 'test-source');
-    expect(result).not.toBeNull();
-    expect(result?.global?.max).toBe(700);
-    expect(result?.authenticated?.max).toBe(1200);
-    expect(result?.endpoints['/api/users'].max).toBe(55);
-    // '/bad' should default to 100 because max was NaN
-    expect(result?.endpoints['/bad'].max).toBe(100);
-  });
-
-  it('parseJsonRateLimitsInput returns null for primitive input', () => {
-    const result = parseJsonRateLimitsInput('not-an-object', 'test-source');
-    expect(result).toBeNull();
-  });
-
-  it('parseJsonRateLimitsInput handles schema failure and logs warning', () => {
-    const input = { global: { max: 'x' } } as any;
-    const result = parseJsonRateLimitsInput(input, 'test-source');
-    expect(result).not.toBeNull();
-    // defaults should be present
-    expect(result?.global?.max).toBeGreaterThan(0);
+  it('object-shaped endpoints: invalid value falls back to defaultAuthenticated and warns', async () => {
+    vi.resetModules();
+    const { parseRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const raw = { endpoints: { '/x': 'invalid' } };
+    const cfg = parseRateLimitConfig(raw as any);
+    // defaultAuthenticated max is 2000
+    expect(cfg.endpoints['/x'].max).toBe(2000);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 });
