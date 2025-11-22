@@ -50,24 +50,6 @@ vi.mock('../../../src/api-gateway/src/middleware/auth', () => ({
   })
 }));
 
-// Mock error handler
-vi.mock('../utils/errors', () => ({
-  errorHandler: vi.fn((error: any, req: any, reply: any) => {
-    reply.code(error.statusCode || 500).send({
-      statusCode: error.statusCode || 500,
-      error: error.name || 'Error',
-      message: error.message
-    });
-  }),
-  ServiceUnavailableError: class extends Error {
-    statusCode = 503;
-    constructor(service: string) {
-      super(`${service} is currently unavailable`);
-      this.name = 'ServiceUnavailableError';
-    }
-  }
-}));
-
 // In-test lightweight upstream HTTP servers (replace MSW approach)
 const upstreamServers = new Map<number, http.Server>();
 const upstreamHandlers = new Map<number, Array<{ path: string; method?: string; handler: (req: any, reply: any) => any }>>();
