@@ -29,6 +29,7 @@ const mockConfig = {
       upstream: 'http://localhost:9003',
       prefix: '/api/chat',
       rewritePrefix: '/chat',
+      timeout: 5000,
       websocket: true
     }
   ]
