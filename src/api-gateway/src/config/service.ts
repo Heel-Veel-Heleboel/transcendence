@@ -22,7 +22,9 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
 
   const upstream = coerceString(raw.upstream || raw.url);
   if (!upstream) {
-    throw new Error(`service "${name || 'unknown'}" missing required "upstream"/url`);
+    throw new Error(
+      `service "${name || 'unknown'}" missing required "upstream"/url`
+    );
   }
 
   // prefix may be omitted — derive from service name when missing
@@ -34,13 +36,19 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
   }
 
   let prefix: string;
-  if (raw.prefix !== undefined && raw.prefix !== null && String(raw.prefix).trim() !== '') {
+  if (
+    raw.prefix !== undefined &&
+    raw.prefix !== null &&
+    String(raw.prefix).trim() !== ''
+  ) {
     prefix = normalizePrefix(raw.prefix);
   } else {
     // derive default prefix from name, e.g. 'user-service' -> '/api/user'
     const base = name.replace(/-service$/, '');
     prefix = normalizePrefix(`/api/${base}`);
-    console.info(`service "${name}" did not provide prefix; derived prefix="${prefix}"`);
+    console.info(
+      `service "${name}" did not provide prefix; derived prefix="${prefix}"`
+    );
   }
 
   let rewritePrefix: string;
@@ -50,7 +58,9 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
     // derive from normalized prefix by stripping leading '/api/' or leading '/'
     rewritePrefix = prefix.replace(/^\/api\//, '').replace(/^\//, '');
     if (!rewritePrefix) rewritePrefix = name.replace(/-service$/, '');
-    console.warn(`service "${name}" did not provide rewritePrefix; derived rewritePrefix="${rewritePrefix}"`);
+    console.warn(
+      `service "${name}" did not provide rewritePrefix; derived rewritePrefix="${rewritePrefix}"`
+    );
   }
 
   let timeout: number;
@@ -58,7 +68,9 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
     timeout = Number(raw.timeout);
   } else {
     timeout = DEFAULT_TIMEOUT;
-    console.info(`service "${name}" missing timeout; using default ${DEFAULT_TIMEOUT}ms`);
+    console.info(
+      `service "${name}" missing timeout; using default ${DEFAULT_TIMEOUT}ms`
+    );
   }
 
   let retries: number;
@@ -66,7 +78,9 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
     retries = Number(raw.retries);
   } else {
     retries = DEFAULT_RETRIES;
-    console.info(`service "${name}" missing retries; using default ${DEFAULT_RETRIES}`);
+    console.info(
+      `service "${name}" missing retries; using default ${DEFAULT_RETRIES}`
+    );
   }
 
   const requiresAuth = raw.requiresAuth ?? raw.auth ?? false;
@@ -80,13 +94,19 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
     timeout: Number(timeout),
     retries: Number(retries),
     requiresAuth:
-      requiresAuth === true || String(requiresAuth) === 'true' ? true : undefined,
-    websocket: websocket === true || String(websocket) === 'true' ? true : undefined,
+      requiresAuth === true || String(requiresAuth) === 'true'
+        ? true
+        : undefined,
+    websocket:
+      websocket === true || String(websocket) === 'true' ? true : undefined
   } as ServiceConfig;
   return svc;
 }
 
-export function parseJsonServiceConfig(input: any, source: string): ServiceConfig[] {
+export function parseJsonServiceConfig(
+  input: any,
+  source: string
+): ServiceConfig[] {
   if (!input) return [];
   if (!Array.isArray(input)) {
     throw new Error(`${source} must be a JSON array of services`);
@@ -121,7 +141,9 @@ export function getServicesConfig(): ServiceConfig[] {
   let services: ServiceConfig[] = [];
   if (servicesFile) {
     if (!fs.existsSync(servicesFile)) {
-      throw new Error(`SERVICES_FILE is set but file does not exist: ${servicesFile}`);
+      throw new Error(
+        `SERVICES_FILE is set but file does not exist: ${servicesFile}`
+      );
     }
     const raw = fs.readFileSync(servicesFile, 'utf8');
     const parsed = JSON.parse(raw);
@@ -148,7 +170,9 @@ export function getServicesConfig(): ServiceConfig[] {
   }
 
   if (duplicates.length > 0) {
-    throw new Error(`Duplicate service configuration detected: ${duplicates.join(', ')}`);
+    throw new Error(
+      `Duplicate service configuration detected: ${duplicates.join(', ')}`
+    );
   }
 
   return services;
