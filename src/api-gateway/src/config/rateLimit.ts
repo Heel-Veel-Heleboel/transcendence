@@ -1,6 +1,6 @@
 import {
   RateLimitConfig,
-  RateLimitEntry,
+  RateLimitEntry
 } from '../entity/common';
 import fs from 'fs';
 
@@ -30,7 +30,7 @@ export function parseJsonRateLimits(
 export function parseJsonEndpointRateLimits(
   raw: any,
   defaultEntry: RateLimitEntry
-): EndpointRateLimit {
+): { path: string; limit: RateLimitEntry } {
   if (!raw || typeof raw !== 'object') {
     throw new Error('endpoint rate limit entry must be an object');
   }
