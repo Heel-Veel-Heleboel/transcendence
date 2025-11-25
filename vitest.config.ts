@@ -1,10 +1,10 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
     // Test file patterns
     include: ['test/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    
+
     // Coverage configuration
     coverage: {
       provider: 'v8', // Use V8 coverage provider
@@ -20,28 +20,28 @@ export default defineConfig({
       ],
       // Coverage thresholds
       thresholds: {
-          branches: 80,
-          functions: 80,
-          lines: 80,
-          statements: 80
+        branches: 80,
+        functions: 80,
+        lines: 80,
+        statements: 80
       }
     },
-    
+
     // Environment
-    environment: 'node',
-    
+    environment: 'jsdom',
+
     // Globals (vitest globals like describe, it, expect)
     globals: true,
-    
+
     // Setup files
     setupFiles: [],
-    
+
     // TypeScript support
     typecheck: {
       tsconfig: './tsconfig.json'
     }
   },
-  
+
   // Resolve configuration
   resolve: {
     alias: {
@@ -50,4 +50,4 @@ export default defineConfig({
       '@test': '/src/test'
     }
   }
-})
+});

@@ -1,19 +1,41 @@
-const initApp = (): void => {
+export function registerOptionCool() {
   document.getElementById('optionCool')?.addEventListener('click', function () {
-    window.location.href = 'https://nu.nl';
+    window.open('https://nu.nl', '_blank', 'noopener,noreferrer');
   });
+}
 
+export function registerOptionGame() {
   document
     .getElementById('optionStart')
     ?.addEventListener('click', function () {
-      window.location.href = 'src/game.html';
+      window.open(
+        'http://localhost:5173/src/game.html',
+        '_blank',
+        'noopener,noreferrer'
+      );
     });
+}
 
+export function registerOptionLogin() {
   document
     .getElementById('optionLogin')
     ?.addEventListener('click', function () {
-      window.location.href = 'src/menu.html';
+      window.open(
+        'http://localhost:5173/src/menu.html',
+        '_blank',
+        'noopener,noreferrer'
+      );
     });
-};
+}
 
-document.addEventListener('DOMContentLoaded', initApp);
+export function initApp() {
+  registerOptionCool();
+  registerOptionGame();
+  registerOptionLogin();
+}
+
+export function main() {
+  document.addEventListener('DOMContentLoaded', initApp);
+}
+
+main();
