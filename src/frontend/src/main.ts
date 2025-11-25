@@ -1,6 +1,12 @@
+export const actions = {
+  gotoNu: () => {
+    window.open('https://nu.nl');
+  }
+};
+
 export function registerOptionCool() {
-  document.getElementById('optionCool')?.addEventListener('click', function () {
-    window.open('https://nu.nl', '_blank', 'noopener,noreferrer');
+  document.getElementById('optionCool')?.addEventListener('click', () => {
+    actions.gotoNu(); // property lookup — spyable
   });
 }
 

@@ -56,7 +56,7 @@ class Ball implements IBall {
   }
 }
 
-const createScene = function () {
+export function createScene() {
   const sceneObj = new BABYLON.Scene(engine);
 
   const _bgMusic = new BABYLON.Sound(
@@ -193,7 +193,7 @@ const createScene = function () {
     console.log(ball.mesh.position);
   });
   return sceneObj;
-};
+}
 
 const scene = createScene();
 
@@ -205,4 +205,4 @@ window.addEventListener('resize', function () {
   engine.resize();
 });
 
-Inspector.Show(scene, {});
+// Inspector.Show(scene, {});
