@@ -2,9 +2,6 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    // Test file patterns
-    include: ['test/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-
     // Coverage configuration
     coverage: {
       provider: 'v8', // Use V8 coverage provider
@@ -27,19 +24,40 @@ export default defineConfig({
       }
     },
 
-    // Environment
-    environment: 'jsdom',
-
     // Globals (vitest globals like describe, it, expect)
     globals: true,
-
-    // Setup files
-    setupFiles: [],
 
     // TypeScript support
     typecheck: {
       tsconfig: './tsconfig.json'
-    }
+    },
+
+    projects: [
+      'src/*',
+      {
+        extends: true,
+        test: {
+          // Test file patterns
+          include: ['test/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+
+          // Environment
+          environment: 'node'
+        }
+      },
+      {
+        extends: true,
+        test: {
+          // Test file patterns
+          include: ['test/**/*.{jsdom,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+
+          // Setup files
+          setupFiles: ['./test/setup/canvas.js'],
+
+          // Environment
+          environment: 'jsdom'
+        }
+      }
+    ]
   },
 
   // Resolve configuration
