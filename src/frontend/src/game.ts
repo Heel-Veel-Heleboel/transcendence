@@ -1,5 +1,6 @@
 import * as BABYLON from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
+import * as module from './game.ts';
 // import { Inspector } from '@babylonjs/inspector';
 
 interface IBall {
@@ -8,7 +9,7 @@ interface IBall {
   velocity: BABYLON.Vector3;
 }
 
-class Ball implements IBall {
+export class Ball implements IBall {
   public mesh: BABYLON.Mesh;
   public acceleration: BABYLON.Vector3;
   public velocity: BABYLON.Vector3;
@@ -71,7 +72,15 @@ export function createBgMusic(scene: BABYLON.Scene) {
 }
 
 export function createCamera(scene: BABYLON.Scene) {
-  scene.createDefaultCameraOrLight(true, false, true);
+  const camera = new BABYLON.UniversalCamera(
+    'camera',
+    new BABYLON.Vector3(0.1, 0.1, -4),
+    scene
+  );
+  camera.attachControl(true);
+  camera.inputs.addMouseWheel();
+  camera.setTarget(BABYLON.Vector3.Zero());
+  return camera;
 }
 
 export function createPlane(
@@ -94,27 +103,27 @@ export function createPlane(
 
 export function createArena(scene: BABYLON.Scene) {
   const arena: BABYLON.Mesh[] = [];
-  const rightSide = createPlane(scene, 'rightSide', 2, 1);
+  const rightSide = module.createPlane(scene, 'rightSide', 2, 1);
   rightSide.rotation = new BABYLON.Vector3(0, Math.PI / 2, Math.PI / 2);
   rightSide.position = new BABYLON.Vector3(-1, 0, 0);
 
-  const leftSide = createPlane(scene, 'leftSide', 2, 1);
+  const leftSide = module.createPlane(scene, 'leftSide', 2, 1);
   leftSide.rotation = new BABYLON.Vector3(0, Math.PI / 2, Math.PI / 2);
   leftSide.position = new BABYLON.Vector3(1, 0, 0);
 
-  const upSide = createPlane(scene, 'upSide', 2, 2);
+  const upSide = module.createPlane(scene, 'upSide', 2, 2);
   upSide.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
   upSide.position = new BABYLON.Vector3(0, 0.5, 0);
 
-  const downSide = createPlane(scene, 'downSide', 2, 2);
+  const downSide = module.createPlane(scene, 'downSide', 2, 2);
   downSide.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
   downSide.position = new BABYLON.Vector3(0, -0.5, 0);
 
-  const frontGoal = createPlane(scene, 'frontGoal', 2, 1);
+  const frontGoal = module.createPlane(scene, 'frontGoal', 2, 1);
   frontGoal.rotation = new BABYLON.Vector3(0, 0, Math.PI / 2);
   frontGoal.position = new BABYLON.Vector3(0, 0, 1);
 
-  const backGoal = createPlane(scene, 'backGoal', 2, 1);
+  const backGoal = module.createPlane(scene, 'backGoal', 2, 1);
   backGoal.rotation = new BABYLON.Vector3(0, 0, Math.PI / 2);
   backGoal.position = new BABYLON.Vector3(0, 0, -1);
 
@@ -139,30 +148,36 @@ export function createBall(scene: BABYLON.Scene, diameter: number) {
   return ball;
 }
 
-export function createScene(engine: BABYLON.AbstractEngine) {
-  const scene = new BABYLON.Scene(engine);
-
-  const _bgMusic = createBgMusic(scene);
-  createCamera(scene);
-  const ball = createBall(scene, 0.1);
-  const arena: BABYLON.Mesh[] = createArena(scene);
-
-  scene.onBeforeRenderObservable.add(() => {
+export function draw(ball: Ball, arena: BABYLON.Mesh[]) {
+  return () => {
     ball.update();
     ball.checkBorders(arena);
     console.log(ball.mesh.position);
-  });
+  };
+}
+
+export function createScene(engine: BABYLON.AbstractEngine) {
+  const scene = new BABYLON.Scene(engine);
+
+  const _bgMusic = module.createBgMusic(scene);
+  const _camera = module.createCamera(scene);
+  const ball = module.createBall(scene, 0.1);
+  const arena: BABYLON.Mesh[] = module.createArena(scene);
+
+  scene.onBeforeRenderObservable.add(module.draw(ball, arena));
   return scene;
 }
 
-export function initGame() {
-  const canvas = getCanvas();
-  const engine = createEngine(canvas);
-  const scene = createScene(engine);
+export function engineResize(engine: BABYLON.AbstractEngine) {
+  return () => engine.resize();
+}
 
-  window.addEventListener('resize', function () {
-    engine.resize();
-  });
+export function initGame() {
+  const canvas = module.getCanvas();
+  const engine = module.createEngine(canvas);
+  const scene = module.createScene(engine);
+
+  window.addEventListener('resize', module.engineResize(engine));
   // Inspector.Show(scene, {});
   engine.runRenderLoop(function () {
     scene.render();
