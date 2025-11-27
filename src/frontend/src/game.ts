@@ -172,8 +172,12 @@ export function createLight(scene: BABYLON.Scene) {
 export function createScene(engine: BABYLON.AbstractEngine) {
   const scene = new BABYLON.Scene(engine);
 
+  // @ts-ignore
   const _bgMusic = module.createBgMusic(scene);
+
+  // @ts-ignore
   const _camera = module.createCamera(scene);
+  // @ts-ignore
   const _lightUp = module.createLight(scene);
   const ball = module.createBall(scene, 0.1);
   const arena: BABYLON.Mesh[] = module.createArena(scene);
