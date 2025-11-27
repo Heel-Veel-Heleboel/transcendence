@@ -72,14 +72,15 @@ export function createBgMusic(scene: BABYLON.Scene) {
 }
 
 export function createCamera(scene: BABYLON.Scene) {
-  const camera = new BABYLON.UniversalCamera(
+  const camera = new BABYLON.ArcRotateCamera(
     'camera',
-    new BABYLON.Vector3(0.1, 0.1, -4),
+    -Math.PI / 2,
+    Math.PI / 4,
+    0.9,
+    BABYLON.Vector3.Zero(),
     scene
   );
-  camera.attachControl(true);
-  camera.inputs.addMouseWheel();
-  camera.setTarget(BABYLON.Vector3.Zero());
+  camera.attachControl(scene.getEngine().getRenderingCanvas(), true);
   return camera;
 }
 
@@ -156,11 +157,24 @@ export function draw(ball: Ball, arena: BABYLON.Mesh[]) {
   };
 }
 
+export function createLight(scene: BABYLON.Scene) {
+  const light = new BABYLON.HemisphericLight(
+    'hemiLight',
+    new BABYLON.Vector3(-1, 1, 0),
+    scene
+  );
+  light.diffuse = new BABYLON.Color3(1, 0, 0);
+  light.specular = new BABYLON.Color3(0, 1, 0);
+  light.groundColor = new BABYLON.Color3(0, 1, 0);
+  return light;
+}
+
 export function createScene(engine: BABYLON.AbstractEngine) {
   const scene = new BABYLON.Scene(engine);
 
   const _bgMusic = module.createBgMusic(scene);
   const _camera = module.createCamera(scene);
+  const _lightUp = module.createLight(scene);
   const ball = module.createBall(scene, 0.1);
   const arena: BABYLON.Mesh[] = module.createArena(scene);
 
@@ -183,3 +197,5 @@ export function initGame() {
     scene.render();
   });
 }
+
+document.addEventListener('DOMContentLoaded', module.initGame);

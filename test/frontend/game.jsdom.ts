@@ -67,7 +67,7 @@ describe('createScene', () => {
     const scene = createMockScene();
 
     const camera = module.createCamera(scene);
-    expect(camera).toBeInstanceOf(BABYLON.UniversalCamera);
+    expect(camera).toBeInstanceOf(BABYLON.ArcRotateCamera);
   });
 
   it('createPlane', () => {
