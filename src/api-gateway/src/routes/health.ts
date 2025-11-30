@@ -181,7 +181,7 @@ function sanitizeErrorMessage(errorMessage: string): string {
     'timeout': 'Request timeout',
     'network': 'Network error',
     'abort': 'Request aborted',
-    'fetch': 'Connection failed',
+    'fetch': 'Connection failed'
   };
   
   for (const [key, sanitized] of Object.entries(errorMap)) {
