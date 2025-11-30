@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "./src/api-gateway" },
+    { "path": "./src/frontend" },
   ],
   "compilerOptions": {
     "composite": true,             
