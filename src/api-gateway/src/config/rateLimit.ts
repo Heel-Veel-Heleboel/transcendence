@@ -13,7 +13,7 @@ function getDefaultAuthenticated(): RateLimitEntry {
 }
 
 export function parseJsonRateLimits(
-  raw: any,
+  raw: RateLimitEntry,
   defaultEntry: RateLimitEntry
 ): RateLimitEntry {
   if (!raw || typeof raw !== 'object') {
