@@ -12,6 +12,8 @@ export interface ServiceConfig {
   rewritePrefix?: string;
   timeout?: number;
   retries?: number;
+  requiresAuth?: boolean;
+  websocket?: boolean;
 }
 
 export interface GatewayConfig {
