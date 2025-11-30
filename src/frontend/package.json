@@ -1,0 +1,32 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "frontend for Transcendence microservices architecture using Typescript",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest --watch",
+    "clean": "rm -rf ./dist/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "emmet-ls": "^0.4.2",
+    "globals": "^16.5.0",
+    "typescript": "~5.6.2",
+    "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "@babylonjs/core": "^8.38.0",
+    "@babylonjs/inspector": "^8.38.0",
+    "@babylonjs/loaders": "^8.38.0"
+  }
+}
