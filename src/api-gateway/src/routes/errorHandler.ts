@@ -4,17 +4,17 @@ import {
   FastifyReply,
   FastifyInstance
 } from 'fastify';
+import { STATUS_CODES } from 'http';
 import type { StandardError, ServiceConfig } from '../entity/common';
 
-// Global error handler
-export function errorHandler(
-  error: FastifyError,
+/**
+ * Log error details with correlation ID for tracing
+ */
+function logError(
   request: FastifyRequest,
-  reply: FastifyReply
+  error: FastifyError,
+  correlationId?: string
 ): void {
-  const correlationId = (request as any).correlationId;
-
-  // Log the error
   request.log.error(
     {
       error: error.message,
@@ -25,84 +25,70 @@ export function errorHandler(
     },
     'Request error'
   );
+}
 
-  // Determine status code
-  const statusCode = error.statusCode || 500;
+/**
+ * Determine HTTP status code from error
+ */
+function determineStatusCode(error: FastifyError): number {
+  return error.statusCode || 500;
+}
 
-  // Create standardized error response
-  const errorResponse: StandardError = {
+/**
+ * Get standard HTTP status message from status code
+ */
+function getErrorName(statusCode: number): string {
+  return STATUS_CODES[statusCode] || 'Error';
+}
+
+/**
+ * Create standardized error response object
+ */
+function createStandardErrorResponse(
+  error: FastifyError,
+  statusCode: number,
+  correlationId?: string
+): StandardError {
+  return {
     statusCode,
     error: getErrorName(statusCode),
     message: error.message || 'Internal Server Error',
     correlationId,
     timestamp: new Date().toISOString()
   };
+}
 
-  // Don't expose internal errors in production
-  if (statusCode === 500 && process.env.NODE_ENV === 'production') {
+/**
+ * Obscure internal error messages in production for security
+ */
+function obscureInternalErrors(errorResponse: StandardError): void {
+  if (errorResponse.statusCode === 500 && process.env.NODE_ENV === 'production') {
     errorResponse.message = 'Internal Server Error';
   }
+}
+
+/**
+ * Global error handler - orchestrates error handling flow
+ */
+export function errorHandler(
+  error: FastifyError,
+  request: FastifyRequest,
+  reply: FastifyReply
+): void {
+  const correlationId = request.correlationId;
+
+  logError(request, error, correlationId);
+  const statusCode = determineStatusCode(error);
+  const errorResponse = createStandardErrorResponse(error, statusCode, correlationId);
+  obscureInternalErrors(errorResponse);
 
   reply.code(statusCode).send(errorResponse);
 }
 
-function getErrorName(statusCode: number): string {
-  switch (statusCode) {
-  case 400:
-    return 'Bad Request';
-  case 401:
-    return 'Unauthorized';
-  case 403:
-    return 'Forbidden';
-  case 404:
-    return 'Not Found';
-  case 409:
-    return 'Conflict';
-  case 422:
-    return 'Unprocessable Entity';
-  case 429:
-    return 'Too Many Requests';
-  case 500:
-    return 'Internal Server Error';
-  case 502:
-    return 'Bad Gateway';
-  case 503:
-    return 'Service Unavailable';
-  case 504:
-    return 'Gateway Timeout';
-  default:
-    return 'Error';
-  }
-}
-
-// Custom error classes
-export class ValidationError extends Error {
-  statusCode = 400;
-
-  constructor(message: string) {
-    super(message);
-    this.name = 'ValidationError';
-  }
-}
-
-export class AuthenticationError extends Error {
-  statusCode = 401;
-
-  constructor(message: string = 'Authentication required') {
-    super(message);
-    this.name = 'AuthenticationError';
-  }
-}
-
-export class AuthorizationError extends Error {
-  statusCode = 403;
-
-  constructor(message: string = 'Insufficient permissions') {
-    super(message);
-    this.name = 'AuthorizationError';
-  }
-}
-
+/**
+ * Custom error class for service unavailability
+ * Used when upstream services fail or are unreachable
+ */
 export class ServiceUnavailableError extends Error {
   statusCode = 503;
 
