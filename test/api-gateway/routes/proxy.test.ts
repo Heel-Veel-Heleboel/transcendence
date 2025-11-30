@@ -369,6 +369,18 @@ describe('Proxy Routes', () => {
   });
 
   describe('proxy internal helpers (unit)', () => {
+    let originalServices: any[];
+
+    beforeEach(() => {
+      // Save original services config
+      originalServices = [...mockConfig.services];
+    });
+
+    afterEach(() => {
+      // Restore original services config after each test
+      mockConfig.services = originalServices;
+    });
+
     it('findServiceByUrl matches configured prefixes', async () => {
       const { findServiceByUrl } = await import('../../../src/api-gateway/src/routes/proxy');
       // update mocked config services for this assertion
