@@ -379,6 +379,12 @@ describe('Proxy Routes', () => {
       expect(findServiceByUrl('/api/users/test')).toBeDefined();
       expect(findServiceByUrl('/no/match')).toBeUndefined();
     });
+
+    it('findServiceByUrl returns undefined when url is undefined', async () => {
+      const { findServiceByUrl } = await import('../../../src/api-gateway/src/routes/proxy');
+
+      expect(findServiceByUrl(undefined)).toBeUndefined();
+    });
   });
 
   describe('proxy internals additional unit tests', () => {
@@ -418,6 +424,27 @@ describe('Proxy Routes', () => {
       expect(captured.opts.upstream).toBe('http://up');
       expect(captured.opts.prefix).toBe('/api/s');
       expect(captured.opts.proxyTimeout).toBe(1234);
+    });
+
+    it('registerHttpProxy uses default empty string for rewritePrefix when undefined', async () => {
+      const { registerHttpProxy } = await import('../../../src/api-gateway/src/routes/proxy');
+      let captured: any = null;
+      const fakeFastify: any = { register: (plugin: any, opts: any) => { captured = { plugin, opts }; return Promise.resolve(); } };
+      const svc = { name: 's', upstream: 'http://up', prefix: '/api/s', timeout: 1000 } as any;
+
+      await registerHttpProxy(fakeFastify, svc);
+      expect(captured.opts.rewritePrefix).toBe('');
+    });
+
+    it('registerHttpProxy uses default 5000ms timeout when timeout is undefined', async () => {
+      const { registerHttpProxy } = await import('../../../src/api-gateway/src/routes/proxy');
+      let captured: any = null;
+      const fakeFastify: any = { register: (plugin: any, opts: any) => { captured = { plugin, opts }; return Promise.resolve(); } };
+      const svc = { name: 's', upstream: 'http://up', prefix: '/api/s', rewritePrefix: '/s' } as any;
+
+      await registerHttpProxy(fakeFastify, svc);
+      expect(captured.opts.timeout).toBe(5000);
+      expect(captured.opts.proxyTimeout).toBe(5000);
     });
 
     it('setupHeaderForwardingHooks logs user and correlationId when present', async () => {
