@@ -7,6 +7,7 @@ export interface ServiceConfig {
   rewritePrefix?: string;
   timeout?: number;
   retries?: number;
+  requiresAuth?: boolean;
 }
 
 export interface GatewayConfig {
