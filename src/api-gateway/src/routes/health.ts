@@ -1,5 +1,5 @@
 /* global fetch, AbortController, setTimeout, clearTimeout */
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyBaseLogger } from 'fastify';
 import { config } from '../config';
 import { ServiceHealth } from '../entity/common';
 
@@ -30,11 +30,24 @@ function registerGatewayHealthRoute(fastify: FastifyInstance): void {
  * Register detailed health check route including all services
  */
 function registerDetailedHealthRoute(fastify: FastifyInstance): void {
-  fastify.get('/health/detailed', async (_request, _reply) => {
-    const services = await checkAllServicesHealth();
+  fastify.get('/health/detailed', async (request, _reply) => {
+    const services = await checkAllServicesHealth(request.log);
     const overallStatus = services.every(s => s.status === 'healthy')
       ? 'healthy'
       : 'degraded';
+
+    if (overallStatus === 'degraded') {
+      const unhealthyServices = services.filter(s => s.status !== 'healthy');
+      request.log.warn(
+        {
+          unhealthyServices: unhealthyServices.map(s => ({
+            service: s.service,
+            error: s.error
+          }))
+        },
+        'Health check returned degraded status'
+      );
+    }
 
     return {
       status: overallStatus,
@@ -50,11 +63,11 @@ function registerDetailedHealthRoute(fastify: FastifyInstance): void {
 /**
  * Check health of all configured services
  */
-async function checkAllServicesHealth(): Promise<ServiceHealth[]> {
+async function checkAllServicesHealth(logger?: FastifyBaseLogger): Promise<ServiceHealth[]> {
   const serviceHealthChecks: PromiseSettledResult<ServiceHealth>[] =
     await Promise.allSettled(
       config.services.map(service =>
-        checkServiceHealth(service.name, service.upstream)
+        checkServiceHealth(service.name, service.upstream, 2, logger)
       )
     );
 
@@ -65,11 +78,23 @@ async function checkAllServicesHealth(): Promise<ServiceHealth[]> {
       if (result.status === 'fulfilled') {
         return result.value;
       } else {
+        const errorMessage = extractErrorMessage(result.reason);
+
+        if (logger) {
+          logger.error(
+            {
+              service: service.name,
+              error: errorMessage
+            },
+            'Service health check failed'
+          );
+        }
+
         return {
           service: service.name,
           status: 'unhealthy',
           timestamp: new Date().toISOString(),
-          error: extractErrorMessage(result.reason)
+          error: errorMessage
         };
       }
     }
@@ -82,7 +107,8 @@ async function checkAllServicesHealth(): Promise<ServiceHealth[]> {
 async function checkServiceHealth(
   serviceName: string,
   upstream: string,
-  attempts = 2
+  attempts = 2,
+  logger?: FastifyBaseLogger
 ): Promise<ServiceHealth> {
   const timeoutMs = 3000;
 
@@ -96,19 +122,31 @@ async function checkServiceHealth(
         signal: controller.signal
       });
 
-      clearTimeout(timeout);
       const responseTime = Date.now() - startTime;
       const isHealthy = response.status < 500; // Accept 4xx as healthy for availability
 
       return createServiceHealthResponse(serviceName, isHealthy, responseTime);
     } catch (error: unknown) {
-      clearTimeout(timeout);
       const responseTime = Date.now() - startTime;
       const errorMessage = extractErrorMessage(error);
 
-      // Retry only on timeout/AbortError; otherwise return immediately
+      if (logger) {
+        logger.error(
+          {
+            service: serviceName,
+            attempt,
+            error: errorMessage,
+            responseTime,
+            errorDetails: error instanceof Error ? {
+              name: error.name,
+              stack: error.stack
+            } : error
+          },
+          'Health check attempt failed'
+        );
+      }
+
       if (errorMessage === 'timeout' && attempt < attempts) {
-        // small exponential backoff
         await new Promise(res =>
           setTimeout(res, 100 * Math.pow(2, attempt - 1))
         );
@@ -119,17 +157,40 @@ async function checkServiceHealth(
         serviceName,
         false,
         responseTime,
-        errorMessage
+        sanitizeErrorMessage(errorMessage)
       );
+    } finally {
+      clearTimeout(timeout);
     }
   }
+
   // Fallback - should not be hit
   return createServiceHealthResponse(
     serviceName,
     false,
     0,
-    'Unknown error after retries'
+    'Service unavailable'
   );
+}
+
+/**
+ * Sanitize error messages to prevent leaking sensitive information
+ */
+function sanitizeErrorMessage(errorMessage: string): string {
+  const errorMap: Record<string, string> = {
+    'timeout': 'Request timeout',
+    'network': 'Network error',
+    'abort': 'Request aborted',
+    'fetch': 'Connection failed',
+  };
+  
+  for (const [key, sanitized] of Object.entries(errorMap)) {
+    if (errorMessage.toLowerCase().includes(key)) {
+      return sanitized;
+    }
+  }
+  
+  return 'Service unavailable';
 }
 
 /**
@@ -160,7 +221,6 @@ function createServiceHealthResponse(
  */
 function extractErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
-  // Node's AbortController throws a DOMException/AbortError which may not be an Error instance
   if ((error as any)?.name === 'AbortError') return 'timeout';
   return 'Unknown error';
 }
@@ -169,17 +229,23 @@ function extractErrorMessage(error: unknown): string {
  * Ensure services are healthy at startup. Call this before fastify.listen().
  * Throws if any required service is unhealthy.
  */
-export async function ensureServicesHealthyOrThrow(): Promise<void> {
-  const services = await checkAllServicesHealth();
+export async function ensureServicesHealthyOrThrow(logger?: FastifyBaseLogger): Promise<void> {
+  const services = await checkAllServicesHealth(logger);
   const unhealthy = services.filter(s => s.status !== 'healthy');
 
   if (unhealthy.length > 0) {
-    // Log each issue
-    unhealthy.forEach(s =>
-      console.error(
-        `[startup health] service=${s.service} status=${s.status} error=${s.error || 'none'}`
-      )
-    );
+    if (logger) {
+      unhealthy.forEach(s =>
+        logger.error(
+          {
+            service: s.service,
+            status: s.status,
+            error: s.error || 'none'
+          },
+          'Startup health check failed for service'
+        )
+      );
+    }
     throw new Error('One or more upstream services are unhealthy at startup');
   }
 }
