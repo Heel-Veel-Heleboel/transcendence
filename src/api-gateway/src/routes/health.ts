@@ -3,6 +3,10 @@ import { FastifyInstance, FastifyBaseLogger } from 'fastify';
 import { config } from '../config';
 import { ServiceHealth } from '../entity/common';
 
+const HEALTH_CHECK_TIMEOUT_MS = 3000;
+const HEALTH_CHECK_MAX_ATTEMPTS = 2;
+const HEALTH_CHECK_BACKOFF_BASE_MS = 100;
+
 /**
  * Main function to register all health check routes
  */
@@ -67,7 +71,7 @@ async function checkAllServicesHealth(logger?: FastifyBaseLogger): Promise<Servi
   const serviceHealthChecks: PromiseSettledResult<ServiceHealth>[] =
     await Promise.allSettled(
       config.services.map(service =>
-        checkServiceHealth(service.name, service.upstream, 2, logger)
+        checkServiceHealth(service.name, service.upstream, HEALTH_CHECK_MAX_ATTEMPTS, logger)
       )
     );
 
@@ -102,15 +106,28 @@ async function checkAllServicesHealth(logger?: FastifyBaseLogger): Promise<Servi
 }
 
 /**
- * Check health of a single service using native fetch with timeout via AbortController
+ * Check health of a single service using native fetch with timeout via AbortController.
+ *
+ * Features:
+ * - Configurable timeout using AbortController (default: 3000ms)
+ * - Automatic retry on timeout with exponential backoff (default: 2 attempts)
+ * - Exponential backoff: 200ms, 400ms, 800ms, etc.
+ * - Accepts 4xx responses as healthy (availability check)
+ * - Treats 5xx responses as unhealthy
+ *
+ * @param serviceName - Name of the service being checked
+ * @param upstream - Base URL of the upstream service
+ * @param attempts - Maximum number of retry attempts (default: 2)
+ * @param logger - Optional Fastify logger for structured logging
+ * @returns ServiceHealth object with status and metrics
  */
 async function checkServiceHealth(
   serviceName: string,
   upstream: string,
-  attempts = 2,
+  attempts = HEALTH_CHECK_MAX_ATTEMPTS,
   logger?: FastifyBaseLogger
 ): Promise<ServiceHealth> {
-  const timeoutMs = 3000;
+  const timeoutMs = HEALTH_CHECK_TIMEOUT_MS;
 
   for (let attempt = 1; attempt <= attempts; attempt++) {
     const startTime = Date.now();
@@ -147,9 +164,8 @@ async function checkServiceHealth(
       }
 
       if (errorMessage === 'timeout' && attempt < attempts) {
-        await new Promise(res =>
-          setTimeout(res, 100 * Math.pow(2, attempt - 1))
-        );
+        const backoffMs = HEALTH_CHECK_BACKOFF_BASE_MS * Math.pow(2, attempt);
+        await new Promise(res => setTimeout(res, backoffMs));
         continue;
       }
 

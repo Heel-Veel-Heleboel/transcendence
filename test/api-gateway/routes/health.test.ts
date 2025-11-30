@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FastifyInstance } from 'fastify';
 
-let fetchSpy: any;
+let fetchSpy: ReturnType<typeof vi.spyOn>;
 
 vi.mock('../../../src/api-gateway/src/config', () => ({
   config: {
@@ -21,7 +21,7 @@ vi.mock('../../../src/api-gateway/src/config', () => ({
 }));
 
 async function createAppWithLogCapture(logLevel: 'warn' | 'error' = 'error') {
-  const logs: any[] = [];
+  const logs: Record<string, any>[] = [];
   const { default: Fastify } = await import('fastify');
   const testApp = Fastify({
     logger: {
