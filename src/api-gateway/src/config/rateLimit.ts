@@ -3,6 +3,12 @@ import {
   RateLimitEntry
 } from '../entity/common';
 import fs from 'fs';
+import { logger } from '../utils/logger';
+import {
+  validatePositiveInteger,
+  validateTimeWindow,
+  parseJsonSafe
+} from '../utils/validation';
 
 function getDefaultGlobal(): RateLimitEntry {
   return { max: 1000, timeWindow: '1 minute' };
@@ -13,16 +19,32 @@ function getDefaultAuthenticated(): RateLimitEntry {
 }
 
 export function parseJsonRateLimits(
-  raw: RateLimitEntry,
-  defaultEntry: RateLimitEntry
+  raw: any,
+  defaultEntry: RateLimitEntry,
+  context: string
 ): RateLimitEntry {
   if (!raw || typeof raw !== 'object') {
-    console.warn('Invalid rate limit input; falling back to defaults');
+    logger.info({ context, default: defaultEntry }, 'Using default rate limit');
     return defaultEntry;
   }
 
-  const max = Number(raw.max) || defaultEntry.max;
-  const timeWindow = String(raw.timeWindow) || defaultEntry.timeWindow;
+  // Validate and parse max
+  let max: number;
+  if (raw.max !== undefined) {
+    max = validatePositiveInteger(raw.max, 'max', context);
+  } else {
+    max = defaultEntry.max;
+    logger.info({ context, max: defaultEntry.max }, 'Using default max');
+  }
+
+  // Validate and parse timeWindow
+  let timeWindow: string;
+  if (raw.timeWindow !== undefined) {
+    timeWindow = validateTimeWindow(raw.timeWindow, context);
+  } else {
+    timeWindow = defaultEntry.timeWindow;
+    logger.info({ context, timeWindow: defaultEntry.timeWindow }, 'Using default timeWindow');
+  }
 
   return { max, timeWindow };
 }
@@ -39,7 +61,7 @@ export function parseJsonEndpointRateLimits(
   if (!path) {
     throw new Error('endpoint rate limit entry missing required "path" field');
   }
-  const limit = parseJsonRateLimits(raw.limit, defaultEntry);
+  const limit = parseJsonRateLimits(raw.limit, defaultEntry, `endpoint "${path}"`);
   return { path, limit };
 }
 
@@ -47,10 +69,11 @@ export function parseRateLimitConfig(raw: any): RateLimitConfig {
   const defaultGlobal = getDefaultGlobal();
   const defaultAuthenticated = getDefaultAuthenticated();
 
-  const global = parseJsonRateLimits(raw?.global, defaultGlobal);
+  const global = parseJsonRateLimits(raw?.global, defaultGlobal, 'global rate limit');
   const authenticated = parseJsonRateLimits(
     raw?.authenticated,
-    defaultAuthenticated
+    defaultAuthenticated,
+    'authenticated rate limit'
   );
 
   // Normalize endpoints into a map for fast lookup: Record<path, RateLimitEntry>
@@ -66,7 +89,10 @@ export function parseRateLimitConfig(raw: any): RateLimitConfig {
         );
         endpoints[parsed.path] = parsed.limit;
       } catch (error: any) {
-        console.warn(`Failed to parse endpoint rate limit: ${error.message}`);
+        logger.warn(
+          { error: error.message },
+          'Failed to parse endpoint rate limit'
+        );
       }
     }
   }
@@ -77,14 +103,15 @@ export function parseRateLimitConfig(raw: any): RateLimitConfig {
       try {
         const key = String(path).trim();
         if (!key) {
-          console.warn('Skipping endpoint with empty path key');
+          logger.warn('Skipping endpoint with empty path key');
           continue;
         }
-        const limit = parseJsonRateLimits(value, defaultAuthenticated);
+        const limit = parseJsonRateLimits(value, defaultAuthenticated, `endpoint "${key}"`);
         endpoints[key] = limit;
       } catch (error: any) {
-        console.warn(
-          `Failed to parse endpoint rate limit for ${path}: ${error.message}`
+        logger.warn(
+          { path, error: error.message },
+          'Failed to parse endpoint rate limit'
         );
       }
     }
@@ -103,16 +130,17 @@ export function getRateLimitConfig(): RateLimitConfig {
       );
     }
     const raw = fs.readFileSync(limitsFile, 'utf8');
-    const parsed = JSON.parse(raw);
+    const parsed = parseJsonSafe(raw, `RATE_LIMITS_FILE(${limitsFile})`);
     return parseRateLimitConfig(parsed);
   }
 
   // 2) RATE_LIMITS env var
   if (process.env.RATE_LIMITS) {
-    const parsed = JSON.parse(process.env.RATE_LIMITS);
+    const parsed = parseJsonSafe(process.env.RATE_LIMITS, 'RATE_LIMITS env var');
     return parseRateLimitConfig(parsed);
   }
 
   // 3) none provided -> defaults
+  logger.info('No rate limits configured, using defaults');
   return parseRateLimitConfig(undefined);
 }

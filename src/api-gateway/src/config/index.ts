@@ -1,6 +1,8 @@
 import { GatewayConfig } from '../entity/common';
 import { getServicesConfig } from './service';
 import { getRateLimitConfig } from './rateLimit';
+import { logger } from '../utils/logger';
+import { validatePort } from '../utils/validation';
 
 // Determine JWT secret with proper checks
 let jwtSecret: string | undefined = process.env.JWT_SECRET;
@@ -12,15 +14,25 @@ if (!jwtSecret) {
     );
   } else {
     jwtSecret = 'secret-key-change-in-production';
-    console.warn(
+    logger.warn(
       '[WARNING] Using default JWT secret. Set JWT_SECRET in environment variables for better security.'
     );
   }
 }
 
+// Parse and validate port
+let port: number;
+const portEnv = process.env.PORT || '3000';
+try {
+  port = validatePort(portEnv, 'PORT');
+} catch (error: any) {
+  logger.warn({ error: error.message, default: 3000 }, 'Invalid PORT, using default 3000');
+  port = 3000;
+}
+
 // Load configuration from environment variables
 export const config: GatewayConfig = {
-  port: parseInt(process.env.PORT || '3000'),
+  port,
   host: process.env.HOST || '0.0.0.0',
   nodeEnv,
   jwtSecret,

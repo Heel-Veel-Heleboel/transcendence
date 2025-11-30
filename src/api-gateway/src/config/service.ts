@@ -1,12 +1,59 @@
 import fs from 'fs';
 import { ServiceConfig } from '../entity/common';
+import { logger } from '../utils/logger';
+import {
+  validatePositiveInteger,
+  validateNonNegativeInteger,
+  validateUrl,
+  normalizeBoolean,
+  parseJsonSafe
+} from '../utils/validation';
 
 const DEFAULT_TIMEOUT = 5000;
 const DEFAULT_RETRIES = 2;
 
-function coerceString(v: any) {
+function coerceString(v: any): string {
   if (v === undefined || v === null) return '';
   return String(v);
+}
+
+/**
+ * Normalize URL path prefix
+ * Ensures leading slash and no trailing slash
+ */
+function normalizePrefix(p: string): string {
+  let v = coerceString(p);
+  if (!v.startsWith('/')) v = '/' + v;
+  if (v.length > 1 && v.endsWith('/')) v = v.slice(0, -1);
+  return v;
+}
+
+/**
+ * Derive service prefix from service name
+ * Examples:
+ *   'user-service' -> '/api/user'
+ *   'user' -> '/api/user'
+ *   'my-api-service' -> '/api/my-api'
+ */
+function derivePrefix(serviceName: string): string {
+  // Remove '-service' suffix if present
+  const base = serviceName.replace(/-service$/, '');
+  return normalizePrefix(`/api/${base}`);
+}
+
+/**
+ * Derive rewrite prefix from prefix
+ * Examples:
+ *   '/api/user' -> 'user'
+ *   '/user' -> 'user'
+ *   '/api/' -> '' (use service name as fallback)
+ */
+function deriveRewritePrefix(prefix: string, serviceName: string): string {
+  let rewrite = prefix.replace(/^\/api\//, '').replace(/^\//, '');
+  if (!rewrite) {
+    rewrite = serviceName.replace(/-service$/, '');
+  }
+  return rewrite;
 }
 
 export function normalizeServiceConfig(raw: any): ServiceConfig {
@@ -23,18 +70,14 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
   const upstream = coerceString(raw.upstream || raw.url);
   if (!upstream) {
     throw new Error(
-      `service "${name || 'unknown'}" missing required "upstream"/url`
+      `service "${name || 'unknown'}" missing required "upstream" or "url" field`
     );
   }
 
-  // prefix may be omitted — derive from service name when missing
-  function normalizePrefix(p: string) {
-    let v = coerceString(p);
-    if (!v.startsWith('/')) v = '/' + v;
-    if (v.length > 1 && v.endsWith('/')) v = v.slice(0, -1);
-    return v;
-  }
+  // Validate upstream URL format
+  validateUrl(upstream, `service "${name}"`);
 
+  // Parse prefix
   let prefix: string;
   if (
     raw.prefix !== undefined &&
@@ -43,64 +86,60 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
   ) {
     prefix = normalizePrefix(raw.prefix);
   } else {
-    // derive default prefix from name, e.g. 'user-service' -> '/api/user'
-    const base = name.replace(/-service$/, '');
-    prefix = normalizePrefix(`/api/${base}`);
-    console.info(
-      `service "${name}" did not provide prefix; derived prefix="${prefix}"`
-    );
+    prefix = derivePrefix(name);
+    logger.info({ service: name, prefix }, 'Derived service prefix from name');
   }
 
+  // Parse rewritePrefix
   let rewritePrefix: string;
   if (raw.rewritePrefix !== undefined || raw.rewrite !== undefined) {
     rewritePrefix = coerceString(raw.rewritePrefix ?? raw.rewrite);
   } else {
-    // derive from normalized prefix by stripping leading '/api/' or leading '/'
-    rewritePrefix = prefix.replace(/^\/api\//, '').replace(/^\//, '');
-    if (!rewritePrefix) rewritePrefix = name.replace(/-service$/, '');
-    console.warn(
-      `service "${name}" did not provide rewritePrefix; derived rewritePrefix="${rewritePrefix}"`
+    rewritePrefix = deriveRewritePrefix(prefix, name);
+    logger.info(
+      { service: name, rewritePrefix },
+      'Derived service rewritePrefix from prefix'
     );
   }
 
+  // Parse and validate timeout
   let timeout: number;
   if (raw.timeout !== undefined) {
-    timeout = Number(raw.timeout);
+    timeout = validatePositiveInteger(raw.timeout, 'timeout', `service "${name}"`);
   } else {
     timeout = DEFAULT_TIMEOUT;
-    console.info(
-      `service "${name}" missing timeout; using default ${DEFAULT_TIMEOUT}ms`
+    logger.info(
+      { service: name, timeout: DEFAULT_TIMEOUT },
+      'Using default timeout'
     );
   }
 
+  // Parse and validate retries
   let retries: number;
   if (raw.retries !== undefined) {
-    retries = Number(raw.retries);
+    retries = validateNonNegativeInteger(raw.retries, 'retries', `service "${name}"`);
   } else {
     retries = DEFAULT_RETRIES;
-    console.info(
-      `service "${name}" missing retries; using default ${DEFAULT_RETRIES}`
+    logger.info(
+      { service: name, retries: DEFAULT_RETRIES },
+      'Using default retries'
     );
   }
 
-  const requiresAuth = raw.requiresAuth ?? raw.auth ?? false;
-  const websocket = raw.websocket ?? raw.ws ?? false;
+  // Parse boolean flags
+  const requiresAuth = normalizeBoolean(raw.requiresAuth ?? raw.auth);
+  const websocket = normalizeBoolean(raw.websocket ?? raw.ws);
 
-  const svc: ServiceConfig = {
+  return {
     name,
     upstream,
     prefix,
     rewritePrefix,
-    timeout: Number(timeout),
-    retries: Number(retries),
-    requiresAuth:
-      requiresAuth === true || String(requiresAuth) === 'true'
-        ? true
-        : undefined,
-    websocket:
-      websocket === true || String(websocket) === 'true' ? true : undefined
-  } as ServiceConfig;
-  return svc;
+    timeout,
+    retries,
+    requiresAuth,
+    websocket
+  };
 }
 
 export function parseJsonServiceConfig(
@@ -146,10 +185,10 @@ export function getServicesConfig(): ServiceConfig[] {
       );
     }
     const raw = fs.readFileSync(servicesFile, 'utf8');
-    const parsed = JSON.parse(raw);
+    const parsed = parseJsonSafe(raw, `SERVICES_FILE(${servicesFile})`);
     services = parseJsonServiceConfig(parsed, `SERVICES_FILE(${servicesFile})`);
   } else if (process.env.SERVICES) {
-    const parsed = JSON.parse(process.env.SERVICES);
+    const parsed = parseJsonSafe(process.env.SERVICES, 'SERVICES env var');
     services = parseJsonServiceConfig(parsed, 'SERVICES env var');
   }
 
