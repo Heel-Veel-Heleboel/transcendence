@@ -104,7 +104,7 @@ describe('Service config parsing', () => {
 
     const raw2 = { name: 'noauth-service', upstream: 'http://x' };
     const svc2 = normalizeServiceConfig(raw2 as any);
-    expect(svc2.requiresAuth).toBeUndefined();
-    expect(svc2.websocket).toBeUndefined();
+    expect(svc2.requiresAuth).toBe(false);
+    expect(svc2.websocket).toBe(false);
   });
 });

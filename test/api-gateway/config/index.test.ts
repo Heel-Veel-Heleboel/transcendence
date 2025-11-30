@@ -23,8 +23,13 @@ describe("Configuration loading", () => {
   it("handles invalid environment variable formats gracefully", async () => {
     process.env.PORT = 'not-a-number';
     vi.resetModules();
+    const { logger } = await import('../../../src/api-gateway/src/utils/logger');
+    const logWarn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
     const { config } = await import('../../../src/api-gateway/src/config/index');
-    expect(config.port).toBeNaN();
+    expect(config.port).toBe(3000); // Falls back to default
+    expect(logWarn).toHaveBeenCalled();
+    logWarn.mockRestore();
+    vi.resetModules();
   });
 
   it("loads rate limiting configurations correctly", async () => {

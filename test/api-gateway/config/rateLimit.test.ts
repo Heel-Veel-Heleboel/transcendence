@@ -62,14 +62,17 @@ describe('Rate limit config parsing', () => {
     vi.resetModules();
   });
 
-  it('parseJsonRateLimits falls back to defaults and warns on invalid input', async () => {
+  it('parseJsonRateLimits falls back to defaults and logs info on invalid input', async () => {
+    vi.resetModules();
+    const { logger } = await import('../../../src/api-gateway/src/utils/logger');
     const { parseJsonRateLimits } = await import('../../../src/api-gateway/src/config/rateLimit');
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const logInfo = vi.spyOn(logger, 'info').mockImplementation(() => {});
     const def = { max: 5, timeWindow: '1 minute' };
-    const res = parseJsonRateLimits('not-an-object' as any, def);
+    const res = parseJsonRateLimits('not-an-object' as any, def, 'test context');
     expect(res).toEqual(def);
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
+    expect(logInfo).toHaveBeenCalled();
+    logInfo.mockRestore();
+    vi.resetModules();
   });
 
   it('parseJsonEndpointRateLimits throws when raw is not an object', async () => {
@@ -80,24 +83,28 @@ describe('Rate limit config parsing', () => {
 
   it('object-shaped endpoints: skips empty key and warns', async () => {
     vi.resetModules();
+    const { logger } = await import('../../../src/api-gateway/src/utils/logger');
     const { parseRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const logWarn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
     const raw = { endpoints: { '': { max: 10, timeWindow: '1 minute' } } };
     const cfg = parseRateLimitConfig(raw as any);
     expect(Object.keys(cfg.endpoints).length).toBe(0);
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
+    expect(logWarn).toHaveBeenCalled();
+    logWarn.mockRestore();
+    vi.resetModules();
   });
 
-  it('object-shaped endpoints: invalid value falls back to defaultAuthenticated and warns', async () => {
+  it('object-shaped endpoints: invalid value falls back to defaultAuthenticated and logs info', async () => {
     vi.resetModules();
+    const { logger } = await import('../../../src/api-gateway/src/utils/logger');
     const { parseRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const logInfo = vi.spyOn(logger, 'info').mockImplementation(() => {});
     const raw = { endpoints: { '/x': 'invalid' } };
     const cfg = parseRateLimitConfig(raw as any);
     // defaultAuthenticated max is 2000
     expect(cfg.endpoints['/x'].max).toBe(2000);
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
+    expect(logInfo).toHaveBeenCalled();
+    logInfo.mockRestore();
+    vi.resetModules();
   });
 });
