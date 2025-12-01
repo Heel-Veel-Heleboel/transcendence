@@ -12,7 +12,7 @@ import {
 const DEFAULT_TIMEOUT = 5000;
 const DEFAULT_RETRIES = 2;
 
-function coerceString(v: any): string {
+function coerceString(v: unknown): string {
   if (v === undefined || v === null) return '';
   return String(v);
 }
@@ -56,18 +56,19 @@ function deriveRewritePrefix(prefix: string, serviceName: string): string {
   return rewrite;
 }
 
-export function normalizeServiceConfig(raw: any): ServiceConfig {
+export function normalizeServiceConfig(raw: unknown): ServiceConfig {
   if (!raw || typeof raw !== 'object') {
     throw new Error('service entry must be an object');
   }
 
-  const nameRaw = coerceString(raw.name || raw.service);
+  const config = raw as Record<string, unknown>;
+  const nameRaw = coerceString(config.name || config.service);
   if (!nameRaw) {
     throw new Error('service entry missing required "name" field');
   }
   const name = nameRaw.replace(/_/g, '-');
 
-  const upstream = coerceString(raw.upstream || raw.url);
+  const upstream = coerceString(config.upstream || config.url);
   if (!upstream) {
     throw new Error(
       `service "${name}" missing required "upstream" or "url" field`
@@ -80,11 +81,11 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
   // Parse prefix
   let prefix: string;
   if (
-    raw.prefix !== undefined &&
-    raw.prefix !== null &&
-    String(raw.prefix).trim() !== ''
+    config.prefix !== undefined &&
+    config.prefix !== null &&
+    String(config.prefix).trim() !== ''
   ) {
-    prefix = normalizePrefix(raw.prefix);
+    prefix = normalizePrefix(config.prefix as string);
   } else {
     prefix = derivePrefix(name);
     logger.info({ service: name, prefix }, 'Derived service prefix from name');
@@ -92,8 +93,8 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
 
   // Parse rewritePrefix
   let rewritePrefix: string;
-  if (raw.rewritePrefix !== undefined || raw.rewrite !== undefined) {
-    rewritePrefix = coerceString(raw.rewritePrefix ?? raw.rewrite);
+  if (config.rewritePrefix !== undefined || config.rewrite !== undefined) {
+    rewritePrefix = coerceString(config.rewritePrefix ?? config.rewrite);
   } else {
     rewritePrefix = deriveRewritePrefix(prefix, name);
     logger.info(
@@ -104,8 +105,8 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
 
   // Parse and validate timeout
   let timeout: number;
-  if (raw.timeout !== undefined) {
-    timeout = validatePositiveInteger(raw.timeout, 'timeout', `service "${name}"`);
+  if (config.timeout !== undefined) {
+    timeout = validatePositiveInteger(config.timeout, 'timeout', `service "${name}"`);
   } else {
     timeout = DEFAULT_TIMEOUT;
     logger.info(
@@ -116,8 +117,8 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
 
   // Parse and validate retries
   let retries: number;
-  if (raw.retries !== undefined) {
-    retries = validateNonNegativeInteger(raw.retries, 'retries', `service "${name}"`);
+  if (config.retries !== undefined) {
+    retries = validateNonNegativeInteger(config.retries, 'retries', `service "${name}"`);
   } else {
     retries = DEFAULT_RETRIES;
     logger.info(
@@ -127,8 +128,8 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
   }
 
   // Parse boolean flags
-  const requiresAuth = normalizeBoolean(raw.requiresAuth ?? raw.auth);
-  const websocket = normalizeBoolean(raw.websocket ?? raw.ws);
+  const requiresAuth = normalizeBoolean(config.requiresAuth ?? config.auth);
+  const websocket = normalizeBoolean(config.websocket ?? config.ws);
 
   return {
     name,
@@ -143,7 +144,7 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
 }
 
 export function parseJsonServiceConfig(
-  input: any,
+  input: unknown,
   source: string
 ): ServiceConfig[] {
   if (!input) return [];
@@ -154,12 +155,13 @@ export function parseJsonServiceConfig(
   const out: ServiceConfig[] = [];
   const errors: string[] = [];
 
-  input.forEach((raw: any, idx: number) => {
+  input.forEach((raw: unknown, idx: number) => {
     try {
       const s = normalizeServiceConfig(raw);
       out.push(s);
-    } catch (e: any) {
-      errors.push(`index ${idx}: ${e?.message ?? String(e)}`);
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      errors.push(`index ${idx}: ${errorMessage}`);
     }
   });
 

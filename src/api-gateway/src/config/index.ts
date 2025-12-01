@@ -25,8 +25,9 @@ let port: number;
 const portEnv = process.env.PORT || '3000';
 try {
   port = validatePort(portEnv, 'PORT');
-} catch (error: any) {
-  logger.warn({ error: error.message, default: 3000 }, 'Invalid PORT, using default 3000');
+} catch (error: unknown) {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  logger.warn({ error: errorMessage, default: 3000 }, 'Invalid PORT, using default 3000');
   port = 3000;
 }
 

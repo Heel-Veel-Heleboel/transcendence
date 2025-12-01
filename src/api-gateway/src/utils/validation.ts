@@ -7,7 +7,7 @@
  * @throws Error if value is not a valid positive integer
  */
 export function validatePositiveInteger(
-  value: any,
+  value: unknown,
   fieldName: string,
   context: string
 ): number {
@@ -35,7 +35,7 @@ export function validatePositiveInteger(
  * @throws Error if value is not a valid non-negative integer
  */
 export function validateNonNegativeInteger(
-  value: any,
+  value: unknown,
   fieldName: string,
   context: string
 ): number {
@@ -73,7 +73,7 @@ export function validateUrl(url: string, context: string): void {
 /**
  * Normalize boolean value from various input types
  */
-export function normalizeBoolean(value: any): boolean {
+export function normalizeBoolean(value: unknown): boolean {
   if (value === true || String(value).toLowerCase() === 'true') {
     return true;
   }
@@ -83,12 +83,13 @@ export function normalizeBoolean(value: any): boolean {
 /**
  * Parse JSON with better error messages
  */
-export function parseJsonSafe(jsonString: string, source: string): any {
+export function parseJsonSafe(jsonString: string, source: string): unknown {
   try {
     return JSON.parse(jsonString);
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : String(e);
     throw new Error(
-      `Invalid JSON in ${source}: ${e?.message || String(e)}`
+      `Invalid JSON in ${source}: ${errorMessage}`
     );
   }
 }
@@ -98,7 +99,7 @@ export function parseJsonSafe(jsonString: string, source: string): any {
  * Accepts formats like "1 minute", "30 seconds", "1 hour", etc.
  * @throws Error if format is invalid
  */
-export function validateTimeWindow(value: any, context: string): string {
+export function validateTimeWindow(value: unknown, context: string): string {
   const timeWindow = String(value || '').trim();
   if (!timeWindow) {
     throw new Error(`${context} has invalid timeWindow: cannot be empty`);
@@ -121,7 +122,7 @@ export function validateTimeWindow(value: any, context: string): string {
  * Validate and parse port number
  * @throws Error if port is invalid
  */
-export function validatePort(value: any, context: string): number {
+export function validatePort(value: unknown, context: string): number {
   const num = Number(value);
   if (isNaN(num)) {
     throw new Error(
