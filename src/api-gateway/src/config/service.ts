@@ -70,7 +70,7 @@ export function normalizeServiceConfig(raw: any): ServiceConfig {
   const upstream = coerceString(raw.upstream || raw.url);
   if (!upstream) {
     throw new Error(
-      `service "${name || 'unknown'}" missing required "upstream" or "url" field`
+      `service "${name}" missing required "upstream" or "url" field`
     );
   }
 
@@ -175,7 +175,6 @@ export function parseJsonServiceConfig(
  * Strict: any invalid config will throw and stop startup here.
  */
 export function getServicesConfig(): ServiceConfig[] {
-  // 1) SERVICES_FILE env var if set
   const servicesFile = process.env.SERVICES_FILE;
   let services: ServiceConfig[] = [];
   if (servicesFile) {
@@ -192,10 +191,8 @@ export function getServicesConfig(): ServiceConfig[] {
     services = parseJsonServiceConfig(parsed, 'SERVICES env var');
   }
 
-  // If no services provided, return empty list
   if (!services || services.length === 0) return [];
 
-  // Post-normalization checks: ensure no duplicate names or prefixes
   const nameSet = new Set<string>();
   const prefixSet = new Set<string>();
   const duplicates: string[] = [];
