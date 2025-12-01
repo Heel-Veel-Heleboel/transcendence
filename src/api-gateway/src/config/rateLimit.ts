@@ -116,12 +116,12 @@ export function getRateLimitConfig(): RateLimitConfig {
     }
     const raw = fs.readFileSync(limitsFile, 'utf8');
     const parsed = parseJsonSafe(raw, `RATE_LIMITS_FILE(${limitsFile})`);
-    return parseRateLimitConfig(parsed);
+    return parseRateLimitConfig(parsed as Record<string, unknown> | null | undefined);
   }
 
   if (process.env.RATE_LIMITS) {
     const parsed = parseJsonSafe(process.env.RATE_LIMITS, 'RATE_LIMITS env var');
-    return parseRateLimitConfig(parsed);
+    return parseRateLimitConfig(parsed as Record<string, unknown> | null | undefined);
   }
 
   logger.info('No rate limits configured, using defaults');
