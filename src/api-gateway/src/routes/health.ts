@@ -1,4 +1,3 @@
-/* global fetch, AbortController, setTimeout, clearTimeout */
 import { FastifyInstance, FastifyBaseLogger } from 'fastify';
 import { config } from '../config';
 import { ServiceHealth } from '../entity/common';
