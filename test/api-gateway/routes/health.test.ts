@@ -119,9 +119,12 @@ describe('Health Routes', () => {
     });
 
     it('should return degraded status when some services are unhealthy', async () => {
+      // First service (user-service) returns healthy on first attempt
+      // Second service (game-service) fails, then retries and fails again (2 attempts total)
       fetchSpy
-        .mockResolvedValueOnce({ status: 200 })
-        .mockRejectedValueOnce(new Error('Connection refused'));
+        .mockResolvedValueOnce({ status: 200 }) // user-service success
+        .mockRejectedValueOnce(new Error('Connection refused')) // game-service attempt 1
+        .mockRejectedValueOnce(new Error('Connection refused')); // game-service attempt 2 (retry)
 
       const response = await app.inject({
         method: 'GET',
@@ -145,16 +148,21 @@ describe('Health Routes', () => {
     it('should log warning when returning degraded status', async () => {
       const { testApp, logs } = await createAppWithLogCapture('warn');
 
+      // First service (user-service) returns healthy on first attempt
+      // Second service (game-service) fails, then retries and fails again (2 attempts total)
       fetchSpy
-        .mockResolvedValueOnce({ status: 200 })
-        .mockRejectedValueOnce(new Error('Connection refused'));
+        .mockResolvedValueOnce({ status: 200 }) // user-service success
+        .mockRejectedValueOnce(new Error('Connection refused')) // game-service attempt 1
+        .mockRejectedValueOnce(new Error('Connection refused')); // game-service attempt 2 (retry)
 
       await getHealthDetailed(testApp);
 
       const warnLog = logs.find(log => log.msg === 'Health check returned degraded status');
       expect(warnLog).toBeDefined();
-      expect(warnLog.unhealthyServices).toBeDefined();
-      expect(warnLog.unhealthyServices.some((s: any) => s.service === 'game-service')).toBe(true);
+      if (warnLog) {
+        expect(warnLog.unhealthyServices).toBeDefined();
+        expect(warnLog.unhealthyServices.some((s: any) => s.service === 'game-service')).toBe(true);
+      }
 
       await testApp.close();
     });

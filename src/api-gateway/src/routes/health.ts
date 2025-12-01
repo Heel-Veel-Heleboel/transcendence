@@ -110,8 +110,8 @@ async function checkAllServicesHealth(logger?: FastifyBaseLogger): Promise<Servi
  *
  * Features:
  * - Configurable timeout using AbortController (default: 3000ms)
- * - Automatic retry on timeout with exponential backoff (default: 2 attempts)
- * - Exponential backoff: 200ms, 400ms, 800ms, etc.
+ * - Automatic retry on all errors with exponential backoff (default: 2 attempts)
+ * - Exponential backoff: 100ms, 200ms, 400ms, etc.
  * - Accepts 4xx responses as healthy (availability check)
  * - Treats 5xx responses as unhealthy
  *
@@ -163,8 +163,8 @@ async function checkServiceHealth(
         );
       }
 
-      if (errorMessage === 'timeout' && attempt < attempts) {
-        const backoffMs = HEALTH_CHECK_BACKOFF_BASE_MS * Math.pow(2, attempt);
+      if (attempt < attempts) {
+        const backoffMs = HEALTH_CHECK_BACKOFF_BASE_MS * Math.pow(2, attempt - 1);
         await new Promise(res => setTimeout(res, backoffMs));
         continue;
       }
