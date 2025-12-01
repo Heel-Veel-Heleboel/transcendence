@@ -56,3 +56,11 @@ export interface ServiceHealth {
   responseTime?: number;
   error?: string;
 }
+
+export interface StandardError {
+  statusCode: number;
+  error: string;
+  message: string;
+  correlationId?: string;
+  timestamp: string;
+}
