@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { errorHandler, ServiceUnavailableError, handleProxyError, handleGenericError, setupProxyErrorHandler } from '../../../src/api-gateway/src/routes/errorHandler';
-import { findServiceByUrl } from '../../../src/api-gateway/src/routes/proxy';
 
 function makeFakeReqReply(correlationId?: string) {
   const req: any = {
