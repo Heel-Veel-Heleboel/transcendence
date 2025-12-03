@@ -6,6 +6,7 @@ import {
 } from 'fastify';
 import { STATUS_CODES } from 'http';
 import type { StandardError, ServiceConfig } from '../entity/common';
+import { findServiceByUrl } from './proxy';
 
 /**
  * Log error details with correlation ID for tracing
@@ -104,8 +105,7 @@ export class ServiceUnavailableError extends Error {
 export function setupProxyErrorHandler(fastify: FastifyInstance): void {
   fastify.setErrorHandler(
     (error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
-      //      const service = findServiceByUrl(request.url); replace the stub after the PR is merged
-      const service = 'stub' as unknown as ServiceConfig;
+      const service = findServiceByUrl(request.url);
       if (service && !reply.sent) {
         handleProxyError(error, service, request, reply);
       } else if (!reply.sent) {
