@@ -1,12 +1,31 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('Service config parsing', () => {
-  it('derives prefix and rewritePrefix when missing and applies defaults', async () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let normalizeServiceConfig: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let parseJsonServiceConfig: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let getServicesConfig: any;
+
+  beforeEach(async () => {
     vi.resetModules();
-    const { normalizeServiceConfig } = await import('../../../src/api-gateway/src/config/service');
+    const module = await import('../../../src/api-gateway/src/config/service');
+    normalizeServiceConfig = module.normalizeServiceConfig;
+    parseJsonServiceConfig = module.parseJsonServiceConfig;
+    getServicesConfig = module.getServicesConfig;
+  });
+
+  afterEach(() => {
+    delete process.env.SERVICES;
+    delete process.env.SERVICES_FILE;
+    vi.resetModules();
+  });
+
+  it('derives prefix and rewritePrefix when missing and applies defaults', async () => {
 
     const raw = { name: 'user-service', upstream: 'http://localhost:9001' };
-    const svc = normalizeServiceConfig(raw as any);
+    const svc = normalizeServiceConfig(raw);
 
     expect(svc.name).toBe('user-service');
     expect(svc.upstream).toBe('http://localhost:9001');
@@ -17,48 +36,40 @@ describe('Service config parsing', () => {
   });
 
   it('normalizes provided prefix and uses provided rewritePrefix', async () => {
-    const { normalizeServiceConfig } = await import('../../../src/api-gateway/src/config/service');
     const raw = { name: 'user-service', upstream: 'http://localhost:9001', prefix: 'users/', rewritePrefix: 'u' };
-    const svc = normalizeServiceConfig(raw as any);
+    const svc = normalizeServiceConfig(raw);
     expect(svc.prefix).toBe('/users');
     expect(svc.rewritePrefix).toBe('u');
   });
 
-  it('parseJsonServiceConfig throws when input is not an array', async () => {
-    const { parseJsonServiceConfig } = await import('../../../src/api-gateway/src/config/service');
-    expect(() => parseJsonServiceConfig({} as any, 'testsource')).toThrow(/testsource must be a JSON array of services/);
+  it('parseJsonServiceConfig throws when input is not an array', () => {
+    expect(() => parseJsonServiceConfig({}, 'testsource')).toThrow(/testsource must be a JSON array of services/);
   });
 
-  it('parseJsonServiceConfig aggregates errors and reports indexes', async () => {
-    const { parseJsonServiceConfig } = await import('../../../src/api-gateway/src/config/service');
+  it('parseJsonServiceConfig aggregates errors and reports indexes', () => {
     const input = [
       { name: 'good-service', upstream: 'http://localhost:9001' },
-      { name: 'bad-service' } // missing upstream
+      { name: 'bad-service' }
     ];
-    expect(() => parseJsonServiceConfig(input as any, 'testsource')).toThrow(/Invalid services in testsource/);
+    expect(() => parseJsonServiceConfig(input, 'testsource')).toThrow(/Invalid services in testsource/);
   });
 
-  it('getServicesConfig reads SERVICES env var and returns normalized services', async () => {
+  it('getServicesConfig reads SERVICES env var and returns normalized services', () => {
     process.env.SERVICES = JSON.stringify([
       { name: 'user-service', upstream: 'http://localhost:9001' }
     ]);
-    vi.resetModules();
-    const { getServicesConfig } = await import('../../../src/api-gateway/src/config/service');
+
     const svcs = getServicesConfig();
     expect(svcs.length).toBe(1);
     expect(svcs[0].prefix).toBe('/api/user');
-
-    delete process.env.SERVICES;
-    vi.resetModules();
   });
 
-  it('getServicesConfig throws on duplicate names or prefixes', async () => {
+  it('getServicesConfig throws on duplicate names or prefixes', () => {
     process.env.SERVICES = JSON.stringify([
       { name: 'user-service', upstream: 'http://localhost:9001' },
       { name: 'user-service', upstream: 'http://localhost:9002' }
     ]);
-    vi.resetModules();
-    const { getServicesConfig } = await import('../../../src/api-gateway/src/config/service');
+
     expect(() => getServicesConfig()).toThrow(/Duplicate service configuration detected/);
 
     // duplicate prefixes
@@ -66,44 +77,35 @@ describe('Service config parsing', () => {
       { name: 'a-service', upstream: 'http://1', prefix: '/x' },
       { name: 'b-service', upstream: 'http://2', prefix: '/x' }
     ]);
-    vi.resetModules();
-    const { getServicesConfig: getServicesConfig2 } = await import('../../../src/api-gateway/src/config/service');
-    expect(() => getServicesConfig2()).toThrow(/Duplicate service configuration detected/);
 
-    delete process.env.SERVICES;
-    vi.resetModules();
+    expect(() => getServicesConfig()).toThrow(/Duplicate service configuration detected/);
   });
 
-  it('throws when input is not an object', async () => {
-    const { normalizeServiceConfig } = await import('../../../src/api-gateway/src/config/service');
-    expect(() => normalizeServiceConfig(null as any)).toThrow(/service entry must be an object/);
+  it('throws when input is not an object', () => {
+    expect(() => normalizeServiceConfig(null)).toThrow(/service entry must be an object/);
   });
 
-  it('throws when name is missing', async () => {
-    const { normalizeServiceConfig } = await import('../../../src/api-gateway/src/config/service');
-    expect(() => normalizeServiceConfig({ upstream: 'http://x' } as any)).toThrow(/service entry missing required "name" field/);
+  it('throws when name is missing', () => {
+    expect(() => normalizeServiceConfig({ upstream: 'http://x' })).toThrow(/service entry missing required "name" field/);
   });
 
-  it('replaces underscores with dashes in name', async () => {
-    const { normalizeServiceConfig } = await import('../../../src/api-gateway/src/config/service');
-    const svc = normalizeServiceConfig({ name: 'my_service', upstream: 'http://x' } as any);
+  it('replaces underscores with dashes in name', () => {
+    const svc = normalizeServiceConfig({ name: 'my_service', upstream: 'http://x' });
     expect(svc.name).toBe('my-service');
   });
 
-  it('throws with service name in upstream-missing error', async () => {
-    const { normalizeServiceConfig } = await import('../../../src/api-gateway/src/config/service');
-    expect(() => normalizeServiceConfig({ name: 'no-up', upstream: '' } as any)).toThrow(/service "no-up" missing required "upstream"/);
+  it('throws with service name in upstream-missing error', () => {
+    expect(() => normalizeServiceConfig({ name: 'no-up', upstream: '' })).toThrow(/service "no-up" missing required "upstream"/);
   });
 
-  it('coerces requiresAuth and websocket truthy values to true', async () => {
-    const { normalizeServiceConfig } = await import('../../../src/api-gateway/src/config/service');
+  it('coerces requiresAuth and websocket truthy values to true', () => {
     const raw = { name: 'auth-service', upstream: 'http://x', requiresAuth: 'true', ws: 'true' };
-    const svc = normalizeServiceConfig(raw as any);
+    const svc = normalizeServiceConfig(raw);
     expect(svc.requiresAuth).toBe(true);
     expect(svc.websocket).toBe(true);
 
     const raw2 = { name: 'noauth-service', upstream: 'http://x' };
-    const svc2 = normalizeServiceConfig(raw2 as any);
+    const svc2 = normalizeServiceConfig(raw2);
     expect(svc2.requiresAuth).toBe(false);
     expect(svc2.websocket).toBe(false);
   });

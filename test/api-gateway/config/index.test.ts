@@ -1,8 +1,25 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe("Configuration loading", () => {
-  it("loads default general configurations", async () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    delete process.env.PORT;
+    delete process.env.HOST;
     delete process.env.NODE_ENV;
+    delete process.env.SERVICES;
+    delete process.env.SERVICES_FILE;
+    delete process.env.RATE_LIMITS;
+    delete process.env.RATE_LIMITS_FILE;
+    delete process.env.JWT_SECRET;
+    vi.resetModules();
+  });
+
+  it("loads default general configurations", async () => {
+    process.env.NODE_ENV = 'development';
+    vi.resetModules();
     const { config } = await import('../../../src/api-gateway/src/config/index');
     expect(config.port).toBe(3000);
     expect(config.host).toBe("0.0.0.0");
@@ -29,7 +46,6 @@ describe("Configuration loading", () => {
     expect(config.port).toBe(3000); // Falls back to default
     expect(logWarn).toHaveBeenCalled();
     logWarn.mockRestore();
-    vi.resetModules();
   });
 
   it("loads rate limiting configurations correctly", async () => {
@@ -45,17 +61,24 @@ describe("Configuration loading", () => {
 });
 
 describe("validateConfig()", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    delete process.env.NODE_ENV;
+    delete process.env.JWT_SECRET;
+    vi.resetModules();
+  });
+
   it("throws an error in production if JWT_SECRET is missing", async () => {
     process.env.NODE_ENV = 'production';
-    vi.resetModules();
     await expect(async () => {
       await import('../../../src/api-gateway/src/config/index');
     }).rejects.toThrow('JWT_SECRET environment variable must be set in production.');
   });
 
   it("does not throw in development mode", async () => {
-    process.env.NODE_ENV = 'development';
-    vi.resetModules();
     const { validateConfig } = await import('../../../src/api-gateway/src/config/index');
     expect(() => validateConfig()).not.toThrow();
   });

@@ -1,8 +1,24 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('Rate limit config parsing', () => {
-  beforeEach(() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let parseRateLimitConfig: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let parseJsonRateLimits: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let getRateLimitConfig: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let logger: any;
+
+  beforeEach(async () => {
     vi.resetModules();
+    const rateModule = await import('../../../src/api-gateway/src/config/rateLimit');
+    parseRateLimitConfig = rateModule.parseRateLimitConfig;
+    parseJsonRateLimits = rateModule.parseJsonRateLimits;
+    getRateLimitConfig = rateModule.getRateLimitConfig;
+
+    const loggerModule = await import('../../../src/api-gateway/src/utils/logger');
+    logger = loggerModule.logger;
   });
 
   afterEach(() => {
@@ -11,9 +27,7 @@ describe('Rate limit config parsing', () => {
     vi.resetModules();
   });
 
-  it('parses object-shaped endpoints into a map', async () => {
-    const { parseRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
-
+  it('parses object-shaped endpoints into a map', () => {
     const raw = {
       endpoints: {
         '/health': { max: 50, timeWindow: '1 minute' }
@@ -24,29 +38,24 @@ describe('Rate limit config parsing', () => {
     expect(cfg.endpoints['/health'].max).toBe(50);
   });
 
-  it('returns sensible defaults when input is undefined', async () => {
-    const { parseRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
+  it('returns sensible defaults when input is undefined', () => {
     const cfg = parseRateLimitConfig(undefined);
     expect(cfg.global.max).toBe(1000);
     expect(Object.keys(cfg.endpoints).length).toBe(0);
   });
 
-  it('getRateLimitConfig reads RATE_LIMITS env var', async () => {
+  it('getRateLimitConfig reads RATE_LIMITS env var', () => {
     process.env.RATE_LIMITS = JSON.stringify({
       global: { max: 1234, timeWindow: '1 minute' },
       endpoints: { '/login': { max: 5, timeWindow: '1 minute' } }
     });
-    vi.resetModules();
 
-    const { getRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
     const cfg = getRateLimitConfig();
     expect(cfg.global.max).toBe(1234);
     expect(cfg.endpoints['/login'].max).toBe(5);
   });
 
-  it('parseJsonRateLimits falls back to defaults and logs info on invalid input', async () => {
-    const { logger } = await import('../../../src/api-gateway/src/utils/logger');
-    const { parseJsonRateLimits } = await import('../../../src/api-gateway/src/config/rateLimit');
+  it('parseJsonRateLimits falls back to defaults and logs info on invalid input', () => {
     const logInfo = vi.spyOn(logger, 'info').mockImplementation(() => {});
     const def = { max: 5, timeWindow: '1 minute' };
     const res = parseJsonRateLimits(null, def, 'test context');
@@ -55,9 +64,7 @@ describe('Rate limit config parsing', () => {
     logInfo.mockRestore();
   });
 
-  it('object-shaped endpoints: skips empty key and warns', async () => {
-    const { logger } = await import('../../../src/api-gateway/src/utils/logger');
-    const { parseRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
+  it('object-shaped endpoints: skips empty key and warns', () => {
     const logWarn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
     const raw = { endpoints: { '': { max: 10, timeWindow: '1 minute' } } };
     const cfg = parseRateLimitConfig(raw);
@@ -66,9 +73,7 @@ describe('Rate limit config parsing', () => {
     logWarn.mockRestore();
   });
 
-  it('object-shaped endpoints: invalid value falls back to defaultAuthenticated and logs info', async () => {
-    const { logger } = await import('../../../src/api-gateway/src/utils/logger');
-    const { parseRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
+  it('object-shaped endpoints: invalid value falls back to defaultAuthenticated and logs info', () => {
     const logInfo = vi.spyOn(logger, 'info').mockImplementation(() => {});
     const raw = { endpoints: { '/x': 'invalid' } };
     const cfg = parseRateLimitConfig(raw);
@@ -77,9 +82,7 @@ describe('Rate limit config parsing', () => {
     logInfo.mockRestore();
   });
 
-  it('parseJsonRateLimits uses default max when max is undefined', async () => {
-    const { logger } = await import('../../../src/api-gateway/src/utils/logger');
-    const { parseJsonRateLimits } = await import('../../../src/api-gateway/src/config/rateLimit');
+  it('parseJsonRateLimits uses default max when max is undefined', () => {
     const logInfo = vi.spyOn(logger, 'info').mockImplementation(() => {});
     const def = { max: 777, timeWindow: '1 hour' };
     const raw = { timeWindow: '5 minutes' };
@@ -93,9 +96,7 @@ describe('Rate limit config parsing', () => {
     logInfo.mockRestore();
   });
 
-  it('endpoint parsing error is caught and logged', async () => {
-    const { logger } = await import('../../../src/api-gateway/src/utils/logger');
-    const { parseRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
+  it('endpoint parsing error is caught and logged', () => {
     const logWarn = vi.spyOn(logger, 'warn').mockImplementation(() => {});
     const raw = { endpoints: { '/api/test': { max: -100, timeWindow: '1 minute' } } };
     const cfg = parseRateLimitConfig(raw);
@@ -118,9 +119,7 @@ describe('Rate limit config parsing', () => {
     fs.writeFileSync(tempFile, content);
 
     process.env.RATE_LIMITS_FILE = tempFile;
-    vi.resetModules();
 
-    const { getRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
     const cfg = getRateLimitConfig();
     expect(cfg.global.max).toBe(5000);
     expect(cfg.global.timeWindow).toBe('10 minutes');
@@ -129,11 +128,9 @@ describe('Rate limit config parsing', () => {
     fs.unlinkSync(tempFile);
   });
 
-  it('getRateLimitConfig throws when RATE_LIMITS_FILE does not exist', async () => {
+  it('getRateLimitConfig throws when RATE_LIMITS_FILE does not exist', () => {
     process.env.RATE_LIMITS_FILE = '/nonexistent/file.json';
-    vi.resetModules();
 
-    const { getRateLimitConfig } = await import('../../../src/api-gateway/src/config/rateLimit');
     expect(() => getRateLimitConfig()).toThrow(/does not exist/);
   });
 });
