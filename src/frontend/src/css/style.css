@@ -4,7 +4,8 @@
 }
 
 body {
-    background-color: #ADA0FF
+    background-color: #ADA0FF;
+    height: 100%;
 }
 
 button.option_button{
