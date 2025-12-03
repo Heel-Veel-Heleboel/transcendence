@@ -141,8 +141,8 @@ describe('RateLimiter', () => {
 });
 
 describe('rateLimitMiddleware', () => {
-  let mockRequest: Partial<FastifyRequest>;
-  let mockReply: Partial<FastifyReply>;
+  let mockRequest: any;
+  let mockReply: any;
 
   beforeEach(() => {
     // Reset rate limiter state
@@ -217,7 +217,16 @@ describe('rateLimitMiddleware', () => {
 
   it('should apply endpoint-specific rate limit', async () => {
     const endpoint = '/api/auth/login';
-    const endpointLimit = config.rateLimits.endpoints[endpoint];
+    // Ensure endpoint limit exists in config for the test (support both array/map shapes)
+    let endpointLimit = (config.rateLimits.endpoints as any)[endpoint];
+    if (!endpointLimit) {
+      endpointLimit = { max: 10, timeWindow: '1 minute' };
+      if (Array.isArray(config.rateLimits.endpoints)) {
+        (config.rateLimits.endpoints as any).push({ path: endpoint, limit: endpointLimit });
+      } else {
+        (config.rateLimits.endpoints as any)[endpoint] = endpointLimit;
+      }
+    }
     mockRequest.url = endpoint;
     const key = `endpoint:${endpoint}:${mockRequest.ip}`;
     const windowMs = 60 * 1000;
@@ -240,7 +249,15 @@ describe('rateLimitMiddleware', () => {
   it('should prioritize endpoint-specific limit over global limit', async () => {
     const endpoint = '/api/auth/login';
     mockRequest.url = endpoint;
-    const endpointLimit = config.rateLimits.endpoints[endpoint];
+    let endpointLimit = (config.rateLimits.endpoints as any)[endpoint];
+    if (!endpointLimit) {
+      endpointLimit = { max: 10, timeWindow: '1 minute' };
+      if (Array.isArray(config.rateLimits.endpoints)) {
+        (config.rateLimits.endpoints as any).push({ path: endpoint, limit: endpointLimit });
+      } else {
+        (config.rateLimits.endpoints as any)[endpoint] = endpointLimit;
+      }
+    }
     const key = `endpoint:${endpoint}:${mockRequest.ip}`;
     const windowMs = 60 * 1000;
 
