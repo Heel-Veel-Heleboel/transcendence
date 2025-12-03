@@ -15,5 +15,9 @@
     "@types/node": "^20.19.25",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "fastify": "^4.29.1"
   }
 }
