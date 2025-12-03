@@ -15,7 +15,7 @@ export function validatePassword(password: string, policy: PasswordPolicy) : Pas
     messages.push('Password must have at least 1 lowercase letter.');
   if (policy.isNumber && !/[0-9]/.test(password))
     messages.push('Password must have at least 1 number.');
-  if (policy.isSpecialChar && !/[^A-Za-z0-9]/.test(password))
+  if (policy.isSpecialChar && !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password))
     messages.push('Password must have at least 1 special character.');
   if (!policy.isSpaces && /[\s]/.test(password))
     messages.push('Password must not contain spaces.');
