@@ -202,4 +202,4 @@ export function initGame() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', module.initGame);
+module.initGame();
