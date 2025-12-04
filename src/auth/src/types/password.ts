@@ -1,14 +1,17 @@
+import { PasswordErrorCode } from '../constants/password.js';
+
 export interface PasswordValidationResult  {
   valid: boolean;
-  msg: string[]; 
+  errors: PasswordErrorCode[]; 
+  messages: string[];
 }
 
 export interface PasswordPolicy {
   minLength: number;
   maxLength: number;
-  isUppercase: boolean;
-  isLowercase: boolean;
-  isNumber: boolean;
-  isSpecialChar: boolean;
-  isSpaces: boolean;
+  requiredUppercase: boolean;
+  requiredLowercase: boolean;
+  requiredNumber: boolean;
+  requiredSpecialChar: boolean;
+  allowSpaces: boolean;
 }
