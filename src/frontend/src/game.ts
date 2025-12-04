@@ -200,6 +200,8 @@ export function initGame() {
   engine.runRenderLoop(function () {
     scene.render();
   });
+  // initial resolution is blurry, no clue why, hacky fix in order to make resolutio sharp
+  setTimeout(() => {
+    engine.resize();
+  }, 10);
 }
-
-module.initGame();
