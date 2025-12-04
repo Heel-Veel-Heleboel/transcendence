@@ -1,3 +1,4 @@
+import { initGame } from './game.ts';
 import * as module from './login.ts';
 import { loadTemplate } from './state.ts';
 
@@ -25,11 +26,10 @@ export function initLogin() {
 export function gotoGame() {
   console.log('here in game');
   loadTemplate('game');
+  initGame();
 }
 
 export function gotoLogin() {
   console.log('here in login');
   loadTemplate('menu');
 }
-
-module.initLogin();
