@@ -69,9 +69,10 @@ function obscureInternalErrors(errorResponse: StandardError): void {
 }
 
 /**
- * Global error handler - orchestrates error handling flow
+ * Format error response and send it to client
+ * Logs error, creates standardized response, and obscures internal errors in production
  */
-export function errorHandler(
+export function formatAndSendError(
   error: FastifyError,
   request: FastifyRequest,
   reply: FastifyReply
@@ -101,59 +102,49 @@ export class ServiceUnavailableError extends Error {
 
 /**
  * Setup global error handler for proxy routes
+ * Handles both service-specific and generic errors with appropriate logging
  */
 export function setupProxyErrorHandler(fastify: FastifyInstance): void {
   fastify.setErrorHandler(
     (error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
-      const service = findServiceByUrl(request.url);
-      if (service && !reply.sent) {
-        handleProxyError(error, service, request, reply);
-      } else if (!reply.sent) {
-        handleGenericError(error, request, reply);
+      if (!reply.sent) {
+        const service = findServiceByUrl(request.url);
+        handleError(error, request, reply, service);
       }
     }
   );
 }
 
 /**
- * Handle proxy-specific errors
+ * Handle errors with optional service context
+ * Preserves status codes from upstream services for better observability and debugging
  */
-export function handleProxyError(
-  error: FastifyError,
-  service: ServiceConfig,
-  request: FastifyRequest,
-  reply: FastifyReply
-): void {
-  const proxyError: FastifyError = new ServiceUnavailableError(
-    service.name
-  ) as FastifyError;
-  proxyError.statusCode = 503;
-
-  request.log.error(
-    {
-      error: error.message,
-      service: service.name,
-      upstream: service.upstream,
-      url: request.url,
-      originalError: error.name
-    },
-    'Proxy error'
-  );
-
-  errorHandler(proxyError, request, reply);
-}
-
-/**
- * Handle generic/non-proxy errors
- */
-export function handleGenericError(
+export function handleError(
   error: FastifyError,
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
+  service?: ServiceConfig
 ): void {
-  const fastifyError =
+  // Ensure error has a status code (default to 500 if missing)
+  const errorWithStatus =
     error instanceof Error && 'statusCode' in error
       ? (error as FastifyError)
       : (Object.assign(error, { statusCode: 500 }) as FastifyError);
-  errorHandler(fastifyError, request, reply);
+
+  // Add service-specific logging when proxying to upstream services
+  if (service) {
+    request.log.error(
+      {
+        error: errorWithStatus.message,
+        statusCode: errorWithStatus.statusCode,
+        service: service.name,
+        upstream: service.upstream,
+        url: request.url,
+        originalError: errorWithStatus.name
+      },
+      'Proxy error'
+    );
+  }
+
+  formatAndSendError(errorWithStatus, request, reply);
 }

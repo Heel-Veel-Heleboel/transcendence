@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { errorHandler, ServiceUnavailableError, handleProxyError, handleGenericError, setupProxyErrorHandler } from '../../../src/api-gateway/src/routes/errorHandler';
+import { formatAndSendError, ServiceUnavailableError, handleError, setupProxyErrorHandler } from '../../../src/api-gateway/src/routes/errorHandler';
 
 function makeFakeReqReply(correlationId?: string) {
   const req: any = {
@@ -22,7 +22,7 @@ function makeFakeReqReply(correlationId?: string) {
   return { req, reply };
 }
 
-describe('errorHandler', () => {
+describe('formatAndSendError', () => {
   let oldEnv: string | undefined;
 
   beforeEach(() => {
@@ -39,7 +39,7 @@ describe('errorHandler', () => {
     err.statusCode = 400;
     const { req, reply } = makeFakeReqReply('corr-1');
 
-    errorHandler(err as any, req, reply);
+    formatAndSendError(err as any, req, reply);
 
     expect(reply.status).toBe(400);
     expect(reply.sent).toHaveProperty('statusCode', 400);
@@ -53,7 +53,7 @@ describe('errorHandler', () => {
     const err = new ServiceUnavailableError('user-service');
     const { req, reply } = makeFakeReqReply();
 
-    errorHandler(err as any, req, reply);
+    formatAndSendError(err as any, req, reply);
 
     expect(reply.status).toBe(503);
     expect(reply.sent.statusCode).toBe(503);
@@ -66,7 +66,7 @@ describe('errorHandler', () => {
     err.statusCode = 401;
     const { req, reply } = makeFakeReqReply();
 
-    errorHandler(err as any, req, reply);
+    formatAndSendError(err as any, req, reply);
 
     expect(reply.status).toBe(401);
     expect(reply.sent.statusCode).toBe(401);
@@ -78,7 +78,7 @@ describe('errorHandler', () => {
     const err = new Error('details that should not leak');
     const { req, reply } = makeFakeReqReply();
 
-    errorHandler(err as any, req, reply);
+    formatAndSendError(err as any, req, reply);
 
     expect(reply.status).toBe(500);
     expect(reply.sent.statusCode).toBe(500);
@@ -91,7 +91,7 @@ describe('errorHandler', () => {
     const err = new Error('detailed internal');
     const { req, reply } = makeFakeReqReply();
 
-    errorHandler(err as any, req, reply);
+    formatAndSendError(err as any, req, reply);
 
     expect(reply.status).toBe(500);
     expect(reply.sent.statusCode).toBe(500);
@@ -104,7 +104,7 @@ describe('errorHandler', () => {
     err.statusCode = 403;
     const { req, reply } = makeFakeReqReply('auth-corr');
 
-    errorHandler(err as any, req, reply);
+    formatAndSendError(err as any, req, reply);
 
     expect(reply.status).toBe(403);
     expect(reply.sent.statusCode).toBe(403);
@@ -127,7 +127,7 @@ describe('errorHandler', () => {
       const err: any = new Error('x');
       err.statusCode = status;
       const { req, reply } = makeFakeReqReply();
-      errorHandler(err as any, req, reply);
+      formatAndSendError(err as any, req, reply);
       expect(reply.status).toBe(status);
       expect(reply.sent.statusCode).toBe(status);
       expect(reply.sent.error).toBe(name);
@@ -138,7 +138,7 @@ describe('errorHandler', () => {
     const err: any = new Error('teapot');
     err.statusCode = 418;
     const { req, reply } = makeFakeReqReply();
-    errorHandler(err as any, req, reply);
+    formatAndSendError(err as any, req, reply);
     expect(reply.status).toBe(418);
     expect(reply.sent.statusCode).toBe(418);
     expect(reply.sent.error).toBe("I'm a Teapot"); 
@@ -148,41 +148,42 @@ describe('errorHandler', () => {
     const err: any = new Error('custom');
     err.statusCode = 999; 
     const { req, reply } = makeFakeReqReply();
-    errorHandler(err as any, req, reply);
+    formatAndSendError(err as any, req, reply);
     expect(reply.status).toBe(999);
     expect(reply.sent.statusCode).toBe(999);
     expect(reply.sent.error).toBe('Error');
   });
 
-  it('handleProxyError creates ServiceUnavailableError and triggers errorHandler', () => {
+  it('handleError with service context preserves status code and logs service details', () => {
     const { req, reply } = makeFakeReqReply();
     const svc: any = { name: 'user-service', upstream: 'http://localhost:9001' };
     const upstreamErr: any = new Error('upstream boom');
+    upstreamErr.statusCode = 502; // Bad Gateway from upstream
 
-    handleProxyError(upstreamErr as any, svc as any, req as any, reply as any);
+    handleError(upstreamErr as any, req as any, reply as any, svc);
 
-    expect(reply.status).toBe(503);
-    expect(reply.sent).toHaveProperty('statusCode', 503);
-    expect(String(reply.sent.message)).toContain('user-service');
+    expect(reply.status).toBe(502); // Preserves original status code
+    expect(reply.sent).toHaveProperty('statusCode', 502);
+    expect(reply.sent.error).toBe('Bad Gateway');
   });
 
-  it('handleGenericError wraps non-fastify errors into 500', () => {
+  it('handleError without service context wraps non-fastify errors into 500', () => {
     const { req, reply } = makeFakeReqReply();
     const plainErr: any = { message: 'oops' };
 
-    handleGenericError(plainErr as any, req as any, reply as any);
+    handleError(plainErr as any, req as any, reply as any);
 
     expect(reply.status).toBe(500);
     expect(reply.sent.statusCode).toBe(500);
     expect(reply.sent.message).toBe('oops');
   });
 
-  it('handleGenericError passes through FastifyError with statusCode', () => {
+  it('handleError without service passes through FastifyError with statusCode', () => {
     const { req, reply } = makeFakeReqReply();
     const fastifyErr: any = new Error('not found');
     fastifyErr.statusCode = 404;
 
-    handleGenericError(fastifyErr as any, req as any, reply as any);
+    handleError(fastifyErr as any, req as any, reply as any);
 
     expect(reply.status).toBe(404);
     expect(reply.sent.statusCode).toBe(404);
@@ -238,7 +239,7 @@ describe('errorHandler', () => {
     expect(reply.sent).toBe(originalSent);
   });
 
-  it('setupProxyErrorHandler calls handleProxyError when service is found by URL', async () => {
+  it('setupProxyErrorHandler handles errors with service context and preserves status code', async () => {
     vi.doMock('../../../src/api-gateway/src/config', () => ({
       config: {
         services: [
@@ -257,16 +258,17 @@ describe('errorHandler', () => {
     const errorHandlerFn = fastify.setErrorHandler.mock.calls[0][0];
 
     const { req, reply } = makeFakeReqReply();
-    reply.sent = undefined; 
-    req.url = '/api/users/123'; 
+    reply.sent = undefined;
+    req.url = '/api/users/123';
     const err: any = new Error('upstream failed');
+    err.statusCode = 502; // Bad Gateway from upstream
 
     errorHandlerFn(err, req, reply);
 
-    expect(reply.status).toBe(503);
+    // Should preserve the 502 status code, not convert to 503
+    expect(reply.status).toBe(502);
     expect(reply.sent).toBeDefined();
-    expect(reply.sent.error).toBe('Service Unavailable');
-    expect(reply.sent.message).toContain('user-service');
+    expect(reply.sent.error).toBe('Bad Gateway');
   });
 
 });
