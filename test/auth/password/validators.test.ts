@@ -6,7 +6,7 @@ import {
   checkMinLength,
   checkMaxLength,
   checkSpecialChar
-} from '../../../src/auth/src/validators/index.js';
+} from '../../../src/auth/src/validators/password.js';
 import { describe ,it, expect } from 'vitest';
 
 describe('Password Validators', () => {

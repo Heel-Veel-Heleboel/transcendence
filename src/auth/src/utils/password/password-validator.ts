@@ -7,7 +7,7 @@ import {
   checkMinLength,
   checkMaxLength,
   checkSpecialChar
-} from '../../validators/index.js';
+} from '../../validators/password.js';
 import { PasswordErrorCode } from '../../constants/password.js';
 import { getPasswordErrorMessage } from './password-error-message.js';
 
