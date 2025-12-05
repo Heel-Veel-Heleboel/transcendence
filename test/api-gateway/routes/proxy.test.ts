@@ -464,15 +464,15 @@ describe('Proxy Routes', () => {
       let handler: any = null;
       const fakeFastify: any = { addHook: (name: string, fn: any) => { if (name === 'preHandler') handler = fn; } };
       const svc = { name: 'svc', upstream: 'http://u', prefix: '/p', rewritePrefix: '/r' };
-      const debugSpy = vi.fn();
+      const infoSpy = vi.fn();
 
-      const fakeReq: any = { user: { sub: '42', email: 'a@b', role: 'user' }, correlationId: 'corr-1', log: { debug: debugSpy } };
+      const fakeReq: any = { user: { sub: '42', email: 'a@b', role: 'user' }, correlationId: 'corr-1', log: { info: infoSpy } };
       const fakeReply: any = {};
 
       setupHeaderForwardingHooks(fakeFastify as any, svc as any);
       expect(typeof handler).toBe('function');
       await handler(fakeReq, fakeReply);
-      expect(debugSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
     });
   });
 

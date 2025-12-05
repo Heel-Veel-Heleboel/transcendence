@@ -6,13 +6,19 @@ import {
 import httpProxy from '@fastify/http-proxy';
 import { config } from '../config';
 import { authGuard } from '../middleware/auth';
+import { setupProxyErrorHandler } from './errorHandler';
 import { ServiceConfig } from '../entity/common';
 import type { ExtendedHttpProxyOptions } from '../entity/types';
 
 /**
  * Main function to register all proxy routes
+ * Sets up error handler first, then registers all service proxies
  */
 export async function proxyRoutes(fastify: FastifyInstance): Promise<void> {
+  // Setup global error handler before registering routes
+  setupProxyErrorHandler(fastify);
+
+  // Register all service proxies
   await Promise.all(
     config.services.map(service => registerServiceProxy(fastify, service))
   );
@@ -93,7 +99,7 @@ function setupHeaderForwardingHooks(
     'preHandler',
     async (_request: FastifyRequest, _reply: FastifyReply) => {
       if (_request.user) {
-        _request.log.debug(
+        _request.log.info(
           {
             userId: _request.user.sub,
             email: _request.user.email,
@@ -104,7 +110,7 @@ function setupHeaderForwardingHooks(
         );
       }
       if (_request.correlationId) {
-        _request.log.debug(
+        _request.log.info(
           {
             correlationId: _request.correlationId,
             service: service.name
