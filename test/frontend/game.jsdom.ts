@@ -124,3 +124,43 @@ describe('audio', () => {
     expect(bg.name).toBe('mySong');
   });
 });
+
+describe('utils', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('inverseCoordinate - negative input', () => {
+    expect(module.inverseCoordinate(-1)).toBe(1);
+  });
+
+  it('inverseCoordinate - 0 input', () => {
+    expect(module.inverseCoordinate(0)).toBe(-0);
+  });
+
+  it('inverseCoordinate - positive input', () => {
+    expect(module.inverseCoordinate(1)).toBe(-1);
+  });
+
+  it('inverseCoordinate - float negative input', () => {
+    expect(module.inverseCoordinate(-1.5)).toBe(1.5);
+  });
+
+  it('inverseCoordinate - float positive input', () => {
+    expect(module.inverseCoordinate(1.5)).toBe(-1.5);
+  });
+
+  it('inverseCoordinate - random 10 integers input', () => {
+    for (let i = 0; i < 10; i++) {
+      const arg = Math.floor(Math.random());
+      expect(module.inverseCoordinate(arg)).toBe(-arg);
+    }
+  });
+
+  it('inverseCoordinate - random 10 float input', () => {
+    for (let i = 0; i < 10; i++) {
+      const arg = Math.random();
+      expect(module.inverseCoordinate(arg)).toBe(-arg);
+    }
+  });
+});

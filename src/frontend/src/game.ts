@@ -9,6 +9,11 @@ interface IBall {
   velocity: BABYLON.Vector3;
 }
 
+export function inverseCoordinate(coordinate: number) {
+  coordinate *= -1;
+  return coordinate;
+}
+
 export class Ball implements IBall {
   public mesh: BABYLON.Mesh;
   public acceleration: BABYLON.Vector3;
@@ -27,22 +32,22 @@ export class Ball implements IBall {
 
   checkBorders(arena: BABYLON.Mesh[]): void {
     if (this.mesh.position.x < arena[0].position.x) {
-      this.acceleration.x *= -1;
+      this.acceleration.x = inverseCoordinate(this.acceleration.x);
     }
     if (this.mesh.position.x > arena[1].position.x) {
-      this.acceleration.x *= -1;
+      this.acceleration.x = inverseCoordinate(this.acceleration.x);
     }
     if (this.mesh.position.y > arena[2].position.y) {
-      this.acceleration.y *= -1;
+      this.acceleration.y = inverseCoordinate(this.acceleration.y);
     }
     if (this.mesh.position.y < arena[3].position.y) {
-      this.acceleration.y *= -1;
+      this.acceleration.y = inverseCoordinate(this.acceleration.y);
     }
     if (this.mesh.position.z > arena[4].position.z) {
-      this.acceleration.z *= -1;
+      this.acceleration.z = inverseCoordinate(this.acceleration.z);
     }
     if (this.mesh.position.z < arena[5].position.z) {
-      this.acceleration.z *= -1;
+      this.acceleration.z = inverseCoordinate(this.acceleration.z);
     }
   }
 
