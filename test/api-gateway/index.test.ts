@@ -11,7 +11,7 @@ describe('API Gateway', () => {
   let app: FastifyInstance;
 
   beforeEach(async () => {
-    app = createServer();
+    app = await createServer();
     await app.ready();
   });
 
@@ -79,7 +79,7 @@ describe('API Gateway', () => {
         log: { info: vi.fn() },
         close: vi.fn().mockResolvedValue(undefined)
       } as any;
-      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {});
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any);
 
       setupGracefulShutdown(mockServer);
 
@@ -99,7 +99,7 @@ describe('API Gateway', () => {
         log: { info: vi.fn() },
         close: vi.fn().mockResolvedValue(undefined)
       } as any;
-      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {});
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any);
 
       setupGracefulShutdown(mockServer);
 
@@ -123,7 +123,7 @@ describe('API Gateway', () => {
         '../../src/api-gateway/src/index'
       );
 
-      const server = await start(createServer());
+      const server = await start(await createServer());
       expect(server).toBeDefined();
       await server.close();
     });
