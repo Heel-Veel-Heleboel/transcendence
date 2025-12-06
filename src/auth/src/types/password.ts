@@ -24,3 +24,9 @@ export interface PasswordConfigLimits {
   DEFAULT_MIN_LENGTH: number;
   DEFAULT_MAX_LENGTH: number;
 }
+
+
+export interface SaltLimits {
+  MIN_SALT_LENGTH: number;
+  MAX_SALT_LENGTH: number;
+}
