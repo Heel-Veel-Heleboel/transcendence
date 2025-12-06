@@ -17,7 +17,6 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "fastify": "^4.29.1"
+    "bcryptjs": "^3.0.3"
   }
 }
