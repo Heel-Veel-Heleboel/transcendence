@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "license": "ISC",
-  "author": "",
+  "author": "Artem Mysiv",
   "type": "module",
   "main": "index.js",
   "scripts": {
@@ -12,6 +12,7 @@
     "clean": "rm -rf ../../dist/auth"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.19.25",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
