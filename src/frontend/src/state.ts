@@ -1,5 +1,5 @@
 export function loadTemplate(name: string) {
-  const template = document.getElementById(name);
+  const template = document.getElementById(name) as HTMLTemplateElement;
   const container = document.getElementById('app');
   if (template && container) {
     const content = document.importNode(template.content, true);
