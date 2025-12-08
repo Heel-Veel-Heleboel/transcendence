@@ -1,8 +1,9 @@
 import fastify from 'fastify';
 import httpProxy from '@fastify/http-proxy';
+import cors from '@fastify/cors';
 
 // Create Fastify instance with logging
-export const createServer = () => {
+export const createServer = async () => {
   const server = fastify({
     logger: {
       level: 'info',
@@ -13,6 +14,20 @@ export const createServer = () => {
         }
       }
     }
+  });
+
+  // Register CORS plugin
+  // Parse allowed origins from environment variable or use default for development
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+    : ['http://localhost:8080', 'http://localhost:3000'];
+
+  await server.register(cors, {
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-Id'],
+    exposedHeaders: ['X-Correlation-Id']
   });
 
   // Basic health check endpoint
@@ -31,7 +46,7 @@ export const createServer = () => {
 
 // Start the server
 export const start = async (
-  server: ReturnType<typeof createServer> = createServer()
+  server: Awaited<ReturnType<typeof createServer>>
 ) => {
   try {
     const port = process.env.PORT ? parseInt(process.env.PORT) : 3002;
@@ -48,7 +63,7 @@ export const start = async (
 
 // Handle graceful shutdown
 export const setupGracefulShutdown = (
-  server: ReturnType<typeof createServer>
+  server: Awaited<ReturnType<typeof createServer>>
 ) => {
   const handleShutdown = async (signal: string) => {
     server.log.info(`Received ${signal}, shutting down gracefully`);
@@ -61,7 +76,9 @@ export const setupGracefulShutdown = (
 
 // Run only when not in test mode
 if (process.env.NODE_ENV !== 'test') {
-  const server = createServer();
-  setupGracefulShutdown(server);
-  start(server);
+  (async () => {
+    const server = await createServer();
+    setupGracefulShutdown(server);
+    await start(server);
+  })();
 }
