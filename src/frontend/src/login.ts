@@ -3,11 +3,9 @@ import * as module from './login.ts';
 import { loadTemplate } from './state.ts';
 
 export function registerOptionGame() {
-  document
-    .getElementById('optionStart')
-    ?.addEventListener('click', function () {
-      module.gotoGame();
-    });
+  document.getElementById('optionGame')?.addEventListener('click', function () {
+    module.gotoGame();
+  });
 }
 
 export function registerOptionLogin() {
