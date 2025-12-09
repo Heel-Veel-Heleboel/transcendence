@@ -6,7 +6,7 @@ export interface PasswordValidationResult  {
   messages: string[];
 }
 
-export interface PasswordPolicy {
+export interface PasswordPolicyConfig{
   minLength: number;
   maxLength: number;
   requiredUppercase: boolean;
@@ -14,4 +14,13 @@ export interface PasswordPolicy {
   requiredNumber: boolean;
   requiredSpecialChar: boolean;
   allowSpaces: boolean;
+}
+
+export interface PasswordConfigLimits {
+  MIN_LENGTH_LOWER_BOUND: number;
+  MIN_LENGTH_UPPER_BOUND: number;
+  MAX_LENGTH_LOWER_BOUND: number;
+  MAX_LENGTH_UPPER_BOUND: number;
+  DEFAULT_MIN_LENGTH: number;
+  DEFAULT_MAX_LENGTH: number;
 }

@@ -1,10 +1,10 @@
 import { PasswordError, PasswordErrorCode } from '../../constants/password.js';
-import { PasswordPolicy } from '../../types/password.js';
+import { PasswordPolicyConfig } from '../../types/password.js';
 
 
 export function getPasswordErrorMessage(
   errorCode: PasswordErrorCode,
-  policy: PasswordPolicy
+  policy: PasswordPolicyConfig
 ) : string {
 
   const messages: Record<PasswordErrorCode, string> = {
