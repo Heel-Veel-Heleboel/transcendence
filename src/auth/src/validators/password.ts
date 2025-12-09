@@ -1,5 +1,5 @@
 import { PasswordError, PasswordErrorCode } from '../constants/password.js';
-import { PasswordPolicyConfig, PasswordValidationResult } from '../types/password.js';
+import { PasswordPolicyConfig, PasswordValidationResult, PasswordConfigLimits } from '../types/password.js';
 
 
 export function checkLowercase(password: string, policy: PasswordPolicyConfig) : PasswordErrorCode | null {
@@ -77,4 +77,26 @@ export function validatePassword(password: string, policy: PasswordPolicyConfig)
     errors: errorCodes,
     messages: messages
   };
+}
+
+
+export function validatePasswordLengthLimits(minLength: number, maxLength:number, passwordLimits: PasswordConfigLimits) : void {
+
+  if (isNaN(minLength)) {
+    throw new Error(`PASSWORD_MIN_LENGTH is not a valid number: got ${minLength}`);
+  }
+  if (isNaN(maxLength)) {
+    throw new Error(`PASSWORD_MAX_LENGTH is not a valid number: got ${maxLength}`);
+  }
+  if (minLength < passwordLimits.MIN_LENGTH_LOWER_BOUND || minLength > passwordLimits.MIN_LENGTH_UPPER_BOUND) {
+    throw new Error(`PASSWORD_MIN_LENGTH must be between ${passwordLimits.MIN_LENGTH_LOWER_BOUND} and ${passwordLimits.MIN_LENGTH_UPPER_BOUND}, got: ${minLength}`);
+  }
+  if (maxLength < passwordLimits.MAX_LENGTH_LOWER_BOUND || maxLength > passwordLimits.MAX_LENGTH_UPPER_BOUND) {
+    throw new Error(`PASSWORD_MAX_LENGTH must be between ${passwordLimits.MAX_LENGTH_LOWER_BOUND} and ${passwordLimits.MAX_LENGTH_UPPER_BOUND}, got: ${maxLength}`);
+  }
+  if (minLength >= maxLength) {
+    throw new Error(
+      `PASSWORD_MIN_LENGTH (${minLength}) must be less than PASSWORD_MAX_LENGTH (${maxLength})`
+    );
+  }
 }

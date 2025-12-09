@@ -1,3 +1,5 @@
+import { PasswordConfigLimits as Limits } from '../types/password.js';
+
 export const PasswordError = {
   TOO_SHORT: 'TOO_SHORT',
   TOO_LONG: 'TOO_LONG',
@@ -11,11 +13,11 @@ export const PasswordError = {
 export type PasswordErrorCode = typeof PasswordError[keyof typeof PasswordError];
 
 
-export const PasswordConfigLimits = {
+export const PasswordConfigLimits: Limits = {
   MIN_LENGTH_LOWER_BOUND: 1,
   MIN_LENGTH_UPPER_BOUND: 64,
   MAX_LENGTH_LOWER_BOUND: 8,
   MAX_LENGTH_UPPER_BOUND: 128,
   DEFAULT_MIN_LENGTH: 8,
   DEFAULT_MAX_LENGTH: 30
-} ;
+};

@@ -1,10 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createPasswordPolicyConfig } from '../../../src/auth/src/config/password.js';
 import type { PasswordConfigLimits } from '../../../src/auth/src/types/password.js';
 
 describe('Password Length Limits Validator', () => {
-  const originalEnv = process.env;
-
   const limits: PasswordConfigLimits = {
     MIN_LENGTH_LOWER_BOUND: 6,
     MIN_LENGTH_UPPER_BOUND: 64,
@@ -14,118 +12,124 @@ describe('Password Length Limits Validator', () => {
     DEFAULT_MAX_LENGTH: 32
   };
 
-  beforeEach(() => {
-    process.env = { ...originalEnv };
-    delete process.env.PASSWORD_MIN_LENGTH;
-    delete process.env.PASSWORD_MAX_LENGTH;
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
-  });
-
   describe('NaN validation', () => {
-    it('should throw error when PASSWORD_MIN_LENGTH is not a number', () => {
-      process.env.PASSWORD_MIN_LENGTH = 'abc';
-      
-      expect(() => createPasswordPolicyConfig(limits))
+    it('should throw error when minLength is NaN', () => {
+      expect(() => createPasswordPolicyConfig(NaN, 32, limits))
         .toThrow('PASSWORD_MIN_LENGTH is not a valid number');
     });
 
-    it('should throw error when PASSWORD_MAX_LENGTH is not a number', () => {
-      process.env.PASSWORD_MAX_LENGTH = 'xyz';
-      
-      expect(() => createPasswordPolicyConfig(limits))
+    it('should throw error when maxLength is NaN', () => {
+      expect(() => createPasswordPolicyConfig(8, NaN, limits))
         .toThrow('PASSWORD_MAX_LENGTH is not a valid number');
     });
 
-    // Change this test - empty string should use defaults
-    it('should use default when PASSWORD_MIN_LENGTH is empty string', () => {
-      process.env.PASSWORD_MIN_LENGTH = '';
-      process.env.PASSWORD_MAX_LENGTH = '32';
-      
-      const policy = createPasswordPolicyConfig(limits);
-      expect(policy.minLength).toBe(8); // Uses DEFAULT_MIN_LENGTH
-    });
-
-    it('should use default when PASSWORD_MAX_LENGTH is empty string', () => {
-      process.env.PASSWORD_MIN_LENGTH = '8';
-      process.env.PASSWORD_MAX_LENGTH = '';
-      
-      const policy = createPasswordPolicyConfig(limits);
-      expect(policy.maxLength).toBe(32); // Uses DEFAULT_MAX_LENGTH
+    it('should throw error when both are NaN', () => {
+      expect(() => createPasswordPolicyConfig(NaN, NaN, limits))
+        .toThrow('PASSWORD_MIN_LENGTH is not a valid number');
     });
   });
 
   describe('Boundary validation', () => {
     it('should throw error for min length below lower bound', () => {
-      process.env.PASSWORD_MIN_LENGTH = '4';
-      process.env.PASSWORD_MAX_LENGTH = '32';
-      
-      expect(() => createPasswordPolicyConfig(limits))
+      expect(() => createPasswordPolicyConfig(4, 32, limits))
         .toThrow('PASSWORD_MIN_LENGTH must be between 6 and 64, got: 4');
     });
 
     it('should throw error for min length above upper bound', () => {
-      process.env.PASSWORD_MIN_LENGTH = '70';
-      process.env.PASSWORD_MAX_LENGTH = '128';
-      
-      expect(() => createPasswordPolicyConfig(limits))
+      expect(() => createPasswordPolicyConfig(70, 128, limits))
         .toThrow('PASSWORD_MIN_LENGTH must be between 6 and 64, got: 70');
     });
 
     it('should throw error for max length below lower bound', () => {
-      process.env.PASSWORD_MIN_LENGTH = '8';
-      process.env.PASSWORD_MAX_LENGTH = '10';
-      
-      expect(() => createPasswordPolicyConfig(limits))
+      expect(() => createPasswordPolicyConfig(8, 10, limits))
         .toThrow('PASSWORD_MAX_LENGTH must be between 12 and 128, got: 10');
     });
 
     it('should throw error for max length above upper bound', () => {
-      process.env.PASSWORD_MIN_LENGTH = '8';
-      process.env.PASSWORD_MAX_LENGTH = '150';
-      
-      expect(() => createPasswordPolicyConfig(limits))
+      expect(() => createPasswordPolicyConfig(8, 150, limits))
         .toThrow('PASSWORD_MAX_LENGTH must be between 12 and 128, got: 150');
+    });
+
+    it('should accept min length at lower bound', () => {
+      const policy = createPasswordPolicyConfig(6, 32, limits);
+      expect(policy.minLength).toBe(6);
+    });
+
+    it('should accept min length at upper bound', () => {
+      const policy = createPasswordPolicyConfig(64, 128, limits);
+      expect(policy.minLength).toBe(64);
+    });
+
+    it('should accept max length at lower bound', () => {
+      const policy = createPasswordPolicyConfig(8, 12, limits);
+      expect(policy.maxLength).toBe(12);
+    });
+
+    it('should accept max length at upper bound', () => {
+      const policy = createPasswordPolicyConfig(8, 128, limits);
+      expect(policy.maxLength).toBe(128);
     });
   });
 
   describe('Min vs Max validation', () => {
     it('should throw error when min equals max', () => {
-      process.env.PASSWORD_MIN_LENGTH = '30';
-      process.env.PASSWORD_MAX_LENGTH = '30';
-      
-      expect(() => createPasswordPolicyConfig(limits))
+      expect(() => createPasswordPolicyConfig(30, 30, limits))
         .toThrow('PASSWORD_MIN_LENGTH (30) must be less than PASSWORD_MAX_LENGTH (30)');
     });
 
     it('should throw error when min is greater than max', () => {
-      process.env.PASSWORD_MIN_LENGTH = '40';
-      process.env.PASSWORD_MAX_LENGTH = '30';
-      
-      expect(() => createPasswordPolicyConfig(limits))
+      expect(() => createPasswordPolicyConfig(40, 30, limits))
         .toThrow('PASSWORD_MIN_LENGTH (40) must be less than PASSWORD_MAX_LENGTH (30)');
+    });
+
+    it('should accept when min is less than max', () => {
+      const policy = createPasswordPolicyConfig(10, 30, limits);
+      expect(policy.minLength).toBe(10);
+      expect(policy.maxLength).toBe(30);
+    });
+
+    it('should accept minimum valid range (1 character difference)', () => {
+      const policy = createPasswordPolicyConfig(11, 12, limits);
+      expect(policy.minLength).toBe(11);
+      expect(policy.maxLength).toBe(12);
     });
   });
 
-  describe('Default values', () => {
-    it('should use defaults when env vars not set', () => {
-      delete process.env.PASSWORD_MIN_LENGTH;
-      delete process.env.PASSWORD_MAX_LENGTH;
-      
-      const policy = createPasswordPolicyConfig(limits);
-      expect(policy.minLength).toBe(8);
-      expect(policy.maxLength).toBe(32);
+  describe('Custom constraints', () => {
+    it('should work with different constraint bounds', () => {
+      const customLimits: PasswordConfigLimits = {
+        MIN_LENGTH_LOWER_BOUND: 1,
+        MIN_LENGTH_UPPER_BOUND: 20,
+        MAX_LENGTH_LOWER_BOUND: 10,
+        MAX_LENGTH_UPPER_BOUND: 50,
+        DEFAULT_MIN_LENGTH: 5,
+        DEFAULT_MAX_LENGTH: 25
+      } ;
+
+      const policy = createPasswordPolicyConfig(5, 25, customLimits);
+      expect(policy.minLength).toBe(5);
+      expect(policy.maxLength).toBe(25);
+    });
+
+    it('should reject values outside custom bounds', () => {
+      const customLimits: PasswordConfigLimits = {
+        MIN_LENGTH_LOWER_BOUND: 10,
+        MIN_LENGTH_UPPER_BOUND: 20,
+        MAX_LENGTH_LOWER_BOUND: 30,
+        MAX_LENGTH_UPPER_BOUND: 50,
+        DEFAULT_MIN_LENGTH: 12,
+        DEFAULT_MAX_LENGTH: 35
+      };
+
+      expect(() => createPasswordPolicyConfig(5, 35, customLimits))
+        .toThrow('PASSWORD_MIN_LENGTH must be between 10 and 20, got: 5');
     });
   });
 
   describe('Valid configurations', () => {
-    it('should accept valid configuration', () => {
-      process.env.PASSWORD_MIN_LENGTH = '10';
-      process.env.PASSWORD_MAX_LENGTH = '50';
+    it('should create valid policy with correct properties', () => {
+      const policy = createPasswordPolicyConfig(10, 50, limits);
       
-      const policy = createPasswordPolicyConfig(limits);
       expect(policy.minLength).toBe(10);
       expect(policy.maxLength).toBe(50);
       expect(policy.requiredUppercase).toBe(true);
@@ -133,6 +137,46 @@ describe('Password Length Limits Validator', () => {
       expect(policy.requiredNumber).toBe(true);
       expect(policy.requiredSpecialChar).toBe(true);
       expect(policy.allowSpaces).toBe(false);
+    });
+
+    it('should create policy with default lengths', () => {
+      const policy = createPasswordPolicyConfig(
+        limits.DEFAULT_MIN_LENGTH,
+        limits.DEFAULT_MAX_LENGTH,
+        limits
+      );
+      
+      expect(policy.minLength).toBe(8);
+      expect(policy.maxLength).toBe(32);
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('should handle very small valid range', () => {
+      const policy = createPasswordPolicyConfig(6, 12, limits);
+      expect(policy.minLength).toBe(6);
+      expect(policy.maxLength).toBe(12);
+    });
+
+    it('should handle very large valid range', () => {
+      const policy = createPasswordPolicyConfig(6, 128, limits);
+      expect(policy.minLength).toBe(6);
+      expect(policy.maxLength).toBe(128);
+    });
+
+    it('should throw for negative minLength', () => {
+      expect(() => createPasswordPolicyConfig(-5, 32, limits))
+        .toThrow('PASSWORD_MIN_LENGTH must be between 6 and 64, got: -5');
+    });
+
+    it('should throw for negative maxLength', () => {
+      expect(() => createPasswordPolicyConfig(8, -10, limits))
+        .toThrow('PASSWORD_MAX_LENGTH must be between 12 and 128, got: -10');
+    });
+
+    it('should throw for zero minLength', () => {
+      expect(() => createPasswordPolicyConfig(0, 32, limits))
+        .toThrow('PASSWORD_MIN_LENGTH must be between 6 and 64, got: 0');
     });
   });
 });
