@@ -24,7 +24,11 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
+    
     - name: Run tests
+      env:
+          PASSWORD_MIN_LENGTH: ${{ secrets.PASSWORD_MIN_LENGTH }}
+          PASSWORD_MAX_LENGTH: ${{ secrets.PASSWORD_MAX_LENGTH }}
       run: npm run test:run
     
     - name: Run tests with coverage

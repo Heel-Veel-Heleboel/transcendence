@@ -1,0 +1,19 @@
+{
+  "name": "auth",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf ../../dist/auth"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.25",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
