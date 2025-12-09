@@ -83,10 +83,10 @@ export function validatePassword(password: string, policy: PasswordPolicyConfig)
 export function validatePasswordLengthLimits(minLength: number, maxLength:number, passwordLimits: PasswordConfigLimits) : void {
 
   if (isNaN(minLength)) {
-    throw new Error(`PASSWORD_MIN_LENGTH is not a valid number: got ${minLength}`);
+    throw new Error(`PASSWORD_MIN_LENGTH is not a valid intiger: got ${minLength}`);
   }
   if (isNaN(maxLength)) {
-    throw new Error(`PASSWORD_MAX_LENGTH is not a valid number: got ${maxLength}`);
+    throw new Error(`PASSWORD_MAX_LENGTH is not a valid intiger: got ${maxLength}`);
   }
   if (minLength < passwordLimits.MIN_LENGTH_LOWER_BOUND || minLength > passwordLimits.MIN_LENGTH_UPPER_BOUND) {
     throw new Error(`PASSWORD_MIN_LENGTH must be between ${passwordLimits.MIN_LENGTH_LOWER_BOUND} and ${passwordLimits.MIN_LENGTH_UPPER_BOUND}, got: ${minLength}`);

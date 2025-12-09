@@ -20,4 +20,4 @@ export const PasswordConfigLimits: Limits = {
   MAX_LENGTH_UPPER_BOUND: 128,
   DEFAULT_MIN_LENGTH: 8,
   DEFAULT_MAX_LENGTH: 30
-};
+} as const ;

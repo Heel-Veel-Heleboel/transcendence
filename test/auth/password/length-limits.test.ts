@@ -15,17 +15,17 @@ describe('Password Length Limits Validator', () => {
   describe('NaN validation', () => {
     it('should throw error when minLength is NaN', () => {
       expect(() => createPasswordPolicyConfig(NaN, 32, limits))
-        .toThrow('PASSWORD_MIN_LENGTH is not a valid number');
+        .toThrow('PASSWORD_MIN_LENGTH is not a valid intiger');
     });
 
     it('should throw error when maxLength is NaN', () => {
       expect(() => createPasswordPolicyConfig(8, NaN, limits))
-        .toThrow('PASSWORD_MAX_LENGTH is not a valid number');
+        .toThrow('PASSWORD_MAX_LENGTH is not a valid intiger');
     });
 
     it('should throw error when both are NaN', () => {
       expect(() => createPasswordPolicyConfig(NaN, NaN, limits))
-        .toThrow('PASSWORD_MIN_LENGTH is not a valid number');
+        .toThrow('PASSWORD_MIN_LENGTH is not a valid intiger');
     });
   });
 
