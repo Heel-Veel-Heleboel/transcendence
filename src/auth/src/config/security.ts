@@ -1,5 +1,5 @@
 import { validateSaltLengthLimits } from '../validators/password.js';
-import { SaltLimits } from '../constants/password.js';
+import { SaltLimits } from '../constants/security.js';
 import { parseIntSave } from '../utils/parse-int-save.js';
 
 
