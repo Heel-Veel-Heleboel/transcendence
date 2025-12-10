@@ -127,7 +127,7 @@ function setupHeaderForwardingHooks(
  */
 function findServiceByUrl(url: string | undefined): ServiceConfig | undefined {
   if (!url) return undefined;
-  return config.services.find(s => url.startsWith(s.prefix));
+  return config.services.find(s => s.prefix && url.startsWith(s.prefix));
 }
 
 export {

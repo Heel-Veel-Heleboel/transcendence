@@ -1,13 +1,19 @@
 // Type definitions for the API Gateway
 
+export interface RateLimitEntry {
+  max: number;
+  timeWindow: string;
+}
+
 export interface ServiceConfig {
   name: string;
   upstream: string;
-  prefix: string;
+  prefix?: string;
   rewritePrefix?: string;
   timeout?: number;
   retries?: number;
   requiresAuth?: boolean;
+  websocket?: boolean;
 }
 
 export interface GatewayConfig {
@@ -20,21 +26,9 @@ export interface GatewayConfig {
 }
 
 export interface RateLimitConfig {
-  global: {
-    max: number;
-    timeWindow: string;
-  };
-  authenticated: {
-    max: number;
-    timeWindow: string;
-  };
-  endpoints: Record<
-    string,
-    {
-      max: number;
-      timeWindow: string;
-    }
-  >;
+  global: RateLimitEntry;
+  authenticated: RateLimitEntry;
+  endpoints: Record<string, RateLimitEntry>;
 }
 
 export interface JWTPayload {

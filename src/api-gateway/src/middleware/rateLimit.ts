@@ -64,8 +64,18 @@ export async function rateLimitMiddleware(
     const clientId = request.user?.sub || request.ip;
     const endpoint = request.url.split('?')[0];
 
-    // Check endpoint-specific limits
-    const endpointLimit = config.rateLimits.endpoints[endpoint];
+    // Check endpoint-specific limits. Support both shapes:
+    // - map: { '/path': { max, timeWindow }, ... }
+    // - array: [ { path, limit }, ... ]
+    let endpointLimit: any;
+    const endpointsCfg = (config.rateLimits as any).endpoints;
+    if (Array.isArray(endpointsCfg)) {
+      const found = endpointsCfg.find((e: any) => e.path === endpoint);
+      endpointLimit = found?.limit;
+    } else if (endpointsCfg && typeof endpointsCfg === 'object') {
+      endpointLimit = endpointsCfg[endpoint];
+    }
+
     if (endpointLimit) {
       const windowMs = parseTimeWindow(endpointLimit.timeWindow);
       const key = `endpoint:${endpoint}:${clientId}`;
