@@ -49,7 +49,7 @@ function createMockElement<T extends HTMLElement>(
   return element as T;
 }
 
-describe('createScene', () => {
+describe('loadTemplate', () => {
   const templateName = 'random';
   afterEach(() => {
     document.body.innerHTML = '';
