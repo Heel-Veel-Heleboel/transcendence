@@ -96,7 +96,7 @@ describe('registerOptions', () => {
       setupFunction();
       const element = document.getElementById(buttonId);
       if (!element) {
-        throw new Error('Button Element neccessary for test is null');
+        throw new Error('Button Element necessary for test is null');
       }
 
       await user.click(element);
