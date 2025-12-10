@@ -59,11 +59,58 @@ function createStandardErrorResponse(
 }
 
 /**
- * Obscure internal error messages in production for security
+ * Sanitize error messages in production to prevent information leakage
+ *
+ * Prevents leaking:
+ * - Internal server details (stack traces, file paths)
+ * - Database schema information
+ * - Authentication implementation details
+ * - Validation logic specifics
  */
-function obscureInternalErrors(errorResponse: StandardError): void {
-  if (errorResponse.statusCode === 500 && process.env.NODE_ENV === 'production') {
+function sanitizeErrorMessage(errorResponse: StandardError): void {
+  if (process.env.NODE_ENV !== 'production') {
+    return;
+  }
+
+  const { statusCode } = errorResponse;
+
+  if (statusCode >= 500) {
     errorResponse.message = 'Internal Server Error';
+    return;
+  }
+
+  if (statusCode === 401) {
+    errorResponse.message = 'Authentication required';
+    return;
+  }
+
+  if (statusCode === 403) {
+    errorResponse.message = 'Access denied';
+    return;
+  }
+
+  if (statusCode === 400 || statusCode === 422) {
+    const message = errorResponse.message.toLowerCase();
+    const sensitiveKeywords = [
+      'column',
+      'table',
+      'constraint',
+      'foreign key',
+      'primary key',
+      'unique key',
+      'database',
+      'sql',
+      'query',
+      'schema'
+    ];
+
+    const containsSensitiveInfo = sensitiveKeywords.some(keyword =>
+      message.includes(keyword)
+    );
+
+    if (containsSensitiveInfo) {
+      errorResponse.message = 'Invalid request';
+    }
   }
 }
 
@@ -80,7 +127,7 @@ export function errorHandler(
   logError(request, error, correlationId);
   const statusCode = determineStatusCode(error);
   const errorResponse = createStandardErrorResponse(error, statusCode, correlationId);
-  obscureInternalErrors(errorResponse);
+  sanitizeErrorMessage(errorResponse);
 
   reply.code(statusCode).send(errorResponse);
 }
