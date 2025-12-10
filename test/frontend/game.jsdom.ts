@@ -152,7 +152,7 @@ describe('utils', () => {
 
   it('inverseCoordinate - random 10 integers input', () => {
     for (let i = 0; i < 10; i++) {
-      const arg = Math.floor(Math.random());
+      const arg = Math.floor(Math.random() * 100);
       expect(module.inverseCoordinate(arg)).toBe(-arg);
     }
   });
