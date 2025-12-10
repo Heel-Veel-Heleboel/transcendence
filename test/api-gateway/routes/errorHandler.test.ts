@@ -246,3 +246,132 @@ describe('errorHandler', () => {
   });
 
 });
+
+describe('Error Sanitization in Production', () => {
+  let oldEnv: string | undefined;
+
+  beforeEach(() => {
+    oldEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+  });
+
+  afterEach(() => {
+    process.env.NODE_ENV = oldEnv;
+  });
+
+  it('sanitizes 401 authentication errors', () => {
+    const err: any = new Error('JWT token expired at 2024-01-15');
+    err.statusCode = 401;
+    const { req, reply } = makeFakeReqReply();
+
+    errorHandler(err as any, req, reply);
+
+    expect(reply.status).toBe(401);
+    expect(reply.sent.message).toBe('Authentication required');
+    expect(reply.sent.message).not.toContain('JWT');
+    expect(reply.sent.message).not.toContain('expired');
+  });
+
+  it('sanitizes 403 authorization errors', () => {
+    const err: any = new Error('User role admin required, got user');
+    err.statusCode = 403;
+    const { req, reply } = makeFakeReqReply();
+
+    errorHandler(err as any, req, reply);
+
+    expect(reply.status).toBe(403);
+    expect(reply.sent.message).toBe('Access denied');
+    expect(reply.sent.message).not.toContain('role');
+    expect(reply.sent.message).not.toContain('admin');
+  });
+
+  it('sanitizes database errors in 400 responses', () => {
+    const err: any = new Error('Duplicate key violation on column user_email in table users');
+    err.statusCode = 400;
+    const { req, reply } = makeFakeReqReply();
+
+    errorHandler(err as any, req, reply);
+
+    expect(reply.status).toBe(400);
+    expect(reply.sent.message).toBe('Invalid request');
+    expect(reply.sent.message).not.toContain('column');
+    expect(reply.sent.message).not.toContain('table');
+  });
+
+  it('sanitizes SQL errors in 422 responses', () => {
+    const err: any = new Error('Foreign key constraint failed on user_id');
+    err.statusCode = 422;
+    const { req, reply } = makeFakeReqReply();
+
+    errorHandler(err as any, req, reply);
+
+    expect(reply.status).toBe(422);
+    expect(reply.sent.message).toBe('Invalid request');
+    expect(reply.sent.message).not.toContain('foreign key');
+  });
+
+  it('allows safe 400 errors without schema details', () => {
+    const err: any = new Error('Email is required');
+    err.statusCode = 400;
+    const { req, reply } = makeFakeReqReply();
+
+    errorHandler(err as any, req, reply);
+
+    expect(reply.status).toBe(400);
+    expect(reply.sent.message).toBe('Email is required');
+  });
+
+  it('sanitizes all 5xx errors', () => {
+    const testCases = [
+      { code: 500, message: 'Database connection failed' },
+      { code: 502, message: 'Upstream service returned invalid response' },
+      { code: 503, message: 'Redis connection timeout' },
+      { code: 504, message: 'Gateway timeout after 30s' }
+    ];
+
+    testCases.forEach(({ code, message }) => {
+      const err: any = new Error(message);
+      err.statusCode = code;
+      const { req, reply } = makeFakeReqReply();
+
+      errorHandler(err as any, req, reply);
+
+      expect(reply.status).toBe(code);
+      expect(reply.sent.message).toBe('Internal Server Error');
+    });
+  });
+
+  it('does not sanitize in development mode', () => {
+    process.env.NODE_ENV = 'development';
+
+    const err: any = new Error('Detailed error with table name users');
+    err.statusCode = 400;
+    const { req, reply } = makeFakeReqReply();
+
+    errorHandler(err as any, req, reply);
+
+    expect(reply.status).toBe(400);
+    expect(reply.sent.message).toBe('Detailed error with table name users');
+    expect(reply.sent.message).toContain('table');
+  });
+
+  it('sanitizes errors with database keyword variations', () => {
+    const sensitiveMessages = [
+      'Error in SQL query: SELECT * FROM users',
+      'Table constraint violation',
+      'Primary key already exists',
+      'Unique key constraint failed',
+      'Schema validation error for user model'
+    ];
+
+    sensitiveMessages.forEach(message => {
+      const err: any = new Error(message);
+      err.statusCode = 400;
+      const { req, reply } = makeFakeReqReply();
+
+      errorHandler(err as any, req, reply);
+
+      expect(reply.sent.message).toBe('Invalid request');
+    });
+  });
+});
