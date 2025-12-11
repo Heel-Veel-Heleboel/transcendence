@@ -1,5 +1,5 @@
 import { describe, it , expect } from 'vitest';
-import { PasswordConfigLimits } from '../../../src/auth/src/types/password';
+import { PasswordLimitsConfigShape } from '../../../src/auth/src/types/password';
 import { parseIntSave } from '../../../src/auth/src/utils/parse-int-save';
 
 
@@ -7,7 +7,7 @@ import { parseIntSave } from '../../../src/auth/src/utils/parse-int-save';
 describe('Save int cast testing', () => {
 
 
-  const PasswordPolicyLimits : PasswordConfigLimits = {
+  const PasswordPolicyLimits : PasswordLimitsConfigShape = {
     MIN_LENGTH_LOWER_BOUND: 1,
     MIN_LENGTH_UPPER_BOUND: 64,
     MAX_LENGTH_LOWER_BOUND: 8,

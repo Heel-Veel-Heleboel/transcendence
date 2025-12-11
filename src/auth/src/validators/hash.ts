@@ -1,6 +1,6 @@
-import { SaltLimits } from '../constants/security.js';
+import { SaltLimitsShape } from '../types/security.js';
 
-export function validateSaltLengthLimits(saltRounds: number, saltLimits: typeof SaltLimits) {
+export function validateSaltLengthLimits(saltRounds: number, saltLimits: SaltLimitsShape) : void {
   if (isNaN(saltRounds)) {
     throw new Error(`BCRYPT_SALT_ROUNDS is not a valid intiger: got ${saltRounds}`);
   }

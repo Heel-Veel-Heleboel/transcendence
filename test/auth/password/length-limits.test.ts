@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { createPasswordPolicyConfig } from '../../../src/auth/src/config/password.js';
-import type { PasswordConfigLimits } from '../../../src/auth/src/types/password.js';
+import type { PasswordLimitsConfigShape } from '../../../src/auth/src/types/password.js';
 
 describe('Password Length Limits Validator', () => {
-  const limits: PasswordConfigLimits = {
+  const limits: PasswordLimitsConfigShape = {
     MIN_LENGTH_LOWER_BOUND: 6,
     MIN_LENGTH_UPPER_BOUND: 64,
     MAX_LENGTH_LOWER_BOUND: 12,
@@ -97,7 +97,7 @@ describe('Password Length Limits Validator', () => {
 
   describe('Custom constraints', () => {
     it('should work with different constraint bounds', () => {
-      const customLimits: PasswordConfigLimits = {
+      const customLimits: PasswordLimitsConfigShape = {
         MIN_LENGTH_LOWER_BOUND: 1,
         MIN_LENGTH_UPPER_BOUND: 20,
         MAX_LENGTH_LOWER_BOUND: 10,
@@ -112,7 +112,7 @@ describe('Password Length Limits Validator', () => {
     });
 
     it('should reject values outside custom bounds', () => {
-      const customLimits: PasswordConfigLimits = {
+      const customLimits: PasswordLimitsConfigShape = {
         MIN_LENGTH_LOWER_BOUND: 10,
         MIN_LENGTH_UPPER_BOUND: 20,
         MAX_LENGTH_LOWER_BOUND: 30,
