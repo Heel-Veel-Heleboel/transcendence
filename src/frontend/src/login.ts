@@ -1,4 +1,4 @@
-import { initGame } from './game.ts';
+import { initGame } from './game/game.ts';
 import * as module from './login.ts';
 import { loadTemplate } from './state.ts';
 

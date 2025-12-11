@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as BABYLON from '@babylonjs/core';
-import * as module from '../../src/frontend/src/game.ts';
+import * as module from '../../src/frontend/src/game/game.ts';
 
 // source
 // https://github.com/BabylonJS/Babylon.js/tree/master/packages/dev/core/test/unit
