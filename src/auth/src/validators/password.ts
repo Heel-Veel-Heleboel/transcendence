@@ -1,46 +1,46 @@
 import { PasswordError, PasswordErrorCode } from '../constants/password.js';
-import { PasswordPolicyConfig, PasswordValidationResult, PasswordConfigLimits } from '../types/password.js';
+import { PasswordPolicyConfigShape, PasswordValidationResultShape, PasswordLimitsConfigShape } from '../types/password.js';
 
 
-export function checkLowercase(password: string, policy: PasswordPolicyConfig) : PasswordErrorCode | null {
+export function checkLowercase(password: string, policy: PasswordPolicyConfigShape) : PasswordErrorCode | null {
   if (policy.requiredLowercase && !/[a-z]/.test(password))
     return PasswordError.NO_LOWERCASE;
   return null;
 }
 
 
-export function checkUppercase(password: string, policy: PasswordPolicyConfig) : PasswordErrorCode | null {
+export function checkUppercase(password: string, policy: PasswordPolicyConfigShape) : PasswordErrorCode | null {
   if (policy.requiredUppercase && !/[A-Z]/.test(password))
     return PasswordError.NO_UPPERCASE;
   return null;
 }
 
 
-export function checkMaxLength(password: string, policy: PasswordPolicyConfig) : PasswordErrorCode | null {
+export function checkMaxLength(password: string, policy: PasswordPolicyConfigShape) : PasswordErrorCode | null {
   return(password.length > policy.maxLength  ?  PasswordError.TOO_LONG : null);
 }
 
 
-export function checkMinLength(password: string, policy: PasswordPolicyConfig) : PasswordErrorCode | null {
+export function checkMinLength(password: string, policy: PasswordPolicyConfigShape) : PasswordErrorCode | null {
   return(password.length < policy.minLength  ?  PasswordError.TOO_SHORT : null);
 }
 
 
-export function checkNumber(password: string, policy: PasswordPolicyConfig) : PasswordErrorCode | null {
+export function checkNumber(password: string, policy: PasswordPolicyConfigShape) : PasswordErrorCode | null {
   if (policy.requiredNumber && !/[0-9]/.test(password))
     return (PasswordError.NO_NUMBER);
   return null;
 }
 
 
-export function checkSpace(password: string, policy: PasswordPolicyConfig) : PasswordErrorCode | null {
+export function checkSpace(password: string, policy: PasswordPolicyConfigShape) : PasswordErrorCode | null {
   if (!policy.allowSpaces && /\s/.test(password))
     return PasswordError.HAS_SPACE;
   return null;
 }
 
 
-export function checkSpecialChar(password: string, policy: PasswordPolicyConfig) : PasswordErrorCode | null {
+export function checkSpecialChar(password: string, policy: PasswordPolicyConfigShape) : PasswordErrorCode | null {
   if (policy.requiredSpecialChar && !/[!@#$%^&*(),.?":{}|<>]/.test(password))
     return PasswordError.NO_SPECIAL;
   return null;
@@ -50,9 +50,9 @@ export function checkSpecialChar(password: string, policy: PasswordPolicyConfig)
 
 import { getPasswordErrorMessage } from '../utils/password/error-message.js';
 
-export function validatePassword(password: string, policy: PasswordPolicyConfig) : PasswordValidationResult {
+export function validatePassword(password: string, policy: PasswordPolicyConfigShape) : PasswordValidationResultShape {
 
-  type PasswordRules = (password: string, policy: PasswordPolicyConfig) => PasswordErrorCode | null;
+  type PasswordRules = (password: string, policy: PasswordPolicyConfigShape) => PasswordErrorCode | null;
 
   const rules : PasswordRules[] = [
     checkLowercase,
@@ -80,7 +80,7 @@ export function validatePassword(password: string, policy: PasswordPolicyConfig)
 }
 
 
-export function validatePasswordLengthLimits(minLength: number, maxLength:number, passwordLimits: PasswordConfigLimits) : void {
+export function validatePasswordLengthLimits(minLength: number, maxLength:number, passwordLimits: PasswordLimitsConfigShape) : void {
 
   if (isNaN(minLength)) {
     throw new Error(`PASSWORD_MIN_LENGTH is not a valid intiger: got ${minLength}`);
