@@ -34,7 +34,10 @@ describe('Jwt configuration tester', ()=> {
     process.env = origEnv;
   });
   
-  
+
+
+
+   
   it ('Returns object with all properties with their values', ()=> {
 
     const result : JwtConfig = createJwtConfig();

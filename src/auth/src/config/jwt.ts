@@ -1,13 +1,11 @@
 // import fs from 'fs';
-import { JwtEnvSchema, type JwtConfig } from '../types/jwt.js';
+import { JwtEnvSchema} from '../schemas/jwt.js';
+import { JwtConfig } from '../types/jwt.js';
 import { JWT_ALGORITHM } from '../constants/jwt.js';
 import { readFile } from '../utils/read-file.js';
 
 export function createJwtConfig() : JwtConfig {
-
   const env = JwtEnvSchema.parse(process.env);
-
-  
   return {
     privateKey: readFile(env.JWT_PRIVATE_KEY_PATH),
     publicKey: readFile(env.JWT_PUBLIC_KEY_PATH),
@@ -16,7 +14,4 @@ export function createJwtConfig() : JwtConfig {
     expirationRefreshToken: env.EXPIRATION_TIME_REFRESH_TOKEN,
     algorithm: JWT_ALGORITHM
   };
-
-  
-
 }
