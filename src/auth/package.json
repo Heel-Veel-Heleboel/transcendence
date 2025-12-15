@@ -18,6 +18,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.3"
+    "bcryptjs": "^3.0.3",
+    "zod": "^4.1.13"
   }
 }
