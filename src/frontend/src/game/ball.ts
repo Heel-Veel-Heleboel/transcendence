@@ -6,8 +6,6 @@ import { Arena } from './arena.ts';
 export class Ball implements IBall {
   public mesh: BABYLON.Mesh;
   public aggregate: BABYLON.PhysicsAggregate;
-  public acceleration: BABYLON.Vector3;
-  public velocity: BABYLON.Vector3;
 
   constructor(
     ball: BABYLON.Mesh,
@@ -19,11 +17,11 @@ export class Ball implements IBall {
     this.aggregate = new BABYLON.PhysicsAggregate(
       this.mesh,
       BABYLON.PhysicsShapeType.SPHERE,
-      { mass: 1, restitution: 0.75 },
+      { mass: 0.1, restitution: 1.023, friction: 0.0 },
       scene
     );
-    this.acceleration = new BABYLON.Vector3(0, -1, 0);
-    this.velocity = new BABYLON.Vector3();
+    this.aggregate.body.setAngularDamping(0.0);
+    this.aggregate.body.setLinearDamping(0.0);
   }
 
   // checkBorders(arena: Arena): void {
@@ -53,7 +51,7 @@ export class Ball implements IBall {
     // this.mesh.position.addInPlace(this.acceleration);
     console.log('here');
     this.aggregate.body.applyForce(
-      new BABYLON.Vector3(0, -10, 0),
+      new BABYLON.Vector3(-0.1, -1, 0),
       this.mesh.absolutePosition
     );
   }

@@ -60,12 +60,17 @@ export function createPlane(
   return side;
 }
 
-export function createArena(scene: Scene) {
-  const arena = new Arena(scene);
+export function createArena(
+  scene: Scene,
+  pos: Vector3,
+  rot: Vector3,
+  rad: number
+) {
+  const arena = new Arena(scene, pos, rot, rad);
   return arena;
 }
 
-export function createBall(scene: Scene, diameter: number) {
+export function createBall(scene: Scene, pos: Vector3, diameter: number) {
   const _ball = MeshBuilder.CreateSphere(
     'ball',
     {
@@ -74,7 +79,7 @@ export function createBall(scene: Scene, diameter: number) {
     scene
   );
 
-  const ball = new Ball(_ball, new Vector3(0, 10, 0), scene);
+  const ball = new Ball(_ball, pos, scene);
   return ball;
 }
 

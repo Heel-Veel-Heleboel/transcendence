@@ -49,22 +49,65 @@ export function Scene(scene: BABYLON.Scene) {
     new BABYLON.Vector3(0, 0, 0),
     scene
   );
-  const ball = createBall(scene, 0.1);
-  const arena = createArena(scene);
+  const below = createArena(
+    scene,
+    new BABYLON.Vector3(0, 0, 0),
+    new BABYLON.Vector3(0, 1, 0),
+    0
+  );
+  const north = createArena(
+    scene,
+    new BABYLON.Vector3(0, 0, 4),
+    new BABYLON.Vector3(1, 0, 0),
+    -Math.PI / 2
+  );
+  const south = createArena(
+    scene,
+    new BABYLON.Vector3(0, 0, -4),
+    new BABYLON.Vector3(1, 0, 0),
+    Math.PI / 2
+  );
+  const west = createArena(
+    scene,
+    new BABYLON.Vector3(4, 0, 0),
+    new BABYLON.Vector3(0, 0, 1),
+    Math.PI / 2
+  );
+  const east = createArena(
+    scene,
+    new BABYLON.Vector3(-4, 0, 0),
+    new BABYLON.Vector3(0, 0, 1),
+    -Math.PI / 2
+  );
+  const above = createArena(
+    scene,
+    new BABYLON.Vector3(0, 2, 0),
+    new BABYLON.Vector3(0, 1, 0),
+    0
+  );
 
-  scene.onBeforeRenderObservable.add(module.draw(ball, arena));
-  scene.onPointerDown = function () {
-    ball.aggregate.body.applyForce(
-      new BABYLON.Vector3(0, 100, 0),
-      ball.mesh.absolutePosition
+  const ball = createBall(scene, new BABYLON.Vector3(0, 1, 0), 0.1);
+  for (let i = 0; i < 10; i++) {
+    let temp = createBall(scene, new BABYLON.Vector3(0, 1, 0), 0.1);
+    temp.aggregate.body.applyForce(
+      new BABYLON.Vector3(
+        Math.random() * 100,
+        Math.random() * 100,
+        Math.random() * 100
+      ),
+      temp.mesh.absolutePosition
     );
-  };
+  }
+  scene.onBeforeRenderObservable.add(module.draw(ball, above));
   return scene;
 }
 
 export function draw(ball: Ball, arena: Arena) {
   return () => {
-    ball.update();
+    console.log('linear' + ball.aggregate.body.getLinearVelocity());
+    console.log('angular' + ball.aggregate.body.getAngularVelocity());
+    console.log(ball.aggregate.body.getAngularVelocity());
+    // ball.update();
     // console.log(ball.mesh.position);
   };
 }

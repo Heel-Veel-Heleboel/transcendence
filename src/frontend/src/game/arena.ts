@@ -6,7 +6,10 @@ import {
   ImportMeshAsync,
   Scene,
   PhysicsShapeType,
-  PhysicsAggregate
+  PhysicsAggregate,
+  PhysicsMotionType,
+  Vector3,
+  StandardMaterial
 } from '@babylonjs/core';
 
 export class Arena implements IArena {
@@ -21,19 +24,30 @@ export class Arena implements IArena {
     this._mesh = value;
   }
 
-  constructor(scene: Scene) {
+  constructor(scene: Scene, pos: Vector3, rot: Vector3, rad: number) {
     this.mesh = MeshBuilder.CreateGround(
       'ground',
       { width: 10, height: 10 },
       scene
     );
+    this.mesh.position = pos;
+    this.mesh.rotate(rot, rad);
+    const material = new StandardMaterial('wireframe', scene);
+    material.wireframe = true;
+    this.mesh.material = material;
+    if (this.mesh.material) {
+      this.mesh.material.wireframe = true;
+    }
     // this.initMesh(scene);
     this.aggregate = new PhysicsAggregate(
       this.mesh,
       PhysicsShapeType.BOX,
-      { mass: 0 },
+      { mass: 0.0, restitution: 1.0, friction: 0.0 },
       scene
     );
+    this.aggregate.body.setAngularDamping(0.0);
+    this.aggregate.body.setLinearDamping(0.0);
+    console.log(this.aggregate);
   }
 
   async initMesh(scene: Scene) {
