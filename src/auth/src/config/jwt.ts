@@ -1,5 +1,5 @@
 // import fs from 'fs';
-import { JwtEnvSchema} from '../schemas/jwt.js';
+import { JwtEnvSchema } from '../schemas/jwt.js';
 import { JwtConfig } from '../types/jwt.js';
 import { JWT_ALGORITHM } from '../constants/jwt.js';
 import { readFile } from '../utils/read-file.js';
