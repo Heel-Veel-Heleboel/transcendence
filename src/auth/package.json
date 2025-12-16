@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "crypto-ts": "^1.0.2",
     "jsonwebtoken": "^9.0.3",
     "zod": "^4.1.13"
   }
