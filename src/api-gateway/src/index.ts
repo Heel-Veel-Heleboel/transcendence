@@ -2,6 +2,7 @@ import fastify from 'fastify';
 import httpProxy from '@fastify/http-proxy';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import websocket from '@fastify/websocket';
 import { setupProxyErrorHandler } from './routes/errorHandler';
 import { helmetConfig, corsConfig, getBodyLimit } from './config/security';
 
@@ -25,6 +26,9 @@ export const createServer = async () => {
 
   // Register CORS plugin
   await server.register(cors, corsConfig);
+
+  // Register WebSocket support
+  await server.register(websocket);
 
   // Setup global error handler for proxy routes
   setupProxyErrorHandler(server);

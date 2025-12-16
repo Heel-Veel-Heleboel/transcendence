@@ -15,4 +15,5 @@ declare module 'fastify' {
 export interface ExtendedHttpProxyOptions extends FastifyHttpProxyOptions {
   proxyTimeout?: number;
   timeout?: number;
+  websocket?: boolean;
 }
