@@ -2,7 +2,7 @@ import { default as jwt } from 'jsonwebtoken';
 import { PayLoadShape, DecodedJwtPayload } from '../types/jwt.js';
 import { createJwtConfig } from '../config/jwt.js';
 import { JWT_ISSUER, JWT_AUDIENCE } from '../constants/jwt.js';
-import {crypto } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 
 const JwtConfig = createJwtConfig();
 
@@ -18,7 +18,6 @@ export function generateAccessToken(payload: PayLoadShape): string {
   return token;
 }
 
-
 export function verifyAccessToken(token: string) : DecodedJwtPayload {
   const decoded = jwt.verify(token, JwtConfig.publicKey, {
     algorithm: JwtConfig.algorithm as jwt.Algorithm,
@@ -29,18 +28,17 @@ export function verifyAccessToken(token: string) : DecodedJwtPayload {
   return decoded as unknown as DecodedJwtPayload;
 }
 
-
 export function generateRefreshToken() : string {
-  const refreshToken = crypto.randomBytes(64).toString('hex');
+  const refreshToken = randomBytes(64).toString('hex');
   return refreshToken;
 }
 
 export function hashRefreshToken(refreshToken: string) : string {
-  const hash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+  const hash = createHash('sha256').update(refreshToken).digest('hex');
   return hash;
 }
 
 export function compareRefreshToken(refreshToken: string, hashedToken: string) : boolean {
-  const hashToCompare = crypto.createHash('sha256').update(refreshToken).digest('hex');
+  const hashToCompare = createHash('sha256').update(refreshToken).digest('hex');
   return hashToCompare === hashedToken;
 }
