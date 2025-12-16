@@ -1,9 +1,9 @@
 import { default as jwt } from 'jsonwebtoken';
 import { PayLoadShape, DecodedJwtPayload } from '../types/jwt.js';
-import { JwtConfig } from '../config/jwt.js';
+import { createJwtConfig } from '../config/jwt.js';
 import { JWT_ISSUER, JWT_AUDIENCE } from '../constants/jwt.js';
 
-
+const JwtConfig = createJwtConfig();
 
 export function generateAccessToken(payload: PayLoadShape): string {
   const token = jwt.sign(payload,

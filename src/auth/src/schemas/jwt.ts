@@ -6,9 +6,8 @@ const durationSchema = (fieldName: string) => z.string().trim().regex(
 );
 
 export const JwtEnvSchema = z.object({
-  JWT_PRIVATE_KEY_PATH: z.string('Missing JWT private key path').nonempty('JWT private key path must not be empty').trim().endsWith('.pem', 'JWT private key path must be a .pem file'),
-  JWT_PUBLIC_KEY_PATH: z.string('Missing JWT public key path').nonempty('JWT public key path must not be empty').trim().endsWith('.pem', 'JWT public key path must be a .pem file'),
-  JWT_REFRESH_KEY_PATH: z.string('Missing JWT refresh key path').nonempty('JWT refresh key path must not be empty').trim().endsWith('.pem', 'JWT refresh key path must be a .pem file'),
+  JWT_PRIVATE_KEY_PATH: z.string('Missing JWT JWT_PRIVATE_KEY_PATH').nonempty('JWT PRIVATE_KEY_PATH value must not be empty').trim().endsWith('.pem', 'JWT private key path must be a .pem file'),
+  JWT_PUBLIC_KEY_PATH: z.string('Missing JWT JWT_PUBLIC_KEY_PATH').nonempty('JWT PUBLIC_KEY_PATH value must not be empty').trim().endsWith('.pem', 'JWT public key path must be a .pem file'),
   EXPIRATION_TIME_ACCESS_TOKEN: durationSchema('EXPIRATION_TIME_ACCESS_TOKEN').default('15m'),
   EXPIRATION_TIME_REFRESH_TOKEN: durationSchema('EXPIRATION_TIME_REFRESH_TOKEN').default('7d')
 });

@@ -23,7 +23,6 @@ describe('Jwt configuration tester', ()=> {
       ...origEnv,
       JWT_PRIVATE_KEY_PATH: './keys/test-private.pem',
       JWT_PUBLIC_KEY_PATH: './keys/test-public.pem',
-      JWT_REFRESH_KEY_PATH: './keys/test-refresh.pem',
       EXPIRATION_TIME_ACCESS_TOKEN: '15m',
       EXPIRATION_TIME_REFRESH_TOKEN: '7d'
     };
@@ -43,16 +42,13 @@ describe('Jwt configuration tester', ()=> {
     const result : JwtConfigShape = createJwtConfig();
     expect(result.privateKey).toContain('mocked-key-content');
     expect(result.publicKey).toContain('mocked-key-content');
-    expect(result.refreshKey).toContain('mocked-key-content');
     expect(result.expirationAccessToken).toBe('15m');
     expect(result.expirationRefreshToken).toBe('7d');
   });
 
   const requiredVars = [
-    { envName: 'JWT_PRIVATE_KEY_PATH', errorMsg: 'Missing JWT private key path' },
-    { envName: 'JWT_PUBLIC_KEY_PATH', errorMsg: 'Missing JWT public key path' },
-    { envName: 'JWT_REFRESH_KEY_PATH', errorMsg: 'Missing JWT refresh key path' }
-    
+    { envName: 'JWT_PRIVATE_KEY_PATH', errorMsg: 'Missing JWT JWT_PRIVATE_KEY_PATH' },
+    { envName: 'JWT_PUBLIC_KEY_PATH', errorMsg: 'Missing JWT JWT_PUBLIC_KEY_PATH' }
   ];
   it.each(requiredVars) ('Throws an error if $envName missing ', (missingVar)=> {
     delete process.env[missingVar.envName];
@@ -139,16 +135,9 @@ describe('Jwt configuration tester', ()=> {
     expect(() => createJwtConfig()).toThrow('JWT public key path must be a .pem file');
   });
 
-  it ('Throws an error if key paths are not provided', ()=> {
-    process.env.JWT_REFRESH_KEY_PATH = '';
-
-    expect(() => createJwtConfig()).toThrow('JWT refresh key path must be a .pem file');
-  });
-
   it.each([
     { envVar: 'JWT_PRIVATE_KEY_PATH', value: 'hello.pem' },
-    { envVar: 'JWT_PUBLIC_KEY_PATH', value: 'world.pem' },
-    { envVar: 'JWT_REFRESH_KEY_PATH', value: 'lol.pem' }
+    { envVar: 'JWT_PUBLIC_KEY_PATH', value: 'world.pem' }
   ])('Throws an error when $envVar = $value does not exist', ({ envVar , value } ) =>{
     process.env[envVar] = value;
     

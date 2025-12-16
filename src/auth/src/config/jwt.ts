@@ -9,11 +9,8 @@ export function createJwtConfig() : JwtConfigShape {
   return {
     privateKey: readFile(env.JWT_PRIVATE_KEY_PATH),
     publicKey: readFile(env.JWT_PUBLIC_KEY_PATH),
-    refreshKey: readFile(env.JWT_REFRESH_KEY_PATH),
     expirationAccessToken: env.EXPIRATION_TIME_ACCESS_TOKEN,
     expirationRefreshToken: env.EXPIRATION_TIME_REFRESH_TOKEN,
     algorithm: JWT_ALGORITHM
   };
 }
-
-export const JwtConfig = createJwtConfig();
