@@ -1,10 +1,10 @@
 // import fs from 'fs';
 import { JwtEnvSchema } from '../schemas/jwt.js';
-import { JwtConfig } from '../types/jwt.js';
+import { JwtConfigShape } from '../types/jwt.js';
 import { JWT_ALGORITHM } from '../constants/jwt.js';
 import { readFile } from '../utils/read-file.js';
 
-export function createJwtConfig() : JwtConfig {
+export function createJwtConfig() : JwtConfigShape {
   const env = JwtEnvSchema.parse(process.env);
   return {
     privateKey: readFile(env.JWT_PRIVATE_KEY_PATH),
@@ -15,3 +15,5 @@ export function createJwtConfig() : JwtConfig {
     algorithm: JWT_ALGORITHM
   };
 }
+
+export const JwtConfig = createJwtConfig();

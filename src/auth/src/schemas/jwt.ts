@@ -1,6 +1,6 @@
 import * as z from 'zod';
 
-const durationSchema = (fieldName: string) => z.string().regex(
+const durationSchema = (fieldName: string) => z.string().trim().regex(
   /^(100|[1-9][0-9]?)[shmd]$/,
   `${fieldName} must be a number between 1-100 followed by s (seconds), h (hours), m (minutes), or d (days). Examples: 15m, 7d, 24h`
 );
