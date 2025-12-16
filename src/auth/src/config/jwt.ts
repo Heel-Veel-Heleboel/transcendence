@@ -14,3 +14,5 @@ export function createJwtConfig() : JwtConfigShape {
     algorithm: JWT_ALGORITHM
   };
 }
+
+export const JwtConfig = createJwtConfig();
