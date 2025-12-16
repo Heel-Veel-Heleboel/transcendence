@@ -12,3 +12,12 @@ export interface PayLoadShape {
   userEmail: string;
   jti: string;
 };
+
+
+export  interface DecodedJwtPayload extends PayLoadShape {
+  iat: number;
+  exp: number;
+  iss: string;
+  aud: string;
+  nbf?: number;
+}
