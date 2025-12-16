@@ -60,11 +60,124 @@ function createStandardErrorResponse(
 }
 
 /**
- * Obscure internal error messages in production for security
+ * Sanitization configuration for different status codes
  */
-function obscureInternalErrors(errorResponse: StandardError): void {
-  if (errorResponse.statusCode === 500 && process.env.NODE_ENV === 'production') {
+const SANITIZATION_RULES: Record<number, (msg: string) => string> = {
+  401: (msg: string) => sanitizeAuthError(msg),
+  403: (msg: string) => sanitizeAuthzError(msg),
+  400: (msg: string) => sanitizeDatabaseError(msg),
+  422: (msg: string) => sanitizeDatabaseError(msg)
+};
+
+/**
+ * Sanitize authentication errors (401)
+ * Only sanitizes when implementation details are exposed
+ */
+function sanitizeAuthError(message: string): string {
+  const lowerMessage = message.toLowerCase();
+
+  const safeMessages = [
+    'authentication required',
+    'invalid credentials',
+    'unauthorized',
+    'missing authentication'
+  ];
+
+  if (safeMessages.includes(lowerMessage)) {
+    return message;
+  }
+
+  const sensitiveKeywords = ['jwt', 'bearer', 'token', 'session', 'cookie', 'header'];
+
+  const containsSensitiveInfo = sensitiveKeywords.some(keyword =>
+    lowerMessage.includes(keyword)
+  );
+
+  return containsSensitiveInfo ? 'Authentication required' : message;
+}
+
+/**
+ * Sanitize authorization errors (403)
+ * Only sanitizes when specific role/permission implementation details are exposed
+ */
+function sanitizeAuthzError(message: string): string {
+  const lowerMessage = message.toLowerCase();
+
+  const safeMessages = [
+    'access denied',
+    'insufficient permissions',
+    'forbidden',
+    'permission denied'
+  ];
+
+  if (safeMessages.includes(lowerMessage)) {
+    return message;
+  }
+
+  const sensitiveKeywords = ['role', 'admin', 'scope', 'required'];
+
+  const containsSensitiveInfo = sensitiveKeywords.some(keyword =>
+    lowerMessage.includes(keyword)
+  );
+
+  return containsSensitiveInfo ? 'Access denied' : message;
+}
+
+/**
+ * Check if error message contains sensitive database information
+ */
+function sanitizeDatabaseError(message: string): string {
+  const lowerMessage = message.toLowerCase();
+  const sensitiveKeywords = [
+    'column',
+    'table',
+    'constraint',
+    'foreign key',
+    'primary key',
+    'unique key',
+    'database',
+    'sql',
+    'query',
+    'schema'
+  ];
+
+  const containsSensitiveInfo = sensitiveKeywords.some(keyword =>
+    lowerMessage.includes(keyword)
+  );
+
+  return containsSensitiveInfo ? 'Invalid request' : message;
+}
+
+/**
+ * 5xx status codes that should be sanitized to hide internal details
+ * Other 5xx codes can pass through as they're less likely to expose sensitive info
+ */
+const SANITIZED_5XX_CODES = [500, 502, 504];
+
+/**
+ * Sanitize error messages in production to prevent information leakage
+ *
+ * Prevents leaking:
+ * - Internal server details (stack traces, file paths)
+ * - Database schema information
+ * - Authentication implementation details (JWT, sessions)
+ * - Authorization logic specifics (roles, permissions)
+ */
+function sanitizeErrorMessage(errorResponse: StandardError): void {
+  if (process.env.NODE_ENV !== 'production') {
+    return;
+  }
+
+  const { statusCode, message } = errorResponse;
+
+  if (SANITIZED_5XX_CODES.includes(statusCode)) {
     errorResponse.message = 'Internal Server Error';
+    return;
+  }
+
+  const sanitizationRule = SANITIZATION_RULES[statusCode];
+  if (sanitizationRule) {
+    errorResponse.message = sanitizationRule(message);
   }
 }
 
@@ -82,7 +195,7 @@ export function formatAndSendError(
   logError(request, error, correlationId);
   const statusCode = determineStatusCode(error);
   const errorResponse = createStandardErrorResponse(error, statusCode, correlationId);
-  obscureInternalErrors(errorResponse);
+  sanitizeErrorMessage(errorResponse);
 
   reply.code(statusCode).send(errorResponse);
 }
