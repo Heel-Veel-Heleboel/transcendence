@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import { createJwtConfig } from '../../../src/auth/src/config/jwt.ts';
-import { JwtConfig } from '../../../src/auth/src/types/jwt.ts';
+import { JwtConfigShape } from '../../../src/auth/src/types/jwt.ts';
 
 
 vi.mock('../../../src/auth/src/utils/read-file.ts', () => {
@@ -40,7 +40,7 @@ describe('Jwt configuration tester', ()=> {
    
   it ('Returns object with all properties with their values', ()=> {
 
-    const result : JwtConfig = createJwtConfig();
+    const result : JwtConfigShape = createJwtConfig();
     expect(result.privateKey).toContain('mocked-key-content');
     expect(result.publicKey).toContain('mocked-key-content');
     expect(result.refreshKey).toContain('mocked-key-content');
@@ -67,7 +67,7 @@ describe('Jwt configuration tester', ()=> {
     delete process.env.EXPIRATION_TIME_ACCESS_TOKEN;
     delete process.env.EXPIRATION_TIME_REFRESH_TOKEN;
 
-    const result : JwtConfig = createJwtConfig();
+    const result : JwtConfigShape = createJwtConfig();
 
     expect(result.expirationAccessToken).toBe('15m');
     expect(result.expirationRefreshToken).toBe('7d');
@@ -160,7 +160,7 @@ describe('Jwt configuration tester', ()=> {
   });
 
   it ('Sets algorithm to RS256', ()=> {
-    const result : JwtConfig = createJwtConfig();
+    const result : JwtConfigShape = createJwtConfig();
 
     expect(result.algorithm).toBe('RS256');
   });

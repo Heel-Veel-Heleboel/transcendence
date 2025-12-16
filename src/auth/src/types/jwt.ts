@@ -1,4 +1,4 @@
-export interface JwtConfig {
+export interface JwtConfigShape {
   privateKey: string;
   publicKey: string;
   refreshKey: string,
@@ -6,3 +6,9 @@ export interface JwtConfig {
   expirationRefreshToken: string;
   algorithm: string;
 }
+
+export interface PayLoadShape {
+  sub: number;
+  userEmail: string;
+  jti: string;
+};
