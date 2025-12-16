@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { hasher, compareHash } from '../../../src/auth/src/utils/hasher.js';
+import { hasher, compareHash } from '../../../src/auth/src/utils/password/hasher.js';
 import { SaltLimits } from '../../../src/auth/src/constants/security.js';
 
 describe('Hasher utility', () => {
