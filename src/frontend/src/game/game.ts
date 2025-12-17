@@ -49,64 +49,38 @@ export function Scene(scene: BABYLON.Scene) {
     new BABYLON.Vector3(0, 0, 0),
     scene
   );
-  const below = createArena(
-    scene,
-    new BABYLON.Vector3(0, 0, 0),
-    new BABYLON.Vector3(0, 1, 0),
-    0
-  );
-  const north = createArena(
-    scene,
-    new BABYLON.Vector3(0, 0, 4),
-    new BABYLON.Vector3(1, 0, 0),
-    -Math.PI / 2
-  );
-  const south = createArena(
-    scene,
-    new BABYLON.Vector3(0, 0, -4),
-    new BABYLON.Vector3(1, 0, 0),
-    Math.PI / 2
-  );
-  const west = createArena(
-    scene,
-    new BABYLON.Vector3(4, 0, 0),
-    new BABYLON.Vector3(0, 0, 1),
-    Math.PI / 2
-  );
-  const east = createArena(
-    scene,
-    new BABYLON.Vector3(-4, 0, 0),
-    new BABYLON.Vector3(0, 0, 1),
-    -Math.PI / 2
-  );
-  const above = createArena(
-    scene,
-    new BABYLON.Vector3(0, 2, 0),
-    new BABYLON.Vector3(0, 1, 0),
-    0
-  );
+  const trParent = new BABYLON.TransformNode('tr', scene);
+  const root = scene.getMeshByName('__root__');
+  if (root) {
+    root.scaling.scaleInPlace(100);
+    root.position.y = 4;
+    root.setParent(trParent);
+  }
+  const arena = createArena(scene);
 
-  const ball = createBall(scene, new BABYLON.Vector3(0, 1, 0), 0.1);
+  const ball = createBall(scene, new BABYLON.Vector3(0, 1, 0), 1);
   for (let i = 0; i < 10; i++) {
-    let temp = createBall(scene, new BABYLON.Vector3(0, 1, 0), 0.1);
-    temp.aggregate.body.applyForce(
+    let temp = createBall(scene, new BABYLON.Vector3(0, 0, 0), 1);
+    temp.physicsMesh.aggregate.body.applyForce(
       new BABYLON.Vector3(
         Math.random() * 100,
         Math.random() * 100,
         Math.random() * 100
       ),
-      temp.mesh.absolutePosition
+      temp.physicsMesh.mesh.absolutePosition
     );
   }
-  scene.onBeforeRenderObservable.add(module.draw(ball, above));
+  scene.onBeforeRenderObservable.add(module.draw(ball, arena));
   return scene;
 }
 
 export function draw(ball: Ball, arena: Arena) {
   return () => {
-    console.log('linear' + ball.aggregate.body.getLinearVelocity());
-    console.log('angular' + ball.aggregate.body.getAngularVelocity());
-    console.log(ball.aggregate.body.getAngularVelocity());
+    console.log('linear' + ball.physicsMesh.aggregate.body.getLinearVelocity());
+    console.log(
+      'angular' + ball.physicsMesh.aggregate.body.getAngularVelocity()
+    );
+    console.log(ball.physicsMesh.aggregate.body.getAngularVelocity());
     // ball.update();
     // console.log(ball.mesh.position);
   };

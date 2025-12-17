@@ -1,27 +1,25 @@
-import { IBall } from './types.ts';
+import { IBall, PhysicsMesh } from './types.ts';
 import * as BABYLON from '@babylonjs/core';
-import { inverseNum } from './utils.ts';
-import { Arena } from './arena.ts';
 
 export class Ball implements IBall {
-  public mesh: BABYLON.Mesh;
-  public aggregate: BABYLON.PhysicsAggregate;
+  public physicsMesh: PhysicsMesh;
 
   constructor(
     ball: BABYLON.Mesh,
     position: BABYLON.Vector3,
     scene: BABYLON.Scene
   ) {
-    this.mesh = ball;
-    this.mesh.position = position;
-    this.aggregate = new BABYLON.PhysicsAggregate(
-      this.mesh,
+    const mesh = ball;
+    mesh.position = position;
+    const aggregate = new BABYLON.PhysicsAggregate(
+      mesh,
       BABYLON.PhysicsShapeType.SPHERE,
       { mass: 0.1, restitution: 1.023, friction: 0.0 },
       scene
     );
-    this.aggregate.body.setAngularDamping(0.0);
-    this.aggregate.body.setLinearDamping(0.0);
+    aggregate.body.setAngularDamping(0.0);
+    aggregate.body.setLinearDamping(0.0);
+    this.physicsMesh = { mesh, aggregate };
   }
 
   // checkBorders(arena: Arena): void {

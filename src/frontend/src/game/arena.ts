@@ -1,66 +1,55 @@
-import { IArena } from './types';
+import { IArena, PhysicsMesh } from './types';
 import {
-  AbstractMesh,
-  Mesh,
-  MeshBuilder,
   ImportMeshAsync,
   Scene,
+  Mesh,
   PhysicsShapeType,
   PhysicsAggregate,
-  PhysicsMotionType,
-  Vector3,
   StandardMaterial
 } from '@babylonjs/core';
 
 export class Arena implements IArena {
-  private _mesh!: AbstractMesh;
-  public aggregate: PhysicsAggregate;
+  private _physicsMesh!: PhysicsMesh[];
 
-  public get mesh(): AbstractMesh {
-    return this._mesh;
+  public get physicsMesh(): PhysicsMesh[] {
+    return this._physicsMesh;
   }
 
-  public set mesh(value: AbstractMesh) {
-    this._mesh = value;
+  public set physicsMesh(value: PhysicsMesh[]) {
+    this._physicsMesh = value;
   }
 
-  constructor(scene: Scene, pos: Vector3, rot: Vector3, rad: number) {
-    this.mesh = MeshBuilder.CreateGround(
-      'ground',
-      { width: 10, height: 10 },
-      scene
-    );
-    this.mesh.position = pos;
-    this.mesh.rotate(rot, rad);
-    const material = new StandardMaterial('wireframe', scene);
-    material.wireframe = true;
-    this.mesh.material = material;
-    if (this.mesh.material) {
-      this.mesh.material.wireframe = true;
-    }
-    // this.initMesh(scene);
-    this.aggregate = new PhysicsAggregate(
-      this.mesh,
-      PhysicsShapeType.BOX,
-      { mass: 0.0, restitution: 1.0, friction: 0.0 },
-      scene
-    );
-    this.aggregate.body.setAngularDamping(0.0);
-    this.aggregate.body.setLinearDamping(0.0);
-    console.log(this.aggregate);
+  constructor(scene: Scene) {
+    this._physicsMesh = [];
+    this.initMesh(scene);
   }
 
   async initMesh(scene: Scene) {
     const model = ImportMeshAsync('/arena.gltf', scene);
     model.then(result => {
       console.log(result);
-      this.mesh = result.meshes[1];
-      if (this.mesh.material) {
-        this.mesh.material.wireframe = true;
+      for (let i = 1; i < result.meshes.length; i++) {
+        const mesh = result.meshes[i] as Mesh;
+        mesh.flipFaces(true);
+        const material = new StandardMaterial('wireframe', scene);
+        material.wireframe = true;
+        mesh.material = material;
+        if (mesh.material) {
+          mesh.material.wireframe = true;
+        }
+        const aggregate = new PhysicsAggregate(
+          mesh,
+          PhysicsShapeType.MESH,
+          { mass: 0.0, restitution: 1.0, friction: 0.0 },
+          scene
+        );
+        aggregate.body.setAngularDamping(0.0);
+        aggregate.body.setLinearDamping(0.0);
+        this._physicsMesh.push({ mesh, aggregate });
+        console.log(mesh);
+        console.log(mesh.getIndices());
+        console.log(mesh.getPositionData());
       }
-      console.log(this.mesh);
-      console.log(this.mesh.getIndices());
-      console.log(this.mesh.getPositionData());
     });
   }
 }

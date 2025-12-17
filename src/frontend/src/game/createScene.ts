@@ -60,13 +60,8 @@ export function createPlane(
   return side;
 }
 
-export function createArena(
-  scene: Scene,
-  pos: Vector3,
-  rot: Vector3,
-  rad: number
-) {
-  const arena = new Arena(scene, pos, rot, rad);
+export function createArena(scene: Scene) {
+  const arena = new Arena(scene);
   return arena;
 }
 
