@@ -1,14 +1,16 @@
-import * as BABYLON from '@babylonjs/core';
+import { AbstractMesh, PhysicsAggregate } from '@babylonjs/core';
 
 export interface IBall {
   physicsMesh: PhysicsMesh;
 }
 
 export interface IArena {
-  physicsMesh: PhysicsMesh[];
+  arena: PhysicsMesh;
+  goal_1: PhysicsMesh;
+  goal_2: PhysicsMesh;
 }
 
 export interface PhysicsMesh {
-  mesh: BABYLON.AbstractMesh;
-  aggregate: BABYLON.PhysicsAggregate;
+  mesh: AbstractMesh;
+  aggregate: PhysicsAggregate;
 }

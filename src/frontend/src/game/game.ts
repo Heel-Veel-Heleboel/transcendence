@@ -23,7 +23,7 @@ export async function initGame() {
   const hk = new BABYLON.HavokPlugin(true, havokInstance);
   // enable physics in the scene with a gravity
   defaultScene.enablePhysics(new BABYLON.Vector3(0, 0, 0), hk);
-  const scene = module.Scene(defaultScene);
+  const scene = await module.Scene(defaultScene);
 
   window.addEventListener('resize', engineResize(engine));
   // Inspector.Show(scene, {});
@@ -36,7 +36,7 @@ export async function initGame() {
   }, 10);
 }
 
-export function Scene(scene: BABYLON.Scene) {
+export async function Scene(scene: BABYLON.Scene) {
   // @ts-ignore
   const _bgMusic = createBgMusic(scene);
 
@@ -49,6 +49,7 @@ export function Scene(scene: BABYLON.Scene) {
     new BABYLON.Vector3(0, 0, 0),
     scene
   );
+  // An extra step is needed in order to be able to physicalize meshes coming from gltf. Insert an extra node transform just before the __root__ so conversion between Righ or Left handedness are transparent for the physics engine.
   const trParent = new BABYLON.TransformNode('tr', scene);
   const root = scene.getMeshByName('__root__');
   if (root) {
@@ -56,31 +57,49 @@ export function Scene(scene: BABYLON.Scene) {
     root.position.y = 4;
     root.setParent(trParent);
   }
-  const arena = createArena(scene);
+  const arena = createArena();
+  await arena.initMesh(scene);
+  console.log(arena);
+
+  const observable_1 = arena.goal_1.aggregate.body.getCollisionObservable();
+  const observer = observable_1.add(collisionEvent => {
+    console.log('goal_1');
+    // Process collisions for the player
+  });
+
+  const observable_2 = arena.goal_2.aggregate.body.getCollisionObservable();
+  const observer_2 = observable_2.add(collisionEvent => {
+    console.log('goal_2');
+    // Process collisions for the player
+  });
 
   const ball = createBall(scene, new BABYLON.Vector3(0, 1, 0), 1);
-  for (let i = 0; i < 10; i++) {
-    let temp = createBall(scene, new BABYLON.Vector3(0, 0, 0), 1);
-    temp.physicsMesh.aggregate.body.applyForce(
-      new BABYLON.Vector3(
-        Math.random() * 100,
-        Math.random() * 100,
-        Math.random() * 100
-      ),
-      temp.physicsMesh.mesh.absolutePosition
-    );
-  }
+  ball.physicsMesh.aggregate.body.applyForce(
+    new BABYLON.Vector3(0, 0, 10),
+    ball.physicsMesh.mesh.absolutePosition
+  );
+  // for (let i = 0; i < 2; i++) {
+  //   let temp = createBall(scene, new BABYLON.Vector3(0, 0, 0), 1);
+  //   temp.physicsMesh.aggregate.body.applyForce(
+  //     new BABYLON.Vector3(
+  //       Math.random() * 100,
+  //       Math.random() * 100,
+  //       Math.random() * 100
+  //     ),
+  //     temp.physicsMesh.mesh.absolutePosition
+  //   );
+  // }
   scene.onBeforeRenderObservable.add(module.draw(ball, arena));
   return scene;
 }
 
 export function draw(ball: Ball, arena: Arena) {
   return () => {
-    console.log('linear' + ball.physicsMesh.aggregate.body.getLinearVelocity());
-    console.log(
-      'angular' + ball.physicsMesh.aggregate.body.getAngularVelocity()
-    );
-    console.log(ball.physicsMesh.aggregate.body.getAngularVelocity());
+    // console.log('linear' + ball.physicsMesh.aggregate.body.getLinearVelocity());
+    // console.log(
+    //   'angular' + ball.physicsMesh.aggregate.body.getAngularVelocity()
+    // );
+    // console.log(ball.physicsMesh.aggregate.body.getAngularVelocity());
     // ball.update();
     // console.log(ball.mesh.position);
   };

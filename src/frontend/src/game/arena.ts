@@ -9,28 +9,48 @@ import {
 } from '@babylonjs/core';
 
 export class Arena implements IArena {
-  private _physicsMesh!: PhysicsMesh[];
+  public _arena!: PhysicsMesh;
+  public _goal_1!: PhysicsMesh;
+  public _goal_2!: PhysicsMesh;
 
-  public get physicsMesh(): PhysicsMesh[] {
-    return this._physicsMesh;
+  public get arena(): PhysicsMesh {
+    return this._arena;
   }
 
-  public set physicsMesh(value: PhysicsMesh[]) {
-    this._physicsMesh = value;
+  public set arena(value: PhysicsMesh) {
+    this._arena = value;
   }
 
-  constructor(scene: Scene) {
-    this._physicsMesh = [];
-    this.initMesh(scene);
+  public get goal_1(): PhysicsMesh {
+    return this._goal_1;
+  }
+
+  public set goal_1(value: PhysicsMesh) {
+    this._goal_1 = value;
+  }
+
+  public get goal_2(): PhysicsMesh {
+    return this._goal_2;
+  }
+
+  public set goal_2(value: PhysicsMesh) {
+    this._goal_2 = value;
+  }
+
+  constructor() {
+    this.initMesh = this.initMesh.bind(this);
   }
 
   async initMesh(scene: Scene) {
     const model = ImportMeshAsync('/arena.gltf', scene);
-    model.then(result => {
+    await model.then(result => {
       console.log(result);
+      if (result.meshes.length != 4) throw Error('arena wrongly formatted');
       for (let i = 1; i < result.meshes.length; i++) {
         const mesh = result.meshes[i] as Mesh;
-        mesh.flipFaces(true);
+        if (mesh.id === 'arena') {
+          mesh.flipFaces(true);
+        }
         const material = new StandardMaterial('wireframe', scene);
         material.wireframe = true;
         mesh.material = material;
@@ -45,11 +65,18 @@ export class Arena implements IArena {
         );
         aggregate.body.setAngularDamping(0.0);
         aggregate.body.setLinearDamping(0.0);
-        this._physicsMesh.push({ mesh, aggregate });
-        console.log(mesh);
-        console.log(mesh.getIndices());
-        console.log(mesh.getPositionData());
+        this._arena = { mesh, aggregate };
+        if (mesh.id === 'goal_1') {
+          aggregate.body.setCollisionCallbackEnabled(true);
+          this.goal_1 = { mesh, aggregate };
+          console.log('here');
+        }
+        if (mesh.id === 'goal_2') {
+          aggregate.body.setCollisionCallbackEnabled(true);
+          this.goal_2 = { mesh, aggregate };
+        }
       }
+      console.log('finished');
     });
   }
 }

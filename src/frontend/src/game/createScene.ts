@@ -60,8 +60,8 @@ export function createPlane(
   return side;
 }
 
-export function createArena(scene: Scene) {
-  const arena = new Arena(scene);
+export function createArena() {
+  const arena = new Arena();
   return arena;
 }
 
