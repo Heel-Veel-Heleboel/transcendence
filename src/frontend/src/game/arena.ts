@@ -37,9 +37,7 @@ export class Arena implements IArena {
     this._goal_2 = value;
   }
 
-  constructor() {
-    this.initMesh = this.initMesh.bind(this);
-  }
+  constructor() {}
 
   async initMesh(scene: Scene) {
     const model = ImportMeshAsync('/arena.gltf', scene);

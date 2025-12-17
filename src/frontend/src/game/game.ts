@@ -11,6 +11,7 @@ import {
 import { getCanvas, engineResize } from './sceneUtils.ts';
 import '@babylonjs/loaders/glTF';
 import { Ball } from './ball.ts';
+import { Player } from './player.ts';
 import { Arena } from './arena.ts';
 // import { Inspector } from '@babylonjs/inspector';
 
@@ -72,6 +73,18 @@ export async function Scene(scene: BABYLON.Scene) {
   }
   const arena = createArena();
   await arena.initMesh(scene);
+
+  console.log(arena.goal_1);
+  const player = new Player(
+    arena.goal_1.mesh.absolutePosition,
+    arena.goal_1.mesh.getBoundingInfo().boundingBox.extendSizeWorld.scale(2),
+    scene
+  );
+  const player2 = new Player(
+    arena.goal_2.mesh.absolutePosition,
+    arena.goal_2.mesh.getBoundingInfo().boundingBox.extendSizeWorld.scale(2),
+    scene
+  );
   console.log(arena);
 
   const observable_1 = arena.goal_1.aggregate.body.getCollisionObservable();

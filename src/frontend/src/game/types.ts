@@ -1,5 +1,10 @@
 import { AbstractMesh, PhysicsAggregate } from '@babylonjs/core';
 
+export interface IPlayer {
+  physicsMesh: PhysicsMesh;
+  lifespan: number;
+}
+
 export interface IBall {
   physicsMesh: PhysicsMesh;
   lifespan: number;
