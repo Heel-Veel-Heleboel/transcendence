@@ -36,6 +36,19 @@ export async function initGame() {
   }, 10);
 }
 
+export function addBall(scene) {
+  let temp = createBall(scene, new BABYLON.Vector3(0, 0, 0), 1);
+  temp.physicsMesh.aggregate.body.applyForce(
+    new BABYLON.Vector3(
+      Math.random() * 100,
+      Math.random() * 100,
+      Math.random() * 100
+    ),
+    temp.physicsMesh.mesh.absolutePosition
+  );
+  return temp;
+}
+
 export async function Scene(scene: BABYLON.Scene) {
   // @ts-ignore
   const _bgMusic = createBgMusic(scene);
@@ -73,34 +86,26 @@ export async function Scene(scene: BABYLON.Scene) {
     // Process collisions for the player
   });
 
-  const ball = createBall(scene, new BABYLON.Vector3(0, 1, 0), 1);
-  ball.physicsMesh.aggregate.body.applyForce(
-    new BABYLON.Vector3(0, 0, 10),
-    ball.physicsMesh.mesh.absolutePosition
-  );
-  // for (let i = 0; i < 2; i++) {
-  //   let temp = createBall(scene, new BABYLON.Vector3(0, 0, 0), 1);
-  //   temp.physicsMesh.aggregate.body.applyForce(
-  //     new BABYLON.Vector3(
-  //       Math.random() * 100,
-  //       Math.random() * 100,
-  //       Math.random() * 100
-  //     ),
-  //     temp.physicsMesh.mesh.absolutePosition
-  //   );
-  // }
-  scene.onBeforeRenderObservable.add(module.draw(ball, arena));
+  const balls = [];
+  const ball = addBall(scene);
+  balls.push(ball);
+  let frameCount = 0;
+  scene.onBeforeRenderObservable.add(module.draw(scene, balls, frameCount));
   return scene;
 }
 
-export function draw(ball: Ball, arena: Arena) {
+export function draw(scene: Scene, balls: Ball[], frameCount) {
   return () => {
-    // console.log('linear' + ball.physicsMesh.aggregate.body.getLinearVelocity());
-    // console.log(
-    //   'angular' + ball.physicsMesh.aggregate.body.getAngularVelocity()
-    // );
-    // console.log(ball.physicsMesh.aggregate.body.getAngularVelocity());
-    // ball.update();
-    // console.log(ball.mesh.position);
+    if (!(frameCount % 600)) {
+      const ball = addBall(scene);
+      balls.push(ball);
+    }
+    for (const ball of balls) {
+      ball.update();
+    }
+    balls.filter(ball => {
+      !ball.isDead();
+    });
+    frameCount++;
   };
 }

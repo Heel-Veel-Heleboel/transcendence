@@ -2,6 +2,7 @@ import { AbstractMesh, PhysicsAggregate } from '@babylonjs/core';
 
 export interface IBall {
   physicsMesh: PhysicsMesh;
+  lifespan: number;
 }
 
 export interface IArena {
