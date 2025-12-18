@@ -65,11 +65,16 @@ export async function Scene(scene: BABYLON.Scene) {
   await arena.initMesh(scene);
   world.arena = arena;
 
+  const keyManager = new KeyManager(scene, () => world.frameCount);
+  world.keyManager = keyManager;
+  // create keyGrid
+  // add Keys to player
   const player = new Player(
     arena.goal_1.mesh.absolutePosition,
     arena.goal_1.mesh.getBoundingInfo().boundingBox.extendSizeWorld.scale(2),
     scene
   );
+  // give register keyEvent from player ['qe', { x, y }] with KeyManager
   world.localPlayer = player;
   const player2 = new Player(
     arena.goal_2.mesh.absolutePosition,
@@ -94,8 +99,6 @@ export async function Scene(scene: BABYLON.Scene) {
   const balls = [];
   const ball = addBall(scene);
   balls.push(ball);
-  const keyManager = new KeyManager(scene, () => world.frameCount);
-  world.keyManager = keyManager;
   scene.onBeforeRenderObservable.add(module.draw(world, balls));
   return scene;
 }
