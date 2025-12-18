@@ -76,6 +76,7 @@ export async function Scene(scene: BABYLON.Scene) {
     arena.goal_2.mesh.getBoundingInfo().boundingBox.extendSizeWorld.scale(2),
     scene
   );
+  player.initGridColumnsHints(scene, 'qwas');
   world.remotePlayer = player2;
 
   const observable_1 = arena.goal_1.aggregate.body.getCollisionObservable();
@@ -117,7 +118,6 @@ export function draw(w: World, balls: Ball[]) {
     ) {
       w.keyManager.resolve();
     }
-    // console.log(w.keyManager.deltaTime);
     w.frameCount++;
   };
 }

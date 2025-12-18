@@ -1,4 +1,11 @@
-import { AbstractMesh, Light, Scene, PhysicsAggregate } from '@babylonjs/core';
+import {
+  AbstractMesh,
+  Light,
+  Scene,
+  PhysicsAggregate,
+  Vector3,
+  Mesh
+} from '@babylonjs/core';
 import { Arena } from './arena';
 import { KeyManager } from './KeyManager';
 import { Player } from './player.ts';
@@ -22,6 +29,10 @@ export interface IKeyManager {
 export interface IPlayer {
   physicsMesh: PhysicsMesh;
   lifespan: number;
+  goalDimensions: Vector3;
+  goalPosition: Vector3;
+  keyGrid: Mesh;
+  ratioDiv: number;
 }
 
 export interface IBall {
