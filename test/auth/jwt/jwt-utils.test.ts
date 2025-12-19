@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+
 import type * as JwtModule from 'jsonwebtoken';
 
 
@@ -59,7 +60,7 @@ describe('JWT Utils', () => {
         mockPayload,
         'mock-private-key',
         expect.objectContaining({
-          algorithm: 'RS256',
+          algorithms: ['RS256'],
           expiresIn: '15m',
           issuer: expect.any(String),
           audience: expect.any(String)
@@ -75,7 +76,7 @@ describe('JWT Utils', () => {
       generateAccessToken(mockPayload);
       
       const callArgs = vi.mocked(jwt.sign).mock.calls[0];
-      expect(callArgs[2]).toMatchObject({ algorithm: 'RS256' });
+      expect(callArgs[2]).toMatchObject({ algorithms: ['RS256'] });
     });
 
     it('should use correct expiration time from config', () => {
@@ -146,7 +147,7 @@ describe('JWT Utils', () => {
         mockToken,
         'mock-public-key',
         expect.objectContaining({
-          algorithm: 'RS256',
+          algorithms: ['RS256'],
           issuer: expect.any(String),
           audience: expect.any(String)
         })
@@ -160,7 +161,7 @@ describe('JWT Utils', () => {
       verifyAccessToken('token');
       
       const callArgs = vi.mocked(jwt.verify).mock.calls[0];
-      expect(callArgs[2]).toMatchObject({ algorithm: 'RS256' });
+      expect(callArgs[2]).toMatchObject({ algorithms: ['RS256'] });
     });
 
     it('should verify issuer claim', () => {
@@ -237,32 +238,49 @@ import { generateRefreshToken, hashRefreshToken, compareRefreshToken } from '../
 describe('Refresh Token Utils', () => {
   describe('generateRefreshToken', () => {
     it('should generate a refresh token of expected length', () => {
-      const token = generateRefreshToken();
+      const token = generateRefreshToken(64);
       expect(typeof token).toBe('string');
       expect(token.length).toBe(128); 
     });
 
     it('should generate unique tokens on multiple calls', () => {
-      const token1 = generateRefreshToken();
-      const token2 = generateRefreshToken();
+      const token1 = generateRefreshToken(64);
+      const token2 = generateRefreshToken(64);
       expect(token1).not.toBe(token2);
+    });
+
+    it('should handle different sizes correctly', () => {
+      const sizes = [16, 32, 64, 128];
+      sizes.forEach(size => {
+        const token = generateRefreshToken(size);
+        expect(token.length).toBe(size * 2); 
+      });
+    });
+
+    it('should throw error when size is zero or negative', () => {
+      expect(() => generateRefreshToken(0)).toThrow('The value of "size" is out of range. It must be >= 0 && <= 2147483647. Received 0');
+      expect(() => generateRefreshToken(-10)).toThrow('The value of "size" is out of range. It must be >= 0 && <= 2147483647. Received -10');
     });
   });
 
   describe('hashRefreshToken', () => {
     it('should return a hashed version of the refresh token', () => {
       const refreshToken = 'sample-refresh-token';
-      const hashedToken = hashRefreshToken(refreshToken);
+      const hashedToken = hashRefreshToken(refreshToken, 'sha256');
       expect(typeof hashedToken).toBe('string');
       expect(hashedToken).not.toBe(refreshToken);
       expect(hashedToken.length).toBe(64); 
+    });
+
+    it('should throw error when hashing an empty token', () => {
+      expect(() => hashRefreshToken('', 'sha256')).toThrow('Refresh token cannot be empty.');
     });
   });
 
   describe('compareRefreshToken', () => {
     it('should return true for matching refresh token and hash', () => {
       const refreshToken = 'another-sample-token';
-      const hashedToken = hashRefreshToken(refreshToken);
+      const hashedToken = hashRefreshToken(refreshToken, 'sha256');
       const isMatch = compareRefreshToken(refreshToken, hashedToken);
       expect(isMatch).toBe(true);
     });
@@ -270,10 +288,20 @@ describe('Refresh Token Utils', () => {
     it('should return false for non-matching refresh token and hash', () => {
       const refreshToken =  'sample-token-one';
       const differentToken = 'sample-token-two';
-      const hashedToken = hashRefreshToken(refreshToken);
+      const hashedToken = hashRefreshToken(refreshToken, 'sha256');
       const isMatch = compareRefreshToken(differentToken, hashedToken);
+      expect(isMatch).toBe(false);
+    });
+
+    it('should return false when comparing with an empty refresh token', () => {
+      const hashedToken = hashRefreshToken('valid-token', 'sha256');
+      const isMatch = compareRefreshToken('', hashedToken);
+      expect(isMatch).toBe(false);
+    });
+
+    it('should return false when comparing with an empty hashed token', () => {
+      const isMatch = compareRefreshToken('valid-token', '');
       expect(isMatch).toBe(false);
     });
   });
 });
-
