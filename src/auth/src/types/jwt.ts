@@ -6,14 +6,13 @@ export interface JwtConfigShape {
   algorithm: string;
 }
 
-export interface PayLoadShape {
+export interface JwtPayLoadShape {
   sub: number;
-  userEmail: string;
+  user_email: string;
   jti: string;
 };
 
-
-export  interface DecodedJwtPayload extends PayLoadShape {
+export  interface DecodedJwtPayload extends JwtPayLoadShape {
   iat: number;
   exp: number;
   iss: string;

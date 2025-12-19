@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import { createJwtConfig } from '../../../src/auth/src/config/jwt.ts';
 import { JwtConfigShape } from '../../../src/auth/src/types/jwt.ts';
-
+import { JwtSchemaErrorMessage } from '../../../src/auth/src/constants/jwt.ts';
 
 vi.mock('../../../src/auth/src/utils/read-file.ts', () => {
   return {
@@ -47,8 +47,8 @@ describe('Jwt configuration tester', ()=> {
   });
 
   const requiredVars = [
-    { envName: 'JWT_PRIVATE_KEY_PATH', errorMsg: 'Missing JWT JWT_PRIVATE_KEY_PATH' },
-    { envName: 'JWT_PUBLIC_KEY_PATH', errorMsg: 'Missing JWT JWT_PUBLIC_KEY_PATH' }
+    { envName: 'JWT_PRIVATE_KEY_PATH', errorMsg: JwtSchemaErrorMessage.JWT_PRIVATE_KEY_PATH_MISSING },
+    { envName: 'JWT_PUBLIC_KEY_PATH', errorMsg: JwtSchemaErrorMessage.JWT_PUBLIC_KEY_PATH_MISSING }
   ];
   it.each(requiredVars) ('Throws an error if $envName missing ', (missingVar)=> {
     delete process.env[missingVar.envName];
@@ -73,66 +73,66 @@ describe('Jwt configuration tester', ()=> {
   it ('Throws an error if expiration time format is invalid', ()=> {
     process.env.EXPIRATION_TIME_ACCESS_TOKEN  = '15x';
 
-    expect(() => createJwtConfig()).toThrow('EXPIRATION_TIME_ACCESS_TOKEN must be a number between 1-100 followed by s (seconds), h (hours), m (minutes), or d (days). Examples: 15m, 7d, 24h');
+    expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.EXPIRATION_TIME_ACCESS_TOKEN_INVALID);
   });
 
   it ('Throws an error if expiration time format has too large value', ()=> {
     process.env.EXPIRATION_TIME_ACCESS_TOKEN  = '15000m';
 
-    expect(() => createJwtConfig()).toThrow('EXPIRATION_TIME_ACCESS_TOKEN must be a number between 1-100 followed by s (seconds), h (hours), m (minutes), or d (days). Examples: 15m, 7d, 24h');
+    expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.EXPIRATION_TIME_ACCESS_TOKEN_INVALID);
   });
 
   it ('Throws an error if expiration time format has negative value', ()=> {
     process.env.EXPIRATION_TIME_ACCESS_TOKEN  = '-1h';
 
-    expect(() => createJwtConfig()).toThrow('EXPIRATION_TIME_ACCESS_TOKEN must be a number between 1-100 followed by s (seconds), h (hours), m (minutes), or d (days). Examples: 15m, 7d, 24h');
+    expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.EXPIRATION_TIME_ACCESS_TOKEN_INVALID);
   });
 
   it ('Throws an error if expiration time format is missing unit', ()=> {
     process.env.EXPIRATION_TIME_ACCESS_TOKEN  = '20';
 
-    expect(() => createJwtConfig()).toThrow('EXPIRATION_TIME_ACCESS_TOKEN must be a number between 1-100 followed by s (seconds), h (hours), m (minutes), or d (days). Examples: 15m, 7d, 24h');
+    expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.EXPIRATION_TIME_ACCESS_TOKEN_INVALID);
   });
 
   it ('Throws an error if expiration time format is empty string', ()=> {
     process.env.EXPIRATION_TIME_ACCESS_TOKEN  = '';
 
-    expect(() => createJwtConfig()).toThrow('EXPIRATION_TIME_ACCESS_TOKEN must be a number between 1-100 followed by s (seconds), h (hours), m (minutes), or d (days). Examples: 15m, 7d, 24h');
+    expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.EXPIRATION_TIME_ACCESS_TOKEN_INVALID);
   });
 
   it ('Throws an error if expiration time format has zero value', ()=> {
     process.env.EXPIRATION_TIME_ACCESS_TOKEN  = '0h';
 
-    expect(() => createJwtConfig()).toThrow('EXPIRATION_TIME_ACCESS_TOKEN must be a number between 1-100 followed by s (seconds), h (hours), m (minutes), or d (days). Examples: 15m, 7d, 24h');
+    expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.EXPIRATION_TIME_ACCESS_TOKEN_INVALID);
   });
 
   it ('Throws an error if expiration time format has non-numeric value', ()=> {
     process.env.EXPIRATION_TIME_ACCESS_TOKEN  = 'abc m';
 
-    expect(() => createJwtConfig()).toThrow('EXPIRATION_TIME_ACCESS_TOKEN must be a number between 1-100 followed by s (seconds), h (hours), m (minutes), or d (days). Examples: 15m, 7d, 24h');
+    expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.EXPIRATION_TIME_ACCESS_TOKEN_INVALID);
   });
 
   it ('Throws an error if expiration time  starts from characters', ()=> {
     process.env.EXPIRATION_TIME_ACCESS_TOKEN = 'm15';
 
-    expect(() => createJwtConfig()).toThrow('EXPIRATION_TIME_ACCESS_TOKEN must be a number between 1-100 followed by s (seconds), h (hours), m (minutes), or d (days). Examples: 15m, 7d, 24h');
+    expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.EXPIRATION_TIME_ACCESS_TOKEN_INVALID);
   });
   it ('Throws an error if expiration time format is invalid', ()=> {
     process.env.EXPIRATION_TIME_REFRESH_TOKEN  = 'seven days';
 
-    expect(() => createJwtConfig()).toThrow('EXPIRATION_TIME_REFRESH_TOKEN must be a number between 1-100 followed by s (seconds), h (hours), m (minutes), or d (days). Examples: 15m, 7d, 24h');
+    expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.EXPIRATION_TIME_REFRESH_TOKEN_INVALID);
   });
 
   it ('Throws an error if key paths do not end with .pem', ()=> {
     process.env.JWT_PRIVATE_KEY_PATH = './keys/private.txt';
 
-    expect(() => createJwtConfig()).toThrow('JWT private key path must be a .pem file');
+    expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.JWT_PRIVATE_KEY_PATH_INVALID);
   });
 
   it ('Throws an error if key paths are empty strings', ()=> {
     process.env.JWT_PUBLIC_KEY_PATH = '   ';
 
-    expect(() => createJwtConfig()).toThrow('JWT public key path must be a .pem file');
+    expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.JWT_PUBLIC_KEY_PATH_INVALID);
   });
 
   it.each([
