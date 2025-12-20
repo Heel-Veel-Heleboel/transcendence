@@ -1,6 +1,7 @@
 import * as module from './game.ts';
 import { World } from './World.ts';
 import * as BABYLON from '@babylonjs/core';
+import * as GUI from '@babylonjs/gui';
 import {
   createEngine,
   createBgMusic,
@@ -69,8 +70,6 @@ export async function Scene(scene: BABYLON.Scene) {
   await arena.initMesh(scene);
   world.arena = arena;
 
-  // create keyGrid
-  // add Keys to player
   const config = {
     keys: {
       columns: 'qwaszx',
@@ -103,6 +102,8 @@ export async function Scene(scene: BABYLON.Scene) {
   const keyManager = new KeyManager(scene, () => world.frameCount, player);
   world.keyManager = keyManager;
 
+  // add Keys to player
+  let advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI('UI');
   const balls = [];
   const ball = addBall(scene);
   balls.push(ball);
