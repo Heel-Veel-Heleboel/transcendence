@@ -9,6 +9,14 @@ import {
 import { Arena } from './arena';
 import { KeyManager } from './KeyManager';
 import { Player } from './player.ts';
+import { KeyGrid } from './KeyGrid.ts';
+
+export interface IKeyGrid {
+  grid: Map<string, { x: number; y: number }>;
+  columns: string;
+  rows: string;
+  length: number;
+}
 
 export interface IWorld {
   scene: Scene;
@@ -31,7 +39,8 @@ export interface IPlayer {
   lifespan: number;
   goalDimensions: Vector3;
   goalPosition: Vector3;
-  keyGrid: Mesh;
+  keyGrid: KeyGrid;
+  keyGridMesh: Mesh;
   ratioDiv: number;
 }
 

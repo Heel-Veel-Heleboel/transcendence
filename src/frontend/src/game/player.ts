@@ -2,23 +2,27 @@ import { IPlayer, PhysicsMesh } from './types.ts';
 import { GridMaterial } from '@babylonjs/materials';
 import * as BABYLON from '@babylonjs/core';
 import earcut from 'earcut';
+import { KeyGrid } from './KeyGrid.ts';
 
 export class Player implements IPlayer {
   public physicsMesh: PhysicsMesh;
   public lifespan: number;
   public goalPosition: BABYLON.Vector3;
   public goalDimensions: BABYLON.Vector3;
-  public keyGrid: BABYLON.Mesh;
+  public keyGrid: KeyGrid;
+  public keyGridMesh: BABYLON.Mesh;
   public ratioDiv: number;
 
   constructor(
     goalPosition: BABYLON.Vector3,
     goalDimensions: BABYLON.Vector3,
+    keyGrid: KeyGrid,
     scene: BABYLON.Scene
   ) {
     this.goalPosition = goalPosition;
     this.goalDimensions = goalDimensions;
-    this.ratioDiv = 4;
+    this.keyGrid = keyGrid;
+    this.ratioDiv = keyGrid.length;
     const mesh = BABYLON.MeshBuilder.CreateBox(
       'padel',
       {
@@ -59,8 +63,8 @@ export class Player implements IPlayer {
     } else {
       sideOrientation = BABYLON.Mesh.FRONTSIDE;
     }
-    this.keyGrid = BABYLON.MeshBuilder.CreatePlane(
-      'keyGrid',
+    this.keyGridMesh = BABYLON.MeshBuilder.CreatePlane(
+      'keyGridMesh',
       {
         height: goalDimensions.y,
         width: goalDimensions.x,
@@ -68,21 +72,34 @@ export class Player implements IPlayer {
       },
       scene
     );
-    this.keyGrid.position = goalPosition;
-    this.keyGrid.material = new GridMaterial('grid', scene);
-    this.keyGrid.material.opacity = 0.99;
-    this.keyGrid.material.majorUnitFrequency = 0.99;
-    this.keyGrid.material.gridRatio = this.goalDimensions.x / this.ratioDiv;
+    this.keyGridMesh.position = goalPosition;
+    this.keyGridMesh.material = new GridMaterial('grid', scene);
+    this.keyGridMesh.material.opacity = 0.99;
+    this.keyGridMesh.material.majorUnitFrequency = 0.99;
+    console.log(this.goalDimensions.x);
+    if (keyGrid.length % 2) {
+      this.keyGridMesh.material.gridRatio =
+        this.goalDimensions.x / this.ratioDiv;
+      const offset = this.keyGridMesh.material.gridRatio / 2;
+      this.keyGridMesh.material.gridOffset = new BABYLON.Vector3(
+        offset,
+        offset,
+        0
+      );
+    } else {
+      this.keyGridMesh.material.gridRatio =
+        this.goalDimensions.x / this.ratioDiv;
+    }
   }
 
-  async initGridColumnsHints(scene: BABYLON.Scene, keys: string) {
+  async initGridColumnsHints(scene: BABYLON.Scene) {
     const fontData = await (
       await fetch('../../public/Monofett_Regular.json')
     ).json(); // Providing you have a font data file at that location
-    for (let i = 0; i < keys.length; i++) {
+    for (let i = 0; i < this.keyGrid.length; i++) {
       const text = BABYLON.MeshBuilder.CreateText(
         'myText',
-        keys.charAt(i),
+        this.keyGrid.columns.charAt(i),
         fontData,
         {
           size: this.goalDimensions.x / this.ratioDiv,
@@ -99,6 +116,42 @@ export class Player implements IPlayer {
       text.position = new BABYLON.Vector3(
         xPos,
         this.goalPosition.y + this.goalDimensions.y / 2,
+        this.goalPosition.z
+      );
+      const material = new BABYLON.StandardMaterial('wireframe', scene);
+      // text.material = material;
+      // if (text.material) {
+      //   text.material.wireframe = true;
+      // }
+    }
+  }
+
+  async initGridRowsHints(scene: BABYLON.Scene) {
+    const fontData = await (
+      await fetch('../../public/Monofett_Regular.json')
+    ).json(); // Providing you have a font data file at that location
+    for (let i = 0; i < this.keyGrid.length; i++) {
+      const text = BABYLON.MeshBuilder.CreateText(
+        'myText',
+        this.keyGrid.rows.charAt(i),
+        fontData,
+        {
+          size: this.goalDimensions.x / this.ratioDiv,
+          resolution: 20,
+          depth: 0.1
+        },
+        scene,
+        earcut
+      );
+      const startPos = this.goalPosition.y + this.goalDimensions.y / 2;
+      const yPosIndex = (this.goalDimensions.y / this.ratioDiv) * i;
+      const yPosOffset = this.goalDimensions.y / this.ratioDiv;
+      const yPos = startPos - yPosIndex - yPosOffset;
+      text.position = new BABYLON.Vector3(
+        this.goalPosition.x -
+          this.goalDimensions.x / 2 -
+          this.goalDimensions.x / this.ratioDiv / 2,
+        yPos,
         this.goalPosition.z
       );
       const material = new BABYLON.StandardMaterial('wireframe', scene);

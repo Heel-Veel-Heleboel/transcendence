@@ -14,6 +14,7 @@ import '@babylonjs/loaders/glTF';
 import { Ball } from './ball.ts';
 import { Player } from './player.ts';
 import { KeyManager } from './KeyManager.ts';
+import { KeyGrid } from './KeyGrid.ts';
 // import { Inspector } from '@babylonjs/inspector';
 
 export async function initGame() {
@@ -53,6 +54,9 @@ export function addBall(scene: BABYLON.Scene) {
 
 export async function Scene(scene: BABYLON.Scene) {
   const world = new World(scene);
+  const gizmoManager = new BABYLON.GizmoManager(scene);
+  // gizmoManager.boundingBoxGizmoEnabled = true;
+  gizmoManager.positionGizmoEnabled = true;
   // @ts-ignore
   createBgMusic(scene);
 
@@ -67,11 +71,15 @@ export async function Scene(scene: BABYLON.Scene) {
 
   const keyManager = new KeyManager(scene, () => world.frameCount);
   world.keyManager = keyManager;
+
   // create keyGrid
+  const keyGrid = new KeyGrid('qwertyuiop', 'qwertyuiop');
+  console.log(keyGrid);
   // add Keys to player
   const player = new Player(
     arena.goal_1.mesh.absolutePosition,
     arena.goal_1.mesh.getBoundingInfo().boundingBox.extendSizeWorld.scale(2),
+    keyGrid,
     scene
   );
   // give register keyEvent from player ['qe', { x, y }] with KeyManager
@@ -79,9 +87,12 @@ export async function Scene(scene: BABYLON.Scene) {
   const player2 = new Player(
     arena.goal_2.mesh.absolutePosition,
     arena.goal_2.mesh.getBoundingInfo().boundingBox.extendSizeWorld.scale(2),
+    keyGrid,
     scene
   );
-  player.initGridColumnsHints(scene, 'qwas');
+  player.initGridColumnsHints(scene);
+  player.initGridRowsHints(scene);
+
   world.remotePlayer = player2;
 
   const observable_1 = arena.goal_1.aggregate.body.getCollisionObservable();
