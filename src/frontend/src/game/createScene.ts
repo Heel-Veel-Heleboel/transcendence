@@ -29,12 +29,12 @@ export function createBgMusic(scene: Scene) {
   return bg;
 }
 
-export function createCamera(scene: Scene) {
+export function createCamera(scene: Scene, distance: number) {
   const camera = new ArcRotateCamera(
     'camera',
     -Math.PI / 2,
-    Math.PI / 4,
-    0.9,
+    Math.PI / 2,
+    distance,
     Vector3.Zero(),
     scene
   );

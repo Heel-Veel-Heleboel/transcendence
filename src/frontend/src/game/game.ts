@@ -61,7 +61,7 @@ export async function Scene(scene: BABYLON.Scene) {
   createBgMusic(scene);
 
   // @ts-ignore
-  createCamera(scene);
+  createCamera(scene, 40);
   // @ts-ignore
   createLight(scene);
   new BABYLON.PointLight('pointLight', new BABYLON.Vector3(0, 0, 0), scene);
@@ -69,31 +69,25 @@ export async function Scene(scene: BABYLON.Scene) {
   await arena.initMesh(scene);
   world.arena = arena;
 
-  const keyManager = new KeyManager(scene, () => world.frameCount);
-  world.keyManager = keyManager;
-
   // create keyGrid
-  const keyGrid = new KeyGrid('qwertyuiop', 'qwertyuiop');
-  console.log(keyGrid);
   // add Keys to player
-  const player = new Player(
-    arena.goal_1.mesh.absolutePosition,
-    arena.goal_1.mesh.getBoundingInfo().boundingBox.extendSizeWorld.scale(2),
-    keyGrid,
-    scene
-  );
-  // give register keyEvent from player ['qe', { x, y }] with KeyManager
+  const config = {
+    keys: {
+      columns: 'qwaszx',
+      rows: 'erdfcv',
+      length: 6,
+      precisionKeys: 'WASD'
+    },
+    goalPosition: arena.goal_1.mesh.absolutePosition,
+    goalDimensions: arena.goal_1.mesh
+      .getBoundingInfo()
+      .boundingBox.extendSizeWorld.scale(2)
+  };
+
+  const player = new Player(config, scene);
   world.localPlayer = player;
-  const player2 = new Player(
-    arena.goal_2.mesh.absolutePosition,
-    arena.goal_2.mesh.getBoundingInfo().boundingBox.extendSizeWorld.scale(2),
-    keyGrid,
-    scene
-  );
   player.initGridColumnsHints(scene);
   player.initGridRowsHints(scene);
-
-  world.remotePlayer = player2;
 
   const observable_1 = arena.goal_1.aggregate.body.getCollisionObservable();
   observable_1.add(collisionEvent => {
@@ -106,6 +100,8 @@ export async function Scene(scene: BABYLON.Scene) {
     console.log('goal_2');
     // Process collisions for the player
   });
+  const keyManager = new KeyManager(scene, () => world.frameCount, player);
+  world.keyManager = keyManager;
 
   const balls = [];
   const ball = addBall(scene);

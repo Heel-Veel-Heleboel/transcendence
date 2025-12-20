@@ -11,11 +11,24 @@ import { KeyManager } from './KeyManager';
 import { Player } from './player.ts';
 import { KeyGrid } from './KeyGrid.ts';
 
+export interface PlayerConfig {
+  goalPosition: Vector3;
+  goalDimensions: Vector3;
+  keys: {
+    columns: string;
+    rows: string;
+    length: number;
+    precisionKeys: string;
+  };
+}
+
 export interface IKeyGrid {
   grid: Map<string, { x: number; y: number }>;
   columns: string;
   rows: string;
+  precisionKeys: string;
   length: number;
+  dimensions: { goalPosition: Vector3; goalDimensions: Vector3 };
 }
 
 export interface IWorld {
@@ -31,7 +44,9 @@ export interface IKeyManager {
   windowFrames: number;
   buffer: string[];
   deltaTime: number;
-  actions: Map<string, Function>;
+  actions: Map<string, { x: number; y: number }>;
+  precisionKeys: string;
+  player: Player;
 }
 
 export interface IPlayer {

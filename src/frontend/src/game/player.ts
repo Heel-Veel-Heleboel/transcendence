@@ -1,4 +1,4 @@
-import { IPlayer, PhysicsMesh } from './types.ts';
+import { IPlayer, PhysicsMesh, PlayerConfig } from './types.ts';
 import { GridMaterial } from '@babylonjs/materials';
 import * as BABYLON from '@babylonjs/core';
 import earcut from 'earcut';
@@ -13,52 +13,52 @@ export class Player implements IPlayer {
   public keyGridMesh: BABYLON.Mesh;
   public ratioDiv: number;
 
-  constructor(
-    goalPosition: BABYLON.Vector3,
-    goalDimensions: BABYLON.Vector3,
-    keyGrid: KeyGrid,
-    scene: BABYLON.Scene
-  ) {
-    this.goalPosition = goalPosition;
-    this.goalDimensions = goalDimensions;
-    this.keyGrid = keyGrid;
-    this.ratioDiv = keyGrid.length;
-    const mesh = BABYLON.MeshBuilder.CreateBox(
+  constructor(config: PlayerConfig, scene: BABYLON.Scene) {
+    this.goalPosition = config.goalPosition;
+    this.goalDimensions = config.goalDimensions;
+    // add Keys to player
+    this.ratioDiv = config.keys.length;
+    this.keyGrid = new KeyGrid(config.keys, {
+      goalPosition: config.goalPosition,
+      goalDimensions: config.goalDimensions
+    });
+    console.log(this.keyGrid);
+    const padel = BABYLON.MeshBuilder.CreateBox(
       'padel',
       {
-        height: goalDimensions.y / this.ratioDiv,
-        width: goalDimensions.x / this.ratioDiv,
-        depth: goalDimensions.z / this.ratioDiv
+        height: config.goalDimensions.y / this.ratioDiv,
+        width: config.goalDimensions.x / this.ratioDiv,
+        depth: config.goalDimensions.z / this.ratioDiv
       },
       scene
     );
-    mesh.position = new BABYLON.Vector3(
-      goalPosition.x,
-      goalPosition.y,
-      goalPosition.z
+    padel.position = new BABYLON.Vector3(
+      config.goalPosition.x,
+      config.goalPosition.y,
+      config.goalPosition.z
     );
-    mesh.position.addInPlace(
-      new BABYLON.Vector3(0, 0, (mesh.position.z / 20) * -1)
+    padel.position.addInPlace(
+      new BABYLON.Vector3(0, 0, (padel.position.z / 20) * -1)
     );
     const material = new BABYLON.StandardMaterial('wireframe', scene);
     material.wireframe = true;
-    mesh.material = material;
-    if (mesh.material) {
-      mesh.material.wireframe = true;
+    padel.material = material;
+    if (padel.material) {
+      padel.material.wireframe = true;
     }
     const aggregate = new BABYLON.PhysicsAggregate(
-      mesh,
+      padel,
       BABYLON.PhysicsShapeType.MESH,
       { mass: 0, restitution: 1, friction: 0.0 },
       scene
     );
     aggregate.body.setAngularDamping(0.0);
     aggregate.body.setLinearDamping(0.0);
-    this.physicsMesh = { mesh, aggregate };
+    this.physicsMesh = { mesh: padel, aggregate };
     this.lifespan = 1000;
 
     let sideOrientation;
-    if (mesh.position.z > 0) {
+    if (padel.position.z > 0) {
       sideOrientation = BABYLON.Mesh.BACKSIDE;
     } else {
       sideOrientation = BABYLON.Mesh.FRONTSIDE;
@@ -66,18 +66,17 @@ export class Player implements IPlayer {
     this.keyGridMesh = BABYLON.MeshBuilder.CreatePlane(
       'keyGridMesh',
       {
-        height: goalDimensions.y,
-        width: goalDimensions.x,
+        height: config.goalDimensions.y,
+        width: config.goalDimensions.x,
         sideOrientation: sideOrientation
       },
       scene
     );
-    this.keyGridMesh.position = goalPosition;
+    this.keyGridMesh.position = config.goalPosition;
     this.keyGridMesh.material = new GridMaterial('grid', scene);
     this.keyGridMesh.material.opacity = 0.99;
     this.keyGridMesh.material.majorUnitFrequency = 0.99;
-    console.log(this.goalDimensions.x);
-    if (keyGrid.length % 2) {
+    if (this.keyGrid.length % 2) {
       this.keyGridMesh.material.gridRatio =
         this.goalDimensions.x / this.ratioDiv;
       const offset = this.keyGridMesh.material.gridRatio / 2;
@@ -160,6 +159,19 @@ export class Player implements IPlayer {
       //   text.material.wireframe = true;
       // }
     }
+  }
+
+  movePrecise(coord: { x: number; y: number }) {
+    this.physicsMesh.aggregate.transformNode.position.x += coord.x;
+    this.physicsMesh.aggregate.transformNode.position.y += coord.y;
+  }
+
+  move(coord: { x: number; y: number }) {
+    this.physicsMesh.aggregate.transformNode.position = new BABYLON.Vector3(
+      coord.x,
+      coord.y,
+      this.physicsMesh.aggregate.transformNode.absolutePosition.z
+    );
   }
 
   dispose(): void {
