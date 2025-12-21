@@ -1,6 +1,7 @@
 import type { FastifyHelmetOptions } from '@fastify/helmet';
 import type { FastifyCorsOptions } from '@fastify/cors';
 import { SECURITY_CONSTANTS } from '../entity/common';
+import { validateIntegerRange } from '../utils/validation';
 
 /**
  * Security configuration for API Gateway
@@ -12,35 +13,6 @@ import { SECURITY_CONSTANTS } from '../entity/common';
  *
  * All settings can be configured via environment variables with secure defaults.
  */
-
-/**
- * Safely parse a positive integer from string
- *
- * @param value - String value to parse
- * @param fieldName - Name of the field for error messages
- * @returns Parsed integer or null if invalid
- */
-function safeParsePositiveInt(value: string, fieldName: string): number | null {
-  try {
-    // Check for non-numeric characters (parseInt allows trailing non-digits)
-    if (!/^\d+$/.test(value.trim())) {
-      console.warn(`Invalid ${fieldName}: "${value}" contains non-numeric characters`);
-      return null;
-    }
-
-    const parsed = parseInt(value, 10);
-
-    if (isNaN(parsed) || parsed <= 0 || !Number.isSafeInteger(parsed)) {
-      console.warn(`Invalid ${fieldName}: "${value}" must be a positive integer`);
-      return null;
-    }
-
-    return parsed;
-  } catch (error) {
-    console.warn(`Error parsing ${fieldName}: ${value}`, error);
-    return null;
-  }
-}
 
 /**
  * Get HSTS max-age from environment or use default (1 year)
@@ -55,13 +27,14 @@ function getHstsMaxAge(): number {
   const envValue = process.env.HSTS_MAX_AGE;
   if (!envValue) return SECURITY_CONSTANTS.DEFAULT_HSTS_MAX_AGE_SECONDS;
 
-  const parsed = safeParsePositiveInt(envValue, 'HSTS_MAX_AGE');
-  if (parsed === null) {
+  try {
+    return validateIntegerRange(envValue, 'HSTS_MAX_AGE', 'environment', 1);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn(`Invalid HSTS_MAX_AGE: ${errorMessage}`);
     console.warn(`Using default HSTS_MAX_AGE: ${SECURITY_CONSTANTS.DEFAULT_HSTS_MAX_AGE_SECONDS}`);
     return SECURITY_CONSTANTS.DEFAULT_HSTS_MAX_AGE_SECONDS;
   }
-
-  return parsed;
 }
 
 /**
@@ -79,13 +52,14 @@ export function getBodyLimit(): number {
   const envValue = process.env.BODY_LIMIT_BYTES;
   if (!envValue) return SECURITY_CONSTANTS.DEFAULT_BODY_LIMIT_BYTES;
 
-  const parsed = safeParsePositiveInt(envValue, 'BODY_LIMIT_BYTES');
-  if (parsed === null) {
+  try {
+    return validateIntegerRange(envValue, 'BODY_LIMIT_BYTES', 'environment', 1);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn(`Invalid BODY_LIMIT_BYTES: ${errorMessage}`);
     console.warn(`Using default BODY_LIMIT_BYTES: ${SECURITY_CONSTANTS.DEFAULT_BODY_LIMIT_BYTES}`);
     return SECURITY_CONSTANTS.DEFAULT_BODY_LIMIT_BYTES;
   }
-
-  return parsed;
 }
 
 /**
