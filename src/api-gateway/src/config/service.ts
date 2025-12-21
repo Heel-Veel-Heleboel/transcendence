@@ -2,8 +2,7 @@ import fs from 'fs';
 import { ServiceConfig } from '../entity/common';
 import { logger } from '../utils/logger';
 import {
-  validatePositiveInteger,
-  validateNonNegativeInteger,
+  validateIntegerRange,
   validateUrl,
   normalizeBoolean,
   parseJsonSafe
@@ -103,10 +102,10 @@ export function normalizeServiceConfig(raw: unknown): ServiceConfig {
     );
   }
 
-  // Parse and validate timeout
+  // Parse and validate timeout (must be positive)
   let timeout: number;
   if (config.timeout !== undefined) {
-    timeout = validatePositiveInteger(config.timeout, 'timeout', `service "${name}"`);
+    timeout = validateIntegerRange(config.timeout, 'timeout', `service "${name}"`, 1);
   } else {
     timeout = DEFAULT_TIMEOUT;
     logger.info(
@@ -115,10 +114,10 @@ export function normalizeServiceConfig(raw: unknown): ServiceConfig {
     );
   }
 
-  // Parse and validate retries
+  // Parse and validate retries (must be non-negative, 0 means no retries)
   let retries: number;
   if (config.retries !== undefined) {
-    retries = validateNonNegativeInteger(config.retries, 'retries', `service "${name}"`);
+    retries = validateIntegerRange(config.retries, 'retries', `service "${name}"`, 0);
   } else {
     retries = DEFAULT_RETRIES;
     logger.info(

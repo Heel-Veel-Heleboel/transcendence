@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  validatePositiveInteger,
-  validateNonNegativeInteger,
+  validateIntegerRange,
   validateUrl,
   normalizeBoolean,
   parseJsonSafe,
@@ -10,47 +9,43 @@ import {
 } from '../../../src/api-gateway/src/utils/validation';
 
 describe('Validation utilities', () => {
-  describe('validatePositiveInteger', () => {
-    it('accepts valid positive integers', () => {
-      expect(validatePositiveInteger(5, 'field', 'context')).toBe(5);
-      expect(validatePositiveInteger('10', 'field', 'context')).toBe(10);
-      expect(validatePositiveInteger(1000, 'field', 'context')).toBe(1000);
+  describe('validateIntegerRange', () => {
+    it('accepts valid integers within range', () => {
+      expect(validateIntegerRange(5, 'field', 'context', 1, 10)).toBe(5);
+      expect(validateIntegerRange('10', 'field', 'context', 1, 100)).toBe(10);
+      expect(validateIntegerRange(0, 'field', 'context', 0, 100)).toBe(0);
+      expect(validateIntegerRange(1000, 'field', 'context', 1)).toBe(1000); // no max
     });
 
-    it('throws on zero', () => {
-      expect(() => validatePositiveInteger(0, 'field', 'context')).toThrow(/must be positive/);
+    it('throws on values below minimum', () => {
+      expect(() => validateIntegerRange(0, 'field', 'context', 1)).toThrow(/must be at least 1/);
+      expect(() => validateIntegerRange(-5, 'field', 'context', 0)).toThrow(/must be at least 0/);
     });
 
-    it('throws on negative numbers', () => {
-      expect(() => validatePositiveInteger(-5, 'field', 'context')).toThrow(/must be positive/);
+    it('throws on values above maximum', () => {
+      expect(() => validateIntegerRange(11, 'field', 'context', 1, 10)).toThrow(/must be at most 10/);
+      expect(() => validateIntegerRange(100, 'field', 'context', 0, 50)).toThrow(/must be at most 50/);
     });
 
-    it('throws on non-integers', () => {
-      expect(() => validatePositiveInteger(5.5, 'field', 'context')).toThrow(/must be an integer/);
+    it('throws on non-numeric strings', () => {
+      expect(() => validateIntegerRange('invalid', 'field', 'context', 0)).toThrow(/contains non-numeric characters/);
+      expect(() => validateIntegerRange('5.5', 'field', 'context', 0)).toThrow(/contains non-numeric characters/);
+      expect(() => validateIntegerRange('123abc', 'field', 'context', 0)).toThrow(/contains non-numeric characters/);
     });
 
-    it('throws on NaN', () => {
-      expect(() => validatePositiveInteger('invalid', 'field', 'context')).toThrow(/is not a number/);
-    });
-  });
-
-  describe('validateNonNegativeInteger', () => {
-    it('accepts valid non-negative integers', () => {
-      expect(validateNonNegativeInteger(0, 'field', 'context')).toBe(0);
-      expect(validateNonNegativeInteger(5, 'field', 'context')).toBe(5);
-      expect(validateNonNegativeInteger('10', 'field', 'context')).toBe(10);
+    it('throws on floats', () => {
+      expect(() => validateIntegerRange(5.5, 'field', 'context', 0)).toThrow(/contains non-numeric characters/);
+      expect(() => validateIntegerRange(2.5, 'field', 'context', 0)).toThrow(/contains non-numeric characters/);
     });
 
-    it('throws on negative numbers', () => {
-      expect(() => validateNonNegativeInteger(-1, 'field', 'context')).toThrow(/cannot be negative/);
+    it('throws on unsafe integers', () => {
+      expect(() => validateIntegerRange(Number.MAX_SAFE_INTEGER + 1, 'field', 'context', 0)).toThrow(/must be a safe integer/);
+      expect(() => validateIntegerRange('9007199254740992', 'field', 'context', 0)).toThrow(/must be a safe integer/);
     });
 
-    it('throws on non-integers', () => {
-      expect(() => validateNonNegativeInteger(2.5, 'field', 'context')).toThrow(/must be an integer/);
-    });
-
-    it('throws on NaN', () => {
-      expect(() => validateNonNegativeInteger('invalid', 'field', 'context')).toThrow(/is not a number/);
+    it('handles string inputs with trailing/leading whitespace', () => {
+      expect(validateIntegerRange('  42  ', 'field', 'context', 0, 100)).toBe(42);
+      expect(validateIntegerRange('\t10\n', 'field', 'context', 0, 100)).toBe(10);
     });
   });
 
@@ -131,20 +126,16 @@ describe('Validation utilities', () => {
     });
 
     it('throws on port numbers outside valid range', () => {
-      expect(() => validatePort(0, 'context')).toThrow(/must be between 1 and 65535/);
-      expect(() => validatePort(-1, 'context')).toThrow(/must be between 1 and 65535/);
-      expect(() => validatePort(65536, 'context')).toThrow(/must be between 1 and 65535/);
-      expect(() => validatePort(100000, 'context')).toThrow(/must be between 1 and 65535/);
+      expect(() => validatePort(0, 'context')).toThrow(/must be at least 1/);
+      expect(() => validatePort(-1, 'context')).toThrow(/must be at least 1/);
+      expect(() => validatePort(65536, 'context')).toThrow(/must be at most 65535/);
+      expect(() => validatePort(100000, 'context')).toThrow(/must be at most 65535/);
     });
 
-    it('throws on non-integer values', () => {
-      expect(() => validatePort(3000.5, 'context')).toThrow(/must be an integer/);
-      expect(() => validatePort(80.1, 'context')).toThrow(/must be an integer/);
-    });
-
-    it('throws on NaN', () => {
-      expect(() => validatePort('invalid', 'context')).toThrow(/is not a number/);
-      expect(() => validatePort('abc', 'context')).toThrow(/is not a number/);
+    it('throws on invalid inputs', () => {
+      expect(() => validatePort(3000.5, 'context')).toThrow(/contains non-numeric characters/);
+      expect(() => validatePort('invalid', 'context')).toThrow(/contains non-numeric characters/);
+      expect(() => validatePort('3000abc', 'context')).toThrow(/contains non-numeric characters/);
     });
   });
 });

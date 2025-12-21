@@ -1,62 +1,63 @@
+import { SECURITY_CONSTANTS } from '../entity/common';
+
 /**
  * Validation utilities for configuration parsing
  */
 
 /**
- * Validate and parse a positive integer
- * @throws Error if value is not a valid positive integer
+ * Validate and parse an integer within specified bounds
+ *
+ * @param value - The value to validate
+ * @param fieldName - Name of the field for error messages
+ * @param context - Context for error messages
+ * @param min - Minimum allowed value (inclusive)
+ * @param max - Maximum allowed value (inclusive, optional)
+ * @throws Error if value is not a valid integer or outside bounds
+ *
+ * @example
+ * validateIntegerRange(port, 'port', 'config', 1, 65535)
+ * validateIntegerRange(timeout, 'timeout', 'service', 1) // positive integers
+ * validateIntegerRange(retries, 'retries', 'service', 0) // non-negative integers
  */
-export function validatePositiveInteger(
+export function validateIntegerRange(
   value: unknown,
   fieldName: string,
-  context: string
+  context: string,
+  min: number,
+  max?: number
 ): number {
-  const num = Number(value);
-  if (isNaN(num)) {
+  const strValue = String(value).trim();
+
+  // Check for non-numeric characters (parseInt allows trailing non-digits like "123abc")
+  if (!/^-?\d+$/.test(strValue)) {
     throw new Error(
-      `${context} has invalid ${fieldName}: "${value}" is not a number`
+      `${context} has invalid ${fieldName}: "${value}" contains non-numeric characters`
     );
   }
-  if (num <= 0) {
+
+  const num = parseInt(strValue, 10);
+
+  if (!Number.isSafeInteger(num)) {
     throw new Error(
-      `${context} has invalid ${fieldName}: ${num} must be positive`
+      `${context} has invalid ${fieldName}: ${num} must be a safe integer`
     );
   }
-  if (!Number.isInteger(num)) {
+
+  if (num < min) {
     throw new Error(
-      `${context} has invalid ${fieldName}: ${num} must be an integer`
+      `${context} has invalid ${fieldName}: ${num} must be at least ${min}`
     );
   }
+
+  if (max !== undefined && num > max) {
+    throw new Error(
+      `${context} has invalid ${fieldName}: ${num} must be at most ${max}`
+    );
+  }
+
   return num;
 }
 
-/**
- * Validate and parse a non-negative integer
- * @throws Error if value is not a valid non-negative integer
- */
-export function validateNonNegativeInteger(
-  value: unknown,
-  fieldName: string,
-  context: string
-): number {
-  const num = Number(value);
-  if (isNaN(num)) {
-    throw new Error(
-      `${context} has invalid ${fieldName}: "${value}" is not a number`
-    );
-  }
-  if (num < 0) {
-    throw new Error(
-      `${context} has invalid ${fieldName}: ${num} cannot be negative`
-    );
-  }
-  if (!Number.isInteger(num)) {
-    throw new Error(
-      `${context} has invalid ${fieldName}: ${num} must be an integer`
-    );
-  }
-  return num;
-}
 
 /**
  * Validate URL format
@@ -120,24 +121,14 @@ export function validateTimeWindow(value: unknown, context: string): string {
 
 /**
  * Validate and parse port number
- * @throws Error if port is invalid
+ * @throws Error if port is invalid (must be between 1 and 65535)
  */
 export function validatePort(value: unknown, context: string): number {
-  const num = Number(value);
-  if (isNaN(num)) {
-    throw new Error(
-      `${context} has invalid port: "${value}" is not a number`
-    );
-  }
-  if (!Number.isInteger(num)) {
-    throw new Error(
-      `${context} has invalid port: ${num} must be an integer`
-    );
-  }
-  if (num < 1 || num > 65535) {
-    throw new Error(
-      `${context} has invalid port: ${num} must be between 1 and 65535`
-    );
-  }
-  return num;
+  return validateIntegerRange(
+    value,
+    'port',
+    context,
+    SECURITY_CONSTANTS.MIN_PORT,
+    SECURITY_CONSTANTS.MAX_PORT
+  );
 }

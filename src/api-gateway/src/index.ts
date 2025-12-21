@@ -1,8 +1,11 @@
 import fastify from 'fastify';
 import httpProxy from '@fastify/http-proxy';
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
+import { setupProxyErrorHandler } from './routes/errorHandler';
+import { helmetConfig, corsConfig, getBodyLimit } from './config/security';
 
-// Create Fastify instance with logging
+// Create Fastify instance with logging and security configuration
 export const createServer = async () => {
   const server = fastify({
     logger: {
@@ -13,22 +16,18 @@ export const createServer = async () => {
           colorize: true
         }
       }
-    }
+    },
+    bodyLimit: getBodyLimit()
   });
+
+  // Register Helmet for security headers
+  await server.register(helmet, helmetConfig);
 
   // Register CORS plugin
-  // Parse allowed origins from environment variable or use default for development
-  const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-    : ['http://localhost:8080', 'http://localhost:3000'];
+  await server.register(cors, corsConfig);
 
-  await server.register(cors, {
-    origin: allowedOrigins,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-Id'],
-    exposedHeaders: ['X-Correlation-Id']
-  });
+  // Setup global error handler for proxy routes
+  setupProxyErrorHandler(server);
 
   // Basic health check endpoint
   server.get('/health', async (_request, _reply) => {
