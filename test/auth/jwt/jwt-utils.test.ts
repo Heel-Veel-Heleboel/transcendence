@@ -232,7 +232,7 @@ describe('JWT Utils', () => {
 
 
 import { generateRefreshToken, hashRefreshToken, compareRefreshToken } from '../../../src/auth/src/utils/jwt.ts';
-
+import { CryptoErrorMessage } from '../../../src/auth/src/constants/jwt.ts';
 
 
 describe('Refresh Token Utils', () => {
@@ -257,9 +257,9 @@ describe('Refresh Token Utils', () => {
       });
     });
 
-    it('should throw error when size is zero or negative', () => {
-      expect(() => generateRefreshToken(0)).toThrow('The value of "size" is out of range. It must be >= 0 && <= 2147483647. Received 0');
-      expect(() => generateRefreshToken(-10)).toThrow('The value of "size" is out of range. It must be >= 0 && <= 2147483647. Received -10');
+    it('should throw error when size is less than zero or too large', () => {
+      expect(() => generateRefreshToken(2147483647)).toThrow(CryptoErrorMessage.SIZE_OUT_OF_RANGE.replace('{size}', '2147483647'));
+      expect(() => generateRefreshToken(-10)).toThrow(CryptoErrorMessage.SIZE_OUT_OF_RANGE.replace('{size}', '-10'));
     });
   });
 
@@ -281,7 +281,7 @@ describe('Refresh Token Utils', () => {
     it('should return true for matching refresh token and hash', () => {
       const refreshToken = 'another-sample-token';
       const hashedToken = hashRefreshToken(refreshToken, 'sha256');
-      const isMatch = compareRefreshToken(refreshToken, hashedToken);
+      const isMatch = compareRefreshToken(refreshToken, hashedToken, 'sha256');
       expect(isMatch).toBe(true);
     });
 
@@ -289,19 +289,25 @@ describe('Refresh Token Utils', () => {
       const refreshToken =  'sample-token-one';
       const differentToken = 'sample-token-two';
       const hashedToken = hashRefreshToken(refreshToken, 'sha256');
-      const isMatch = compareRefreshToken(differentToken, hashedToken);
+      const isMatch = compareRefreshToken(differentToken, hashedToken, 'sha256');
       expect(isMatch).toBe(false);
     });
 
     it('should return false when comparing with an empty refresh token', () => {
       const hashedToken = hashRefreshToken('valid-token', 'sha256');
-      const isMatch = compareRefreshToken('', hashedToken);
+      const isMatch = compareRefreshToken('', hashedToken, 'sha256');
       expect(isMatch).toBe(false);
     });
 
     it('should return false when comparing with an empty hashed token', () => {
-      const isMatch = compareRefreshToken('valid-token', '');
+      const isMatch = compareRefreshToken('valid-token', '', 'sha256');
       expect(isMatch).toBe(false);
+    });
+
+    it('should throw error when hashing algorithm is missing', () => {
+      const refreshToken = 'test-token';
+      const hashedToken = hashRefreshToken(refreshToken, 'sha256');
+      expect(() => compareRefreshToken(refreshToken, hashedToken, '')).toThrow('Hashing algorithm must be specified.');
     });
   });
 });

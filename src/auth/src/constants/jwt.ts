@@ -4,12 +4,12 @@ export const JWT_AUDIENCE = 'TranscendenceApp' as const;
 
 
 export const JwtSchemaErrorMessage = {
-  JWT_PRIVATE_KEY_PATH_MISSING: 'Missing JWT JWT_PRIVATE_KEY_PATH',
-  JWT_PRIVATE_KEY_PATH_EMPTY: 'JWT PRIVATE_KEY_PATH value must not be empty',
-  JWT_PRIVATE_KEY_PATH_INVALID: 'JWT private key path must be a .pem file',
-  JWT_PUBLIC_KEY_PATH_MISSING: 'Missing JWT JWT_PUBLIC_KEY_PATH',
-  JWT_PUBLIC_KEY_PATH_EMPTY: 'JWT PUBLIC_KEY_PATH value must not be empty',
-  JWT_PUBLIC_KEY_PATH_INVALID: 'JWT public key path must be a .pem file',
+  JWT_PRIVATE_KEY_PATH_MISSING: 'Missing JWT_PRIVATE_KEY_PATH',
+  JWT_PRIVATE_KEY_PATH_EMPTY: 'JWT_PRIVATE_KEY_PATH value must not be empty',
+  JWT_PRIVATE_KEY_PATH_INVALID: 'JWT_PRIVATE_KEY_PATH must be a .pem file',
+  JWT_PUBLIC_KEY_PATH_MISSING: 'Missing JWT_PUBLIC_KEY_PATH',
+  JWT_PUBLIC_KEY_PATH_EMPTY: 'JWT_PUBLIC_KEY_PATH value must not be empty',
+  JWT_PUBLIC_KEY_PATH_INVALID: 'JWT_PUBLIC_KEY_PATH must be a .pem file',
   EXPIRATION_TIME_ACCESS_TOKEN_INVALID:
     'EXPIRATION_TIME_ACCESS_TOKEN must be a number between 1-100 followed by s (seconds), h (hours), m (minutes), or d (days). Examples: 15m, 7d, 24h',
   EXPIRATION_TIME_REFRESH_TOKEN_INVALID:

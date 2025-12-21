@@ -63,7 +63,7 @@ export function verifyAccessToken(token: string) : DecodedJwtPayload {
  * @throws {Error} If there is insufficient entropy available
  */
 export function generateRefreshToken(size: number) : string {
-  if (size <= 0) {
+  if (size <= 0 || size >= 2147483647) {
     throw new Error(CryptoErrorMessage.SIZE_OUT_OF_RANGE.replace('{size}', size.toString()));
   }
   const refreshToken = randomBytes(size).toString('hex');
@@ -80,7 +80,7 @@ export function generateRefreshToken(size: number) : string {
  * @throws {Error} If algorithm is not specified
  * @throws {Error} If the algorithm is invalid or not supported
  */
-export function hashRefreshToken(refreshToken: string, algorithm: string) : string {
+export function hashRefreshToken(refreshToken: string, algorithm: string = 'sha256') : string {
   if (!refreshToken) {
     throw new Error(CryptoErrorMessage.REFRESH_TOKEN_EMPTY);
   }
@@ -96,13 +96,17 @@ export function hashRefreshToken(refreshToken: string, algorithm: string) : stri
  * 
  * @param refreshToken - The plain refresh token to compare
  * @param hashedToken - The previously hashed refresh token
+ * @param algorithm - The hashing algorithm used to hash the refresh token
  * @returns true if the tokens match, false otherwise
  * @throws {TypeError} If either buffer cannot be converted or they have different lengths
  */
-export function compareRefreshToken(refreshToken: string, hashedToken: string) : boolean {
-  if (!refreshToken || !hashedToken) {
+export function compareRefreshToken(refreshToken: string, hashedToken: string, algorithm: string = 'sha256') : boolean {
+  if (!refreshToken || !hashedToken ) {
     return false;
   }
-  const hashToCompare = createHash('sha256').update(refreshToken).digest('hex');
+  if (!algorithm) {
+    throw new Error(CryptoErrorMessage.HASHING_ALGORITHM_MISSING);
+  }
+  const hashToCompare = createHash(algorithm).update(refreshToken).digest('hex');
   return timingSafeEqual(Buffer.from(hashToCompare), Buffer.from(hashedToken));
 }
