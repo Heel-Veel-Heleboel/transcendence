@@ -7,7 +7,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node --env-file-if-exists=.env dist/index.js",
+    "start": "node --env-file-if-exists=.env dist/src/index.js",
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf ../../dist/auth"
   },
