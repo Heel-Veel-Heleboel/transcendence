@@ -150,7 +150,7 @@ describe('API Gateway', () => {
 
       expect(response.headers).toHaveProperty('content-security-policy');
       const csp = response.headers['content-security-policy'] as string;
-      expect(csp).toContain("default-src 'self'");
+      expect(csp).toContain('default-src \'self\'');
     });
   });
 

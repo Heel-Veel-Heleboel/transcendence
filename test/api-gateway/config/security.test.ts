@@ -134,7 +134,7 @@ describe('Security Configuration', () => {
       const { helmetConfig } = await import('../../../src/api-gateway/src/config/security');
       if (typeof helmetConfig.contentSecurityPolicy === 'object') {
         expect(helmetConfig.contentSecurityPolicy.directives?.defaultSrc).toEqual(["'self'"]);
-        expect(helmetConfig.contentSecurityPolicy.directives?.styleSrc).toEqual(["'self'", "'unsafe-inline'"]);
+        expect(helmetConfig.contentSecurityPolicy.directives?.styleSrc).toEqual(["'self'"]);
         expect(helmetConfig.contentSecurityPolicy.directives?.scriptSrc).toEqual(["'self'"]);
         expect(helmetConfig.contentSecurityPolicy.directives?.imgSrc).toEqual(["'self'", 'data:', 'https:']);
       }

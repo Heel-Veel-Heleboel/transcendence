@@ -5,7 +5,7 @@ import {
 import fs from 'fs';
 import { logger } from '../utils/logger';
 import {
-  validatePositiveInteger,
+  validateIntegerRange,
   validateTimeWindow,
   parseJsonSafe
 } from '../utils/validation';
@@ -18,7 +18,8 @@ function parseMax(raw: Record<string, unknown>, defaultMax: number, context: str
     logger.info({ context, max: defaultMax }, 'Using default max');
     return defaultMax;
   }
-  return validatePositiveInteger(raw.max, 'max', context);
+  // Rate limit max must be positive (at least 1 request allowed)
+  return validateIntegerRange(raw.max, 'max', context, 1);
 }
 
 function parseTimeWindow(raw: Record<string, unknown>, defaultTimeWindow: string, context: string): string {

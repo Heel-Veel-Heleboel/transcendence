@@ -105,10 +105,10 @@ export function getBodyLimit(): number {
  */
 function getCspDirectives() {
   return {
-    defaultSrc: process.env.CSP_DEFAULT_SRC?.split(',').map(s => s.trim()) || ["'self'"],
-    styleSrc: process.env.CSP_STYLE_SRC?.split(',').map(s => s.trim()) || ["'self'"],
-    scriptSrc: process.env.CSP_SCRIPT_SRC?.split(',').map(s => s.trim()) || ["'self'"],
-    imgSrc: process.env.CSP_IMG_SRC?.split(',').map(s => s.trim()) || ["'self'", 'data:', 'https:']
+    defaultSrc: process.env.CSP_DEFAULT_SRC?.split(',').map(s => s.trim()) || ['\'self\''],
+    styleSrc: process.env.CSP_STYLE_SRC?.split(',').map(s => s.trim()) || ['\'self\''],
+    scriptSrc: process.env.CSP_SCRIPT_SRC?.split(',').map(s => s.trim()) || ['\'self\''],
+    imgSrc: process.env.CSP_IMG_SRC?.split(',').map(s => s.trim()) || ['\'self\'', 'data:', 'https:']
   };
 }
 
