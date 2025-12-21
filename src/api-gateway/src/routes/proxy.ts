@@ -83,7 +83,6 @@ async function registerHttpProxy(
     rewritePrefix: service.rewritePrefix || '',
     proxyTimeout: service.timeout ?? 5000,
     timeout: service.timeout ?? 5000,
-    // Enable websocket proxying if service supports it
     websocket: service.websocket ?? false
   };
 
