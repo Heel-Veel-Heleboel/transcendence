@@ -1,7 +1,5 @@
-import z from 'zod';
+import * as z from 'zod';
 import { databaseUrlSchema } from '../schemas/db.js';
-import { clear } from 'console';
-
 
 let cacheUrl: string | null = null;
 

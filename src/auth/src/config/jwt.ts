@@ -15,4 +15,11 @@ export function createJwtConfig() : JwtConfigShape {
   };
 }
 
-export const JwtConfig = createJwtConfig();
+let jwtConfigCache: JwtConfigShape | null = null;
+
+export function getJwtConfig(): JwtConfigShape {
+  if (!jwtConfigCache) {
+    jwtConfigCache = createJwtConfig();
+  }
+  return jwtConfigCache;
+}
