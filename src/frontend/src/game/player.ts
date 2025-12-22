@@ -3,6 +3,7 @@ import { GridMaterial } from '@babylonjs/materials';
 import * as BABYLON from '@babylonjs/core';
 import earcut from 'earcut';
 import { KeyGrid } from './KeyGrid.ts';
+import { Hud } from './Hud.ts';
 
 export class Player implements IPlayer {
   public physicsMesh: PhysicsMesh;
@@ -12,6 +13,7 @@ export class Player implements IPlayer {
   public keyGrid: KeyGrid;
   public keyGridMesh: BABYLON.Mesh;
   public ratioDiv: number;
+  public hud: Hud;
 
   constructor(config: PlayerConfig, scene: BABYLON.Scene) {
     this.goalPosition = config.goalPosition;
@@ -22,7 +24,7 @@ export class Player implements IPlayer {
       goalPosition: config.goalPosition,
       goalDimensions: config.goalDimensions
     });
-    console.log(this.keyGrid);
+    this.hud = config.hud;
     const padel = BABYLON.MeshBuilder.CreateBox(
       'padel',
       {

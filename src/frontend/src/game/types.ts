@@ -10,10 +10,20 @@ import { Arena } from './arena';
 import { KeyManager } from './KeyManager';
 import { Player } from './player.ts';
 import { KeyGrid } from './KeyGrid.ts';
+import { Hud } from './Hud.ts';
+import { AdvancedDynamicTexture, Control } from '@babylonjs/gui';
+
+export interface IHud {
+  texture: AdvancedDynamicTexture;
+  filePath: string;
+  healthMeter: Control;
+  manaMeter: Control;
+}
 
 export interface PlayerConfig {
   goalPosition: Vector3;
   goalDimensions: Vector3;
+  hud: Hud;
   keys: {
     columns: string;
     rows: string;
@@ -57,6 +67,7 @@ export interface IPlayer {
   keyGrid: KeyGrid;
   keyGridMesh: Mesh;
   ratioDiv: number;
+  hud: Hud;
 }
 
 export interface IBall {

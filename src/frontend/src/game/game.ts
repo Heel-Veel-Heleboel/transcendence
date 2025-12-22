@@ -1,7 +1,7 @@
 import * as module from './game.ts';
 import { World } from './World.ts';
 import * as BABYLON from '@babylonjs/core';
-import * as GUI from '@babylonjs/gui';
+import { AdvancedDynamicTexture } from '@babylonjs/gui/2D';
 import {
   createEngine,
   createBgMusic,
@@ -15,8 +15,8 @@ import '@babylonjs/loaders/glTF';
 import { Ball } from './ball.ts';
 import { Player } from './player.ts';
 import { KeyManager } from './KeyManager.ts';
-import { KeyGrid } from './KeyGrid.ts';
-// import { Inspector } from '@babylonjs/inspector';
+import { Hud } from './Hud.ts';
+import { Inspector } from '@babylonjs/inspector';
 
 export async function initGame() {
   const canvas = getCanvas();
@@ -30,7 +30,7 @@ export async function initGame() {
   const scene = await module.Scene(defaultScene);
 
   window.addEventListener('resize', engineResize(engine));
-  // Inspector.Show(scene, {});
+  Inspector.Show(scene, {});
   engine.runRenderLoop(function () {
     scene.render();
   });
@@ -55,6 +55,9 @@ export function addBall(scene: BABYLON.Scene) {
 
 export async function Scene(scene: BABYLON.Scene) {
   const world = new World(scene);
+  const hud = new Hud('hud.json', scene);
+  await hud.init();
+
   const gizmoManager = new BABYLON.GizmoManager(scene);
   // gizmoManager.boundingBoxGizmoEnabled = true;
   gizmoManager.positionGizmoEnabled = true;
@@ -80,7 +83,8 @@ export async function Scene(scene: BABYLON.Scene) {
     goalPosition: arena.goal_1.mesh.absolutePosition,
     goalDimensions: arena.goal_1.mesh
       .getBoundingInfo()
-      .boundingBox.extendSizeWorld.scale(2)
+      .boundingBox.extendSizeWorld.scale(2),
+    hud: hud
   };
 
   const player = new Player(config, scene);
@@ -92,6 +96,7 @@ export async function Scene(scene: BABYLON.Scene) {
   observable_1.add(collisionEvent => {
     console.log('goal_1');
     // Process collisions for the player
+    hud.changeHealth(-10);
   });
 
   const observable_2 = arena.goal_2.aggregate.body.getCollisionObservable();
@@ -102,8 +107,6 @@ export async function Scene(scene: BABYLON.Scene) {
   const keyManager = new KeyManager(scene, () => world.frameCount, player);
   world.keyManager = keyManager;
 
-  // add Keys to player
-  let advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI('UI');
   const balls = [];
   const ball = addBall(scene);
   balls.push(ball);
@@ -129,6 +132,7 @@ export function draw(w: World, balls: Ball[]) {
     ) {
       w.keyManager.resolve();
     }
+    w._localPlayer.hud.changeMana(0.01);
     w.frameCount++;
   };
 }
