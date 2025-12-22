@@ -13,12 +13,14 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.19.25",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.3",
     "zod": "^4.1.13"
   }
 }
