@@ -60,14 +60,25 @@ export function validateIntegerRange(
 
 
 /**
- * Validate URL format
- * @throws Error if URL is invalid
+ * Validate URL format and protocol
+ * Only allows http and https protocols for security
+ * @throws Error if URL is invalid or uses disallowed protocol
  */
 export function validateUrl(url: string, context: string): void {
+  let parsedUrl: URL;
+
   try {
-    new URL(url);
+    parsedUrl = new URL(url);
   } catch {
     throw new Error(`${context} has invalid URL: "${url}"`);
+  }
+
+  // Only allow http and https protocols
+  const allowedProtocols = ['http:', 'https:'];
+  if (!allowedProtocols.includes(parsedUrl.protocol)) {
+    throw new Error(
+      `${context} has invalid URL protocol: "${parsedUrl.protocol}" (only http: and https: are allowed)`
+    );
   }
 }
 
