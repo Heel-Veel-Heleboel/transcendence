@@ -18,7 +18,7 @@ describe ('Getting database configuration', () => {
     process.env = origEnv;
   });
 
-  it ('Gets database configuration succesfully', () => {
+  it ('Gets database configuration successfully', () => {
     const  result = getDataBaseConfig();
     expect(result).toBe('file:./dev.db');
   });

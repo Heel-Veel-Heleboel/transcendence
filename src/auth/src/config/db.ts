@@ -19,4 +19,4 @@ export const getDataBaseConfig = (): string => {
 
 export const clearDatabaseConfigCache = () => {
   cacheUrl = null;
-};  
+}; 
