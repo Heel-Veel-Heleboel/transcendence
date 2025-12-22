@@ -4,7 +4,7 @@ import * as BABYLON from '@babylonjs/core';
 export class Ball implements IBall {
   public physicsMesh: PhysicsMesh;
   public lifespan: number;
-
+  public lines: BABYLON.AbstractMesh | null;
   constructor(
     ball: BABYLON.Mesh,
     position: BABYLON.Vector3,
@@ -22,6 +22,7 @@ export class Ball implements IBall {
     aggregate.body.setLinearDamping(0.0);
     this.physicsMesh = { mesh, aggregate };
     this.lifespan = 1000;
+    this.lines = null;
   }
 
   isDead(): boolean {
@@ -35,6 +36,9 @@ export class Ball implements IBall {
   dispose(): void {
     this.physicsMesh.mesh.dispose();
     this.physicsMesh.aggregate.dispose();
+    if (this.lines) {
+      this.lines.dispose();
+    }
   }
 
   update(): void {

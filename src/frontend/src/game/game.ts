@@ -111,6 +111,9 @@ export async function Scene(scene: BABYLON.Scene) {
   const ball = addBall(scene);
   balls.push(ball);
   scene.onBeforeRenderObservable.add(module.draw(world, balls));
+  // for hit indicator
+  scene.getBoundingBoxRenderer().frontColor.set(1, 0, 0);
+  scene.getBoundingBoxRenderer().backColor.set(0, 1, 0);
   return scene;
 }
 
@@ -121,6 +124,7 @@ export function draw(w: World, balls: Ball[]) {
       balls.push(ball);
     }
     for (const ball of balls) {
+      w._localPlayer.hitIndicator.detectIncomingHits(ball);
       ball.update();
     }
     balls.filter(ball => {

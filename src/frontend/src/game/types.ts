@@ -11,7 +11,20 @@ import { KeyManager } from './KeyManager';
 import { Player } from './player.ts';
 import { KeyGrid } from './KeyGrid.ts';
 import { Hud } from './Hud.ts';
+import { Ball } from './ball.ts';
 import { AdvancedDynamicTexture, Control } from '@babylonjs/gui';
+import { HitIndicator } from './HitIndicator.ts';
+
+export interface IncomingBall {
+  ball: Ball;
+  line: AbstractMesh;
+}
+
+export interface IHitIndicator {
+  goalPosition: Vector3;
+  radius: number;
+  scene: Scene;
+}
 
 export interface IHud {
   texture: AdvancedDynamicTexture;
@@ -68,11 +81,13 @@ export interface IPlayer {
   keyGridMesh: Mesh;
   ratioDiv: number;
   hud: Hud;
+  hitIndicator: HitIndicator;
 }
 
 export interface IBall {
-  physicsMesh: PhysicsMesh;
+  physicsMesh: PhysicsMesh | null;
   lifespan: number;
+  lines: AbstractMesh | null;
 }
 
 export interface IArena {

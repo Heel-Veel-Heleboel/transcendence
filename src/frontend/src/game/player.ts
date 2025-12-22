@@ -4,6 +4,7 @@ import * as BABYLON from '@babylonjs/core';
 import earcut from 'earcut';
 import { KeyGrid } from './KeyGrid.ts';
 import { Hud } from './Hud.ts';
+import { HitIndicator } from './HitIndicator.ts';
 
 export class Player implements IPlayer {
   public physicsMesh: PhysicsMesh;
@@ -14,6 +15,7 @@ export class Player implements IPlayer {
   public keyGridMesh: BABYLON.Mesh;
   public ratioDiv: number;
   public hud: Hud;
+  public hitIndicator: HitIndicator;
 
   constructor(config: PlayerConfig, scene: BABYLON.Scene) {
     this.goalPosition = config.goalPosition;
@@ -25,6 +27,11 @@ export class Player implements IPlayer {
       goalDimensions: config.goalDimensions
     });
     this.hud = config.hud;
+    this.hitIndicator = new HitIndicator(
+      this.goalPosition,
+      this.goalDimensions.x * 2,
+      scene
+    );
     const padel = BABYLON.MeshBuilder.CreateBox(
       'padel',
       {
