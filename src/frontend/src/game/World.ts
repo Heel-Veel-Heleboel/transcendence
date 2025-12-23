@@ -2,6 +2,7 @@ import { Scene, TransformNode } from '@babylonjs/core';
 import { Arena } from './arena';
 import { KeyManager } from './KeyManager';
 import { Player } from './player.ts';
+import { Client } from 'colyseus.js';
 
 export class World {
   public scene: Scene;
@@ -10,6 +11,7 @@ export class World {
   public _arena!: Arena;
   public _localPlayer!: Player;
   public _remotePlayer!: Player;
+  public _colyseus!: Client;
 
   constructor(scene: Scene) {
     this.scene = scene;

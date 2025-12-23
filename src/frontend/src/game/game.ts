@@ -17,6 +17,10 @@ import { Player } from './player.ts';
 import { KeyManager } from './KeyManager.ts';
 import { Hud } from './Hud.ts';
 import { Inspector } from '@babylonjs/inspector';
+import { Client } from 'colyseus.js';
+
+const ROOM_NAME = 'my_room';
+const ENDPOINT = 'ws://localhost:2567';
 
 export async function initGame() {
   const canvas = getCanvas();
@@ -55,6 +59,8 @@ export function addBall(scene: BABYLON.Scene) {
 
 export async function Scene(scene: BABYLON.Scene) {
   const world = new World(scene);
+  world._colyseus = new Client(ENDPOINT);
+  const room = await world._colyseus.join(ROOM_NAME);
   const hud = new Hud('hud.json', scene);
   await hud.init();
 

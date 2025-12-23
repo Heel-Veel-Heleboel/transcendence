@@ -30,6 +30,7 @@
     "@babylonjs/inspector": "^8.38.0",
     "@babylonjs/loaders": "^8.38.0",
     "@babylonjs/materials": "^8.42.0",
+    "colyseus.js": "^0.16.22",
     "earcut": "^3.0.2"
   }
 }
