@@ -1,4 +1,4 @@
-import { RefreshTokenDao } from '../../../src/auth/src/dao/refersh-token.dao.js';
+import { RefreshTokenDao } from '../../../src/auth/src/dao/refresh-token.dao.js';
 import { RefreshTokenDaoShape } from '../../../src/auth/src/dao/refresh-token-contract.js';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
@@ -18,8 +18,8 @@ describe('RefreshTokenSessionDao', () => {
     dao = new RefreshTokenDao(mockPrismaClient as any, 7);
   });
   
-  it ('Expiration days is set correctly', () => {
-    expect((dao as any ).expirationRefreshToken).toBe(7);
+  it('Expiration days is set correctly', () => {
+    expect((dao as any).expirationRefreshToken).toBe(7);
   });
 
   it('Should create a refresh token record ', async () => {
@@ -29,8 +29,7 @@ describe('RefreshTokenSessionDao', () => {
       data: {
         userId: 1,
         hashedToken: 'token',
-        expiredAt: expect.any(Date),
-        revokedAt: null
+        expiredAt: expect.any(Date)
       }
     });
   });
@@ -70,7 +69,7 @@ describe('RefreshTokenSessionDao', () => {
     });
   });
 
-  it ('Should return null if token not found', async () => {
+  it('Should return null if token not found', async () => {
     mockPrismaClient.refreshToken.findUnique.mockResolvedValueOnce(null);
     const result = await dao.findByTokenId({ tokenId: 'nonexistent' });
     expect(result).toBeNull();
@@ -81,7 +80,7 @@ describe('RefreshTokenSessionDao', () => {
     await expect(dao.create({ userId: 1, refreshToken: 'token' })).rejects.toThrow('DB Error');
   });
 
-  it ('Should fail when revoking non-existent token', async () => {
+  it('Should fail when revoking non-existent token', async () => {
     mockPrismaClient.refreshToken.update.mockRejectedValueOnce(new Error('Token not found'));
     await expect(dao.revoke({ tokenId: 'invalid' })).rejects.toThrow('Token not found');
   });

@@ -3,7 +3,7 @@ import { databaseUrlSchema } from '../schemas/db.js';
 
 let cacheUrl: string | null = null;
 
-export const getDataBaseConfig = (): string => {
+export const getDatabaseConfig = (): string => {
   if (cacheUrl) return cacheUrl;
   const url = process.env.DATABASE_URL;
   try {
