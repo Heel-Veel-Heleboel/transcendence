@@ -8,13 +8,18 @@ declare module 'fastify' {
   }
 }
 
-// Add correlation ID to all requests for distributed tracing
+/* 
+ * Add correlation ID to all requests for distributed tracing. Instead of using a header sent form the client, we generate a new correlation ID for each request.
+ * @param request - Fastify request object
+ * @param reply - Fastify reply object
+ * @returns void
+ */
 export async function correlationIdMiddleware(
   request: FastifyRequest,
   reply: FastifyReply
 ): Promise<void> {
-  const correlationId =
-    (request.headers['x-correlation-id'] as string | undefined) || uuidv4();
+  const correlationId = uuidv4();
+
   request.correlationId = correlationId;
   reply.header('x-correlation-id', correlationId);
   request.log = request.log.child({ correlationId });
