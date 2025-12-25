@@ -15,35 +15,6 @@ import { validateIntegerRange } from '../utils/validation';
  */
 
 /**
- * Safely parse a positive integer from string
- *
- * @param value - String value to parse
- * @param fieldName - Name of the field for error messages
- * @returns Parsed integer or null if invalid
- */
-function safeParsePositiveInt(value: string, fieldName: string): number | null {
-  try {
-    // Check for non-numeric characters (parseInt allows trailing non-digits)
-    if (!/^\d+$/.test(value.trim())) {
-      console.warn(`Invalid ${fieldName}: "${value}" contains non-numeric characters`);
-      return null;
-    }
-
-    const parsed = parseInt(value, 10);
-
-    if (isNaN(parsed) || parsed <= 0 || !Number.isSafeInteger(parsed)) {
-      console.warn(`Invalid ${fieldName}: "${value}" must be a positive integer`);
-      return null;
-    }
-
-    return parsed;
-  } catch (error) {
-    console.warn(`Error parsing ${fieldName}: ${value}`, error);
-    return null;
-  }
-}
-
-/**
  * Get HSTS max-age from environment or use default (1 year)
  *
  * HSTS (HTTP Strict Transport Security) tells browsers to only connect via HTTPS.
