@@ -50,16 +50,30 @@ describe('Validation utilities', () => {
   });
 
   describe('validateUrl', () => {
-    it('accepts valid URLs', () => {
+    it('accepts valid HTTP URLs', () => {
       expect(() => validateUrl('http://example.com', 'context')).not.toThrow();
-      expect(() => validateUrl('https://example.com:8080', 'context')).not.toThrow();
+      expect(() => validateUrl('http://example.com:8080', 'context')).not.toThrow();
       expect(() => validateUrl('http://localhost:3000', 'context')).not.toThrow();
+    });
+
+    it('accepts valid HTTPS URLs', () => {
+      expect(() => validateUrl('https://example.com', 'context')).not.toThrow();
+      expect(() => validateUrl('https://example.com:8080', 'context')).not.toThrow();
+      expect(() => validateUrl('https://secure.example.com/path', 'context')).not.toThrow();
     });
 
     it('throws on invalid URLs', () => {
       expect(() => validateUrl('not-a-url', 'context')).toThrow(/invalid URL/);
       expect(() => validateUrl('', 'context')).toThrow(/invalid URL/);
       expect(() => validateUrl('just-text', 'context')).toThrow(/invalid URL/);
+    });
+
+    it('throws on disallowed protocols', () => {
+      expect(() => validateUrl('ftp://example.com', 'context')).toThrow(/invalid URL protocol.*only http: and https: are allowed/);
+      expect(() => validateUrl('file:///etc/passwd', 'context')).toThrow(/invalid URL protocol.*only http: and https: are allowed/);
+      expect(() => validateUrl('javascript:alert(1)', 'context')).toThrow(/invalid URL protocol.*only http: and https: are allowed/);
+      expect(() => validateUrl('data:text/html,<script>alert(1)</script>', 'context')).toThrow(/invalid URL protocol.*only http: and https: are allowed/);
+      expect(() => validateUrl('ws://example.com', 'context')).toThrow(/invalid URL protocol.*only http: and https: are allowed/);
     });
   });
 

@@ -32,16 +32,18 @@ describe('correlationIdMiddleware', () => {
     expect(mockReply.header).toHaveBeenCalledWith('x-correlation-id', mockRequest.correlationId);
   });
 
-  it('should use correlation ID from headers when provided', async () => {
-    const providedCorrelationId = 'custom-correlation-id-123';
+  it('should always generate new UUID (never uses client header)', async () => {
+    const clientProvidedId = 'custom-correlation-id-123';
     mockRequest.headers = {
-      'x-correlation-id': providedCorrelationId,
+      'x-correlation-id': clientProvidedId,
     };
 
     await correlationIdMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
 
-    expect(mockRequest.correlationId).toBe(providedCorrelationId);
-    expect(mockReply.header).toHaveBeenCalledWith('x-correlation-id', providedCorrelationId);
+    // Should generate new UUID, NOT use client's value
+    expect(mockRequest.correlationId).not.toBe(clientProvidedId);
+    expect(mockRequest.correlationId).toMatch(/^[a-f0-9-]{36}$/);
+    expect(mockReply.header).toHaveBeenCalledWith('x-correlation-id', mockRequest.correlationId);
   });
 
   it('should generate UUID format correlation ID', async () => {
@@ -62,55 +64,55 @@ describe('correlationIdMiddleware', () => {
     expect(mockRequest.correlationId).toBeDefined();
   });
 
-  it('should set correlation ID in response headers', async () => {
-    const correlationId = uuidv4();
+  it('should set generated correlation ID in response headers', async () => {
+    mockRequest.headers = {};
+
+    await correlationIdMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
+
+    // Should set the generated UUID in response headers
+    expect(mockReply.header).toHaveBeenCalledWith('x-correlation-id', mockRequest.correlationId);
+    expect(mockRequest.correlationId).toMatch(/^[a-f0-9-]{36}$/);
+  });
+
+  it('should create child logger with generated correlation ID', async () => {
+    mockRequest.headers = {};
+
+    await correlationIdMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
+
+    // Should create child logger with the generated UUID
+    expect(mockRequest.log?.child).toHaveBeenCalledWith({
+      correlationId: mockRequest.correlationId
+    });
+    expect(mockRequest.correlationId).toMatch(/^[a-f0-9-]{36}$/);
+  });
+
+  // Note: We always generate new UUIDs regardless of client-provided headers
+  // This prevents injection attacks and anonymizes internal tracing
+  it('should always generate new correlation ID (ignores client header)', async () => {
+    const clientProvidedId = 'client-correlation-id';
     mockRequest.headers = {
-      'x-correlation-id': correlationId,
+      'x-correlation-id': clientProvidedId,
     };
 
     await correlationIdMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
 
-    expect(mockReply.header).toHaveBeenCalledWith('x-correlation-id', correlationId);
+    // Should generate new UUID, not use client's value
+    expect(mockRequest.correlationId).toBeDefined();
+    expect(mockRequest.correlationId).not.toBe(clientProvidedId);
+    expect(mockRequest.correlationId).toMatch(/^[a-f0-9-]{36}$/); // UUID format
   });
 
-  it('should create child logger with correlation ID', async () => {
-    const correlationId = 'test-correlation-id';
-    mockRequest.headers = {
-      'x-correlation-id': correlationId,
-    };
-
-    await correlationIdMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
-
-    expect(mockRequest.log?.child).toHaveBeenCalledWith({ correlationId });
-  });
-
-  // Note: This tests header precedence behavior. In practice, each Fastify request is a fresh object,
-  // so a pre-existing correlationId is unlikely unless another middleware runs first. However, this test
-  // documents that header values always take precedence (important for distributed tracing where
-  // upstream services send correlation IDs).
-  it('should override existing correlation ID with header value (header takes precedence)', async () => {
-    mockRequest.correlationId = 'old-id';
-    const newCorrelationId = 'new-id-from-header';
-    mockRequest.headers = {
-      'x-correlation-id': newCorrelationId,
-    };
-
-    await correlationIdMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
-
-    expect(mockRequest.correlationId).toBe(newCorrelationId);
-  });
-
-  it('should handle missing headers object gracefully', async () => {
-    // Fastify typically always provides headers, but we test with empty object
+  it('should generate correlation ID when headers are empty', async () => {
     mockRequest.headers = {};
 
     await correlationIdMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
 
     expect(mockRequest.correlationId).toBeDefined();
+    expect(mockRequest.correlationId).toMatch(/^[a-f0-9-]{36}$/); // UUID format
     expect(mockReply.header).toHaveBeenCalled();
   });
 
-  it('should generate correlation ID when x-correlation-id header is missing', async () => {
+  it('should always generate unique correlation IDs for different requests', async () => {
     mockRequest.headers = {
       'other-header': 'value',
     };
