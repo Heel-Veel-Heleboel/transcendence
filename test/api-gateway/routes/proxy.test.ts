@@ -474,6 +474,28 @@ describe('Proxy Routes', () => {
       await handler(fakeReq, fakeReply);
       expect(infoSpy).toHaveBeenCalled();
     });
+
+    it('registerHttpProxy includes websocket option when service has websocket enabled', async () => {
+      const { registerHttpProxy } = await import('../../../src/api-gateway/src/routes/proxy');
+      let captured: any = null;
+      const fakeFastify: any = { register: (plugin: any, opts: any) => { captured = { plugin, opts }; return Promise.resolve(); } };
+      const svc = { name: 'chat', upstream: 'http://chat', prefix: '/api/chat', rewritePrefix: '/chat', timeout: 5000, websocket: true } as any;
+
+      await registerHttpProxy(fakeFastify, svc);
+      expect(captured).not.toBeNull();
+      expect(captured.opts.websocket).toBe(true);
+    });
+
+    it('registerHttpProxy defaults websocket to false when not specified', async () => {
+      const { registerHttpProxy } = await import('../../../src/api-gateway/src/routes/proxy');
+      let captured: any = null;
+      const fakeFastify: any = { register: (plugin: any, opts: any) => { captured = { plugin, opts }; return Promise.resolve(); } };
+      const svc = { name: 'api', upstream: 'http://api', prefix: '/api', rewritePrefix: '/api', timeout: 5000 } as any;
+
+      await registerHttpProxy(fakeFastify, svc);
+      expect(captured).not.toBeNull();
+      expect(captured.opts.websocket).toBe(false);
+    });
   });
 
 });
