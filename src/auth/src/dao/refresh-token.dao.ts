@@ -14,8 +14,7 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
       data: {
         userId: data.userId,
         hashedToken: data.refreshToken,
-        expiredAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * this.expirationRefreshToken),
-        revokedAt: null
+        expiredAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * this.expirationRefreshToken)
       }
     });
   }
@@ -45,4 +44,4 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
       where: { revokedAt: { not: null } }
     });
   }
-};
+}

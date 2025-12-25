@@ -41,7 +41,7 @@ describe('CredentialsDao', () => {
 
   it('Should find a credential by user id', async () => {
     mockPrismaClient.userCredentials.findUnique.mockResolvedValueOnce({ hashedPassword: 'hashedPassword' });
-    const result = await dao.findByUserId(1);
+    const result = await dao.findByUserId({ userId: 1 });
     expect(mockPrismaClient.userCredentials.findUnique).toBeCalled();
     expect(mockPrismaClient.userCredentials.findUnique).toBeCalledWith({
       where: { userId: 1 }
@@ -57,9 +57,9 @@ describe('CredentialsDao', () => {
     });
   });
 
-  it ('Should return null if credential not found', async () => {
+  it('Should return null if credential not found', async () => {
     mockPrismaClient.userCredentials.findUnique.mockResolvedValueOnce(null);
-    const result = await dao.findByUserId(2);
+    const result = await dao.findByUserId({ userId: 2 });
     expect(mockPrismaClient.userCredentials.findUnique).toBeCalled();
     expect(mockPrismaClient.userCredentials.findUnique).toBeCalledWith({
       where: { userId: 2 }

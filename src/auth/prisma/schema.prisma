@@ -26,4 +26,5 @@ model RefreshToken {
   createdAt   DateTime @default(now())
   expiredAt   DateTime
   revokedAt   DateTime?
+  @@index([revokedAt])
 }
