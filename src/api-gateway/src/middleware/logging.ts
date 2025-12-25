@@ -9,7 +9,7 @@ declare module 'fastify' {
 }
 
 /* 
- * Add correlation ID to all requests for distributed tracing. Instead of using a header sent form the client, we generate a new correlation ID for each request.
+ * Add correlation ID to all requests for distributed tracing. Instead of using a header sent from the client, we generate a new correlation ID for each request.
  * @param request - Fastify request object
  * @param reply - Fastify reply object
  * @returns void
