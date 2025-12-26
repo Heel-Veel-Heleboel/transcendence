@@ -64,3 +64,5 @@ pids/
 src/auth/keys/
 # prisma client
 src/auth/generated/
+# database file
+src/auth/dev.db
