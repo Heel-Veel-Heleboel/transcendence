@@ -1,11 +1,13 @@
 import { PasswordErrorCode } from '../constants/password.js';
 
+// Result of password validation process
 export interface PasswordValidationResultShape  {
   valid: boolean;
   errors: PasswordErrorCode[]; 
   messages: string[];
 }
 
+// Configuration defining the password policy.
 export interface PasswordPolicyConfigShape{
   minLength: number;
   maxLength: number;
@@ -16,6 +18,7 @@ export interface PasswordPolicyConfigShape{
   allowSpaces: boolean;
 }
 
+// Configuration defining the limits for password lengths.
 export interface PasswordLimitsConfigShape {
   MIN_LENGTH_LOWER_BOUND: number;
   MIN_LENGTH_UPPER_BOUND: number;
