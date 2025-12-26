@@ -1,0 +1,25 @@
+# Logstash Configuration
+# Reference: https://www.elastic.co/guide/en/logstash/current/logstash-settings-file.html
+
+# Node name (appears in logs and monitoring)
+node.name: logstash01
+
+# Pipeline configuration
+pipeline.workers: 2
+pipeline.batch.size: 125
+pipeline.batch.delay: 50
+
+# Automatic config reload
+config.reload.automatic: true
+config.reload.interval: 3s
+
+# API settings (for monitoring and stats)
+api.http.host: "0.0.0.0"
+api.http.port: 9600
+
+# Disable X-Pack monitoring (we're not sending Logstash metrics to Elasticsearch)
+monitoring.enabled: false
+
+# Log level (trace, debug, info, warn, error, fatal)
+log.level: info
+path.logs: /usr/share/logstash/logs
