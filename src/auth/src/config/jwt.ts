@@ -14,3 +14,12 @@ export function createJwtConfig() : JwtConfigShape {
     algorithm: JWT_ALGORITHM
   };
 }
+
+let jwtConfigCache: JwtConfigShape | null = null;
+
+export function getJwtConfig(): JwtConfigShape {
+  if (!jwtConfigCache) {
+    jwtConfigCache = createJwtConfig();
+  }
+  return jwtConfigCache;
+}

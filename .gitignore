@@ -62,3 +62,5 @@ pids/
 
 # jwt keys
 src/auth/keys/
+# prisma client
+src/auth/generated/
