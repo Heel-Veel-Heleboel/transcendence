@@ -1,7 +1,18 @@
-import { CredentialsDaoShape } from './credentials-contract.js';
+import { CredentialsDaoShape } from '../contracts/credentials.js';
 import { PrismaClient } from '../../generated/prisma/client.js';
-import { CreatePasswordDto, UpdatePasswordDto, DeletePasswordDto, FindPasswordDto } from './auth.dto.js';
+import { CreatePasswordDto, UpdatePasswordDto, DeletePasswordDto, FindPasswordDto } from '../contracts/auth.dto.js';
 
+
+
+/**
+ * Data Access Object (DAO) implementation for managing user credentials.
+ * Implements methods for creating, updating, finding, and deleting user passwords using Prisma ORM.
+ * Methods:
+ * - create: Creates a new user password record.
+ * - updatePassword: Updates an existing user's password. 
+ * - findByUserId: Finds a user's password by their user ID.
+ * - deleteByUserId: Deletes a user's password record by their user ID.
+ */
 
 export class CredentialsDao implements CredentialsDaoShape {
 

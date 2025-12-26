@@ -1,6 +1,6 @@
 // import fs from 'fs';
 import { JwtEnvSchema } from '../schemas/jwt.js';
-import { JwtConfigShape } from '../types/jwt.js';
+import { JwtConfigShape } from '../contracts/jwt.js';
 import { JWT_ALGORITHM } from '../constants/jwt.js';
 import { readFile } from '../utils/read-file.js';
 
