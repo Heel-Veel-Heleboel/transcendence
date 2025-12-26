@@ -56,6 +56,17 @@ describe('API Gateway', () => {
     });
   });
 
+  describe('Plugin Registration', () => {
+    it('should have websocket plugin registered', () => {
+      const plugins = app.printPlugins();
+      expect(plugins).toContain('@fastify/websocket');
+    });
+
+    it('should have websocket decorator available', () => {
+      expect(app).toHaveProperty('websocketServer');
+    });
+  });
+
   describe('Error Handling', () => {
     it('should log error and exit when server.listen throws', async () => {
       const mockServer = {

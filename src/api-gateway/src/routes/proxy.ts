@@ -82,7 +82,8 @@ async function registerHttpProxy(
     prefix: service.prefix,
     rewritePrefix: service.rewritePrefix || '',
     proxyTimeout: service.timeout ?? 5000,
-    timeout: service.timeout ?? 5000
+    timeout: service.timeout ?? 5000,
+    websocket: service.websocket ?? false
   };
 
   await fastify.register(httpProxy, proxyOptions);
