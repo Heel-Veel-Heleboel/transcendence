@@ -1,4 +1,4 @@
-import { PasswordLimitsConfigShape as Limits } from '../types/password.js';
+import { PasswordLimitsConfigShape as Limits } from '../contracts/password.js';
 
 export const PasswordError = {
   TOO_SHORT: 'TOO_SHORT',
