@@ -1,0 +1,242 @@
+# ELK Stack for Transcendence
+# Single-node development setup with SSL security
+#
+# Usage:
+#   Start ELK: docker-compose -f docker-compose.elk.yml up -d
+#   Stop ELK:  docker-compose -f docker-compose.elk.yml down
+#
+# Network Setup:
+#   - 'elastic' network: Internal ELK communication (ES ↔ Kibana ↔ Logstash)
+#   - 'app-network': External app network (your services → Logstash)
+#
+# Prerequisites:
+#   - Create app-network first: docker network create transcendence-app
+#   - OR start main docker-compose.yml first (it creates the network)
+#
+# Services can send logs to: logstash:5000 (from app-network)
+
+volumes:
+  certs:
+    driver: local
+  elasticsearch-data:
+    driver: local
+  kibana-data:
+    driver: local
+  logstash-data:
+    driver: local
+
+networks:
+  # ELK internal network
+  elastic:
+    name: elastic
+    driver: bridge
+
+  # Application network (external - created by main docker-compose.yml)
+  # This allows app services to send logs to Logstash
+  # app-network:
+  #   name: transcendence-app
+  #   external: true
+
+services:
+  setup:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    container_name: elk-setup
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+    user: '0'
+    command: >
+      bash -c '
+        # Validate required environment variables
+        if [ -z "${ELASTIC_PASSWORD}" ]; then
+          echo "ERROR: Set ELASTIC_PASSWORD in .env file";
+          exit 1;
+        fi;
+        if [ -z "${KIBANA_PASSWORD}" ]; then
+          echo "ERROR: Set KIBANA_PASSWORD in .env file";
+          exit 1;
+        fi;
+
+        # Generate CA certificate (if not exists)
+        if [ ! -f config/certs/ca.zip ]; then
+          echo "Creating CA certificate...";
+          bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
+          unzip -o config/certs/ca.zip -d config/certs;
+        fi;
+
+        # Generate SSL certificates for services
+        if [ ! -f config/certs/certs.zip ]; then
+          echo "Creating SSL certificates...";
+          cat > config/certs/instances.yml <<EOF
+        instances:
+          - name: elasticsearch
+            dns:
+              - elasticsearch
+              - localhost
+            ip:
+              - 127.0.0.1
+          - name: kibana
+            dns:
+              - kibana
+              - localhost
+            ip:
+              - 127.0.0.1
+          - name: logstash
+            dns:
+              - logstash
+              - localhost
+            ip:
+              - 127.0.0.1
+        EOF
+          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip \
+            --in config/certs/instances.yml \
+            --ca-cert config/certs/ca/ca.crt \
+            --ca-key config/certs/ca/ca.key;
+          unzip -o config/certs/certs.zip -d config/certs;
+        fi;
+
+        # Set permissions
+        echo "Setting certificate permissions...";
+        chown -R root:root config/certs;
+        find config/certs -type d -exec chmod 750 {} \;;
+        find config/certs -type f -exec chmod 640 {} \;;
+
+        # Wait for Elasticsearch to be ready
+        echo "Waiting for Elasticsearch...";
+        until curl -s --cacert config/certs/ca/ca.crt https://elasticsearch:9200 | grep -q "missing authentication credentials"; do
+          sleep 5;
+        done;
+
+        # Set kibana_system user password
+        echo "Setting kibana_system password...";
+        until curl -s -X POST --cacert config/certs/ca/ca.crt \
+          -u "elastic:${ELASTIC_PASSWORD}" \
+          -H "Content-Type: application/json" \
+          https://elasticsearch:9200/_security/user/kibana_system/_password \
+          -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do
+          sleep 5;
+        done;
+
+        echo "Setup complete!";
+      '
+    healthcheck:
+      test: ['CMD-SHELL', '[ -f config/certs/elasticsearch/elasticsearch.crt ]']
+      interval: 1s
+      timeout: 5s
+      retries: 120
+
+  elasticsearch:
+    depends_on:
+      setup:
+        condition: service_healthy
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    container_name: elasticsearch
+    restart: unless-stopped
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - '${ES_PORT:-9200}:9200'
+    environment:
+      # Cluster configuration
+      - discovery.type=single-node
+      - cluster.name=${CLUSTER_NAME:-transcendence-logs}
+
+      # Security
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.key=certs/elasticsearch/elasticsearch.key
+      - xpack.security.http.ssl.certificate=certs/elasticsearch/elasticsearch.crt
+      - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
+
+      # License
+      - xpack.license.self_generated.type=${LICENSE:-basic}
+
+      # Memory settings
+      - bootstrap.memory_lock=true
+      - 'ES_JAVA_OPTS=-Xms${ES_MEM_LIMIT:-1g} -Xmx${ES_MEM_LIMIT:-1g}'
+    mem_limit: ${ES_MEM_LIMIT:-2g}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+    networks:
+      - elastic
+
+  kibana:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+    container_name: kibana
+    restart: unless-stopped
+    volumes:
+      - certs:/usr/share/kibana/config/certs
+      - kibana-data:/usr/share/kibana/data
+    ports:
+      - '${KIBANA_PORT:-5601}:5601'
+    environment:
+      # Elasticsearch connection
+      - ELASTICSEARCH_HOSTS=https://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
+
+      # Security (encrypts saved dashboards, sessions, etc.)
+      - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+    mem_limit: ${KB_MEM_LIMIT:-1g}
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+    networks:
+      - elastic
+
+  logstash:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    image: docker.elastic.co/logstash/logstash:${STACK_VERSION}
+    container_name: logstash
+    restart: unless-stopped
+    user: root
+    volumes:
+      - certs:/usr/share/logstash/certs
+      - logstash-data:/usr/share/logstash/data
+      - ./observability/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./observability/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - '${LOGSTASH_PORT:-5000}:5000'
+      - '9600:9600' # API/monitoring port
+    environment:
+      # Elasticsearch connection
+      - ELASTIC_USER=elastic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_HOSTS=https://elasticsearch:9200
+
+      # Debugging
+      - LOGSTASH_DEBUG=${LOGSTASH_DEBUG:-false}
+    networks:
+      - elastic      # Internal ELK communication
+      # - app-network  # Receive logs from application services
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9600']
+      interval: 30s
+      timeout: 10s
+      retries: 5
