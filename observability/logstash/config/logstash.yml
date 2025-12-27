@@ -11,7 +11,7 @@ pipeline.batch.delay: 50
 
 # Automatic config reload
 config.reload.automatic: true
-config.reload.interval: 3s
+config.reload.interval: 30s
 
 # API settings (for monitoring and stats)
 api.http.host: "0.0.0.0"
