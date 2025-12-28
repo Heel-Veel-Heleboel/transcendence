@@ -1,7 +1,18 @@
 import { PrismaClient } from '../../generated/prisma/client.js';  
-import { CreateRefreshTokenDto, DeleteAllForUser, FindRefreshTokenDto, RevokeRefreshTokenDto } from './auth.dto.js';
-import { RefreshTokenDaoShape } from './refresh-token-contract.js';
+import { CreateRefreshTokenDto, DeleteAllForUser, FindRefreshTokenDto, RevokeRefreshTokenDto } from '../contracts/auth.dto.js';
+import { RefreshTokenDaoShape } from '../contracts/refresh-token.js';
 
+
+/**
+ * Data Access Object (DAO) implementation for managing refresh tokens.
+ * Implements methods for creating, revoking, finding, and deleting refresh tokens using Prisma ORM.
+ * Methods:
+ * - create: Creates a new refresh token record.
+ * - revoke: Revokes an existing refresh token by its token ID.
+ * - findByTokenId: Finds a refresh token by its token ID.
+ * - deleteAllForUser: Deletes all refresh tokens associated with a specific user ID.
+ * - deleteAllRevoked: Deletes all revoked refresh tokens from the database.
+ */
 
 export class RefreshTokenDao implements RefreshTokenDaoShape {
   constructor(

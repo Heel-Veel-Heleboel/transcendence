@@ -1,5 +1,5 @@
 import { default as jwt } from 'jsonwebtoken';
-import { JwtPayLoadShape, DecodedJwtPayload } from '../types/jwt.js';
+import { JwtPayLoadShape, DecodedJwtPayload } from '../contracts/jwt.js';
 import { createJwtConfig } from '../config/jwt.js';
 import { JWT_ISSUER, JWT_AUDIENCE, CryptoErrorMessage } from '../constants/jwt.js';
 import { randomBytes, createHash, timingSafeEqual } from 'crypto';

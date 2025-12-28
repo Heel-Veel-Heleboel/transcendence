@@ -1,5 +1,5 @@
 import { RefreshTokenDao } from '../../../src/auth/src/dao/refresh-token.dao.js';
-import { RefreshTokenDaoShape } from '../../../src/auth/src/dao/refresh-token-contract.js';
+import { RefreshTokenDaoShape } from '../../../src/auth/src/contracts/refresh-token.js';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 const mockPrismaClient = {
