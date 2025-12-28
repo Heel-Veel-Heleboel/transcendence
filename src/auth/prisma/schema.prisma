@@ -14,12 +14,17 @@ datasource db {
   provider = "sqlite"
 }
 
+model UserCredentials {
+  userId          Int @id
+  hashedPassword  String
+}
 
-model User {
-  id            Int @id @default(autoincrement())
-  email         String @unique
-  password      String
-  refreshToken  String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model RefreshToken {
+  id          String @id @default(uuid())
+  userId      Int 
+  hashedToken String
+  createdAt   DateTime @default(now())
+  expiredAt   DateTime
+  revokedAt   DateTime?
+  @@index([revokedAt])
 }
