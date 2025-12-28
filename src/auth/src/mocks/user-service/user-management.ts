@@ -16,6 +16,14 @@ export class UserManagementMock implements UserManagementShape {
   private currentId = 1;
 
   async createUser(email: string, username: string): Promise<number> {
+    if (!email || !username) {
+      throw new Error('Email and username are required to create a user.');
+    }
+    for (const user of this.users.values()) {
+      if (user.email === email) {
+        throw new Error('A user with this email already exists.');
+      }
+    }
     const userId = this.currentId++;
     this.users.set(userId, { id: userId, email, username });
     return userId;
