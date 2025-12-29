@@ -1,14 +1,15 @@
 import {
   AbstractEngine,
-  HavokPlugin,
   Scene,
   GizmoManager,
   TransformNode,
   Vector3,
   Camera,
   Light,
-  Sound
+  Sound,
+  HavokPlugin
 } from '@babylonjs/core';
+import HavokPhysics from '@babylonjs/havok';
 import {
   createEngine,
   createBgMusic,
@@ -72,11 +73,11 @@ export class Game {
     this._engine = createEngine(this._canvas);
     const defaultScene = new Scene(this._engine);
     const havokInstance = await HavokPhysics();
-    const hk = new HavokPlugin(true, havokInstance);
-    defaultScene.enablePhysics(new Vector3(0, 0, 0), hk);
+    const havokPlugin = new HavokPlugin(true, havokInstance);
+    defaultScene.enablePhysics(new Vector3(0, 0, 0), havokPlugin);
+    this.physicalizeGLTFMeshes(defaultScene);
     this._scene = await this.initScene(defaultScene);
     this._frameCount = 0;
-    this.physicalizeGLTFMeshes();
 
     window.addEventListener('resize', engineResize(this._engine));
     Inspector.Show(this._scene, {});
@@ -93,10 +94,10 @@ export class Game {
     }, 10);
   }
 
-  physicalizeGLTFMeshes() {
+  physicalizeGLTFMeshes(scene: Scene) {
     // An extra step is needed in order to be able to physicalize meshes coming from gltf. Insert an extra node transform just before the __root__ so conversion between Righ or Left handedness are transparent for the physics engine.
-    const trParent = new TransformNode('tr', this._scene);
-    const root = this._scene.getMeshByName('__root__');
+    const trParent = new TransformNode('tr', scene);
+    const root = scene.getMeshByName('__root__');
     if (root) {
       root.scaling.scaleInPlace(100);
       root.position.y = 4;
@@ -116,7 +117,8 @@ export class Game {
     this._camera = createCamera(scene, 40);
     this._light = createLight(scene);
     this._arena = createArena();
-    this._arena.initMesh(scene);
+    await this._arena.initMesh(scene);
+    console.log(this._arena);
 
     const config = {
       keys: {
@@ -131,6 +133,7 @@ export class Game {
         .boundingBox.extendSizeWorld.scale(2),
       hud: this._hud
     };
+    console.log(config);
 
     const player = new Player(config, scene);
     this.player = player;

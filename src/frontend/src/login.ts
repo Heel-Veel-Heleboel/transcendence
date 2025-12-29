@@ -21,11 +21,11 @@ export function initLogin() {
   module.registerOptionLogin();
 }
 
-export function gotoGame() {
+export async function gotoGame() {
   console.log('here in game');
   loadTemplate('game');
   const game = new Game();
-  game.initGame();
+  await game.initGame();
 }
 
 export function gotoLogin() {
