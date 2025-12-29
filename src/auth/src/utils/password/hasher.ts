@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { getEnvSaltRounds } from '../../config/security.js';
-import { SaltLimitsShape } from '../../contracts/security.js';
+import { SaltLimitsShape } from '../../types/security.js';
 import { validateSaltLengthLimits } from '../../validators/hash.js';
 
 export async function hasher(password: string, saltLimits: SaltLimitsShape): Promise<string> {

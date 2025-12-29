@@ -1,4 +1,4 @@
-import { SaltLimitsShape } from '../contracts/security.js';
+import { SaltLimitsShape } from '../types/security.js';
 
 export function validateSaltLengthLimits(saltRounds: number, saltLimits: SaltLimitsShape) : void {
   if (isNaN(saltRounds)) {

@@ -1,6 +1,6 @@
 import { PrismaClient } from '../../generated/prisma/client.js';  
-import { CreateRefreshTokenDto, DeleteAllForUser, FindRefreshTokenDto, RevokeRefreshTokenDto } from '../contracts/auth.dto.js';
-import { RefreshTokenDaoShape } from '../contracts/refresh-token.js';
+import { CreateRefreshTokenDto, DeleteAllForUser, FindRefreshTokenDto, RevokeRefreshTokenDto } from '../types/dtos/refresh-token.js';
+import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
 
 
 /**
@@ -25,6 +25,7 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
       data: {
         userId: data.userId,
         hashedToken: data.refreshToken,
+        jti: data.jti,
         expiredAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * this.expirationRefreshToken)
       }
     });

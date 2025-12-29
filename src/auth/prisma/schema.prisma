@@ -23,6 +23,7 @@ model RefreshToken {
   id          String @id @default(uuid())
   userId      Int 
   hashedToken String
+  jti         String @unique
   createdAt   DateTime @default(now())
   expiredAt   DateTime
   revokedAt   DateTime?

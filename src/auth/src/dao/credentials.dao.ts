@@ -1,6 +1,6 @@
-import { CredentialsDaoShape } from '../contracts/credentials.js';
+import { CredentialsDaoShape } from '../types/daos/credentials.js';
 import { PrismaClient } from '../../generated/prisma/client.js';
-import { CreatePasswordDto, UpdatePasswordDto, DeletePasswordDto, FindPasswordDto } from '../contracts/auth.dto.js';
+import { CreatePasswordDto, UpdatePasswordDto, DeletePasswordDto, FindPasswordDto } from '../types/dtos/auth.js';
 
 
 

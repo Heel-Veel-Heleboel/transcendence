@@ -1,5 +1,5 @@
 
-import { UpdatePasswordDto, CreatePasswordDto, DeletePasswordDto, FindPasswordDto } from './auth.dto.js';
+import { UpdatePasswordDto, CreatePasswordDto, DeletePasswordDto, FindPasswordDto } from '../dtos/credentials.js';
 
 
 /**

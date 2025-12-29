@@ -12,12 +12,14 @@ vi.mock('jsonwebtoken', () => ({
 
 
 vi.mock('../../../src/auth/src/config/jwt.ts', () => ({
-  createJwtConfig: vi.fn(() => ({
+  getJwtConfig: vi.fn(() => ({
     privateKey: 'mock-private-key',
     publicKey: 'mock-public-key',
     expirationAccessToken: '15m',
     expirationRefreshToken: '7d',
-    algorithm: 'RS256'
+    algorithm: 'RS256',
+    issuer: 'AuthService',
+    audience: 'TranscendenceApp'
   }))
 }));
 
@@ -154,6 +156,7 @@ describe('JWT Utils', () => {
       );
       expect(result).toEqual(mockDecoded);
     });
+
 
     it('should verify with correct algorithm', () => {
       vi.mocked(jwt.verify).mockReturnValue({ userId: 1 } as any);
