@@ -1,20 +1,23 @@
-import { IBall, PhysicsMesh } from './types.ts';
-import * as BABYLON from '@babylonjs/core';
+import { IBall, PhysicsMesh } from '../types/types.ts';
+import {
+  AbstractMesh,
+  Mesh,
+  Scene,
+  Vector3,
+  PhysicsAggregate,
+  PhysicsShapeType
+} from '@babylonjs/core';
 
 export class Ball implements IBall {
   public physicsMesh: PhysicsMesh;
   public lifespan: number;
-  public lines: BABYLON.AbstractMesh | null;
-  constructor(
-    ball: BABYLON.Mesh,
-    position: BABYLON.Vector3,
-    scene: BABYLON.Scene
-  ) {
+  public lines: AbstractMesh | null;
+  constructor(ball: Mesh, position: Vector3, scene: Scene) {
     const mesh = ball;
     mesh.position = position;
-    const aggregate = new BABYLON.PhysicsAggregate(
+    const aggregate = new PhysicsAggregate(
       mesh,
-      BABYLON.PhysicsShapeType.SPHERE,
+      PhysicsShapeType.SPHERE,
       { mass: 0.1, restitution: 1.023, friction: 0.0 },
       scene
     );

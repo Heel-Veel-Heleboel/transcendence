@@ -1,4 +1,4 @@
-import { IArena, PhysicsMesh } from './types';
+import { IArena, PhysicsMesh } from '../types/types.ts';
 import {
   ImportMeshAsync,
   Scene,

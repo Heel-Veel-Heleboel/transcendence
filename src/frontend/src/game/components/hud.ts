@@ -1,5 +1,5 @@
 import { AdvancedDynamicTexture, Control } from '@babylonjs/gui';
-import { IHud } from './types';
+import { IHud } from '../types/types';
 import { Scene } from '@babylonjs/core';
 
 export class Hud implements IHud {

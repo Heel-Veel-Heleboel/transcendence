@@ -1,19 +1,18 @@
 import {
   AbstractMesh,
-  Light,
   Scene,
   PhysicsAggregate,
   Vector3,
   Mesh
 } from '@babylonjs/core';
-import { Arena } from './arena';
-import { KeyManager } from './KeyManager';
-import { Player } from './player.ts';
-import { KeyGrid } from './KeyGrid.ts';
-import { Hud } from './Hud.ts';
-import { Ball } from './ball.ts';
+import { Arena } from '../components/arena';
+import { KeyManager } from '../systems/keyManager.ts';
+import { Player } from '../components/player.ts';
+import { KeyGrid } from '../systems/keyGrid.ts';
+import { Hud } from '../components/hud.ts';
+import { Ball } from '../components/ball.ts';
 import { AdvancedDynamicTexture, Control } from '@babylonjs/gui';
-import { HitIndicator } from './HitIndicator.ts';
+import { HitIndicator } from '../components/hitIndicator.ts';
 
 export interface IncomingBall {
   ball: Ball;

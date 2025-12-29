@@ -1,6 +1,6 @@
 import { Scene, KeyboardInfo, KeyboardEventTypes } from '@babylonjs/core';
-import { IKeyManager } from './types';
-import { Player } from './player.ts';
+import { IKeyManager } from '../types/types';
+import { Player } from '../components/player.ts';
 
 export class KeyManager implements IKeyManager {
   public windowFrames: number;

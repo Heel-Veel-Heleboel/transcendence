@@ -1,5 +1,5 @@
 import { Vector3 } from '@babylonjs/core';
-import { IKeyGrid } from './types';
+import { IKeyGrid } from '../types/types';
 
 export class KeyGrid implements IKeyGrid {
   public grid: Map<string, { x: number; y: number }>;

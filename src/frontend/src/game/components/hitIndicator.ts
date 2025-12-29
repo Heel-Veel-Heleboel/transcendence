@@ -3,11 +3,12 @@ import {
   MeshBuilder,
   Vector3,
   StandardMaterial,
-  Vector3Distance
+  Vector3Distance,
+  LinesMesh
 } from '@babylonjs/core';
 import { Ball } from './ball';
 
-import { IHitIndicator } from './types';
+import { IHitIndicator } from '../types/types';
 
 export class HitIndicator implements IHitIndicator {
   public goalPosition: Vector3;
@@ -60,10 +61,11 @@ export class HitIndicator implements IHitIndicator {
           ball.physicsMesh.aggregate.body
             .getLinearVelocity()
             .addInPlace(ball.physicsMesh.mesh.absolutePosition)
-        ], //vec3 array,
-        updatable: true
+        ],
+        updatable: true,
+        // no scene parameter needed with options.instance, used for updates
+        instance: ball.lines as LinesMesh
       };
-      options.instance = ball.lines;
       ball.lines = MeshBuilder.CreateLines('lines', options);
     } else {
       const options = {
@@ -72,11 +74,11 @@ export class HitIndicator implements IHitIndicator {
           ball.physicsMesh.aggregate.body
             .getLinearVelocity()
             .addInPlace(ball.physicsMesh.mesh.absolutePosition)
-        ], //vec3 array,
+        ],
         updatable: true
       };
 
-      const lines = MeshBuilder.CreateLines('lines', options, this.scene); //scene is optional and defaults to the current scene
+      const lines = MeshBuilder.CreateLines('lines', options, this.scene);
       ball.lines = lines;
       ball.physicsMesh.mesh.showBoundingBox = true;
     }
