@@ -48,8 +48,17 @@ export class Game {
 
   constructor() {}
 
-  set keyManager(keyManager: KeyManager) {
-    this._keyManager = keyManager;
+  set scene(scene: Scene) {
+    this._scene = scene;
+  }
+  set canvas(canvas: HTMLCanvasElement) {
+    this._canvas = canvas;
+  }
+  set engine(engine: AbstractEngine) {
+    this._engine = engine;
+  }
+  set frameCount(frameCount: number) {
+    this._frameCount = frameCount;
   }
   set arena(arena: Arena) {
     this._arena = arena;
@@ -57,32 +66,71 @@ export class Game {
   set player(player: Player) {
     this._player = player;
   }
-  set frameCount(frameCount: number) {
-    this._frameCount = frameCount;
+  set hud(hud: Hud) {
+    this._hud = hud;
+  }
+  set keyManager(keyManager: KeyManager) {
+    this._keyManager = keyManager;
+  }
+  set camera(camera: Camera) {
+    this._camera = camera;
+  }
+  set light(light: Light) {
+    this._light = light;
+  }
+  set backgroundMusic(backgroundMusic: Sound) {
+    this._backgroundMusic = backgroundMusic;
   }
 
+  get scene(): Scene {
+    return this._scene;
+  }
+  get canvas(): HTMLCanvasElement {
+    return this._canvas;
+  }
+  get engine(): AbstractEngine {
+    return this._engine;
+  }
   get frameCount(): number {
     return this._frameCount;
+  }
+  get arena(): Arena {
+    return this._arena;
+  }
+  get player(): Player {
+    return this._player;
+  }
+  get hud(): Hud {
+    return this._hud;
   }
   get keyManager(): KeyManager {
     return this._keyManager;
   }
+  get camera(): Camera {
+    return this._camera;
+  }
+  get light(): Light {
+    return this._light;
+  }
+  get backgroundMusic(): Sound {
+    return this._backgroundMusic;
+  }
 
   async initGame() {
-    this._canvas = getCanvas();
-    this._engine = createEngine(this._canvas);
-    const defaultScene = new Scene(this._engine);
+    this.canvas = getCanvas();
+    this.engine = createEngine(this.canvas);
+    const defaultScene = new Scene(this.engine);
     const havokInstance = await HavokPhysics();
     const havokPlugin = new HavokPlugin(true, havokInstance);
     defaultScene.enablePhysics(new Vector3(0, 0, 0), havokPlugin);
     this.physicalizeGLTFMeshes(defaultScene);
-    this._scene = await this.initScene(defaultScene);
-    this._frameCount = 0;
+    this.scene = await this.initScene(defaultScene);
+    this.frameCount = 0;
 
-    window.addEventListener('resize', engineResize(this._engine));
-    Inspector.Show(this._scene, {});
-    this._engine.runRenderLoop(() => {
-      this._scene.render();
+    window.addEventListener('resize', engineResize(this.engine));
+    Inspector.Show(this.scene, {});
+    this.engine.runRenderLoop(() => {
+      this.scene.render();
     });
     this.setFirstResolution();
   }
@@ -90,7 +138,7 @@ export class Game {
   setFirstResolution() {
     // initial resolution is blurry, no clue why, hacky fix in order to make resolutio sharp
     setTimeout(() => {
-      this._engine.resize();
+      this.engine.resize();
     }, 10);
   }
 
@@ -106,19 +154,19 @@ export class Game {
   }
 
   async initScene(scene: Scene) {
-    this._hud = new Hud('hud.json', scene);
-    this._hud.init();
+    this.hud = new Hud('hud.json', scene);
+    this.hud.init();
 
     if (process.env.NODE_ENV !== 'production') {
       new GizmoManager(scene);
     }
-    this._backgroundMusic = createBgMusic(scene);
+    this.backgroundMusic = createBgMusic(scene);
 
-    this._camera = createCamera(scene, 40);
-    this._light = createLight(scene);
-    this._arena = createArena();
-    await this._arena.initMesh(scene);
-    console.log(this._arena);
+    this.camera = createCamera(scene, 40);
+    this.light = createLight(scene);
+    this.arena = createArena();
+    await this.arena.initMesh(scene);
+    console.log(this.arena);
 
     const config = {
       keys: {
@@ -127,11 +175,11 @@ export class Game {
         length: 6,
         precisionKeys: 'WASD'
       },
-      goalPosition: this._arena.goal_1.mesh.absolutePosition,
-      goalDimensions: this._arena.goal_1.mesh
+      goalPosition: this.arena.goal_1.mesh.absolutePosition,
+      goalDimensions: this.arena.goal_1.mesh
         .getBoundingInfo()
         .boundingBox.extendSizeWorld.scale(2),
-      hud: this._hud
+      hud: this.hud
     };
     console.log(config);
 
@@ -141,19 +189,19 @@ export class Game {
     player.initGridRowsHints(scene);
 
     const observable_1 =
-      this._arena.goal_1.aggregate.body.getCollisionObservable();
+      this.arena.goal_1.aggregate.body.getCollisionObservable();
     observable_1.add(_collisionEvent => {
       console.log('goal_1');
-      this._hud.changeHealth(-10);
+      this.hud.changeHealth(-10);
     });
 
     const observable_2 =
-      this._arena.goal_2.aggregate.body.getCollisionObservable();
+      this.arena.goal_2.aggregate.body.getCollisionObservable();
     observable_2.add(_collisionEvent => {
       console.log('goal_2');
     });
-    const keyManager = new KeyManager(scene, () => this._frameCount, player);
-    this._keyManager = keyManager;
+    const keyManager = new KeyManager(scene, () => this.frameCount, player);
+    this.keyManager = keyManager;
 
     const balls = [];
     const ball = addBall(scene);
@@ -168,11 +216,11 @@ export class Game {
   draw(g: Game, balls: Ball[]) {
     return () => {
       if (!(g.frameCount % 600)) {
-        const ball = addBall(g._scene);
+        const ball = addBall(g.scene);
         balls.push(ball);
       }
       for (const ball of balls) {
-        g._player.hitIndicator.detectIncomingHits(ball);
+        g.player.hitIndicator.detectIncomingHits(ball);
         ball.update();
       }
       balls.filter(ball => {
@@ -184,7 +232,7 @@ export class Game {
       ) {
         g.keyManager.resolve();
       }
-      g._player.hud.changeMana(0.01);
+      g.player.hud.changeMana(0.01);
       g.frameCount++;
     };
   }
