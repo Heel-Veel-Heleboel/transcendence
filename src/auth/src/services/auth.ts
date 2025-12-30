@@ -1,7 +1,7 @@
 import { UserManagementService } from '../types/user-management-service.js';
 import { CredentialsDaoShape } from '../types/daos/credentials.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
-import { SafeUserDto } from '../types/dtos/auth.js';
+import { SafeUserDto, RegisterDto } from '../types/dtos/auth.js';
 import { hasher } from '../utils/password/hasher.js';
 import { SaltLimits } from '../constants/security.js';
 
@@ -21,11 +21,11 @@ export class AuthService {
     private readonly refreshTokenDao: RefreshTokenDaoShape) {};
 
 
-  async register(name: string, email: string, password: string): Promise<SafeUserDto> {
-    const uId = await this.userService.createUser(email, name);
+  async register(registerDto: RegisterDto): Promise<SafeUserDto> {
+    const uId = await this.userService.createUser(registerDto.email, registerDto.name);
 
     try {
-      const hashedPassword = await hasher(password, SaltLimits);
+      const hashedPassword = await hasher(registerDto.password, SaltLimits);
       await this.credentialsDao.create({
         userId: uId,
         password: hashedPassword
@@ -38,6 +38,6 @@ export class AuthService {
       }
       throw error;
     }
-    return { id: uId, name: name, email: email };
+    return { id: uId, name: registerDto.name, email: registerDto.email };
   }
 };
