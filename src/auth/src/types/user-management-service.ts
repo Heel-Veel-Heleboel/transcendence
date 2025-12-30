@@ -7,7 +7,7 @@
  * - findUserByEmail: Finds a user by their email, returning user details or null if not found.
  * - deleteUser: Deletes a user by their ID.
  */
-export interface UserManagementShape {
+export interface UserManagementService {
   createUser(email: string, username: string): Promise<number>;
   findUserById(userId: number): Promise<{ id: number; email: string; username: string } | null>;
   findUserByEmail(email: string): Promise<{ id: number; email: string; username: string } | null>;

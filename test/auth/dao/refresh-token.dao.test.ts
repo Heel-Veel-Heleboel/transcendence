@@ -1,5 +1,5 @@
 import { RefreshTokenDao } from '../../../src/auth/src/dao/refresh-token.dao.js';
-import { RefreshTokenDaoShape } from '../../../src/auth/src/contracts/refresh-token.js';
+import { RefreshTokenDaoShape } from '../../../src/auth/src/types/daos/refresh-token.js';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 const mockPrismaClient = {
@@ -23,13 +23,14 @@ describe('RefreshTokenSessionDao', () => {
   });
 
   it('Should create a refresh token record ', async () => {
-    await dao.create({ userId: 1, refreshToken: 'token' });
+    await dao.create({ userId: 1, refreshToken: 'token', jti: 'test-jti' });
     expect(mockPrismaClient.refreshToken.create).toBeCalled();
     expect(mockPrismaClient.refreshToken.create).toBeCalledWith({
       data: {
         userId: 1,
         hashedToken: 'token',
-        expiredAt: expect.any(Date)
+        expiredAt: expect.any(Date),
+        jti: 'test-jti'
       }
     });
   });
@@ -77,7 +78,7 @@ describe('RefreshTokenSessionDao', () => {
 
   it('Should handle errors gracefully', async () => {
     mockPrismaClient.refreshToken.create.mockRejectedValueOnce(new Error('DB Error'));
-    await expect(dao.create({ userId: 1, refreshToken: 'token' })).rejects.toThrow('DB Error');
+    await expect(dao.create({ userId: 1, refreshToken: 'token', jti: 'test-jti' })).rejects.toThrow('DB Error');
   });
 
   it('Should fail when revoking non-existent token', async () => {

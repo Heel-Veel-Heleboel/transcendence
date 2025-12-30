@@ -1,5 +1,5 @@
 import { PasswordLimitsConfig } from '../constants/password.js';
-import { PasswordLimitsConfigShape, PasswordPolicyConfigShape } from '../contracts/password.js';
+import { PasswordLimitsConfigShape, PasswordPolicyConfigShape } from '../types/password.js';
 import { validatePasswordLengthLimits } from '../validators/password.js';
 import { parseIntSave } from '../utils/parse-int-save.js';
 
