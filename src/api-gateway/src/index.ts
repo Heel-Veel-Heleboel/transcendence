@@ -8,6 +8,25 @@ import { healthRoutes } from './routes/health';
 import { helmetConfig, corsConfig, getBodyLimit, logSecurityConfig } from './config/security';
 import { config } from './config';
 
+const HEALTH_CHECK_INTERVAL = 30000;
+let healthCheckInterval: NodeJS.Timeout | null = null;
+
+/**
+ * Perform health check on all registered services
+ */
+async function performHealthCheck(host: string, port: number, logger: { warn: (obj: object, msg: string) => void; error: (obj: object, msg: string) => void }): Promise<void> {
+  try {
+    const response = await fetch(`http://${host}:${port}/health/detailed`);
+    const health = await response.json();
+
+    if (health.status === 'degraded') {
+      logger.warn({ services: health.services }, 'Some services are unhealthy');
+    }
+  } catch (error) {
+    logger.error({ error }, 'Background health check failed');
+  }
+}
+
 // Create Fastify instance with logging and security configuration
 export const createServer = async () => {
   const server = fastify({
@@ -54,7 +73,7 @@ export const createServer = async () => {
       } catch (error) {
         server.log.error({ error }, 'Background health check failed');
       }
-    }, 30000); // 30 seconds
+    }, HEALTH_CHECK_INTERVAL); 
   }
 
   return server;
@@ -65,11 +84,20 @@ export const start = async (
   server: Awaited<ReturnType<typeof createServer>>
 ) => {
   try {
-    const port = process.env.PORT ? parseInt(process.env.PORT) : 3002;
-    const host = process.env.HOST || '0.0.0.0';
+    const port = config.port;
+    const host = config.host;
 
     await server.listen({ port, host });
     server.log.info(`API Gateway is running on http://${host}:${port}`);
+
+    if (config.services && config.services.length > 0) {
+      await performHealthCheck(host, port, server.log);
+
+      healthCheckInterval = setInterval(() => performHealthCheck(host, port, server.log), HEALTH_CHECK_INTERVAL);
+
+      server.log.info({ interval: HEALTH_CHECK_INTERVAL }, 'Background health checks started');
+    }
+
     return server;
   } catch (err) {
     server.log.error(err);
@@ -83,6 +111,13 @@ export const setupGracefulShutdown = (
 ) => {
   const handleShutdown = async (signal: string) => {
     server.log.info(`Received ${signal}, shutting down gracefully`);
+
+    if (healthCheckInterval) {
+      clearInterval(healthCheckInterval);
+      healthCheckInterval = null;
+      server.log.info('Background health checks stopped');
+    }
+
     await server.close();
     process.exit(0);
   };
