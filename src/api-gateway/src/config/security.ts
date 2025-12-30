@@ -180,16 +180,19 @@ export const corsConfig: FastifyCorsOptions = {
  *
  * Logs all active security settings on server startup for audit purposes.
  */
-export function logSecurityConfig(): void {
+export function logSecurityConfig(logger: { info: (msg: string | object, ...args: any[]) => void }): void {
   const hstsMaxAge = getHstsMaxAge();
   const bodyLimit = getBodyLimit();
 
-  console.info('Security Configuration:');
-  console.info(`  Body Limit: ${bodyLimit} bytes (${(bodyLimit / SECURITY_CONSTANTS.BYTES_PER_MB).toFixed(2)}MB)`);
-  console.info(`  HSTS Max-Age: ${hstsMaxAge} seconds (${(hstsMaxAge / SECURITY_CONSTANTS.SECONDS_PER_YEAR).toFixed(2)} years)`);
-  console.info(`  HSTS Include Subdomains: ${process.env.HSTS_INCLUDE_SUBDOMAINS !== 'false'}`);
-  console.info(`  HSTS Preload: ${process.env.HSTS_PRELOAD !== 'false'}`);
-  console.info(`  CSP Default-Src: ${getCspDirectives().defaultSrc.join(', ')}`);
-  console.info(`  CORS Origins: ${getAllowedOrigins().join(', ')}`);
-  console.info(`  CORS Credentials: ${corsConfig.credentials}`);
+  logger.info({
+    bodyLimitBytes: bodyLimit,
+    bodyLimitMB: (bodyLimit / SECURITY_CONSTANTS.BYTES_PER_MB).toFixed(2),
+    hstsMaxAgeSeconds: hstsMaxAge,
+    hstsMaxAgeYears: (hstsMaxAge / SECURITY_CONSTANTS.SECONDS_PER_YEAR).toFixed(2),
+    hstsIncludeSubdomains: process.env.HSTS_INCLUDE_SUBDOMAINS !== 'false',
+    hstsPreload: process.env.HSTS_PRELOAD !== 'false',
+    cspDefaultSrc: getCspDirectives().defaultSrc,
+    corsOrigins: getAllowedOrigins(),
+    corsCredentials: corsConfig.credentials
+  }, 'Security configuration loaded');
 }

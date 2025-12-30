@@ -1,10 +1,12 @@
+import 'dotenv/config';
 import fastify from 'fastify';
-import httpProxy from '@fastify/http-proxy';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import websocket from '@fastify/websocket';
-import { setupProxyErrorHandler } from './routes/errorHandler';
-import { helmetConfig, corsConfig, getBodyLimit } from './config/security';
+import { proxyRoutes } from './routes/proxy';
+import { healthRoutes } from './routes/health';
+import { helmetConfig, corsConfig, getBodyLimit, logSecurityConfig } from './config/security';
+import { config } from './config';
 
 // Create Fastify instance with logging and security configuration
 export const createServer = async () => {
@@ -30,19 +32,30 @@ export const createServer = async () => {
   // Register WebSocket support
   await server.register(websocket);
 
-  // Setup global error handler for proxy routes
-  setupProxyErrorHandler(server);
+  // Log security configuration
+  logSecurityConfig(server.log);
 
-  // Basic health check endpoint
-  server.get('/health', async (_request, _reply) => {
-    return { status: 'healthy', timestamp: new Date().toISOString() };
-  });
+  // Register health check routes (/health and /health/detailed)
+  await healthRoutes(server);
 
-  server.register(httpProxy, {
-    upstream: 'http://localhost:3001',
-    prefix: '/api/test',
-    rewritePrefix: '/test'
-  });
+  // Register all service proxy routes from configuration
+  await proxyRoutes(server);
+
+  // Start background health checks (every 30 seconds)
+  if (config.services && config.services.length > 0) {
+    setInterval(async () => {
+      try {
+        const response = await fetch('http://localhost:3002/health/detailed');
+        const health = await response.json();
+
+        if (health.status === 'degraded') {
+          server.log.warn({ services: health.services }, 'Some services are unhealthy');
+        }
+      } catch (error) {
+        server.log.error({ error }, 'Background health check failed');
+      }
+    }, 30000); // 30 seconds
+  }
 
   return server;
 };
