@@ -2,7 +2,8 @@ import { AuthService } from '../../../src/auth/src/services/auth.js';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 const mockUserService = {
-  createUser: vi.fn()
+  createUser: vi.fn(),
+  deleteUser: vi.fn()
 };
 
 const mockCredentialsDao = {
@@ -39,12 +40,24 @@ describe('AuthService - register', () => {
     expect(mockCredentialsDao.create).not.toBeCalled();
   });
 
-  it('Should handle credential creation failure', async () => {
+  it('Should rollback user creation on credential failure', async () => {
     mockUserService.createUser.mockResolvedValueOnce(1);
     mockCredentialsDao.create.mockRejectedValueOnce(new Error('Credential creation failed'));
 
     await expect(authService.register('testuser', 'testuser@example.com', 'password123')).rejects.toThrow('Credential creation failed');
     expect(mockUserService.createUser).toBeCalledWith('testuser@example.com', 'testuser');
     expect(mockCredentialsDao.create).toBeCalled();
+    expect(mockUserService.deleteUser).toBeCalledWith(1);
+  });
+
+  it('Should handle delete failure during rollback gracefully', async () => {
+    mockUserService.createUser.mockResolvedValueOnce(1);
+    mockCredentialsDao.create.mockRejectedValueOnce(new Error('Credential creation failed'));
+    mockUserService.deleteUser.mockRejectedValueOnce(new Error('Delete user failed'));
+
+    await expect(authService.register('testuser', 'testuser@example.com', 'password123')).rejects.toThrow('Credential creation failed');
+    expect(mockUserService.createUser).toBeCalledWith('testuser@example.com', 'testuser');
+    expect(mockCredentialsDao.create).toBeCalled();
+    expect(mockUserService.deleteUser).toBeCalledWith(1);
   });
 });
