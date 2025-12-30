@@ -3,3 +3,24 @@ export interface SafeUserDto {
   name: string;
   email: string;
 }
+
+export interface LogedInUserDto extends SafeUserDto {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface RegisterDto {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginDto {
+  email: string;
+  password: string;
+}
+
+export interface TokenPairDto {
+  accessToken: string;
+  refreshToken: string;
+}
