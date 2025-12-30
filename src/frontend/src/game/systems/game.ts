@@ -2,31 +2,35 @@ import {
   AbstractEngine,
   Scene,
   GizmoManager,
-  TransformNode,
   Vector3,
   Camera,
   Light,
-  Sound,
-  HavokPlugin
+  Sound
 } from '@babylonjs/core';
-import HavokPhysics from '@babylonjs/havok';
+import {
+  debugLayerListener,
+  engineResizeListener
+} from '../utils/eventListeners.ts';
+import {
+  getCanvas,
+  initializeResolution,
+  prepareImportGLTF
+} from '../utils/canvas.ts';
 import {
   createEngine,
   createBgMusic,
   createBall,
   createArena,
   createCamera,
-  createLight,
-  getCanvas,
-  engineResize
-} from '../utils/utils.ts';
+  createLight
+} from '../utils/create.ts';
 import '@babylonjs/loaders/glTF';
 import { Ball } from '../components/ball.ts';
 import { Player } from '../components/player.ts';
 import { KeyManager } from './keyManager.ts';
 import { Hud } from '../components/hud.ts';
-import { Inspector } from '@babylonjs/inspector';
 import { Arena } from '../components/arena.ts';
+import { initializePhysics } from '../utils/physics.ts';
 
 export class Game {
   private _scene!: Scene;
@@ -48,6 +52,7 @@ export class Game {
 
   constructor() {}
 
+  /* v8 ignore start */
   set scene(scene: Scene) {
     this._scene = scene;
   }
@@ -115,44 +120,26 @@ export class Game {
   get backgroundMusic(): Sound {
     return this._backgroundMusic;
   }
+  /* v8 ignore stop */
 
   async initGame() {
     this.canvas = getCanvas();
     this.engine = createEngine(this.canvas);
     const defaultScene = new Scene(this.engine);
-    const havokInstance = await HavokPhysics();
-    const havokPlugin = new HavokPlugin(true, havokInstance);
-    defaultScene.enablePhysics(new Vector3(0, 0, 0), havokPlugin);
-    this.physicalizeGLTFMeshes(defaultScene);
+    await initializePhysics(defaultScene);
+    prepareImportGLTF(defaultScene);
     this.scene = await this.initScene(defaultScene);
     this.frameCount = 0;
 
-    window.addEventListener('resize', engineResize(this.engine));
-    Inspector.Show(this.scene, {});
+    engineResizeListener(this.engine);
+    debugLayerListener(this.scene);
     this.engine.runRenderLoop(() => {
-      this.scene.render();
+      this.scene.render(); /* v8 ignore next */
     });
-    this.setFirstResolution();
+    initializeResolution(this.engine);
   }
 
-  setFirstResolution() {
-    // initial resolution is blurry, no clue why, hacky fix in order to make resolutio sharp
-    setTimeout(() => {
-      this.engine.resize();
-    }, 10);
-  }
-
-  physicalizeGLTFMeshes(scene: Scene) {
-    // An extra step is needed in order to be able to physicalize meshes coming from gltf. Insert an extra node transform just before the __root__ so conversion between Righ or Left handedness are transparent for the physics engine.
-    const trParent = new TransformNode('tr', scene);
-    const root = scene.getMeshByName('__root__');
-    if (root) {
-      root.scaling.scaleInPlace(100);
-      root.position.y = 4;
-      root.setParent(trParent);
-    }
-  }
-
+  /* v8 ignore start */
   async initScene(scene: Scene) {
     this.hud = new Hud('hud.json', scene);
     this.hud.init();
@@ -246,3 +233,4 @@ export function addBall(scene: Scene) {
   );
   return temp;
 }
+/* v8 ignore stop */

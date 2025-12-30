@@ -10,17 +10,8 @@ import {
   HemisphericLight,
   Color3
 } from '@babylonjs/core';
-import { Ball } from '../components/ball';
+import { Ball } from '../components/ball.ts';
 import { Arena } from '../components/arena.ts';
-
-export function getCanvas() {
-  const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
-  return canvas;
-}
-
-export function engineResize(engine: AbstractEngine) {
-  return () => engine.resize();
-}
 
 export function createEngine(canvas: HTMLCanvasElement) {
   const engine = new Engine(canvas) as AbstractEngine;
