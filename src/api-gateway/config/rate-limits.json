@@ -1,0 +1,24 @@
+{
+  "global": {
+    "max": 1000,
+    "timeWindow": "1 minute"
+  },
+  "authenticated": {
+    "max": 2000,
+    "timeWindow": "1 minute"
+  },
+  "endpoints": {
+    "/api/auth/login": {
+      "max": 10,
+      "timeWindow": "15 minutes"
+    },
+    "/api/auth/register": {
+      "max": 5,
+      "timeWindow": "1 hour"
+    },
+    "/api/user/profile": {
+      "max": 100,
+      "timeWindow": "1 minute"
+    }
+  }
+}

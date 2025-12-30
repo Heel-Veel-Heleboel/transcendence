@@ -1,0 +1,32 @@
+[
+  {
+    "name": "user-service",
+    "upstream": "http://localhost:3001",
+    "prefix": "/api/user",
+    "rewritePrefix": "user",
+    "timeout": 5000,
+    "retries": 2,
+    "requiresAuth": false,
+    "websocket": false
+  },
+  {
+    "name": "auth-service",
+    "upstream": "http://localhost:3003",
+    "prefix": "/api/auth",
+    "rewritePrefix": "auth",
+    "timeout": 5000,
+    "retries": 2,
+    "requiresAuth": false,
+    "websocket": false
+  },
+  {
+    "name": "game-service",
+    "upstream": "http://localhost:3004",
+    "prefix": "/api/game",
+    "rewritePrefix": "game",
+    "timeout": 10000,
+    "retries": 1,
+    "requiresAuth": false,
+    "websocket": true
+  }
+]
