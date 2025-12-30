@@ -180,7 +180,7 @@ export const corsConfig: FastifyCorsOptions = {
  *
  * Logs all active security settings on server startup for audit purposes.
  */
-export function logSecurityConfig(logger: { info: (msg: string | object, ...args: any[]) => void }): void {
+export function logSecurityConfig(logger: { info: (msg: string | object, ...args: unknown[]) => void }): void {
   const hstsMaxAge = getHstsMaxAge();
   const bodyLimit = getBodyLimit();
 
