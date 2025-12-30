@@ -1,5 +1,6 @@
 import { Vector3 } from '@babylonjs/core';
 import { IKeyGrid } from '../types/types';
+import { checkDuplicateInString } from '../utils/parse';
 
 export class KeyGrid implements IKeyGrid {
   public grid: Map<string, { x: number; y: number }>;
@@ -22,6 +23,13 @@ export class KeyGrid implements IKeyGrid {
     if (keys.columns.length !== keys.rows.length) {
       throw Error('columns and rows not of same length');
     }
+    if (
+      keys.columns.length !== keys.length ||
+      keys.rows.length !== keys.length
+    ) {
+      throw Error('keys.length not equal to keys.columns or keys.rows');
+    }
+    checkDuplicateInString(keys.columns + keys.rows);
     this.grid = new Map();
     this.columns = keys.columns;
     this.rows = keys.rows;
