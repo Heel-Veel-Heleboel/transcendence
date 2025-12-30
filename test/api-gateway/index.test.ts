@@ -44,15 +44,15 @@ describe('API Gateway', () => {
       expect(routes).toContain('health');
     });
 
-    it('should register proxy route', () => {
+    it('should register health detailed route', () => {
       const routes = app.printRoutes();
-      expect(routes).toContain('api/test');
+      expect(routes).toContain('/detailed');
     });
 
-    it('should have both routes registered', () => {
+    it('should have health routes registered', () => {
       const routes = app.printRoutes();
       expect(routes).toContain('health (GET, HEAD)');
-      expect(routes).toContain('api/test');
+      expect(routes).toContain('/detailed');
     });
   });
 
@@ -72,11 +72,11 @@ describe('API Gateway', () => {
       const mockServer = {
         listen: vi.fn().mockRejectedValue(new Error('Failed to start')),
         log: { error: vi.fn(), info: vi.fn() }
-      } as any;
+      } as unknown as Awaited<ReturnType<typeof createServer>>;
 
       const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {
         throw new Error('exit');
-      }) as any);
+      }) as never);
 
       await expect(start(mockServer)).rejects.toThrow('exit');
       expect(mockServer.log.error).toHaveBeenCalled();
@@ -89,8 +89,8 @@ describe('API Gateway', () => {
       const mockServer = {
         log: { info: vi.fn() },
         close: vi.fn().mockResolvedValue(undefined)
-      } as any;
-      const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+      } as unknown as Awaited<ReturnType<typeof createServer>>;
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 
       setupGracefulShutdown(mockServer);
 
@@ -109,8 +109,8 @@ describe('API Gateway', () => {
       const mockServer = {
         log: { info: vi.fn() },
         close: vi.fn().mockResolvedValue(undefined)
-      } as any;
-      const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as any);
+      } as unknown as Awaited<ReturnType<typeof createServer>>;
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as never);
 
       setupGracefulShutdown(mockServer);
 

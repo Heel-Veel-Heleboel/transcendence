@@ -255,8 +255,16 @@ describe('Security Configuration', () => {
 
   describe('logSecurityConfig', () => {
     it('should execute without throwing errors', async () => {
+      const mockLogger = { info: vi.fn() };
       const { logSecurityConfig } = await import('../../../src/api-gateway/src/config/security');
-      expect(() => logSecurityConfig()).not.toThrow();
+      expect(() => logSecurityConfig(mockLogger)).not.toThrow();
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bodyLimitBytes: expect.any(Number),
+          corsOrigins: expect.any(Array)
+        }),
+        'Security configuration loaded'
+      );
     });
 
     it('should log configuration with default values', async () => {
@@ -268,8 +276,10 @@ describe('Security Configuration', () => {
       delete process.env.ALLOWED_ORIGINS;
       delete process.env.CORS_CREDENTIALS;
 
+      const mockLogger = { info: vi.fn() };
       const { logSecurityConfig } = await import('../../../src/api-gateway/src/config/security');
-      expect(() => logSecurityConfig()).not.toThrow();
+      expect(() => logSecurityConfig(mockLogger)).not.toThrow();
+      expect(mockLogger.info).toHaveBeenCalled();
     });
   });
 });
