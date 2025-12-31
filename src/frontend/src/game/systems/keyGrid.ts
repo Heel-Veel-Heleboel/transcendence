@@ -1,6 +1,11 @@
-import { Vector3 } from '@babylonjs/core';
-import { IKeyGrid } from '../types/types';
-import { checkDuplicateInString } from '../utils/parse';
+import { IKeyGrid, IKeyGridDimensions, IKeyGridKeys } from '../types/types';
+import {
+  checkRowColumnLength,
+  checkRowColumnVersusKeyLength,
+  checkDuplicateInString,
+  checkLength,
+  checkNull
+} from '../utils/keyGridUtils';
 
 export class KeyGrid implements IKeyGrid {
   public grid: Map<string, { x: number; y: number }>;
@@ -9,27 +14,10 @@ export class KeyGrid implements IKeyGrid {
   public precisionKeys: string;
   public length: number;
   public ratioDiv: number;
-  public dimensions: { goalPosition: Vector3; goalDimensions: Vector3 };
+  public dimensions: IKeyGridDimensions;
 
-  constructor(
-    keys: {
-      columns: string;
-      rows: string;
-      length: number;
-      precisionKeys: string;
-    },
-    dimensions: { goalPosition: Vector3; goalDimensions: Vector3 }
-  ) {
-    if (keys.columns.length !== keys.rows.length) {
-      throw Error('columns and rows not of same length');
-    }
-    if (
-      keys.columns.length !== keys.length ||
-      keys.rows.length !== keys.length
-    ) {
-      throw Error('keys.length not equal to keys.columns or keys.rows');
-    }
-    checkDuplicateInString(keys.columns + keys.rows);
+  constructor(keys: IKeyGridKeys, dimensions: IKeyGridDimensions) {
+    this.checkParameters(keys, dimensions);
     this.grid = new Map();
     this.columns = keys.columns;
     this.rows = keys.rows;
@@ -46,6 +34,18 @@ export class KeyGrid implements IKeyGrid {
         });
       }
     }
+  }
+
+  private checkParameters(keys: IKeyGridKeys, dimensions: IKeyGridDimensions) {
+    checkNull(keys, dimensions);
+    checkRowColumnLength(keys.columns.length, keys.rows.length);
+    checkRowColumnVersusKeyLength(
+      keys.columns.length,
+      keys.rows.length,
+      keys.length
+    );
+    checkDuplicateInString(keys.columns + keys.rows);
+    checkLength(keys.length);
   }
 
   private calculateX(x: number): number {

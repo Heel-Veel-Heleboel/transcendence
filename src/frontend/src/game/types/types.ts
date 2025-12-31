@@ -44,6 +44,18 @@ export interface PlayerConfig {
   };
 }
 
+export interface IKeyGridKeys {
+  columns: string;
+  rows: string;
+  length: number;
+  precisionKeys: string;
+}
+
+export interface IKeyGridDimensions {
+  goalPosition: Vector3;
+  goalDimensions: Vector3;
+}
+
 export interface IKeyGrid {
   grid: Map<string, { x: number; y: number }>;
   columns: string;
