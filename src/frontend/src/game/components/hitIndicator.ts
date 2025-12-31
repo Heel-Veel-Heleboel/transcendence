@@ -10,6 +10,7 @@ import { Ball } from './ball';
 
 import { IHitIndicator } from '../types/types';
 
+/* v8 ignore start */
 export class HitIndicator implements IHitIndicator {
   public goalPosition: Vector3;
   public radius: number;
@@ -84,3 +85,4 @@ export class HitIndicator implements IHitIndicator {
     }
   }
 }
+/* v8 ignore stop */

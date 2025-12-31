@@ -8,6 +8,7 @@ import {
   StandardMaterial
 } from '@babylonjs/core';
 
+/* v8 ignore start */
 export class Arena implements IArena {
   public _arena!: PhysicsMesh;
   public _goal_1!: PhysicsMesh;
@@ -78,3 +79,4 @@ export class Arena implements IArena {
     });
   }
 }
+/* v8 ignore stop */

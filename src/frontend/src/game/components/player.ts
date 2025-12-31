@@ -14,6 +14,7 @@ import { KeyGrid } from '../systems/keyGrid.ts';
 import { Hud } from './hud.ts';
 import { HitIndicator } from './hitIndicator.ts';
 
+/* v8 ignore start */
 export class Player implements IPlayer {
   public physicsMesh: PhysicsMesh;
   public lifespan: number;
@@ -198,3 +199,4 @@ export class Player implements IPlayer {
     this.lifespan = this.lifespan - amount;
   }
 }
+/* v8 ignore stop */

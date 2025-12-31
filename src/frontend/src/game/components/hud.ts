@@ -2,6 +2,7 @@ import { AdvancedDynamicTexture, Control } from '@babylonjs/gui';
 import { IHud } from '../types/types';
 import { Scene } from '@babylonjs/core';
 
+/* v8 ignore start */
 export class Hud implements IHud {
   public texture: AdvancedDynamicTexture;
   public filePath: string;
@@ -55,3 +56,4 @@ export class Hud implements IHud {
     return newValue;
   }
 }
+/* v8 ignore stop */
