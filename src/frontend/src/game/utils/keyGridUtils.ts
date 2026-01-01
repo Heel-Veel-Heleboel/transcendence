@@ -1,6 +1,6 @@
 import { IKeyGridDimensions, IKeyGridKeys } from '../types/types';
 import { Vector3 } from '@babylonjs/core';
-import gameConfig from './configLimits';
+import gameConfig from './gameConfig.ts';
 import Errors from './error';
 
 export function checkNull(keys: IKeyGridKeys, dimensions: IKeyGridDimensions) {
