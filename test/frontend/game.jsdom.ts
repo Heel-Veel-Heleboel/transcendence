@@ -4,6 +4,7 @@ import * as canvasModule from '../../src/frontend/src/game/utils/canvas.ts';
 import * as createModule from '../../src/frontend/src/game/utils/create.ts';
 import * as physicsModule from '../../src/frontend/src/game/utils/physics.ts';
 import * as eventModule from '../../src/frontend/src/game/utils/eventListeners.ts';
+import * as renderModule from '../../src/frontend/src/game/utils/render.ts';
 import { NullEngine, Scene } from '@babylonjs/core';
 
 describe('Game Class', () => {
@@ -43,6 +44,9 @@ describe('Game Class', () => {
     const debugSpy = vi
       .spyOn(eventModule, 'debugLayerListener')
       .mockImplementation(() => {});
+    const renderSpy = vi
+      .spyOn(renderModule, 'renderLoop')
+      .mockImplementation(() => {});
     const resolutionSpy = vi
       .spyOn(canvasModule, 'initializeResolution')
       .mockImplementation(() => {});
@@ -54,6 +58,7 @@ describe('Game Class', () => {
     expect(importSpy).toHaveBeenCalled();
     expect(resizeSpy).toHaveBeenCalled();
     expect(debugSpy).toHaveBeenCalled();
+    expect(renderSpy).toHaveBeenCalled();
     expect(resolutionSpy).toHaveBeenCalled();
   });
 });
