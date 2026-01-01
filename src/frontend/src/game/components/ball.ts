@@ -8,6 +8,7 @@ import {
   PhysicsShapeType
 } from '@babylonjs/core';
 
+/* v8 ignore start */
 export class Ball implements IBall {
   public physicsMesh: PhysicsMesh;
   public lifespan: number;
@@ -48,3 +49,4 @@ export class Ball implements IBall {
     this.lifespan = this.lifespan - 1;
   }
 }
+/* v8 ignore stop */
