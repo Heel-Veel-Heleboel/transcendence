@@ -81,6 +81,7 @@ export interface IKeyManager {
   actions: Map<string, { x: number; y: number }>;
   precisionKeys: string;
   player: Player;
+  precisionMove: number;
 }
 
 export interface IPlayer {

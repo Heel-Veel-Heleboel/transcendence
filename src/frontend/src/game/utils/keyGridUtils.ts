@@ -1,6 +1,6 @@
 import { IKeyGridDimensions, IKeyGridKeys } from '../types/types';
 import { Vector3 } from '@babylonjs/core';
-import configLimits from './configLimits';
+import gameConfig from './configLimits';
 import Errors from './error';
 
 export function checkNull(keys: IKeyGridKeys, dimensions: IKeyGridDimensions) {
@@ -51,7 +51,7 @@ export function checkDuplicateInString(str: string) {
 }
 
 export function checkLength(length: number) {
-  if (length > configLimits.keyLimit) {
+  if (length > gameConfig.keyLimit) {
     throw Error(Errors.SURPASSING_KEY_LIMIT);
   }
 }

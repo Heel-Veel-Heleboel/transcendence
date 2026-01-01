@@ -7,6 +7,7 @@ import {
   checkLowerY,
   checkUpperY
 } from '../utils/KeyManagerUtils.ts';
+import gameConfig from '../utils/gameConfig.ts';
 
 export class KeyManager implements IKeyManager {
   public windowFrames: number;
@@ -16,6 +17,7 @@ export class KeyManager implements IKeyManager {
   public precisionKeys: string;
   public player: Player;
   private getFrameCount: Function;
+  public precisionMove: number;
 
   constructor(
     scene: Scene,
@@ -31,6 +33,7 @@ export class KeyManager implements IKeyManager {
     this.player = player;
     this.actions = player.keyGrid.grid;
     this.precisionKeys = player.keyGrid.precisionKeys;
+    this.precisionMove = player.ratioDiv / gameConfig.handlePrecisionRatio;
   }
 
   onKeyDown(kbInfo: KeyboardInfo) {
@@ -53,32 +56,30 @@ export class KeyManager implements IKeyManager {
 
   handlePrecisionKey(key: string) {
     const index = this.precisionKeys.indexOf(key);
-    const xMove = this.player.ratioDiv / 25;
-    const yMove = this.player.ratioDiv / 25;
     switch (index) {
       case 0:
-        if (checkUpperY(yMove, this.player)) {
+        if (checkUpperY(this.precisionMove, this.player)) {
           break;
         }
-        this.player.movePrecise({ x: 0, y: yMove });
+        this.player.movePrecise({ x: 0, y: this.precisionMove });
         break;
       case 1:
-        if (checkLowerX(xMove, this.player)) {
+        if (checkLowerX(this.precisionMove, this.player)) {
           break;
         }
-        this.player.movePrecise({ x: -xMove, y: 0 });
+        this.player.movePrecise({ x: -this.precisionMove, y: 0 });
         break;
       case 2:
-        if (checkLowerY(yMove, this.player)) {
+        if (checkLowerY(this.precisionMove, this.player)) {
           break;
         }
-        this.player.movePrecise({ x: 0, y: -yMove });
+        this.player.movePrecise({ x: 0, y: -this.precisionMove });
         break;
       case 3:
-        if (checkUpperX(xMove, this.player)) {
+        if (checkUpperX(this.precisionMove, this.player)) {
           break;
         }
-        this.player.movePrecise({ x: xMove, y: 0 });
+        this.player.movePrecise({ x: this.precisionMove, y: 0 });
         break;
     }
   }
