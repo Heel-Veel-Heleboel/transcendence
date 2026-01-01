@@ -30,16 +30,16 @@ Player.prototype.physicsMesh.aggregate.transformNode.absolutePosition.x = 10;
 Player.prototype.physicsMesh.aggregate.transformNode.absolutePosition.y = 10;
 
 describe('KeyManager', () => {
+  const engine = new NullEngine();
+  const scene = new Scene(engine);
+  const callback = vi.fn();
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
   it('constructor', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
-
     const keyManager = new KeyManager(scene, callback, player);
 
     expect(keyManager.deltaTime).toEqual(0);
@@ -50,10 +50,7 @@ describe('KeyManager', () => {
   });
 
   it('onKeyDown - wrong KeyboardEventType', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const kInfo = new KeyboardInfo(KeyboardEventTypes.KEYUP, {
       altKey: false,
@@ -76,10 +73,7 @@ describe('KeyManager', () => {
   });
 
   it('onKeyDown - precisionKeys', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const kInfo = new KeyboardInfo(KeyboardEventTypes.KEYDOWN, {
       altKey: false,
@@ -101,10 +95,7 @@ describe('KeyManager', () => {
   });
 
   it('onKeyDown - deltaTime', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const kInfo = new KeyboardInfo(KeyboardEventTypes.KEYDOWN, {
       altKey: false,
@@ -126,10 +117,7 @@ describe('KeyManager', () => {
   });
 
   it('register - zero keys', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const sequence = [];
     const coords = { x: 10, y: 10 };
@@ -140,10 +128,7 @@ describe('KeyManager', () => {
   });
 
   it('register - one key', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const sequence = ['q'];
     const coords = { x: 10, y: 10 };
@@ -154,10 +139,7 @@ describe('KeyManager', () => {
   });
 
   it('register - two keys', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const sequence = ['q', 'a'];
     const coords = { x: 10, y: 10 };
@@ -168,10 +150,7 @@ describe('KeyManager', () => {
   });
 
   it('register - three keys', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const sequence = ['q', 'a', 'c'];
     const coords = { x: 10, y: 10 };
@@ -182,10 +161,7 @@ describe('KeyManager', () => {
   });
 
   it('handleKey - add to empty buffer', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const key = 'a';
 
@@ -195,10 +171,7 @@ describe('KeyManager', () => {
   });
 
   it('handleKey - add to non-empty buffer', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const firstKey = 'a';
     const secondKey = 'b';
@@ -210,10 +183,7 @@ describe('KeyManager', () => {
   });
 
   it('handlePrecisionKey - case 0', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const key = player.keyGrid.precisionKeys.charAt(0);
     const spyUpperY = vi.spyOn(KeyManagerUtils, 'checkUpperY');
@@ -234,10 +204,7 @@ describe('KeyManager', () => {
   });
 
   it('handlePrecisionKey - case 1', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const key = player.keyGrid.precisionKeys.charAt(1);
     const spyUpperY = vi.spyOn(KeyManagerUtils, 'checkUpperY');
@@ -258,10 +225,7 @@ describe('KeyManager', () => {
   });
 
   it('handlePrecisionKey - case 2', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const key = player.keyGrid.precisionKeys.charAt(2);
     const spyUpperY = vi.spyOn(KeyManagerUtils, 'checkUpperY');
@@ -282,10 +246,7 @@ describe('KeyManager', () => {
   });
 
   it('handlePrecisionKey - case 3', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const key = player.keyGrid.precisionKeys.charAt(3);
     const spyUpperY = vi.spyOn(KeyManagerUtils, 'checkUpperY');
@@ -306,10 +267,7 @@ describe('KeyManager', () => {
   });
 
   it('handlePrecisionKey - case 0 - break', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const key = player.keyGrid.precisionKeys.charAt(0);
     const spyUpperY = vi
@@ -331,10 +289,7 @@ describe('KeyManager', () => {
   });
 
   it('handlePrecisionKey - case 1 - break', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const key = player.keyGrid.precisionKeys.charAt(1);
     const spyUpperY = vi.spyOn(KeyManagerUtils, 'checkUpperY');
@@ -356,10 +311,7 @@ describe('KeyManager', () => {
   });
 
   it('handlePrecisionKey - case 2 - break', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const key = player.keyGrid.precisionKeys.charAt(2);
     const spyUpperY = vi.spyOn(KeyManagerUtils, 'checkUpperY');
@@ -381,10 +333,7 @@ describe('KeyManager', () => {
   });
 
   it('handlePrecisionKey - case 3 - break', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const key = player.keyGrid.precisionKeys.charAt(3);
     const spyUpperY = vi.spyOn(KeyManagerUtils, 'checkUpperY');
@@ -406,10 +355,7 @@ describe('KeyManager', () => {
   });
 
   it('resolve - sequence present', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const spy = vi.spyOn(keyManager, 'reset');
     keyManager.buffer = ['q', 'a'];
@@ -421,10 +367,7 @@ describe('KeyManager', () => {
   });
 
   it('resolve - reverse sequence present', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const spy = vi.spyOn(keyManager, 'reset');
     keyManager.buffer = ['a', 'q'];
@@ -436,10 +379,7 @@ describe('KeyManager', () => {
   });
 
   it('resolve - sequence not present', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const spy = vi.spyOn(keyManager, 'reset');
     keyManager.buffer = ['z', 'l'];
@@ -451,10 +391,7 @@ describe('KeyManager', () => {
   });
 
   it('resolve - sequence not present', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     const spy = vi.spyOn(keyManager, 'reset');
     keyManager.buffer = ['z', 'l'];
@@ -466,10 +403,7 @@ describe('KeyManager', () => {
   });
 
   it('reset', async () => {
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
     const player = new Player();
-    const callback = vi.fn();
     const keyManager = new KeyManager(scene, callback, player);
     keyManager.buffer = ['q', 'a', 'b'];
     keyManager.deltaTime = 1000;
