@@ -5,7 +5,6 @@ import {
   Sound,
   ArcRotateCamera,
   MeshBuilder,
-  Mesh,
   Vector3,
   HemisphericLight,
   Color3
@@ -16,14 +15,6 @@ import { Arena } from '../components/arena.ts';
 export function createEngine(canvas: HTMLCanvasElement) {
   const engine = new Engine(canvas) as AbstractEngine;
   return engine;
-}
-
-export function createBgMusic(scene: Scene) {
-  const bg = new Sound('mySong', '/public/loop.mp3', scene, null, {
-    loop: true,
-    autoplay: true
-  });
-  return bg;
 }
 
 export function createCamera(scene: Scene, distance: number) {
@@ -37,24 +28,6 @@ export function createCamera(scene: Scene, distance: number) {
   );
   camera.attachControl(scene.getEngine().getRenderingCanvas(), true);
   return camera;
-}
-
-export function createPlane(
-  scene: Scene,
-  name: string,
-  height: number,
-  width: number
-) {
-  const side = MeshBuilder.CreatePlane(
-    name,
-    {
-      height: height,
-      width: width,
-      sideOrientation: Mesh.DOUBLESIDE
-    },
-    scene
-  );
-  return side;
 }
 
 export function createArena() {
@@ -81,4 +54,12 @@ export function createLight(scene: Scene) {
   light.specular = new Color3(0, 1, 0);
   light.groundColor = new Color3(0, 1, 0);
   return light;
+}
+
+export function createBgMusic(scene: Scene) {
+  const bg = new Sound('mySong', '/public/loop.mp3', scene, null, {
+    loop: true,
+    autoplay: true
+  });
+  return bg;
 }
