@@ -5,6 +5,7 @@ export function engineResizeListener(engine: AbstractEngine) {
   window.addEventListener('resize', engineResize(engine));
 }
 
+/* v8 ignore start */
 export function debugLayerListener(scene: Scene) {
   if (process.env.NODE_ENV !== 'production') {
     window.addEventListener('keydown', ev => {
@@ -19,3 +20,4 @@ export function debugLayerListener(scene: Scene) {
     });
   }
 }
+/* v8 ignore stop */
