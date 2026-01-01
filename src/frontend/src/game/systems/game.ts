@@ -31,6 +31,7 @@ import { KeyManager } from './keyManager.ts';
 import { Hud } from '../components/hud.ts';
 import { Arena } from '../components/arena.ts';
 import { initializePhysics } from '../utils/physics.ts';
+import { renderLoop } from '../utils/render.ts';
 
 export class Game {
   private _scene!: Scene;
@@ -133,9 +134,7 @@ export class Game {
 
     engineResizeListener(this.engine);
     debugLayerListener(this.scene);
-    this.engine.runRenderLoop(() => {
-      this.scene.render(); /* v8 ignore next */
-    });
+    renderLoop(this.engine, this.scene);
     initializeResolution(this.engine);
   }
 
