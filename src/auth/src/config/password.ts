@@ -3,6 +3,11 @@ import { PasswordLimitsConfigShape, PasswordPolicyConfigShape } from '../types/p
 import { validatePasswordLengthLimits } from '../validators/password.js';
 import { parseIntSave } from '../utils/parse-int-save.js';
 
+export function getEnvSaltRounds(def: number): number {
+  const rounds = parseIntSave(process.env.BCRYPT_SALT_ROUNDS, def);
+  return rounds;
+}
+
 
 const minLength = parseIntSave(process.env.PASSWORD_MIN_LENGTH, PasswordLimitsConfig.DEFAULT_MIN_LENGTH);
 const maxLength = parseIntSave(process.env.PASSWORD_MAX_LENGTH, PasswordLimitsConfig.DEFAULT_MAX_LENGTH);

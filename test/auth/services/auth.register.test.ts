@@ -26,7 +26,7 @@ describe('AuthService - register', () => {
     mockUserService.createUser.mockResolvedValueOnce(1);
     mockCredentialsDao.create.mockResolvedValueOnce(undefined);
 
-    const result = await authService.register('testuser', 'testuser@example.com', 'password123');
+    const result = await authService.register( { name: 'testuser', email: 'testuser@example.com', password: 'password123' } );
     expect(mockUserService.createUser).toBeCalledWith('testuser@example.com', 'testuser');
     expect(mockCredentialsDao.create).toBeCalled();
     expect(result).toEqual({ id: 1, name: 'testuser', email: 'testuser@example.com' });
@@ -35,7 +35,7 @@ describe('AuthService - register', () => {
   it('Should handle user creation failure', async () => {
     mockUserService.createUser.mockRejectedValueOnce(new Error('User creation failed'));
     
-    await expect(authService.register('testuser', 'testuser@example.com', 'password123')).rejects.toThrow('User creation failed');
+    await expect(authService.register( { name: 'testuser', email: 'testuser@example.com', password: 'password123' } )).rejects.toThrow('User creation failed');
     expect(mockUserService.createUser).toBeCalledWith('testuser@example.com', 'testuser');
     expect(mockCredentialsDao.create).not.toBeCalled();
   });
@@ -44,7 +44,7 @@ describe('AuthService - register', () => {
     mockUserService.createUser.mockResolvedValueOnce(1);
     mockCredentialsDao.create.mockRejectedValueOnce(new Error('Credential creation failed'));
 
-    await expect(authService.register('testuser', 'testuser@example.com', 'password123')).rejects.toThrow('Credential creation failed');
+    await expect(authService.register( { name: 'testuser', email: 'testuser@example.com', password: 'password123' } )).rejects.toThrow('Credential creation failed');
     expect(mockUserService.createUser).toBeCalledWith('testuser@example.com', 'testuser');
     expect(mockCredentialsDao.create).toBeCalled();
     expect(mockUserService.deleteUser).toBeCalledWith(1);
@@ -55,7 +55,7 @@ describe('AuthService - register', () => {
     mockCredentialsDao.create.mockRejectedValueOnce(new Error('Credential creation failed'));
     mockUserService.deleteUser.mockRejectedValueOnce(new Error('Delete user failed'));
 
-    await expect(authService.register('testuser', 'testuser@example.com', 'password123')).rejects.toThrow('Credential creation failed');
+    await expect(authService.register( { name: 'testuser', email: 'testuser@example.com', password: 'password123' } )).rejects.toThrow('Credential creation failed');
     expect(mockUserService.createUser).toBeCalledWith('testuser@example.com', 'testuser');
     expect(mockCredentialsDao.create).toBeCalled();
     expect(mockUserService.deleteUser).toBeCalledWith(1);

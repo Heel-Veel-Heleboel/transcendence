@@ -16,14 +16,11 @@ export interface JwtConfigShape {
  * 
  * @property {number} sub - Subject claim. The unique identifier (user ID) of the authenticated user.
  * @property {string} user_email - The email address of the authenticated user. Used for user identification and notifications.
- * @property {string} jti - JWT ID claim. A unique identifier for this specific token instance.
- *                         Used to track individual tokens and enable token revocation/blacklisting.
  *                         
  */
 export interface JwtPayLoadShape {
   sub: number;
   user_email: string;
-  jti: string;
 };
 
 /**

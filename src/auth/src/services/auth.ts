@@ -1,9 +1,12 @@
 import { UserManagementService } from '../types/user-management-service.js';
 import { CredentialsDaoShape } from '../types/daos/credentials.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
-import { SafeUserDto, RegisterDto } from '../types/dtos/auth.js';
-import { hasher } from '../utils/password/hasher.js';
-import { SaltLimits } from '../constants/security.js';
+import { SafeUserDto, RegisterDto, LogedInUserDto, LoginDto } from '../types/dtos/auth.js';
+import { passwordHasher, comparePasswordHash } from '../utils/password-hash.js';
+import { SaltLimits } from '../constants/password.js';
+import { REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
+import { generateAccessToken, generateRefreshToken, hashRefreshToken } from '../utils/jwt.js';
+import { AuthenticationError } from '../error/auth.js';
 
 /** 
  * Authentication Service
@@ -25,7 +28,7 @@ export class AuthService {
     const uId = await this.userService.createUser(registerDto.email, registerDto.name);
 
     try {
-      const hashedPassword = await hasher(registerDto.password, SaltLimits);
+      const hashedPassword = await passwordHasher(registerDto.password, SaltLimits);
       await this.credentialsDao.create({
         userId: uId,
         password: hashedPassword
@@ -40,4 +43,28 @@ export class AuthService {
     }
     return { id: uId, name: registerDto.name, email: registerDto.email };
   }
-};
+
+
+  async login(loginDto: LoginDto ): Promise<LogedInUserDto> {
+    const user = await this.userService.findUserByEmail(loginDto.email);
+    if (!user) {
+      throw new AuthenticationError(`User with email: ${loginDto.email} does not exist.`);
+    }
+    const storedPassword = await this.credentialsDao.findByUserId({ userId: user.id });
+
+    if (!storedPassword || !(await comparePasswordHash(loginDto.password, storedPassword))) {
+      throw new AuthenticationError('Invalid credentials provided.');
+    }
+    const accessToken = generateAccessToken({ sub: user.id, user_email: user.email });
+    const refreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
+    const hashedRefreshToken = await hashRefreshToken(refreshToken);
+    await this.refreshTokenDao.create({ userId: user.id, refreshToken: hashedRefreshToken });
+    return {
+      accessToken,
+      refreshToken,
+      id: user.id,
+      name: user.username,
+      email: user.email
+    };
+  }
+}

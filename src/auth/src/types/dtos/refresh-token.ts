@@ -1,7 +1,6 @@
 export interface CreateRefreshTokenDto {
   userId: number,
   refreshToken: string,
-  jti: string
 }
 
 export interface RevokeRefreshTokenDto {

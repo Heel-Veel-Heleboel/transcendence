@@ -25,7 +25,6 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
       data: {
         userId: data.userId,
         hashedToken: data.refreshToken,
-        jti: data.jti,
         expiredAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * this.expirationRefreshToken)
       }
     });

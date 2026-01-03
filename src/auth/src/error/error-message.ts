@@ -1,5 +1,5 @@
-import { PasswordError, PasswordErrorCode } from '../../constants/password.js';
-import { PasswordPolicyConfigShape } from '../../types/password.js';
+import { PasswordError, PasswordErrorCode } from '../constants/password.js';
+import { PasswordPolicyConfigShape } from '../types/password.js';
 
 
 export function getPasswordErrorMessage(
