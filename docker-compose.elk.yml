@@ -180,6 +180,7 @@ services:
       - logstash-data:/usr/share/logstash/data
       - './logstash_ingest_data/:/usr/share/logstash/ingest_data/'
       - './logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro'
+      - './observability/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro'
     ports:
       - '${LOGSTASH_PORT:-5044}:5044'
       - '9600:9600' # API/monitoring port
