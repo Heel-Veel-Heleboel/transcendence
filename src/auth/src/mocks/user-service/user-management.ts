@@ -1,7 +1,7 @@
-import { UserManagementShape } from '../../contracts/user-management.js';
+import { UserManagementService } from '../../types/user-management-service.js';
 
 /**
- * A mock implementation of UserManagementShape for testing purposes.
+ * A mock implementation of UserManagementService for testing purposes.
  * This mock simulates user management operations in memory.
  * It does not persist data and is intended for use in unit tests.
  * Methods:
@@ -11,7 +11,7 @@ import { UserManagementShape } from '../../contracts/user-management.js';
  * - deleteUser: Simulates deleting a user by ID.
  */
 
-export class UserManagementMock implements UserManagementShape {
+export class UserManagementMock implements UserManagementService {
   private users: Map<number, { id: number; email: string; username: string }> = new Map();
   private currentId = 1;
 

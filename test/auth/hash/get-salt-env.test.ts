@@ -1,5 +1,5 @@
 import { SaltLimitsShape } from '../../../src/auth/src/types/security.js';
-import { getEnvSaltRounds } from '../../../src/auth/src/config/security.js';
+import { getEnvSaltRounds } from '../../../src/auth/src/config/password.js';
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 
 describe('getEnvSaltRounds function', () => {

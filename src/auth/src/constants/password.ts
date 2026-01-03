@@ -1,4 +1,4 @@
-import { PasswordLimitsConfigShape as Limits } from '../contracts/password.js';
+import { PasswordLimitsConfigShape as Limits } from '../types/password.js';
 
 export const PasswordError = {
   TOO_SHORT: 'TOO_SHORT',
@@ -21,3 +21,9 @@ export const PasswordLimitsConfig: Limits = {
   DEFAULT_MIN_LENGTH: 8,
   DEFAULT_MAX_LENGTH: 30
 } as const ;
+
+export const SaltLimits = {
+  MIN_SALT_LENGTH: 1,
+  MAX_SALT_LENGTH: 18,
+  DEFAULT_SALT_LENGTH: 12
+} as const;

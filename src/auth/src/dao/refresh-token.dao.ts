@@ -1,6 +1,6 @@
 import { PrismaClient } from '../../generated/prisma/client.js';  
-import { CreateRefreshTokenDto, DeleteAllForUser, FindRefreshTokenDto, RevokeRefreshTokenDto } from '../contracts/auth.dto.js';
-import { RefreshTokenDaoShape } from '../contracts/refresh-token.js';
+import { CreateRefreshTokenDto, DeleteAllForUser, FindRefreshTokenDto, RevokeRefreshTokenDto } from '../types/dtos/refresh-token.js';
+import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
 
 
 /**
