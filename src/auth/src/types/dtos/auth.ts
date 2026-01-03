@@ -19,8 +19,3 @@ export interface LoginDto {
   email: string;
   password: string;
 }
-
-export interface TokenPairDto {
-  accessToken: string;
-  refreshToken: string;
-}
