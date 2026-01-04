@@ -4,7 +4,7 @@ export interface SafeUserDto {
   email: string;
 }
 
-export interface LogedInUserDto extends SafeUserDto {
+export interface LoggedInUserDto extends SafeUserDto {
   accessToken: string;
   refreshToken: string;
 }

@@ -1,7 +1,7 @@
 import { UserManagementService } from '../types/user-management-service.js';
 import { CredentialsDaoShape } from '../types/daos/credentials.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
-import { SafeUserDto, RegisterDto, LogedInUserDto, LoginDto } from '../types/dtos/auth.js';
+import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto } from '../types/dtos/auth.js';
 import { passwordHasher, comparePasswordHash } from '../utils/password-hash.js';
 import { SaltLimits } from '../constants/password.js';
 import { REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
@@ -21,7 +21,7 @@ export class AuthService {
   constructor(
     private readonly userService: UserManagementService,
     private readonly credentialsDao: CredentialsDaoShape,
-    private readonly refreshTokenDao: RefreshTokenDaoShape) {};
+    private readonly refreshTokenDao: RefreshTokenDaoShape) {}
 
 
   async register(registerDto: RegisterDto): Promise<SafeUserDto> {
@@ -45,7 +45,7 @@ export class AuthService {
   }
 
 
-  async login(loginDto: LoginDto ): Promise<LogedInUserDto> {
+  async login(loginDto: LoginDto ): Promise<LoggedInUserDto> {
     const user = await this.userService.findUserByEmail(loginDto.email);
     if (!user) {
       throw new AuthenticationError(`User with email: ${loginDto.email} does not exist.`);
@@ -57,7 +57,7 @@ export class AuthService {
     }
     const accessToken = generateAccessToken({ sub: user.id, user_email: user.email });
     const refreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
-    const hashedRefreshToken = await hashRefreshToken(refreshToken);
+    const hashedRefreshToken = hashRefreshToken(refreshToken);
     await this.refreshTokenDao.create({ userId: user.id, refreshToken: hashedRefreshToken });
     return {
       accessToken,

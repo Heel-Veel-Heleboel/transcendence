@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { passwordHasher, comparePasswordHash } from '../../../src/auth/src/utils//password-hash.js';
+import { passwordHasher, comparePasswordHash } from '../../../src/auth/src/utils/password-hash.js';
 import { SaltLimits } from '../../../src/auth/src/constants/password.js';
 
 describe('passwordHasher utility', () => {

@@ -9,9 +9,9 @@ export async function passwordHasher(password: string, saltLimits: SaltLimitsSha
   }
   const saltRounds = getEnvSaltRounds(saltLimits.DEFAULT_SALT_LENGTH);
   validateSaltLengthLimits(saltRounds, saltLimits);
-  return await bcrypt.hash(password, saltRounds);
+  return bcrypt.hash(password, saltRounds);
 }
 
 export async function comparePasswordHash(str: string, hash: string): Promise<boolean> {
-  return await bcrypt.compare(str, hash);
+  return bcrypt.compare(str, hash);
 }

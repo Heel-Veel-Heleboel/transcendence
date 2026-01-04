@@ -57,7 +57,7 @@ describe('AuthService - Login', () => {
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshToken);
-    vi.spyOn(jwtModule, 'hashRefreshToken').mockResolvedValue(mockHashedRefreshToken);
+    vi.spyOn(jwtModule, 'hashRefreshToken').mockReturnValue(mockHashedRefreshToken);
     mockRefreshTokenDao.create.mockResolvedValue(undefined);
 
     const result = await authService.login(loginDto);
@@ -333,7 +333,7 @@ describe('AuthService - Login', () => {
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshToken);
-    vi.spyOn(jwtModule, 'hashRefreshToken').mockResolvedValue(mockHashedRefreshToken);
+    vi.spyOn(jwtModule, 'hashRefreshToken').mockReturnValue(mockHashedRefreshToken);
     
     const storageError = new Error('Database constraint violation');
     mockRefreshTokenDao.create.mockRejectedValue(storageError);
@@ -382,7 +382,7 @@ describe('AuthService - Login', () => {
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshToken);
-    vi.spyOn(jwtModule, 'hashRefreshToken').mockResolvedValue(mockHashedRefreshToken);
+    vi.spyOn(jwtModule, 'hashRefreshToken').mockReturnValue(mockHashedRefreshToken);
     mockRefreshTokenDao.create.mockResolvedValue(undefined);
 
     const result = await authService.login(loginDto);
@@ -445,7 +445,7 @@ describe('AuthService - Login', () => {
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshToken);
-    vi.spyOn(jwtModule, 'hashRefreshToken').mockResolvedValue(mockHashedRefreshToken);
+    vi.spyOn(jwtModule, 'hashRefreshToken').mockReturnValue(mockHashedRefreshToken);
     mockRefreshTokenDao.create.mockResolvedValue(undefined);
 
     const result = await authService.login(loginDto);
