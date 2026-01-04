@@ -1,8 +1,8 @@
 export interface JwtConfigShape {
   privateKey: string;
   publicKey: string;
-  expirationAccessToken: string;
-  expirationRefreshToken: string;
+  expirationAccessToken: number;
+  expirationRefreshToken: number;
   algorithm: string;
   audience: string;
   issuer: string;
