@@ -301,7 +301,9 @@ describe('AuthService - Login', () => {
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshToken);
     
     const hashError = new Error('Hashing algorithm failed');
-    vi.spyOn(jwtModule, 'hashRefreshToken').mockRejectedValue(hashError);
+    vi.spyOn(jwtModule, 'hashRefreshToken').mockImplementation(() => {
+      throw hashError;
+    });
 
     await expect(authService.login(loginDto)).rejects.toThrow('Hashing algorithm failed');
 
