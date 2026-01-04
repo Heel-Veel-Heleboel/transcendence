@@ -1,5 +1,5 @@
 import { PasswordError, PasswordErrorCode } from '../constants/password.js';
-import { PasswordPolicyConfigShape, PasswordValidationResultShape, PasswordLimitsConfigShape } from '../contracts/password.js';
+import { PasswordPolicyConfigShape, PasswordValidationResultShape, PasswordLimitsConfigShape } from '../types/password.js';
 
 
 export function checkLowercase(password: string, policy: PasswordPolicyConfigShape) : PasswordErrorCode | null {

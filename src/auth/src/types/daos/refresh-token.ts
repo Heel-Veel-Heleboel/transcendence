@@ -1,4 +1,4 @@
-import { RevokeRefreshTokenDto, CreateRefreshTokenDto, FindRefreshTokenDto, DeleteAllForUser } from './auth.dto.js';
+import { RevokeRefreshTokenDto, CreateRefreshTokenDto, FindRefreshTokenDto, DeleteAllForUser } from '../dtos/refresh-token.js';
 
 /**
  * Data Access Object (DAO) interface for managing refresh tokens.

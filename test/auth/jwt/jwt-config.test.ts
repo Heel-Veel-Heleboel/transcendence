@@ -42,8 +42,8 @@ describe('Jwt configuration tester', ()=> {
     const result : JwtConfigShape = createJwtConfig();
     expect(result.privateKey).toContain('mocked-key-content');
     expect(result.publicKey).toContain('mocked-key-content');
-    expect(result.expirationAccessToken).toBe('15m');
-    expect(result.expirationRefreshToken).toBe('7d');
+    expect(result.expirationAccessToken).toBe(900000);
+    expect(result.expirationRefreshToken).toBe(604800000);
   });
 
   const requiredVars = [
@@ -65,8 +65,8 @@ describe('Jwt configuration tester', ()=> {
 
     const result : JwtConfigShape = createJwtConfig();
 
-    expect(result.expirationAccessToken).toBe('15m');
-    expect(result.expirationRefreshToken).toBe('7d');
+    expect(result.expirationAccessToken).toBe(900000);
+    expect(result.expirationRefreshToken).toBe(604800000);
   });
 
 
@@ -90,6 +90,12 @@ describe('Jwt configuration tester', ()=> {
 
   it ('Throws an error if expiration time format is missing unit', ()=> {
     process.env.EXPIRATION_TIME_ACCESS_TOKEN  = '20';
+
+    expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.EXPIRATION_TIME_ACCESS_TOKEN_INVALID);
+  });
+
+  it ('Throws an error if expiration time unit is doubled', ()=> {
+    process.env.EXPIRATION_TIME_ACCESS_TOKEN  = '10hh';
 
     expect(() => createJwtConfig()).toThrow(JwtSchemaErrorMessage.EXPIRATION_TIME_ACCESS_TOKEN_INVALID);
   });

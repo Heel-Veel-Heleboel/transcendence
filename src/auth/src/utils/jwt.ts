@@ -1,17 +1,8 @@
 import { default as jwt } from 'jsonwebtoken';
-import { JwtPayLoadShape, DecodedJwtPayload } from '../contracts/jwt.js';
-import { createJwtConfig } from '../config/jwt.js';
-import { JWT_ISSUER, JWT_AUDIENCE, CryptoErrorMessage } from '../constants/jwt.js';
+import { JwtPayLoadShape, DecodedJwtPayload } from '../types/jwt.js';
+import { getJwtConfig } from '../config/jwt.js';
+import { CryptoErrorMessage } from '../constants/jwt.js';
 import { randomBytes, createHash, timingSafeEqual } from 'crypto';
-
-
-let JwtConfig: ReturnType<typeof createJwtConfig> | null = null;
-function getJwtConfig() {
-  if (!JwtConfig) {
-    JwtConfig = createJwtConfig();
-  }
-  return JwtConfig;
-}
 
 
 /**
@@ -28,8 +19,8 @@ export function generateAccessToken(payload: JwtPayLoadShape): string {
     config.privateKey, {
       algorithms: [config.algorithm],
       expiresIn: config.expirationAccessToken,
-      issuer: JWT_ISSUER,
-      audience: JWT_AUDIENCE
+      issuer: config.issuer,
+      audience: config.audience
     } as jwt.SignOptions);
   return token;
 }
@@ -47,8 +38,8 @@ export function verifyAccessToken(token: string) : DecodedJwtPayload {
   const config = getJwtConfig();
   const decoded = jwt.verify(token, config.publicKey, {
     algorithms: [config.algorithm],
-    issuer: JWT_ISSUER,
-    audience: JWT_AUDIENCE
+    issuer: config.issuer,
+    audience: config.audience
   } as jwt.VerifyOptions);
   return decoded as unknown as DecodedJwtPayload;
 }
