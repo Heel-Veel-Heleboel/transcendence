@@ -49,7 +49,8 @@ export class Arena implements IArena {
         throw Error(Errors.INVALID_ARENA_FORMAT);
       for (const index of result.meshes) {
         const mesh = index as Mesh;
-        if (mesh.id === 'arena') {
+        if (mesh.id === gameConfig.rootMesh) continue;
+        if (mesh.id === gameConfig.areneId) {
           mesh.flipFaces(true);
         }
         const material = new StandardMaterial('wireframe', scene);
