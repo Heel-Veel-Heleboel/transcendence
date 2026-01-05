@@ -150,7 +150,7 @@ services:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - ELASTIC_HOSTS=https://elasticsearch:9200
 
-      # Debugging
+      # Enable debug mode to also see logs locally
       - LOGSTASH_DEBUG=${LOGSTASH_DEBUG:-false}
     # networks:
     #   - elastic      # Internal ELK communication
