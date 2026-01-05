@@ -47,8 +47,8 @@ export class Arena implements IArena {
     await model.then(result => {
       if (result.meshes.length !== gameConfig.arenaMeshesCount)
         throw Error(Errors.INVALID_ARENA_FORMAT);
-      for (let i = 1; i < result.meshes.length; i++) {
-        const mesh = result.meshes[i] as Mesh;
+      for (const index of result.meshes) {
+        const mesh = index as Mesh;
         if (mesh.id === 'arena') {
           mesh.flipFaces(true);
         }
