@@ -44,7 +44,7 @@ export class Arena implements IArena {
     const model = ImportMeshAsync('/arena.gltf', scene);
     await model.then(result => {
       console.log(result);
-      if (result.meshes.length != 4) throw Error('arena wrongly formatted');
+      if (result.meshes.length !== 4) throw Error('arena wrongly formatted');
       for (let i = 1; i < result.meshes.length; i++) {
         const mesh = result.meshes[i] as Mesh;
         if (mesh.id === 'arena') {
