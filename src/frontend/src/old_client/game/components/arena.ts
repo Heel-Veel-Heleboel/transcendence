@@ -7,6 +7,8 @@ import {
   PhysicsAggregate,
   StandardMaterial
 } from '@babylonjs/core';
+import gameConfig from '../utils/gameConfig.ts';
+import Errors from '../utils/error.ts';
 
 /* v8 ignore start */
 export class Arena implements IArena {
@@ -41,13 +43,14 @@ export class Arena implements IArena {
   constructor() {}
 
   async initMesh(scene: Scene) {
-    const model = ImportMeshAsync('/arena.gltf', scene);
+    const model = ImportMeshAsync(gameConfig.arenaImportpath, scene);
     await model.then(result => {
-      console.log(result);
-      if (result.meshes.length != 4) throw Error('arena wrongly formatted');
-      for (let i = 1; i < result.meshes.length; i++) {
-        const mesh = result.meshes[i] as Mesh;
-        if (mesh.id === 'arena') {
+      if (result.meshes.length !== gameConfig.arenaMeshesCount)
+        throw Error(Errors.INVALID_ARENA_FORMAT);
+      for (const index of result.meshes) {
+        const mesh = index as Mesh;
+        if (mesh.id === gameConfig.rootMesh) continue;
+        if (mesh.id === gameConfig.areneId) {
           mesh.flipFaces(true);
         }
         const material = new StandardMaterial('wireframe', scene);
@@ -64,18 +67,16 @@ export class Arena implements IArena {
         );
         aggregate.body.setAngularDamping(0.0);
         aggregate.body.setLinearDamping(0.0);
-        this._arena = { mesh, aggregate };
-        if (mesh.id === 'goal_1') {
+        if (mesh.id === gameConfig.areneId) {
+          this._arena = { mesh, aggregate };
+        } else if (mesh.id === gameConfig.goalId1) {
           aggregate.body.setCollisionCallbackEnabled(true);
           this.goal_1 = { mesh, aggregate };
-          console.log('here');
-        }
-        if (mesh.id === 'goal_2') {
+        } else if (mesh.id === gameConfig.goalId2) {
           aggregate.body.setCollisionCallbackEnabled(true);
           this.goal_2 = { mesh, aggregate };
         }
       }
-      console.log('finished');
     });
   }
 }

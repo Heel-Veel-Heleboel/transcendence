@@ -209,7 +209,7 @@ export class Game {
         g.player.hitIndicator.detectIncomingHits(ball);
         ball.update();
       }
-      balls.filter(ball => {
+      balls = balls.filter(ball => {
         !ball.isDead();
       });
       if (

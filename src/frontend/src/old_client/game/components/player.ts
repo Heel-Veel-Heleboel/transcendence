@@ -13,6 +13,7 @@ import earcut from 'earcut';
 import { KeyGrid } from '../systems/keyGrid.ts';
 import { Hud } from './hud.ts';
 import { HitIndicator } from './hitIndicator.ts';
+import gameConfig from '../utils/gameConfig.ts';
 
 /* v8 ignore start */
 export class Player implements IPlayer {
@@ -29,7 +30,6 @@ export class Player implements IPlayer {
   constructor(config: PlayerConfig, scene: Scene) {
     this.goalPosition = config.goalPosition;
     this.goalDimensions = config.goalDimensions;
-    // add Keys to player
     this.ratioDiv = config.keys.length;
     this.keyGrid = new KeyGrid(config.keys, {
       goalPosition: config.goalPosition,
@@ -90,7 +90,6 @@ export class Player implements IPlayer {
     );
     this.keyGridMesh.position = config.goalPosition;
     const gridMaterial = new GridMaterial('grid', scene);
-    // opacity, majorUnitFrequency, gridRatio, gridOffset exist for GridMaterial, but it gives an error that can be ignored
     gridMaterial.opacity = 0.99;
     gridMaterial.majorUnitFrequency = 0.99;
     if (this.keyGrid.length % 2) {
@@ -104,9 +103,7 @@ export class Player implements IPlayer {
   }
 
   async initGridColumnsHints(scene: Scene) {
-    const fontData = await (
-      await fetch('../../public/Monofett_Regular.json')
-    ).json(); // Providing you have a font data file at that location
+    const fontData = await (await fetch(gameConfig.hintFontPath)).json();
     for (let i = 0; i < this.keyGrid.length; i++) {
       const text = MeshBuilder.CreateText(
         'myText',
@@ -131,6 +128,8 @@ export class Player implements IPlayer {
           this.goalPosition.z
         );
       }
+      // NOTE: not sure which material is going to used for hints yet, therefore
+      // commented out
       // const material = new BABYLON.StandardMaterial('wireframe', scene);
       // text.material = material;
       // if (text.material) {
@@ -140,9 +139,7 @@ export class Player implements IPlayer {
   }
 
   async initGridRowsHints(scene: Scene) {
-    const fontData = await (
-      await fetch('../../public/Monofett_Regular.json')
-    ).json(); // Providing you have a font data file at that location
+    const fontData = await (await fetch(gameConfig.hintFontPath)).json();
     for (let i = 0; i < this.keyGrid.length; i++) {
       const text = MeshBuilder.CreateText(
         'myText',
@@ -169,6 +166,8 @@ export class Player implements IPlayer {
           this.goalPosition.z
         );
       }
+      // NOTE: not sure which material is going to used for hints yet, therefore
+      // commented out
       // const material = new StandardMaterial('wireframe', scene);
       // text.material = material;
       // if (text.material) {
