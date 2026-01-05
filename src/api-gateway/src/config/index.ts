@@ -1,7 +1,7 @@
 import { GatewayConfig } from '../entity/common';
 import { getServicesConfig } from './service';
 import { getRateLimitConfig } from './rateLimit';
-import { logger } from '../utils/logger';
+import { logger } from './logger';
 import { validatePort } from '../utils/validation';
 
 // Determine JWT secret with proper checks

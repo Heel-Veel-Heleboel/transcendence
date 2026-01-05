@@ -1,10 +1,11 @@
 /**
- * Logger for application startup and configuration parsing
- * Uses Pino (same as Fastify) for consistent logging across the application
+ * Logger configuration for Fastify
+ * Uses Pino (same as Fastify) for consistent logging
  */
 import pino from 'pino';
 
-export const logger = pino({
+// Logger options that can be passed to Fastify
+export const loggerOptions = {
   level: process.env.LOG_LEVEL || 'info',
   transport:
     process.env.NODE_ENV !== 'production'
@@ -17,4 +18,7 @@ export const logger = pino({
         }
       }
       : undefined
-});
+};
+
+// Logger instance for use outside Fastify
+export const logger = pino(loggerOptions);

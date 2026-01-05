@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -7,6 +6,7 @@ import { proxyRoutes } from './routes/proxy';
 import { healthRoutes } from './routes/health';
 import { helmetConfig, corsConfig, getBodyLimit, logSecurityConfig } from './config/security';
 import { config } from './config';
+import { loggerOptions } from './config/logger';
 
 const HEALTH_CHECK_INTERVAL = 30000;
 let healthCheckTimeout: NodeJS.Timeout | null = null;
@@ -14,15 +14,7 @@ let healthCheckTimeout: NodeJS.Timeout | null = null;
 // Create Fastify instance with logging and security configuration
 export const createServer = async () => {
   const server = fastify({
-    logger: {
-      level: 'info',
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          colorize: true
-        }
-      }
-    },
+    logger: loggerOptions,
     bodyLimit: getBodyLimit()
   });
 

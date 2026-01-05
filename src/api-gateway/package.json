@@ -5,9 +5,9 @@
   "description": "API Gateway for Transcendence microservices architecture using Fastify",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --env-file=.env src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
+    "start": "node --env-file=.env dist/index.js",
     "clean": "rm -rf dist"
   },
   "keywords": [
@@ -19,6 +19,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@elastic/ecs-pino-format": "^1.5.0",
     "@fastify/busboy": "^2.1.1",
     "@fastify/cors": "^9.0.1",
     "@fastify/helmet": "^11.1.1",

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { ServiceConfig } from '../entity/common';
-import { logger } from '../utils/logger';
+import { logger } from './logger';
 import {
   validateIntegerRange,
   validateUrl,
