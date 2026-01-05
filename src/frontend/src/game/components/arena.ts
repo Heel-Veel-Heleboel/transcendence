@@ -7,6 +7,8 @@ import {
   PhysicsAggregate,
   StandardMaterial
 } from '@babylonjs/core';
+import gameConfig from '../utils/gameConfig.ts';
+import Errors from '../utils/error.ts';
 
 /* v8 ignore start */
 export class Arena implements IArena {
@@ -41,10 +43,10 @@ export class Arena implements IArena {
   constructor() {}
 
   async initMesh(scene: Scene) {
-    const model = ImportMeshAsync('/arena.gltf', scene);
+    const model = ImportMeshAsync(gameConfig.arenaImportpath, scene);
     await model.then(result => {
-      console.log(result);
-      if (result.meshes.length !== 4) throw Error('arena wrongly formatted');
+      if (result.meshes.length !== gameConfig.arenaMeshesCount)
+        throw Error(Errors.INVALID_ARENA_FORMAT);
       for (let i = 1; i < result.meshes.length; i++) {
         const mesh = result.meshes[i] as Mesh;
         if (mesh.id === 'arena') {
@@ -64,18 +66,16 @@ export class Arena implements IArena {
         );
         aggregate.body.setAngularDamping(0.0);
         aggregate.body.setLinearDamping(0.0);
-        if (mesh.id === 'arena') {
+        if (mesh.id === gameConfig.areneId) {
           this._arena = { mesh, aggregate };
-        } else if (mesh.id === 'goal_1') {
+        } else if (mesh.id === gameConfig.goalId1) {
           aggregate.body.setCollisionCallbackEnabled(true);
           this.goal_1 = { mesh, aggregate };
-          console.log('here');
-        } else if (mesh.id === 'goal_2') {
+        } else if (mesh.id === gameConfig.goalId2) {
           aggregate.body.setCollisionCallbackEnabled(true);
           this.goal_2 = { mesh, aggregate };
         }
       }
-      console.log('finished');
     });
   }
 }
