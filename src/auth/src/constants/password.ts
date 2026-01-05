@@ -21,3 +21,9 @@ export const PasswordLimitsConfig: Limits = {
   DEFAULT_MIN_LENGTH: 8,
   DEFAULT_MAX_LENGTH: 30
 } as const ;
+
+export const SaltLimits = {
+  MIN_SALT_LENGTH: 1,
+  MAX_SALT_LENGTH: 18,
+  DEFAULT_SALT_LENGTH: 12
+} as const;
