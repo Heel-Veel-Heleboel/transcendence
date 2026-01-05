@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SaltLimits } from '../../../src/auth/src/constants/security.js';
+import { SaltLimits } from '../../../src/auth/src/constants/password.js';
 import { validateSaltLengthLimits } from '../../../src/auth/src/validators/hash.js';
 
 describe('Salt Length Validation', () => {

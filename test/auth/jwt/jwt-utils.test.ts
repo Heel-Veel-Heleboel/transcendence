@@ -240,24 +240,37 @@ import { CryptoErrorMessage } from '../../../src/auth/src/constants/jwt.ts';
 
 describe('Refresh Token Utils', () => {
   describe('generateRefreshToken', () => {
-    it('should generate a refresh token of expected length', () => {
-      const token = generateRefreshToken(64);
-      expect(typeof token).toBe('string');
-      expect(token.length).toBe(128); 
+    it('should return an object with id and hashedRefreshToken', () => {
+      const result = generateRefreshToken(64);
+      expect(result).toHaveProperty('id');
+      expect(result).toHaveProperty('hashedRefreshToken');
+      expect(typeof result.id).toBe('string');
+      expect(typeof result.hashedRefreshToken).toBe('string');
+    });
+
+    it('should generate a valid UUID as id', () => {
+      const result = generateRefreshToken(64);
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      expect(result.id).toMatch(uuidRegex);
+    });
+
+    it('should generate a hashed token (sha256 produces 64 char hex)', () => {
+      const result = generateRefreshToken(64);
+      expect(result.hashedRefreshToken.length).toBe(64);
     });
 
     it('should generate unique tokens on multiple calls', () => {
-      const token1 = generateRefreshToken(64);
-      const token2 = generateRefreshToken(64);
-      expect(token1).not.toBe(token2);
+      const result1 = generateRefreshToken(64);
+      const result2 = generateRefreshToken(64);
+      expect(result1.id).not.toBe(result2.id);
+      expect(result1.hashedRefreshToken).not.toBe(result2.hashedRefreshToken);
     });
 
-    it('should handle different sizes correctly', () => {
+    it('should generate unique ids for different sizes', () => {
       const sizes = [16, 32, 64, 128];
-      sizes.forEach(size => {
-        const token = generateRefreshToken(size);
-        expect(token.length).toBe(size * 2); 
-      });
+      const ids = sizes.map(size => generateRefreshToken(size).id);
+      const uniqueIds = new Set(ids);
+      expect(uniqueIds.size).toBe(sizes.length);
     });
 
     it('should throw error when size is less than zero or too large', () => {

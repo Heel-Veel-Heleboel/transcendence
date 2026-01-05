@@ -1,7 +1,7 @@
 /*
   Warnings:
 
-  - The required column `jti` was added to the `RefreshToken` table with a prisma-level default value. This is not possible if the table is not empty. Please add this column as optional, then populate it before making it required.
+  - The required column `id` was added to the `RefreshToken` table with a prisma-level default value. This is not possible if the table is not empty. Please add this column as optional, then populate it before making it required.
 
 */
 -- RedefineTables
@@ -11,15 +11,15 @@ CREATE TABLE "new_RefreshToken" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "userId" INTEGER NOT NULL,
     "hashedToken" TEXT NOT NULL,
-    "jti" TEXT NOT NULL,
+    "id" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "expiredAt" DATETIME NOT NULL,
     "revokedAt" DATETIME
 );
-INSERT INTO "new_RefreshToken" ("createdAt", "expiredAt", "hashedToken", "id", "revokedAt", "userId", "jti") SELECT "createdAt", "expiredAt", "hashedToken", "id", "revokedAt", "userId", lower(hex(randomblob(16))) FROM "RefreshToken";
+INSERT INTO "new_RefreshToken" ("createdAt", "expiredAt", "hashedToken", "id", "revokedAt", "userId", "id") SELECT "createdAt", "expiredAt", "hashedToken", "id", "revokedAt", "userId", lower(hex(randomblob(16))) FROM "RefreshToken";
 DROP TABLE "RefreshToken";
 ALTER TABLE "new_RefreshToken" RENAME TO "RefreshToken";
-CREATE UNIQUE INDEX "RefreshToken_jti_key" ON "RefreshToken"("jti");
+CREATE UNIQUE INDEX "RefreshToken_id_key" ON "RefreshToken"("id");
 CREATE INDEX "RefreshToken_revokedAt_idx" ON "RefreshToken"("revokedAt");
 PRAGMA foreign_keys=ON;
 PRAGMA defer_foreign_keys=OFF;
