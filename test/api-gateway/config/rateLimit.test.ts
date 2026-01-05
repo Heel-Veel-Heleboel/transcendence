@@ -17,7 +17,7 @@ describe('Rate limit config parsing', () => {
     parseJsonRateLimits = rateModule.parseJsonRateLimits;
     getRateLimitConfig = rateModule.getRateLimitConfig;
 
-    const loggerModule = await import('../../../src/api-gateway/src/utils/logger');
+    const loggerModule = await import('../../../src/api-gateway/src/config/logger');
     logger = loggerModule.logger;
   });
 
