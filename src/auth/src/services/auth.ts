@@ -57,11 +57,11 @@ export class AuthService {
     }
     const accessToken = generateAccessToken({ sub: user.id, user_email: user.email });
     const refreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
-    const hashedRefreshToken = hashRefreshToken(refreshToken);
-    await this.refreshTokenDao.create({ userId: user.id, refreshToken: hashedRefreshToken });
+
+    await this.refreshTokenDao.create( { id: refreshToken.id, userId: user.id, refreshToken: refreshToken.hashedRefreshToken } );
     return {
       accessToken,
-      refreshToken,
+      refreshToken: refreshToken.hashedRefreshToken,
       id: user.id,
       name: user.username,
       email: user.email

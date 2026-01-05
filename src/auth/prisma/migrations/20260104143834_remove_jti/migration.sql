@@ -1,7 +1,7 @@
 /*
   Warnings:
 
-  - You are about to drop the column `jti` on the `RefreshToken` table. All the data in the column will be lost.
+  - You are about to drop the column `id` on the `RefreshToken` table. All the data in the column will be lost.
 
 */
 -- RedefineTables
