@@ -55,7 +55,7 @@ export default [
       'no-duplicate-imports': 'error',
 
       // Code style
-      indent: ['error', 2, { SwitchCase: 1 }],
+      indent: ['error', 2],
       quotes: ['error', 'single'],
       semi: ['error', 'always'],
       'comma-dangle': ['error', 'never'],
