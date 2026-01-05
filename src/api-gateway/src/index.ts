@@ -5,12 +5,12 @@ import helmet from '@fastify/helmet';
 import websocket from '@fastify/websocket';
 import { setupProxyErrorHandler } from './routes/errorHandler';
 import { helmetConfig, corsConfig, getBodyLimit } from './config/security';
-import { getLoggerConfig } from './utils/logger';
+import { loggerOptions } from './utils/logger';
 
 // Create Fastify instance with logging and security configuration
 export const createServer = async () => {
   const server = fastify({
-    logger: getLoggerConfig(),
+    logger: loggerOptions,
     bodyLimit: getBodyLimit()
   });
 
