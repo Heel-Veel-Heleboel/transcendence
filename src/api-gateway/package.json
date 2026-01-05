@@ -5,9 +5,9 @@
   "description": "API Gateway for Transcendence microservices architecture using Fastify",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --env-file=.env src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
+    "start": "node --env-file=.env dist/index.js",
     "clean": "rm -rf dist"
   },
   "keywords": [
