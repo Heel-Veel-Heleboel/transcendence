@@ -1,8 +1,13 @@
 import fastify from 'fastify';
 import httpProxy from '@fastify/http-proxy';
+import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
+import websocket from '@fastify/websocket';
+import { setupProxyErrorHandler } from './routes/errorHandler';
+import { helmetConfig, corsConfig, getBodyLimit } from './config/security';
 
-// Create Fastify instance with logging
-export const createServer = () => {
+// Create Fastify instance with logging and security configuration
+export const createServer = async () => {
   const server = fastify({
     logger: {
       level: 'info',
@@ -12,8 +17,21 @@ export const createServer = () => {
           colorize: true
         }
       }
-    }
+    },
+    bodyLimit: getBodyLimit()
   });
+
+  // Register Helmet for security headers
+  await server.register(helmet, helmetConfig);
+
+  // Register CORS plugin
+  await server.register(cors, corsConfig);
+
+  // Register WebSocket support
+  await server.register(websocket);
+
+  // Setup global error handler for proxy routes
+  setupProxyErrorHandler(server);
 
   // Basic health check endpoint
   server.get('/health', async (_request, _reply) => {
@@ -31,7 +49,7 @@ export const createServer = () => {
 
 // Start the server
 export const start = async (
-  server: ReturnType<typeof createServer> = createServer()
+  server: Awaited<ReturnType<typeof createServer>>
 ) => {
   try {
     const port = process.env.PORT ? parseInt(process.env.PORT) : 3002;
@@ -48,7 +66,7 @@ export const start = async (
 
 // Handle graceful shutdown
 export const setupGracefulShutdown = (
-  server: ReturnType<typeof createServer>
+  server: Awaited<ReturnType<typeof createServer>>
 ) => {
   const handleShutdown = async (signal: string) => {
     server.log.info(`Received ${signal}, shutting down gracefully`);
@@ -61,7 +79,9 @@ export const setupGracefulShutdown = (
 
 // Run only when not in test mode
 if (process.env.NODE_ENV !== 'test') {
-  const server = createServer();
-  setupGracefulShutdown(server);
-  start(server);
+  (async () => {
+    const server = await createServer();
+    setupGracefulShutdown(server);
+    await start(server);
+  })();
 }

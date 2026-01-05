@@ -6,13 +6,19 @@ import {
 import httpProxy from '@fastify/http-proxy';
 import { config } from '../config';
 import { authGuard } from '../middleware/auth';
+import { setupProxyErrorHandler } from './errorHandler';
 import { ServiceConfig } from '../entity/common';
 import type { ExtendedHttpProxyOptions } from '../entity/types';
 
 /**
  * Main function to register all proxy routes
+ * Sets up error handler first, then registers all service proxies
  */
 export async function proxyRoutes(fastify: FastifyInstance): Promise<void> {
+  // Setup global error handler before registering routes
+  setupProxyErrorHandler(fastify);
+
+  // Register all service proxies
   await Promise.all(
     config.services.map(service => registerServiceProxy(fastify, service))
   );
@@ -76,7 +82,8 @@ async function registerHttpProxy(
     prefix: service.prefix,
     rewritePrefix: service.rewritePrefix || '',
     proxyTimeout: service.timeout ?? 5000,
-    timeout: service.timeout ?? 5000
+    timeout: service.timeout ?? 5000,
+    websocket: service.websocket ?? false
   };
 
   await fastify.register(httpProxy, proxyOptions);
@@ -93,7 +100,7 @@ function setupHeaderForwardingHooks(
     'preHandler',
     async (_request: FastifyRequest, _reply: FastifyReply) => {
       if (_request.user) {
-        _request.log.debug(
+        _request.log.info(
           {
             userId: _request.user.sub,
             email: _request.user.email,
@@ -104,7 +111,7 @@ function setupHeaderForwardingHooks(
         );
       }
       if (_request.correlationId) {
-        _request.log.debug(
+        _request.log.info(
           {
             correlationId: _request.correlationId,
             service: service.name
@@ -121,7 +128,7 @@ function setupHeaderForwardingHooks(
  */
 function findServiceByUrl(url: string | undefined): ServiceConfig | undefined {
   if (!url) return undefined;
-  return config.services.find(s => url.startsWith(s.prefix));
+  return config.services.find(s => s.prefix && url.startsWith(s.prefix));
 }
 
 export {

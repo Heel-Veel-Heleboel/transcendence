@@ -24,7 +24,12 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
+    
     - name: Run tests
+      env:
+          PASSWORD_MIN_LENGTH: ${{ secrets.PASSWORD_MIN_LENGTH }}
+          PASSWORD_MAX_LENGTH: ${{ secrets.PASSWORD_MAX_LENGTH }}
+          BCRYPT_SALT_ROUNDS: ${{ secrets.BCRYPT_SALT_ROUNDS }}
       run: npm run test:run
     
     - name: Run tests with coverage

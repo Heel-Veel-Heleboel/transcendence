@@ -1,0 +1,30 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model UserCredentials {
+  userId          Int @id
+  hashedPassword  String
+}
+
+model RefreshToken {
+  id          String @id @default(uuid())
+  userId      Int 
+  hashedToken String
+  createdAt   DateTime @default(now())
+  expiredAt   DateTime
+  revokedAt   DateTime?
+  @@index([revokedAt])
+}

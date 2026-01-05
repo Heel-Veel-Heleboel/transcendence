@@ -1,13 +1,36 @@
 // Type definitions for the API Gateway
 
+/**
+ * Security-related constants
+ */
+export const SECURITY_CONSTANTS = {
+  // Body size limits
+  DEFAULT_BODY_LIMIT_BYTES: 1048576, // 1MB in bytes
+  BYTES_PER_MB: 1048576,
+
+  // HSTS (HTTP Strict Transport Security) configuration
+  DEFAULT_HSTS_MAX_AGE_SECONDS: 31536000, // 1 year in seconds
+  SECONDS_PER_YEAR: 31536000,
+
+  // Port range validation
+  MIN_PORT: 1,
+  MAX_PORT: 65535
+} as const;
+
+export interface RateLimitEntry {
+  max: number;
+  timeWindow: string;
+}
+
 export interface ServiceConfig {
   name: string;
   upstream: string;
-  prefix: string;
+  prefix?: string;
   rewritePrefix?: string;
   timeout?: number;
   retries?: number;
   requiresAuth?: boolean;
+  websocket?: boolean;
 }
 
 export interface GatewayConfig {
@@ -20,21 +43,9 @@ export interface GatewayConfig {
 }
 
 export interface RateLimitConfig {
-  global: {
-    max: number;
-    timeWindow: string;
-  };
-  authenticated: {
-    max: number;
-    timeWindow: string;
-  };
-  endpoints: Record<
-    string,
-    {
-      max: number;
-      timeWindow: string;
-    }
-  >;
+  global: RateLimitEntry;
+  authenticated: RateLimitEntry;
+  endpoints: Record<string, RateLimitEntry>;
 }
 
 export interface JWTPayload {

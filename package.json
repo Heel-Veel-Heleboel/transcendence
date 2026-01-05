@@ -12,6 +12,7 @@
     "clean": "tsc -b --clean",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:auth": "vitest run test/auth/**/*.test.ts",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
     "lint": "eslint src/**/src/**/*.ts test/**/*.ts --ext .ts",

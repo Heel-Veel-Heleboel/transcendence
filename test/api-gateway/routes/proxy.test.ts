@@ -464,15 +464,37 @@ describe('Proxy Routes', () => {
       let handler: any = null;
       const fakeFastify: any = { addHook: (name: string, fn: any) => { if (name === 'preHandler') handler = fn; } };
       const svc = { name: 'svc', upstream: 'http://u', prefix: '/p', rewritePrefix: '/r' };
-      const debugSpy = vi.fn();
+      const infoSpy = vi.fn();
 
-      const fakeReq: any = { user: { sub: '42', email: 'a@b', role: 'user' }, correlationId: 'corr-1', log: { debug: debugSpy } };
+      const fakeReq: any = { user: { sub: '42', email: 'a@b', role: 'user' }, correlationId: 'corr-1', log: { info: infoSpy } };
       const fakeReply: any = {};
 
       setupHeaderForwardingHooks(fakeFastify as any, svc as any);
       expect(typeof handler).toBe('function');
       await handler(fakeReq, fakeReply);
-      expect(debugSpy).toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalled();
+    });
+
+    it('registerHttpProxy includes websocket option when service has websocket enabled', async () => {
+      const { registerHttpProxy } = await import('../../../src/api-gateway/src/routes/proxy');
+      let captured: any = null;
+      const fakeFastify: any = { register: (plugin: any, opts: any) => { captured = { plugin, opts }; return Promise.resolve(); } };
+      const svc = { name: 'chat', upstream: 'http://chat', prefix: '/api/chat', rewritePrefix: '/chat', timeout: 5000, websocket: true } as any;
+
+      await registerHttpProxy(fakeFastify, svc);
+      expect(captured).not.toBeNull();
+      expect(captured.opts.websocket).toBe(true);
+    });
+
+    it('registerHttpProxy defaults websocket to false when not specified', async () => {
+      const { registerHttpProxy } = await import('../../../src/api-gateway/src/routes/proxy');
+      let captured: any = null;
+      const fakeFastify: any = { register: (plugin: any, opts: any) => { captured = { plugin, opts }; return Promise.resolve(); } };
+      const svc = { name: 'api', upstream: 'http://api', prefix: '/api', rewritePrefix: '/api', timeout: 5000 } as any;
+
+      await registerHttpProxy(fakeFastify, svc);
+      expect(captured).not.toBeNull();
+      expect(captured.opts.websocket).toBe(false);
     });
   });
 
