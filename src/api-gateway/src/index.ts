@@ -9,23 +9,7 @@ import { helmetConfig, corsConfig, getBodyLimit, logSecurityConfig } from './con
 import { config } from './config';
 
 const HEALTH_CHECK_INTERVAL = 30000;
-let healthCheckInterval: NodeJS.Timeout | null = null;
-
-/**
- * Perform health check on all registered services
- */
-async function performHealthCheck(host: string, port: number, logger: { warn: (obj: object, msg: string) => void; error: (obj: object, msg: string) => void }): Promise<void> {
-  try {
-    const response = await fetch(`http://${host}:${port}/health/detailed`);
-    const health = await response.json();
-
-    if (health.status === 'degraded') {
-      logger.warn({ services: health.services }, 'Some services are unhealthy');
-    }
-  } catch (error) {
-    logger.error({ error }, 'Background health check failed');
-  }
-}
+let healthCheckTimeout: NodeJS.Timeout | null = null;
 
 // Create Fastify instance with logging and security configuration
 export const createServer = async () => {
@@ -60,24 +44,33 @@ export const createServer = async () => {
   // Register all service proxy routes from configuration
   await proxyRoutes(server);
 
-  // Start background health checks (every 30 seconds)
-  if (config.services && config.services.length > 0) {
-    setInterval(async () => {
-      try {
-        const response = await fetch('http://localhost:3002/health/detailed');
-        const health = await response.json();
-
-        if (health.status === 'degraded') {
-          server.log.warn({ services: health.services }, 'Some services are unhealthy');
-        }
-      } catch (error) {
-        server.log.error({ error }, 'Background health check failed');
-      }
-    }, HEALTH_CHECK_INTERVAL); 
-  }
-
   return server;
 };
+
+/**
+ * Perform recursive health check with setTimeout to ensure checks don't overlap
+ */
+function scheduleHealthCheck(
+  server: Awaited<ReturnType<typeof createServer>>,
+  host: string,
+  port: number
+): void {
+  healthCheckTimeout = setTimeout(async () => {
+    try {
+      const response = await fetch(`http://${host}:${port}/health/detailed`);
+      const health = await response.json();
+
+      if (health.status === 'degraded') {
+        server.log.warn({ services: health.services }, 'Some services are unhealthy');
+      }
+    } catch (error) {
+      server.log.error({ error }, 'Background health check failed');
+    } finally {
+      // Schedule next health check after this one completes
+      scheduleHealthCheck(server, host, port);
+    }
+  }, HEALTH_CHECK_INTERVAL);
+}
 
 // Start the server
 export const start = async (
@@ -91,10 +84,18 @@ export const start = async (
     server.log.info(`API Gateway is running on http://${host}:${port}`);
 
     if (config.services && config.services.length > 0) {
-      await performHealthCheck(host, port, server.log);
+      try {
+        const response = await fetch(`http://${host}:${port}/health/detailed`);
+        const health = await response.json();
 
-      healthCheckInterval = setInterval(() => performHealthCheck(host, port, server.log), HEALTH_CHECK_INTERVAL);
+        if (health.status === 'degraded') {
+          server.log.warn({ services: health.services }, 'Some services are unhealthy');
+        }
+      } catch (error) {
+        server.log.error({ error }, 'Initial health check failed');
+      }
 
+      scheduleHealthCheck(server, host, port);
       server.log.info({ interval: HEALTH_CHECK_INTERVAL }, 'Background health checks started');
     }
 
@@ -112,9 +113,9 @@ export const setupGracefulShutdown = (
   const handleShutdown = async (signal: string) => {
     server.log.info(`Received ${signal}, shutting down gracefully`);
 
-    if (healthCheckInterval) {
-      clearInterval(healthCheckInterval);
-      healthCheckInterval = null;
+    if (healthCheckTimeout) {
+      clearTimeout(healthCheckTimeout);
+      healthCheckTimeout = null;
       server.log.info('Background health checks stopped');
     }
 
