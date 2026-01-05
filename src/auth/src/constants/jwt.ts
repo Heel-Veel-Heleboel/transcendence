@@ -1,7 +1,7 @@
 export const JWT_ALGORITHM = 'RS256' as const;
 export const JWT_ISSUER = 'AuthService' as const;
 export const JWT_AUDIENCE = 'TranscendenceApp' as const;
-
+export const REFRESH_TOKEN_SIZE = 64 as const;
 
 export const JwtSchemaErrorMessage = {
   JWT_PRIVATE_KEY_PATH_MISSING: 'Missing JWT_PRIVATE_KEY_PATH',
