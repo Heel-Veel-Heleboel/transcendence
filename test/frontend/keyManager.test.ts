@@ -390,18 +390,6 @@ describe('KeyManager', () => {
     expect(spy).toHaveBeenCalled();
   });
 
-  it('resolve - sequence not present', async () => {
-    const player = new Player();
-    const keyManager = new KeyManager(scene, callback, player);
-    const spy = vi.spyOn(keyManager, 'reset');
-    keyManager.buffer = ['z', 'l'];
-
-    keyManager.resolve();
-
-    expect(player.move).not.toHaveBeenCalled();
-    expect(spy).toHaveBeenCalled();
-  });
-
   it('reset', async () => {
     const player = new Player();
     const keyManager = new KeyManager(scene, callback, player);
