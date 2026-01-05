@@ -35,9 +35,6 @@ export function checkRowColumnVersusKeyLength(
 }
 
 export function checkDuplicateInString(str: string) {
-  // Source - https://stackoverflow.com/a
-  // Posted by Fawad Mueed
-  // Retrieved 2025-12-30, License - CC BY-SA 3.0
   if (
     str
       .toLowerCase()
