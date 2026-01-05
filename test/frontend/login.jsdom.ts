@@ -3,7 +3,7 @@ import { userEvent } from '@testing-library/user-event';
 import '@testing-library/dom';
 import * as module from '../../src/frontend/src/login.ts';
 
-vi.mock('../../src/frontend/src/game.ts');
+vi.mock('../../src/frontend/src/game/systems/game.ts');
 vi.mock('../../src/frontend/src/state.ts');
 
 function createMockButton(id: string) {
@@ -51,11 +51,13 @@ describe('gotoGame', () => {
   });
 
   it('initGame should be called', async () => {
-    const { initGame } = await import('../../src/frontend/src/game.ts');
+    const { Game } = await import(
+      '../../src/frontend/src/game/systems/game.ts'
+    );
 
     module.gotoGame();
 
-    expect(initGame).toHaveBeenCalled();
+    expect(Game.prototype.initGame).toHaveBeenCalled();
   });
 });
 

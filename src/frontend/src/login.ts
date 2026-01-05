@@ -1,4 +1,4 @@
-import { initGame } from './game.ts';
+import { Game } from './game/systems/game.ts';
 import * as module from './login.ts';
 import { loadTemplate } from './state.ts';
 
@@ -21,10 +21,11 @@ export function initLogin() {
   module.registerOptionLogin();
 }
 
-export function gotoGame() {
+export async function gotoGame() {
   console.log('here in game');
   loadTemplate('game');
-  initGame();
+  const game = new Game();
+  await game.initGame();
 }
 
 export function gotoLogin() {
