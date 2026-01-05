@@ -64,13 +64,13 @@ export class Arena implements IArena {
         );
         aggregate.body.setAngularDamping(0.0);
         aggregate.body.setLinearDamping(0.0);
-        this._arena = { mesh, aggregate };
-        if (mesh.id === 'goal_1') {
+        if (mesh.id === 'arena') {
+          this._arena = { mesh, aggregate };
+        } else if (mesh.id === 'goal_1') {
           aggregate.body.setCollisionCallbackEnabled(true);
           this.goal_1 = { mesh, aggregate };
           console.log('here');
-        }
-        if (mesh.id === 'goal_2') {
+        } else if (mesh.id === 'goal_2') {
           aggregate.body.setCollisionCallbackEnabled(true);
           this.goal_2 = { mesh, aggregate };
         }
