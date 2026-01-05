@@ -48,16 +48,17 @@ describe('AuthService - Login', () => {
 
     const mockHashedPassword = '$2b$10$hashedpassword';
     const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
-    const mockRefreshToken = 'refreshtoken';
-    const mockHashedRefreshToken = 'fv233h2fv233h2b4v2vn2jnmn24m42m42b42nbteb4v2vn2jnmn24m42m42b42nb';
+    const mockRefreshTokenResult = {
+      id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+      hashedRefreshToken: 'fv233h2fv233h2b4v2vn2jnmn24m42m42b42nbteb4v2vn2jnmn24m42m42b42nb'
+    };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
     mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
 
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
-    vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshToken);
-    vi.spyOn(jwtModule, 'hashRefreshToken').mockReturnValue(mockHashedRefreshToken);
+    vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
     mockRefreshTokenDao.create.mockResolvedValue(undefined);
 
     const result = await authService.login(loginDto);
@@ -78,15 +79,16 @@ describe('AuthService - Login', () => {
     expect(jwtModule.generateRefreshToken).toHaveBeenCalledWith(REFRESH_TOKEN_SIZE);
     expect(jwtModule.generateRefreshToken).toBeCalledTimes(1);
 
-    expect(jwtModule.hashRefreshToken).toHaveBeenCalledWith(mockRefreshToken);
-    expect(jwtModule.hashRefreshToken).toBeCalledTimes(1);
-
-    expect(mockRefreshTokenDao.create).toHaveBeenCalledWith({ userId: mockUser.id, refreshToken: mockHashedRefreshToken });
+    expect(mockRefreshTokenDao.create).toHaveBeenCalledWith({
+      id: mockRefreshTokenResult.id,
+      userId: mockUser.id,
+      refreshToken: mockRefreshTokenResult.hashedRefreshToken
+    });
     expect(mockRefreshTokenDao.create).toBeCalledTimes(1);
 
     expect(result).toEqual({
       accessToken: mockAccessToken,
-      refreshToken: mockRefreshToken,
+      refreshToken: mockRefreshTokenResult.hashedRefreshToken,
       id: mockUser.id,
       name: mockUser.username,
       email: mockUser.email
@@ -276,42 +278,7 @@ describe('AuthService - Login', () => {
   });
 
   /**
-   * TEST 9: Error During Refresh Token Hashing
-   */
-  it('should let refresh token hashing errors bubble up', async () => {
-    const loginDto = {
-      email: 'test@user.com',
-      password: 'TestPassword123!'
-    };
-
-    const mockUser = {
-      id: 1,
-      email: 'test@user.com',
-      username: 'testuser'
-    };
-
-    const mockHashedPassword = '$2b$10$hashedpassword';
-    const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
-    const mockRefreshToken = 'refreshtoken';
-
-    mockUserService.findUserByEmail.mockResolvedValue(mockUser);
-    mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
-    vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
-    vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
-    vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshToken);
-    
-    const hashError = new Error('Hashing algorithm failed');
-    vi.spyOn(jwtModule, 'hashRefreshToken').mockImplementation(() => {
-      throw hashError;
-    });
-
-    await expect(authService.login(loginDto)).rejects.toThrow('Hashing algorithm failed');
-
-    expect(mockRefreshTokenDao.create).not.toHaveBeenCalled();
-  });
-
-  /**
-   * TEST 10: Error During Refresh Token Storage
+   * TEST 9: Error During Refresh Token Storage
    */
   it('should let refresh token storage errors bubble up', async () => {
     const loginDto = {
@@ -327,15 +294,16 @@ describe('AuthService - Login', () => {
 
     const mockHashedPassword = '$2b$10$hashedpassword';
     const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
-    const mockRefreshToken = 'refreshtoken';
-    const mockHashedRefreshToken = 'fv233h2fv233h2b4v2vn2jnmn24m42m42b42nb';
+    const mockRefreshTokenResult = {
+      id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+      hashedRefreshToken: 'fv233h2fv233h2b4v2vn2jnmn24m42m42b42nb'
+    };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
     mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
-    vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshToken);
-    vi.spyOn(jwtModule, 'hashRefreshToken').mockReturnValue(mockHashedRefreshToken);
+    vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
     
     const storageError = new Error('Database constraint violation');
     mockRefreshTokenDao.create.mockRejectedValue(storageError);
@@ -344,7 +312,7 @@ describe('AuthService - Login', () => {
   });
 
   /**
-   * TEST 11: Case Sensitivity - Email
+   * TEST 10: Case Sensitivity - Email
    */
   it('should handle email case sensitivity correctly', async () => {
     const loginDto = {
@@ -360,7 +328,7 @@ describe('AuthService - Login', () => {
   });
 
   /**
-   * TEST 12: Multiple Users - Ensure Correct User Data
+   * TEST 11: Multiple Users - Ensure Correct User Data
    */
   it('should return correct user data for different users', async () => {
     const loginDto = {
@@ -376,22 +344,23 @@ describe('AuthService - Login', () => {
 
     const mockHashedPassword = '$2b$10$differenthash';
     const mockAccessToken = 'different.access.token';
-    const mockRefreshToken = 'differentrefreshtoken';
-    const mockHashedRefreshToken = 'differenthashedrefreshtoken';
+    const mockRefreshTokenResult = {
+      id: 'b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e',
+      hashedRefreshToken: 'differenthashedrefreshtoken'
+    };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
     mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
-    vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshToken);
-    vi.spyOn(jwtModule, 'hashRefreshToken').mockReturnValue(mockHashedRefreshToken);
+    vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
     mockRefreshTokenDao.create.mockResolvedValue(undefined);
 
     const result = await authService.login(loginDto);
 
     expect(result).toEqual({
       accessToken: mockAccessToken,
-      refreshToken: mockRefreshToken,
+      refreshToken: mockRefreshTokenResult.hashedRefreshToken,
       id: 42,
       name: 'seconduser',
       email: 'user2@test.com'
@@ -399,7 +368,7 @@ describe('AuthService - Login', () => {
   });
 
   /**
-   * TEST 13: Empty Password
+   * TEST 12: Empty Password
    */
   it('should handle empty password', async () => {
     const loginDto = {
@@ -423,7 +392,7 @@ describe('AuthService - Login', () => {
   });
 
   /**
-   * TEST 14: Special Characters in Email
+   * TEST 13: Special Characters in Email
    */
   it('should handle special characters in email', async () => {
     const loginDto = {
@@ -439,15 +408,16 @@ describe('AuthService - Login', () => {
 
     const mockHashedPassword = '$2b$10$hashedpassword';
     const mockAccessToken = 'access.token';
-    const mockRefreshToken = 'refreshtoken';
-    const mockHashedRefreshToken = 'hashedrefreshtoken';
+    const mockRefreshTokenResult = {
+      id: 'c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f',
+      hashedRefreshToken: 'hashedrefreshtoken'
+    };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
     mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
-    vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshToken);
-    vi.spyOn(jwtModule, 'hashRefreshToken').mockReturnValue(mockHashedRefreshToken);
+    vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
     mockRefreshTokenDao.create.mockResolvedValue(undefined);
 
     const result = await authService.login(loginDto);
@@ -456,7 +426,7 @@ describe('AuthService - Login', () => {
   });
 
   /**
-   * TEST 15: Password Comparison is Called with Correct Arguments
+   * TEST 14: Password Comparison is Called with Correct Arguments
    */
   it('should compare password with stored hash correctly', async () => {
     const loginDto = {
