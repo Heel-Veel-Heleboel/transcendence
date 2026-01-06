@@ -1,11 +1,11 @@
 import { UserManagementService } from '../types/user-management-service.js';
 import { CredentialsDaoShape } from '../types/daos/credentials.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
-import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto } from '../types/dtos/auth.js';
+import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto, LogoutDto } from '../types/dtos/auth.js';
 import { passwordHasher, comparePasswordHash } from '../utils/password-hash.js';
 import { SaltLimits } from '../constants/password.js';
 import { REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
-import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
+import { generateAccessToken, generateRefreshToken, compareRefreshToken} from '../utils/jwt.js';
 import { AuthenticationError } from '../error/auth.js';
 
 /** 
@@ -45,26 +45,46 @@ export class AuthService {
   }
 
 
-  async login(loginDto: LoginDto ): Promise<LoggedInUserDto> {
-    const user = await this.userService.findUserByEmail(loginDto.email);
+  async login(login: LoginDto ): Promise<LoggedInUserDto> {
+    const user = await this.userService.findUserByEmail(login.email);
     if (!user) {
-      throw new AuthenticationError(`User with email: ${loginDto.email} does not exist.`);
+      throw new AuthenticationError(`User with email: ${login.email} does not exist.`);
     }
     const storedPassword = await this.credentialsDao.findByUserId({ userId: user.id });
 
-    if (!storedPassword || !(await comparePasswordHash(loginDto.password, storedPassword))) {
+    if (!storedPassword || !(await comparePasswordHash(login.password, storedPassword))) {
       throw new AuthenticationError('Invalid credentials provided.');
     }
     const accessToken = generateAccessToken({ sub: user.id, user_email: user.email });
     const refreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
 
-    await this.refreshTokenDao.create( { id: refreshToken.id, userId: user.id, refreshToken: refreshToken.hashedRefreshToken } );
+    await this.refreshTokenDao.store( { id: refreshToken.id, userId: user.id, refreshToken: refreshToken.hashedRefreshToken } );
     return {
       accessToken,
-      refreshToken: refreshToken.hashedRefreshToken,
+      refreshToken: refreshToken.refreshToken,
       id: user.id,
       name: user.username,
       email: user.email
     };
   }
+
+
+  async logout(logout: LogoutDto): Promise<void> {
+    const jti = logout.refreshToken.split('.')[0];
+    if (!jti) {
+      throw new AuthenticationError('Invalid refresh token format.');
+    }
+    const storedHashedToken = await this.refreshTokenDao.findById({ id: jti });
+    if (!storedHashedToken) {
+      throw new AuthenticationError('Refresh token not found.');
+    }
+    if (!compareRefreshToken(logout.refreshToken, storedHashedToken.hashedToken)) {
+      throw new AuthenticationError('Invalid refresh token.');
+    }
+    if ( logout.userId !== storedHashedToken.userId) { 
+      throw new AuthenticationError('User ID does not match token owner.');
+    }
+    await this.refreshTokenDao.revoke({ id: jti });
+  }  
 }
+

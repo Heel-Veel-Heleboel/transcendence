@@ -43,3 +43,8 @@ export interface DecodedJwtPayload extends JwtPayLoadShape {
   aud: string;
   nbf?: number;
 }
+
+export interface ParsedRefreshToken {
+  jti: string;
+  refrefreshToken: string;
+}
