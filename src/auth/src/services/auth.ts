@@ -5,7 +5,7 @@ import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto, LogoutDto } from '
 import { passwordHasher, comparePasswordHash } from '../utils/password-hash.js';
 import { SaltLimits } from '../constants/password.js';
 import { REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
-import { generateAccessToken, generateRefreshToken, compareRefreshToken} from '../utils/jwt.js';
+import { generateAccessToken, generateRefreshToken, compareRefreshToken } from '../utils/jwt.js';
 import { AuthenticationError } from '../error/auth.js';
 
 /** 
