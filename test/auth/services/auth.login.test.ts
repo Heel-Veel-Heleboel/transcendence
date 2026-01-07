@@ -18,7 +18,7 @@ const mockCredentialDao = {
 };
 
 const mockRefreshTokenDao = {
-  create: vi.fn()
+  store: vi.fn()
 };
 
 
@@ -50,6 +50,7 @@ describe('AuthService - Login', () => {
     const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
     const mockRefreshTokenResult = {
       id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+      refreshToken: 'a1b2c3d4e5f64a5b8c9d0e1f2a3b4c5d',
       hashedRefreshToken: 'fv233h2fv233h2b4v2vn2jnmn24m42m42b42nbteb4v2vn2jnmn24m42m42b42nb'
     };
 
@@ -59,7 +60,7 @@ describe('AuthService - Login', () => {
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
-    mockRefreshTokenDao.create.mockResolvedValue(undefined);
+    mockRefreshTokenDao.store.mockResolvedValue(undefined);
 
     const result = await authService.login(loginDto);
 
@@ -79,16 +80,16 @@ describe('AuthService - Login', () => {
     expect(jwtModule.generateRefreshToken).toHaveBeenCalledWith(REFRESH_TOKEN_SIZE);
     expect(jwtModule.generateRefreshToken).toBeCalledTimes(1);
 
-    expect(mockRefreshTokenDao.create).toHaveBeenCalledWith({
+    expect(mockRefreshTokenDao.store).toHaveBeenCalledWith({
       id: mockRefreshTokenResult.id,
       userId: mockUser.id,
       refreshToken: mockRefreshTokenResult.hashedRefreshToken
     });
-    expect(mockRefreshTokenDao.create).toBeCalledTimes(1);
+    expect(mockRefreshTokenDao.store).toBeCalledTimes(1);
 
     expect(result).toEqual({
       accessToken: mockAccessToken,
-      refreshToken: mockRefreshTokenResult.hashedRefreshToken,
+      refreshToken: mockRefreshTokenResult.refreshToken,
       id: mockUser.id,
       name: mockUser.username,
       email: mockUser.email
@@ -143,7 +144,7 @@ describe('AuthService - Login', () => {
     expect(passwordHasherModule.comparePasswordHash).toHaveBeenCalledWith(loginDto.password, mockHashedPassword);
     expect(jwtModule.generateAccessToken).not.toHaveBeenCalled();
     expect(jwtModule.generateRefreshToken).not.toHaveBeenCalled();
-    expect(mockRefreshTokenDao.create).not.toHaveBeenCalled();
+    expect(mockRefreshTokenDao.store).not.toHaveBeenCalled();
   });
 
   /**
@@ -241,7 +242,7 @@ describe('AuthService - Login', () => {
 
     await expect(authService.login(loginDto)).rejects.toThrow('Invalid signing key');
 
-    expect(mockRefreshTokenDao.create).not.toHaveBeenCalled();
+    expect(mockRefreshTokenDao.store).not.toHaveBeenCalled();
   });
 
   /**
@@ -274,7 +275,7 @@ describe('AuthService - Login', () => {
 
     await expect(authService.login(loginDto)).rejects.toThrow('Crypto random generation failed');
 
-    expect(mockRefreshTokenDao.create).not.toHaveBeenCalled();
+    expect(mockRefreshTokenDao.store).not.toHaveBeenCalled();
   });
 
   /**
@@ -296,6 +297,7 @@ describe('AuthService - Login', () => {
     const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
     const mockRefreshTokenResult = {
       id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+      refreshToken: 'a1b2c3d4e5f64a5b8c9d0e1f2a3b4c5d',
       hashedRefreshToken: 'fv233h2fv233h2b4v2vn2jnmn24m42m42b42nb'
     };
 
@@ -306,7 +308,7 @@ describe('AuthService - Login', () => {
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
     
     const storageError = new Error('Database constraint violation');
-    mockRefreshTokenDao.create.mockRejectedValue(storageError);
+    mockRefreshTokenDao.store.mockRejectedValue(storageError);
 
     await expect(authService.login(loginDto)).rejects.toThrow('Database constraint violation');
   });
@@ -346,6 +348,7 @@ describe('AuthService - Login', () => {
     const mockAccessToken = 'different.access.token';
     const mockRefreshTokenResult = {
       id: 'b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e',
+      refreshToken: 'b2c3d4e5f6a75b6c9d0e1f2a3b4c5d6e',
       hashedRefreshToken: 'differenthashedrefreshtoken'
     };
 
@@ -354,13 +357,13 @@ describe('AuthService - Login', () => {
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
-    mockRefreshTokenDao.create.mockResolvedValue(undefined);
+    mockRefreshTokenDao.store.mockResolvedValue(undefined);
 
     const result = await authService.login(loginDto);
 
     expect(result).toEqual({
       accessToken: mockAccessToken,
-      refreshToken: mockRefreshTokenResult.hashedRefreshToken,
+      refreshToken: mockRefreshTokenResult.refreshToken,
       id: 42,
       name: 'seconduser',
       email: 'user2@test.com'
@@ -410,6 +413,7 @@ describe('AuthService - Login', () => {
     const mockAccessToken = 'access.token';
     const mockRefreshTokenResult = {
       id: 'c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f',
+      refreshToken: 'c3d4e5f6a7b86c7d0e1f2a3b4c5d6e7f',
       hashedRefreshToken: 'hashedrefreshtoken'
     };
 
@@ -418,7 +422,7 @@ describe('AuthService - Login', () => {
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
-    mockRefreshTokenDao.create.mockResolvedValue(undefined);
+    mockRefreshTokenDao.store.mockResolvedValue(undefined);
 
     const result = await authService.login(loginDto);
 

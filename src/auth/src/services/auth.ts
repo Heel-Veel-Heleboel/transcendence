@@ -70,7 +70,7 @@ export class AuthService {
 
 
   async logout(logout: LogoutDto): Promise<void> {
-    const jti = logout.refreshToken.split('.')[0];
+    const jti = logout.refreshToken.includes('.') ? logout.refreshToken.split('.')[0] : null;
     if (!jti) {
       throw new AuthenticationError('Invalid refresh token format.');
     }
