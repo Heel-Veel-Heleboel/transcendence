@@ -135,20 +135,25 @@ services:
       kibana:
         condition: service_healthy
     image: docker.elastic.co/beats/filebeat:${STACK_VERSION}
-    user: root
-    command: filebeat -e -strict.perms=false
+    user: "1000:1000"
+    command: filebeat -e
     volumes:
-      - certs:/usr/share/filebeat/certs
+      - certs:/usr/share/filebeat/certs:ro
       - filebeat-data:/usr/share/filebeat/data
-      - "./filebeat_ingest_data/:/usr/share/filebeat/ingest_data/"
       - "./observability/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro"
       - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     environment:
-      - ELASTIC_USER=elastic
+      - ELASTIC_USER=${ELASTIC_USER:-elastic}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - KIBANA_HOSTS=http://kibana:5601
       - LOGSTASH_HOSTS=logstash:5044
+    healthcheck:
+      test: ['CMD-SHELL', 'filebeat test output || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   logstash:
     depends_on:

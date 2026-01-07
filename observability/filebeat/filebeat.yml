@@ -26,4 +26,4 @@ output.logstash:
   hosts: ["${LOGSTASH_HOSTS}"]
   ssl.enabled: true
   ssl.certificate_authorities: ["certs/ca/ca.crt"]
-  ssl.verification_mode: "none"
+  ssl.verification_mode: "full"
