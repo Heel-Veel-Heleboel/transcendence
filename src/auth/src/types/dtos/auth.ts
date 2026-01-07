@@ -19,3 +19,8 @@ export interface LoginDto {
   email: string;
   password: string;
 }
+
+export interface LogoutDto {
+  userId: number;
+  refreshToken: string;
+}

@@ -18,5 +18,6 @@ export interface DeleteAllForUser {
 
 export interface GeneratedRefreshToken {
   id: string;
+  refreshToken: string;
   hashedRefreshToken: string;
 }
