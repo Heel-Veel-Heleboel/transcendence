@@ -60,9 +60,9 @@ export function generateRefreshToken(size: number) : GeneratedRefreshToken {
   }
   const id = crypto.randomUUID();
   const opaqueStringRefreshToken = randomBytes(size).toString('hex');
-  const refreshToken= `${id}.${opaqueStringRefreshToken}`;
+  const refreshToken = `${id}.${opaqueStringRefreshToken}`;
   const hashedRefreshToken = hashRefreshToken(refreshToken);
-  return { id,  refreshToken, hashedRefreshToken };
+  return { id, refreshToken, hashedRefreshToken };
 }
 
 /**

@@ -46,5 +46,5 @@ export interface DecodedJwtPayload extends JwtPayLoadShape {
 
 export interface ParsedRefreshToken {
   jti: string;
-  refrefreshToken: string;
+  refreshToken: string;
 }

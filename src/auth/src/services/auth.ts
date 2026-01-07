@@ -70,21 +70,21 @@ export class AuthService {
 
 
   async logout(logout: LogoutDto): Promise<void> {
-    const jti = logout.refreshToken.includes('.') ? logout.refreshToken.split('.')[0] : null;
-    if (!jti) {
+    const tokenSegments = logout.refreshToken.includes('.') ? logout.refreshToken.split('.')[0] : null;
+    if (tokenSegments?.length !== 2 || !tokenSegments[0] || !tokenSegments[1]) {
       throw new AuthenticationError('Invalid refresh token format.');
     }
-    const storedHashedToken = await this.refreshTokenDao.findById({ id: jti });
+    const storedHashedToken = await this.refreshTokenDao.findById({ id: tokenSegments[0] });
     if (!storedHashedToken) {
       throw new AuthenticationError('Refresh token not found.');
     }
     if (!compareRefreshToken(logout.refreshToken, storedHashedToken.hashedToken)) {
       throw new AuthenticationError('Invalid refresh token.');
     }
-    if ( logout.userId !== storedHashedToken.userId) { 
+    if (logout.userId !== storedHashedToken.userId) { 
       throw new AuthenticationError('User ID does not match token owner.');
     }
-    await this.refreshTokenDao.revoke({ id: jti });
-  }  
+    await this.refreshTokenDao.revoke({ id: tokenSegments[0] });
+  }
 }
 

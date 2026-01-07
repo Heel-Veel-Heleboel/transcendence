@@ -1,4 +1,4 @@
-import { expect, it, describe, beforeEach, afterEach, vi} from 'vitest';
+import { expect, it, describe, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock the crypto comparator to avoid length issues
 vi.mock('../../../src/auth/src/utils/jwt.js', () => ({
@@ -96,7 +96,7 @@ describe('AuthService - logout', () => {
   });
 
   it('Should throw error when refresh token does not match stored hash', async () => {
-    (compareRefreshToken as unknown as Mock).mockReturnValueOnce(false);
+    (compareRefreshToken as unknown as vi.Mock).mockReturnValueOnce(false);
     mockRefreshTokenDao.findById.mockResolvedValueOnce({
       id: 'test-jti',
       userId: 1,

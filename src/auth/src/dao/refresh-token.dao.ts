@@ -1,4 +1,4 @@
-import { PrismaClient, RefreshToken } from '../../generated/prisma/client.js';  
+import { PrismaClient, RefreshToken } from '../../generated/prisma/client.js';
 import { CreateRefreshTokenDto, FindRefreshTokenDto, RevokeRefreshTokenDto } from '../types/dtos/refresh-token.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
 
@@ -41,7 +41,7 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
     const record = await this.prismaClient.refreshToken.findUnique({
       where: { id: data.id }
     });
-    return record ? record : null;
+    return record;
   }
 
   async purgeRevokedExpired(): Promise<void> {
