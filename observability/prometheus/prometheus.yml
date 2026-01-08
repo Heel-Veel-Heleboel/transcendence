@@ -35,6 +35,8 @@ scrape_configs:
     # Relabeling rules to extract useful information from containers
     relabel_configs:
       # Only scrape containers with 'prometheus.scrape=true' label
+      # Note: Docker converts dots to underscores in label names
+      # Label 'prometheus.scrape' becomes '__meta_docker_container_label_prometheus_scrape'
       - source_labels: [__meta_docker_container_label_prometheus_scrape]
         regex: 'true'
         action: keep
