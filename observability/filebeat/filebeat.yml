@@ -1,9 +1,3 @@
-filebeat.inputs:
-- type: filestream
-  id: default-filestream
-  paths:
-    - ingest_data/*.log
-
 # Autodiscover Docker containers and collect their logs
 filebeat.autodiscover:
   providers:
