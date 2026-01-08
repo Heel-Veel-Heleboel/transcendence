@@ -1,0 +1,76 @@
+# Prometheus Configuration for Transcendence Microservices
+# Using Docker service discovery for automatic container detection
+
+global:
+  scrape_interval: 15s       # Scrape targets every 15 seconds
+  evaluation_interval: 15s   # Evaluate rules every 15 seconds
+  external_labels:
+    cluster: 'transcendence'
+    environment: 'development'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+          # Add Alertmanager targets here when configured
+          # Example: - targets: ['alertmanager:9093']
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          component: 'monitoring'
+
+  # Docker service discovery - automatically discover all containers
+  - job_name: 'docker'
+    docker_sd_configs:
+      - host: tcp://docker-proxy:2375
+        refresh_interval: 15s
+
+    # Relabeling rules to extract useful information from containers
+    relabel_configs:
+      # Only scrape containers with 'prometheus.scrape=true' label
+      # Note: Docker converts dots to underscores in label names
+      # Label 'prometheus.scrape' becomes '__meta_docker_container_label_prometheus_scrape'
+      - source_labels: [__meta_docker_container_label_prometheus_scrape]
+        regex: 'true'
+        action: keep
+
+      # Extract service name from docker container name
+      # Container name format: "transcendence-<service>-1" -> "<service>"
+      - source_labels: [__meta_docker_container_name]
+        regex: '/transcendence-(.+)-\d+'
+        target_label: service
+        replacement: '$1'
+
+      # Use custom metrics port if specified via label and a custom network IP
+      - source_labels: [__meta_docker_container_label_prometheus_port, __meta_docker_network_ip]
+        regex: '(.+);(.+)'
+        target_label: __address__
+        replacement: '$2:$1'
+
+      # Fallback: if only a custom metrics port is specified, reuse the discovered host and override the port
+      - source_labels: [__address__, __meta_docker_container_label_prometheus_port]
+        regex: '([^:]+)(?::\d+)?;(.+)'
+        target_label: __address__
+        replacement: '$1:$2'
+      # Use custom metrics path if specified, otherwise default to /metrics
+      - source_labels: [__meta_docker_container_label_prometheus_path]
+        regex: '(.+)'
+        target_label: __metrics_path__
+        replacement: '$1'
+
+      # Add container network as label
+      - source_labels: [__meta_docker_network_name]
+        target_label: network
+
+      # Add container ID as label (useful for debugging)
+      - source_labels: [__meta_docker_container_id]
+        target_label: container_id
+        regex: '(.{12}).*'
+        replacement: '$1'
