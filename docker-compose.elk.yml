@@ -28,9 +28,21 @@ volumes:
     driver: local
 
 networks:
-  default:
-    name: elastic
-    external: false
+  # Application services network
+  app-network:
+    name: transcendence-app
+    driver: bridge
+    external: true  # Created by main docker-compose or manually
+
+  # Observability stack internal network
+  observability-network:
+    name: transcendence-observability
+    driver: bridge
+
+  # Isolated network for Docker socket proxy
+  docker-proxy-network:
+    name: transcendence-docker-proxy
+    driver: bridge
 
 services:
   setup:
@@ -43,6 +55,8 @@ services:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - KIBANA_PASSWORD=${KIBANA_PASSWORD}
     command: ['/bin/bash', '/elk-setup.sh']
+    networks:
+      - observability-network
     healthcheck:
       test: ['CMD-SHELL', '[ -f config/certs/elasticsearch/elasticsearch.crt ]']
       interval: 1s
@@ -88,6 +102,8 @@ services:
       memlock:
         soft: -1
         hard: -1
+    networks:
+      - observability-network
     healthcheck:
       test:
         [
@@ -118,6 +134,8 @@ services:
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
       - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
     mem_limit: ${KB_MEM_LIMIT}
+    networks:
+      - observability-network
     healthcheck:
       test:
         [
@@ -154,9 +172,8 @@ services:
 
       # Enable debug mode to also see logs locally
       - LOGSTASH_DEBUG=${LOGSTASH_DEBUG:-false}
-    # networks:
-    #   - elastic      # Internal ELK communication
-      # - app-network  # Receive logs from application services
+    networks:
+      - observability-network
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:9600']
       interval: 30s
@@ -175,6 +192,8 @@ services:
       - SERVICES=0    # Disable services
       - TASKS=0       # Disable tasks
       - POST=0        # Disable write operations
+    networks:
+      - docker-proxy-network
     restart: unless-stopped
 
   prometheus:
@@ -190,10 +209,13 @@ services:
       - '--web.enable-lifecycle'
     volumes:
       - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./observability/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
       - prometheus-data:/prometheus
     ports:
       - '9090:9090'
+    networks:
+      - docker-proxy-network   # Access to docker-proxy for service discovery
+      - observability-network  # Internal observability communication
+      - app-network            # Scrape metrics from application services
     restart: unless-stopped
     healthcheck:
       test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9090/-/healthy']
