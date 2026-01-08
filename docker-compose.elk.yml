@@ -149,7 +149,12 @@ services:
       - KIBANA_HOSTS=http://kibana:5601
       - LOGSTASH_HOSTS=logstash:5044
     healthcheck:
-      test: ['CMD-SHELL', 'filebeat test output || exit 1']
+      test:
+        - "CMD-SHELL"
+        - >
+          filebeat test output >/dev/null 2>&1
+          && pgrep filebeat >/dev/null 2>&1
+          && find /usr/share/filebeat/data/registry -type f -name '*.json' -size +0c 2>/dev/null | grep -q .
       interval: 30s
       timeout: 10s
       retries: 5
