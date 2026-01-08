@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+@font-face{
+    font-family: Monofett;
+    src: url('/Monofett-Regular.ttf');
+}
+
+@theme {
+    --font-mono: "Monofett";
+    --color-metalgear: #fF2A00;
+}
+
+html, body, #root, #app {
+    height: 100vh;
+    width: 100vw;
+}
+
+#bgVideo {
+    object-fit: fill;
+}
