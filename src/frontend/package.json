@@ -17,6 +17,7 @@
     "@babylonjs/inspector": "^8.38.0",
     "@babylonjs/loaders": "^8.38.0",
     "@babylonjs/materials": "^8.42.0",
+    "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/vite": "^4.1.18",
     "colyseus.js": "^0.16.22",
     "compression": "^1.8.1",
@@ -24,8 +25,7 @@
     "express": "^5.2.1",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "sirv": "^3.0.2",
-    "tailwindcss": "^4.1.18"
+    "sirv": "^3.0.2"
   },
   "devDependencies": {
     "@types/earcut": "^3.0.0",
@@ -34,9 +34,12 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react-swc": "^4.2.2",
+    "autoprefixer": "^10.4.23",
     "cross-env": "^10.1.0",
     "emmet-ls": "^0.4.2",
     "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
     "vite": "^7.2.7"
   }
