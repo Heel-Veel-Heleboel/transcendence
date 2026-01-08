@@ -46,12 +46,17 @@ scrape_configs:
         target_label: service
         replacement: '$1'
 
-      # Use custom metrics port if specified via label
+      # Use custom metrics port if specified via label and a custom network IP
       - source_labels: [__meta_docker_container_label_prometheus_port, __meta_docker_network_ip]
         regex: '(.+);(.+)'
         target_label: __address__
         replacement: '$2:$1'
 
+      # Fallback: if only a custom metrics port is specified, reuse the discovered host and override the port
+      - source_labels: [__address__, __meta_docker_container_label_prometheus_port]
+        regex: '([^:]+)(?::\d+)?;(.+)'
+        target_label: __address__
+        replacement: '$1:$2'
       # Use custom metrics path if specified, otherwise default to /metrics
       - source_labels: [__meta_docker_container_label_prometheus_path]
         regex: '(.+)'
