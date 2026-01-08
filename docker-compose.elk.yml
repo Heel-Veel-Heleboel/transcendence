@@ -176,12 +176,19 @@ services:
       - TASKS=0       # Disable tasks
       - POST=0        # Disable write operations
     restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:2375/version']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
 
   prometheus:
     image: prom/prometheus:latest
     container_name: transcendence-prometheus
     depends_on:
-      - docker-proxy
+      docker-proxy:
+        condition: service_healthy
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
