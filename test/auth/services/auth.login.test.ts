@@ -1,5 +1,5 @@
 import { AuthService } from '../../../src/auth/src/services/auth.js';
-import { AuthenticationError } from '../../../src/auth/src/error/auth.js';
+import { AuthenticationError, ResourceNotFoundError } from '../../../src/auth/src/error/auth.js';
 import * as passwordHasherModule from '../../../src/auth/src/utils/password-hash.js';
 import * as jwtModule from '../../../src/auth/src/utils/jwt.js';
 import { expect, describe, beforeEach, vi, it } from 'vitest';
@@ -107,7 +107,7 @@ describe('AuthService - Login', () => {
 
     mockUserService.findUserByEmail.mockResolvedValue(null);
 
-    await expect(authService.login(loginDto)).rejects.toThrow(AuthenticationError);
+    await expect(authService.login(loginDto)).rejects.toThrow(ResourceNotFoundError);
     await expect(authService.login(loginDto)).rejects.toThrow(
       `User with email: ${loginDto.email} does not exist.`
     );
@@ -324,7 +324,7 @@ describe('AuthService - Login', () => {
 
     mockUserService.findUserByEmail.mockResolvedValue(null);
 
-    await expect(authService.login(loginDto)).rejects.toThrow(AuthenticationError);
+    await expect(authService.login(loginDto)).rejects.toThrow(ResourceNotFoundError);
 
     expect(mockUserService.findUserByEmail).toHaveBeenCalledWith('TEST@USER.COM');
   });
