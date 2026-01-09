@@ -12,7 +12,6 @@ vi.mock('../../../src/auth/src/utils/jwt.js', async (importOriginal) => {
 
 import { compareRefreshToken } from '../../../src/auth/src/utils/jwt.js';
 import { AuthService } from '../../../src/auth/src/services/auth';
-import { AuthenticationError } from '../../../src/auth/src/error/auth.js';
 
 const mockUserService = { findUserByEmail: vi.fn() };
 const mockCredentialsDao = { findByUserId: vi.fn() };
@@ -48,7 +47,8 @@ describe('AuthService - logout', () => {
     mockRefreshTokenDao.findById.mockResolvedValueOnce({
       id: tokenId,
       userId: 1,
-      hashedToken: 'a'.repeat(64)
+      hashedToken: 'a'.repeat(64),
+      expiredAt: new Date(Date.now() + 86400000)
     });
 
     await expect(authService.logout({ userId: 1, refreshToken })).resolves.toBeUndefined();
@@ -75,7 +75,8 @@ describe('AuthService - logout', () => {
     mockRefreshTokenDao.findById.mockResolvedValueOnce({
       id: tokenId,
       userId: 2,
-      hashedToken: 'c'.repeat(64)
+      hashedToken: 'c'.repeat(64),
+      expiredAt: new Date(Date.now() + 86400000)
     });
 
     await expect(authService.logout({ userId: 1, refreshToken }))
@@ -108,7 +109,8 @@ describe('AuthService - logout', () => {
     mockRefreshTokenDao.findById.mockResolvedValueOnce({
       id: tokenId,
       userId: 1,
-      hashedToken: 'd'.repeat(64)
+      hashedToken: 'd'.repeat(64),
+      expiredAt: new Date(Date.now() + 86400000)
     });
 
     await authService.logout({ userId: 1, refreshToken });
@@ -124,7 +126,8 @@ describe('AuthService - logout', () => {
     mockRefreshTokenDao.findById.mockResolvedValueOnce({
       id: tokenId,
       userId: 1,
-      hashedToken: 'e'.repeat(64)
+      hashedToken: 'e'.repeat(64),
+      expiredAt: new Date(Date.now() + 86400000)
     });
 
     await expect(authService.logout({ userId: 1, refreshToken }))

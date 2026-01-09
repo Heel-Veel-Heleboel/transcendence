@@ -1,12 +1,12 @@
 import { UserManagementService } from '../types/user-management-service.js';
 import { CredentialsDaoShape } from '../types/daos/credentials.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
-import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto, LogoutDto, RefershedTokensDto, RefreshDto } from '../types/dtos/auth.js';
+import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto, LogoutDto, RefreshedTokensDto, RefreshDto } from '../types/dtos/auth.js';
 import { passwordHasher, comparePasswordHash } from '../utils/password-hash.js';
 import { SaltLimits } from '../constants/password.js';
 import { REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
 import { generateAccessToken, generateRefreshToken, compareRefreshToken, validateRefershTokenFormat } from '../utils/jwt.js';
-import { AuthenticationError } from '../error/auth.js';
+import { AuthenticationError, AuthorizationError, ResourceNotFoundError } from '../error/auth.js';
 
 /** 
  * Authentication Service
@@ -48,7 +48,7 @@ export class AuthService {
   async login(login: LoginDto ): Promise<LoggedInUserDto> {
     const user = await this.userService.findUserByEmail(login.email);
     if (!user) {
-      throw new AuthenticationError(`User with email: ${login.email} does not exist.`);
+      throw new ResourceNotFoundError(`User with email: ${login.email} does not exist.`);
     }
     const storedPassword = await this.credentialsDao.findByUserId({ userId: user.id });
 
@@ -70,22 +70,54 @@ export class AuthService {
 
 
   async logout(logout: LogoutDto): Promise<void> {
-    const tokenId = validateRefershTokenFormat(logout.refreshToken);
-    if (!tokenId) {
-      throw new Error('Invalid refresh token format.');
+    const tokenId = await this.validateRefreshToken({ userId: logout.userId, refreshToken: logout.refreshToken });
+    await this.refreshTokenDao.revoke({ id: tokenId });
+  }
+
+
+  async refresh(token: RefreshDto): Promise<RefreshedTokensDto> {
+    const tokenId = await this.validateRefreshToken({ userId: token.userId, refreshToken: token.refreshToken });
+    const user = await this.userService.findUserById(token.userId);
+    if (!user) {
+      throw new ResourceNotFoundError(`User with ID: ${token.userId} does not exist.`);
     }
 
+    const newAccessToken = generateAccessToken({ sub: user.id, user_email: user.email });
+    const newRefreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
+
+    await this.refreshTokenDao.store( { id: newRefreshToken.id, userId: user.id, refreshToken: newRefreshToken.hashedRefreshToken } );
+    await this.refreshTokenDao.revoke({ id: tokenId });
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken.refreshToken
+    };
+  }
+
+  
+  private async validateRefreshToken({ userId, refreshToken }: { userId: number; refreshToken: string }): Promise<string> {
+    const tokenId = validateRefershTokenFormat(refreshToken);
+    if (!tokenId) {
+      throw new AuthenticationError('Invalid refresh token format.');
+    }
+    
     const storedTokenObject = await this.refreshTokenDao.findById({ id: tokenId });
     if (!storedTokenObject) {
       throw new AuthenticationError('Invalid refresh token.');
     }
-    if (!compareRefreshToken(logout.refreshToken, storedTokenObject.hashedToken)) {
+    
+    if (Date.now() >= storedTokenObject.expiredAt.getTime()) {
+      throw new AuthenticationError('Refresh token has expired.');
+    }
+    
+    if (!compareRefreshToken(refreshToken, storedTokenObject.hashedToken)) {
       throw new AuthenticationError('Invalid refresh token.');
     }
-    if (logout.userId !== storedTokenObject.userId) { 
-      throw new AuthenticationError('User ID does not match token owner.');
+    
+    if (userId !== storedTokenObject.userId) {
+      throw new AuthorizationError('User ID does not match token owner.');
     }
-    await this.refreshTokenDao.revoke({ id: tokenId });
+
+    return tokenId;
   }
 }
-
