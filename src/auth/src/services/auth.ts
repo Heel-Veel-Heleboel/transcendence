@@ -7,6 +7,8 @@ import { SaltLimits } from '../constants/password.js';
 import { REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
 import { generateAccessToken, generateRefreshToken, compareRefreshToken, validateRefershTokenFormat } from '../utils/jwt.js';
 import { AuthenticationError, AuthorizationError, ResourceNotFoundError } from '../error/auth.js';
+import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
+
 
 /** 
  * Authentication Service
@@ -37,7 +39,7 @@ export class AuthService {
       try {
         await this.userService.deleteUser(uId);
       } catch (cleanupError) {
-        console.error('Failed to cleanup user after registration error:', cleanupError);
+        console.error(AUTH_ERROR_MESSAGES.REGISTRATION_CLEANUP_FAILED, cleanupError);
       }
       throw error;
     }
@@ -48,12 +50,12 @@ export class AuthService {
   async login(login: LoginDto ): Promise<LoggedInUserDto> {
     const user = await this.userService.findUserByEmail(login.email);
     if (!user) {
-      throw new ResourceNotFoundError(`User with email: ${login.email} does not exist.`);
+      throw new ResourceNotFoundError(AUTH_ERROR_MESSAGES.USER_NOT_FOUND_BY_EMAIL(login.email));
     }
     const storedPassword = await this.credentialsDao.findByUserId({ userId: user.id });
 
     if (!storedPassword || !(await comparePasswordHash(login.password, storedPassword))) {
-      throw new AuthenticationError('Invalid credentials provided.');
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
     const accessToken = generateAccessToken({ sub: user.id, user_email: user.email });
     const refreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
@@ -79,7 +81,7 @@ export class AuthService {
     const tokenId = await this.validateRefreshToken({ userId: token.userId, refreshToken: token.refreshToken });
     const user = await this.userService.findUserById(token.userId);
     if (!user) {
-      throw new ResourceNotFoundError(`User with ID: ${token.userId} does not exist.`);
+      throw new ResourceNotFoundError(AUTH_ERROR_MESSAGES.USER_NOT_FOUND_BY_ID(token.userId));
     }
 
     const newAccessToken = generateAccessToken({ sub: user.id, user_email: user.email });
@@ -98,24 +100,24 @@ export class AuthService {
   private async validateRefreshToken({ userId, refreshToken }: { userId: number; refreshToken: string }): Promise<string> {
     const tokenId = validateRefershTokenFormat(refreshToken);
     if (!tokenId) {
-      throw new AuthenticationError('Invalid refresh token format.');
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_TOKEN_FORMAT);
     }
     
     const storedTokenObject = await this.refreshTokenDao.findById({ id: tokenId });
     if (!storedTokenObject) {
-      throw new AuthenticationError('Invalid refresh token.');
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_TOKEN);
     }
     
     if (Date.now() >= storedTokenObject.expiredAt.getTime()) {
-      throw new AuthenticationError('Refresh token has expired.');
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.TOKEN_EXPIRED);
     }
     
     if (!compareRefreshToken(refreshToken, storedTokenObject.hashedToken)) {
-      throw new AuthenticationError('Invalid refresh token.');
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_TOKEN);
     }
     
     if (userId !== storedTokenObject.userId) {
-      throw new AuthorizationError('User ID does not match token owner.');
+      throw new AuthorizationError(AUTH_ERROR_MESSAGES.TOKEN_OWNERSHIP_MISMATCH);
     }
 
     return tokenId;
