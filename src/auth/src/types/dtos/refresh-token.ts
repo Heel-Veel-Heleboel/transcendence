@@ -12,11 +12,8 @@ export interface FindRefreshTokenDto {
   id: string
 }
 
-export interface DeleteAllForUser {
-  userId: number
-}
 
-export interface GeneratedRefreshToken {
+export interface GeneratedRefreshTokenDto {
   id: string;
   refreshToken: string;
   hashedRefreshToken: string;
