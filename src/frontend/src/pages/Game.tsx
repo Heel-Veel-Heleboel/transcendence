@@ -1,7 +1,6 @@
-// import { useEffect, useState } from 'react';
-import { JSX, useEffect, useState } from 'react';
+import { JSX } from 'react';
 import { Mesh, FreeCamera, Vector3, Scene, HemisphericLight, MeshBuilder } from '@babylonjs/core';
-import SceneComponent, { BabylonjsProps } from 'babylonjs-hook';
+import SceneComponent from 'babylonjs-hook';
 
 let box: Mesh;
 
@@ -46,12 +45,9 @@ const onRender = (scene: Scene) => {
 }
 
 export const Game = (): JSX.Element | null => {
-
     return (
-        <div className="Game">
-            <header className="Game-header">
-                <SceneComponent antialias onSceneReady={onSceneReady} onRender={onRender} adaptToDeviceRatio id='my-canvas' />
-            </header>
+        <div className="h-full w-full" id="Game">
+            <SceneComponent antialias onSceneReady={onSceneReady} onRender={onRender} adaptToDeviceRatio className="h-full w-full" id='my-canvas' />
         </div>
     );
 }
