@@ -1,11 +1,11 @@
 import { UserManagementService } from '../types/user-management-service.js';
 import { CredentialsDaoShape } from '../types/daos/credentials.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
-import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto, LogoutDto } from '../types/dtos/auth.js';
+import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto, LogoutDto, RefershedTokensDto, RefreshDto } from '../types/dtos/auth.js';
 import { passwordHasher, comparePasswordHash } from '../utils/password-hash.js';
 import { SaltLimits } from '../constants/password.js';
 import { REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
-import { generateAccessToken, generateRefreshToken, compareRefreshToken } from '../utils/jwt.js';
+import { generateAccessToken, generateRefreshToken, compareRefreshToken, validateRefershTokenFormat } from '../utils/jwt.js';
 import { AuthenticationError } from '../error/auth.js';
 
 /** 
@@ -70,19 +70,19 @@ export class AuthService {
 
 
   async logout(logout: LogoutDto): Promise<void> {
-    const tokenSegments = logout.refreshToken.includes('.') ? logout.refreshToken.split('.') : null;
-    if (!tokenSegments || tokenSegments.length < 2 || !tokenSegments[0] || !tokenSegments[1]) {
-      throw new AuthenticationError('Invalid refresh token format.');
+    const tokenId = validateRefershTokenFormat(logout.refreshToken);
+    if (!tokenId) {
+      throw new Error('Invalid refresh token format.');
     }
-    const tokenId = tokenSegments[0];
-    const storedHashedToken = await this.refreshTokenDao.findById({ id: tokenId });
-    if (!storedHashedToken) {
-      throw new AuthenticationError('Refresh token not found.');
-    }
-    if (!compareRefreshToken(logout.refreshToken, storedHashedToken.hashedToken)) {
+
+    const storedTokenObject = await this.refreshTokenDao.findById({ id: tokenId });
+    if (!storedTokenObject) {
       throw new AuthenticationError('Invalid refresh token.');
     }
-    if (logout.userId !== storedHashedToken.userId) { 
+    if (!compareRefreshToken(logout.refreshToken, storedTokenObject.hashedToken)) {
+      throw new AuthenticationError('Invalid refresh token.');
+    }
+    if (logout.userId !== storedTokenObject.userId) { 
       throw new AuthenticationError('User ID does not match token owner.');
     }
     await this.refreshTokenDao.revoke({ id: tokenId });
