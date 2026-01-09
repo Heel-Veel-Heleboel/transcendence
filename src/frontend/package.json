@@ -19,6 +19,7 @@
     "@babylonjs/materials": "^8.42.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/vite": "^4.1.18",
+    "babylonjs-hook": "^0.1.1",
     "colyseus.js": "^0.16.22",
     "compression": "^1.8.1",
     "earcut": "^3.0.2",
