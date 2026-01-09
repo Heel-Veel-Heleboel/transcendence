@@ -1,3 +1,3 @@
-export * from './login/Login';
-export * from './game/Game';
-export * from './menu/Menu';
+export * from './StartMenu';
+export * from './Game';
+export * from './Menu';
