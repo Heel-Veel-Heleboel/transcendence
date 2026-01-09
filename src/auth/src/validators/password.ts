@@ -48,7 +48,7 @@ export function checkSpecialChar(password: string, policy: PasswordPolicyConfigS
 
 
 
-import { getPasswordErrorMessage } from '../error/error-message.js';
+import { getPasswordErrorMessage } from '../utils/password-error-message.js';
 
 export function validatePassword(password: string, policy: PasswordPolicyConfigShape) : PasswordValidationResultShape {
 
