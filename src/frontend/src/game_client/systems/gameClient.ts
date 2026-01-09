@@ -11,13 +11,8 @@ import {
   debugLayerListener,
   engineResizeListener
 } from '../utils/eventListeners.ts';
+import { initializeResolution, prepareImportGLTF } from '../utils/canvas.ts';
 import {
-  getCanvas,
-  initializeResolution,
-  prepareImportGLTF
-} from '../utils/canvas.ts';
-import {
-  createEngine,
   createBgMusic,
   createBall,
   createArena,
@@ -35,6 +30,7 @@ import { renderLoop } from '../utils/render.ts';
 
 export class GameClient {
   private _scene!: Scene;
+  private _defaultScene!: Scene;
   private _canvas!: HTMLCanvasElement;
   private _engine!: AbstractEngine;
 
@@ -51,11 +47,14 @@ export class GameClient {
   //@ts-ignore
   private _backgroundMusic!: Sound;
 
-  constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas;
+  constructor(defaultScene: Scene) {
+    this.defaultScene = defaultScene;
   }
 
   /* v8 ignore start */
+  set defaultScene(defaultScene: Scene) {
+    this._defaultScene = defaultScene;
+  }
   set scene(scene: Scene) {
     this._scene = scene;
   }
@@ -90,6 +89,9 @@ export class GameClient {
     this._backgroundMusic = backgroundMusic;
   }
 
+  get defaultScene() {
+    return this._defaultScene;
+  }
   get scene(): Scene {
     return this._scene;
   }
@@ -127,11 +129,11 @@ export class GameClient {
 
   async initGame() {
     // this.canvas = getCanvas();
-    this.engine = createEngine(this.canvas);
-    const defaultScene = new Scene(this.engine);
-    await initializePhysics(defaultScene);
-    prepareImportGLTF(defaultScene);
-    this.scene = await this.initScene(defaultScene);
+    // this.engine = createEngine(this.canvas);
+    // const defaultScene = new Scene(this.engine);
+    await initializePhysics(this.defaultScene);
+    prepareImportGLTF(this.defaultScene);
+    this.scene = await this.initScene(this.defaultScene);
     this.frameCount = 0;
 
     engineResizeListener(this.engine);
@@ -201,7 +203,7 @@ export class GameClient {
     return scene;
   }
 
-  draw(g: Game, balls: Ball[]) {
+  draw(g: GameClient, balls: Ball[]) {
     return () => {
       if (!(g.frameCount % 600)) {
         const ball = addBall(g.scene);
