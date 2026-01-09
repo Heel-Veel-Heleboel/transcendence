@@ -33,7 +33,7 @@ import { Arena } from '../components/arena.ts';
 import { initializePhysics } from '../utils/physics.ts';
 import { renderLoop } from '../utils/render.ts';
 
-export class Game {
+export class GameClient {
   private _scene!: Scene;
   private _canvas!: HTMLCanvasElement;
   private _engine!: AbstractEngine;
@@ -51,7 +51,9 @@ export class Game {
   //@ts-ignore
   private _backgroundMusic!: Sound;
 
-  constructor() {}
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+  }
 
   /* v8 ignore start */
   set scene(scene: Scene) {
@@ -124,7 +126,7 @@ export class Game {
   /* v8 ignore stop */
 
   async initGame() {
-    this.canvas = getCanvas();
+    // this.canvas = getCanvas();
     this.engine = createEngine(this.canvas);
     const defaultScene = new Scene(this.engine);
     await initializePhysics(defaultScene);

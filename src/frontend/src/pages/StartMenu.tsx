@@ -1,7 +1,7 @@
 import { JSX } from "react"
-import "../../style.css"
+import "../style.css"
 
-export const Login = (): JSX.Element => {
+export const StartMenu = (): JSX.Element => {
     return (
         <div className="">
             <Animation />
@@ -9,9 +9,8 @@ export const Login = (): JSX.Element => {
                 <Title />
                 <Logo />
                 <div id="menuOptions">
-                    <MenuOption text="go to menu" />
-                    <MenuOption text="go to game" />
-
+                    <MenuContainer text="go to menu" />
+                    <MenuContainer text="go to game" />
                 </div>
             </div>
 
@@ -38,9 +37,17 @@ export function Logo(): JSX.Element {
     )
 }
 
+export function MenuContainer({ text }: { text: string }) {
+    return (
+        <div className="w-1/5 h-1/5 border-10 m-10 border-solid border-[#5500FF] ml-auto mr-auto grid place-items-center text-center bg-[#A500FF] opacity-90" >
+            <MenuOption text={text} />
+        </div>
+    )
+}
+
 export function MenuOption({ text }: { text: string }): JSX.Element {
     return (
-        <button className="w-1/5 h-1/5 margin-10 border-10 border-solid border-[#5500FF] ml-auto mr-auto grid place-items-center text-center bg-[#A500FF] opacity-90">{text}</button >
+        <button className="border-none text-center inline-block mt-2 mb-2">{text}</button >
     )
 }
 
