@@ -2,7 +2,7 @@ import { default as jwt } from 'jsonwebtoken';
 import { JwtPayLoadShape, DecodedJwtPayload } from '../types/jwt.js';
 import { GeneratedRefreshTokenDto } from '../types/dtos/refresh-token.js';
 import { getJwtConfig } from '../config/jwt.js';
-import { CryptoErrorMessage, REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
+import { CryptoErrorMessage, REFRESH_TOKEN_SIZE, UUID_V4_REGEX } from '../constants/jwt.js';
 import { randomBytes, createHash, timingSafeEqual, randomUUID } from 'crypto';
 
 
@@ -107,14 +107,24 @@ export function compareRefreshToken(refreshToken: string, hashedToken: string, a
 }
 
 
-export function validateRefershTokenFormat(token: string): string | null {
+
+
+export function validateRefreshTokenFormat(token: string): string | null {
   const tokenSegments = token.includes('.') ? token.split('.') : null;
   if (!tokenSegments || tokenSegments.length !== 2 || !tokenSegments[0] || !tokenSegments[1]) {
     return null;
   }
-  const totalSize = tokenSegments[0].length + tokenSegments[1].length + 1; // +1 for the dot
-  if (totalSize !== (36 + REFRESH_TOKEN_SIZE * 2 + 1)) { // 36 for UUID, each byte is represented by 2 hex chars
+  const uuidSegment = tokenSegments[0];
+  if (!UUID_V4_REGEX.test(uuidSegment)) {
     return null;
   }
-  return tokenSegments[0];
+  
+  if (tokenSegments[1].length !== REFRESH_TOKEN_SIZE * 2) {
+    return null;
+  }
+  
+  if (!/^[0-9a-f]+$/i.test(tokenSegments[1])) {
+    return null;
+  }
+  return uuidSegment;
 }
