@@ -1,5 +1,6 @@
 import { PasswordError, PasswordErrorCode } from '../constants/password.js';
 import { PasswordPolicyConfigShape, PasswordValidationResultShape, PasswordLimitsConfigShape } from '../types/password.js';
+import { getPasswordErrorMessage } from '../utils/password-error-message.js';
 
 
 export function checkLowercase(password: string, policy: PasswordPolicyConfigShape) : PasswordErrorCode | null {
@@ -46,9 +47,6 @@ export function checkSpecialChar(password: string, policy: PasswordPolicyConfigS
   return null;
 }
 
-
-
-import { getPasswordErrorMessage } from '../utils/password-error-message.js';
 
 export function validatePassword(password: string, policy: PasswordPolicyConfigShape) : PasswordValidationResultShape {
 

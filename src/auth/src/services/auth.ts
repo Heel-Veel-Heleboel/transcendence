@@ -5,7 +5,7 @@ import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto, LogoutDto, Refresh
 import { passwordHasher, comparePasswordHash } from '../utils/password-hash.js';
 import { SaltLimits } from '../constants/password.js';
 import { REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
-import { generateAccessToken, generateRefreshToken, compareRefreshToken, validateRefershTokenFormat } from '../utils/jwt.js';
+import { generateAccessToken, generateRefreshToken, compareRefreshToken, validateRefreshTokenFormat } from '../utils/jwt.js';
 import { AuthenticationError, AuthorizationError, ResourceNotFoundError } from '../error/auth.js';
 import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
 
@@ -87,8 +87,8 @@ export class AuthService {
     const newAccessToken = generateAccessToken({ sub: user.id, user_email: user.email });
     const newRefreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
 
-    await this.refreshTokenDao.store( { id: newRefreshToken.id, userId: user.id, refreshToken: newRefreshToken.hashedRefreshToken } );
     await this.refreshTokenDao.revoke({ id: tokenId });
+    await this.refreshTokenDao.store( { id: newRefreshToken.id, userId: user.id, refreshToken: newRefreshToken.hashedRefreshToken } );
 
     return {
       accessToken: newAccessToken,
@@ -98,13 +98,14 @@ export class AuthService {
 
   
   private async validateRefreshToken({ userId, refreshToken }: { userId: number; refreshToken: string }): Promise<string> {
-    const tokenId = validateRefershTokenFormat(refreshToken);
+    const tokenId = validateRefreshTokenFormat(refreshToken);
     if (!tokenId) {
+      console.log(tokenId);
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_TOKEN_FORMAT);
     }
     
     const storedTokenObject = await this.refreshTokenDao.findById({ id: tokenId });
-    if (!storedTokenObject) {
+    if (!storedTokenObject || storedTokenObject.revokedAt) {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_TOKEN);
     }
     
