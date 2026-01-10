@@ -56,7 +56,7 @@ describe('AuthService - logout', () => {
   });
 
   it('Should throw error when token jti is not found in database', async () => {
-    const tokenId = '123e4567-e89b-12d3-a456-426614174000';
+    const tokenId = '123e4567-e89b-42d3-a456-426614174000';
     const tokenPart = 'b'.repeat(REFRESH_TOKEN_SIZE * 2);
     const refreshToken = `${tokenId}.${tokenPart}`;
     mockRefreshTokenDao.findById.mockResolvedValueOnce(null);
@@ -71,7 +71,6 @@ describe('AuthService - logout', () => {
     const tokenId = '9f3d5e8c-4b2a-41d7-8e3f-2a5c6d7e8f9a';
     const tokenPart = 'c'.repeat(REFRESH_TOKEN_SIZE * 2);
     const refreshToken = `${tokenId}.${tokenPart}`;
-    console.log(refreshToken);
     mockRefreshTokenDao.findById.mockResolvedValueOnce({
       id: tokenId,
       userId: 2,
@@ -102,7 +101,7 @@ describe('AuthService - logout', () => {
 
   it('Should call revoke method after successful logout', async () => {
     (compareRefreshToken as unknown as vi.Mock).mockReturnValueOnce(true);
-    const tokenId = '7a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d';
+    const tokenId = '7a8b9c0d-1e2f-4a4b-9c6d-7e8f9a0b1c2d';
     const tokenPart = 'd'.repeat(REFRESH_TOKEN_SIZE * 2);
     const refreshToken = `${tokenId}.${tokenPart}`;
     
@@ -119,7 +118,7 @@ describe('AuthService - logout', () => {
 
   it('Should throw error when refresh token does not match stored hash', async () => {
     (compareRefreshToken as unknown as vi.Mock).mockReturnValueOnce(false);
-    const tokenId = '3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f';
+    const tokenId = '3c4d5e6f-7a8b-4c0d-9e2f-3a4b5c6d7e8f';
     const tokenPart = 'e'.repeat(REFRESH_TOKEN_SIZE * 2);
     const refreshToken = `${tokenId}.${tokenPart}`;
     
