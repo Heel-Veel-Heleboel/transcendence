@@ -3,7 +3,7 @@ import {
   RateLimitEntry
 } from '../entity/common';
 import fs from 'fs';
-import { logger } from '../utils/logger';
+import { logger } from './logger';
 import {
   validateIntegerRange,
   validateTimeWindow,
