@@ -1,0 +1,23 @@
+# Autodiscover Docker containers and collect their logs
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+
+# Add Docker metadata (container name, labels, etc.)
+processors:
+- add_docker_metadata:
+    host: "unix:///var/run/docker.sock"
+
+# Kibana connection for dashboards and setup
+setup.kibana:
+  host: ${KIBANA_HOSTS}
+  username: ${ELASTIC_USER}
+  password: ${ELASTIC_PASSWORD}
+
+# Send logs to Logstash for processing
+output.logstash:
+  hosts: ["${LOGSTASH_HOSTS}"]
+  ssl.enabled: true
+  ssl.certificate_authorities: ["certs/ca/ca.crt"]
+  ssl.verification_mode: "full"
