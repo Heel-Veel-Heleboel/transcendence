@@ -1,7 +1,7 @@
 import { UserManagementService } from '../types/user-management-service.js';
 import { CredentialsDaoShape } from '../types/daos/credentials.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
-import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto, LogoutDto, RefreshedTokensDto, RefreshDto } from '../types/dtos/auth.js';
+import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto, LogoutDto, RefreshedTokensDto, RefreshDto, ChangePasswordDto } from '../types/dtos/auth.js';
 import { passwordHasher, comparePasswordHash } from '../utils/password-hash.js';
 import { SaltLimits } from '../constants/password.js';
 import { REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
@@ -54,7 +54,7 @@ export class AuthService {
     }
     const storedPassword = await this.credentialsDao.findByUserId({ userId: user.id });
 
-    if (!storedPassword || !(await comparePasswordHash(login.password, storedPassword))) {
+    if (!storedPassword || !(await comparePasswordHash(login.password, storedPassword.hashedPassword))) {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
     const accessToken = generateAccessToken({ sub: user.id, user_email: user.email });
@@ -96,6 +96,17 @@ export class AuthService {
     };
   }
 
+  async changePassword(data: ChangePasswordDto): Promise<void> {
+    const oldCredentials = await this.credentialsDao.findByUserId({ userId: data.userId });
+    if (!oldCredentials) {
+      throw new ResourceNotFoundError(AUTH_ERROR_MESSAGES.USER_CREDENTIAL_NOT_FOUND_BY_ID(data.userId));
+    }
+    if (!(await comparePasswordHash(data.currentPassword, oldCredentials.hashedPassword))) {
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
+    }
+    await this.credentialsDao.updatePassword({ userId: data.userId, newPassword: data.newPassword });
+    await this.refreshTokenDao.purgeRevokedExpired();
+  }
   
   private async validateRefreshToken({ userId, refreshToken }: { userId: number; refreshToken: string }): Promise<string> {
     const tokenId = validateRefreshTokenFormat(refreshToken);
@@ -123,4 +134,7 @@ export class AuthService {
 
     return tokenId;
   }
+
+
+  
 }

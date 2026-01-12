@@ -11,6 +11,7 @@ export const AUTH_ERROR_MESSAGES = {
   // Resource not found errors
   USER_NOT_FOUND_BY_EMAIL: (email: string) => `User with email: ${email} does not exist.`,
   USER_NOT_FOUND_BY_ID: (id: number) => `User with ID: ${id} does not exist.`,
+  USER_CREDENTIAL_NOT_FOUND_BY_ID: (id: number) => `User credentials for user ID: ${id} do not exist.`,
   
   // Registration errors
   REGISTRATION_CLEANUP_FAILED: 'Failed to cleanup user after registration error:'
