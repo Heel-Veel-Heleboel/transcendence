@@ -45,6 +45,10 @@ describe('AuthService - Login', () => {
       email: 'test@user.com',
       username: 'testuser'
     };
+    const mockStoredCredentials = {
+      userId: 1,
+      hashedPassword: '$2b$10$hashedpassword'
+    };
 
     const mockHashedPassword = '$2b$10$hashedpassword';
     const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
@@ -55,7 +59,7 @@ describe('AuthService - Login', () => {
     };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
-    mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
+    mockCredentialDao.findByUserId.mockResolvedValue(mockStoredCredentials);
 
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
@@ -132,16 +136,19 @@ describe('AuthService - Login', () => {
       username: 'testuser'
     };
 
-    const mockHashedPassword = '$2b$10$hashedpassword';
+    const mockStoredCredentials = {
+      userId: 1,
+      hashedPassword: '$2b$10$hashedpassword'
+    };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
-    mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
+    mockCredentialDao.findByUserId.mockResolvedValue(mockStoredCredentials);
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(false);
 
     await expect(authService.login(loginDto)).rejects.toThrow(AuthenticationError);
     await expect(authService.login(loginDto)).rejects.toThrow('Invalid credentials provided.');
 
-    expect(passwordHasherModule.comparePasswordHash).toHaveBeenCalledWith(loginDto.password, mockHashedPassword);
+    expect(passwordHasherModule.comparePasswordHash).toHaveBeenCalledWith(loginDto.password, mockStoredCredentials.hashedPassword);
     expect(jwtModule.generateAccessToken).not.toHaveBeenCalled();
     expect(jwtModule.generateRefreshToken).not.toHaveBeenCalled();
     expect(mockRefreshTokenDao.store).not.toHaveBeenCalled();
@@ -229,10 +236,13 @@ describe('AuthService - Login', () => {
       username: 'testuser'
     };
 
-    const mockHashedPassword = '$2b$10$hashedpassword';
+    const mockStoredCredentials = {
+      userId: 1,
+      hashedPassword: '$2b$10$hashedpassword'
+    };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
-    mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
+    mockCredentialDao.findByUserId.mockResolvedValue(mockStoredCredentials);
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     
     const tokenError = new Error('Invalid signing key');
@@ -260,11 +270,14 @@ describe('AuthService - Login', () => {
       username: 'testuser'
     };
 
-    const mockHashedPassword = '$2b$10$hashedpassword';
+    const mockStoredCredentials = {
+      userId: 1,
+      hashedPassword: '$2b$10$hashedpassword'
+    };
     const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
-    mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
+    mockCredentialDao.findByUserId.mockResolvedValue(mockStoredCredentials);
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     
@@ -293,7 +306,10 @@ describe('AuthService - Login', () => {
       username: 'testuser'
     };
 
-    const mockHashedPassword = '$2b$10$hashedpassword';
+    const mockStoredCredentials = {
+      userId: 1,
+      hashedPassword: '$2b$10$hashedpassword'
+    };
     const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
     const mockRefreshTokenResult = {
       id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
@@ -302,7 +318,7 @@ describe('AuthService - Login', () => {
     };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
-    mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
+    mockCredentialDao.findByUserId.mockResolvedValue(mockStoredCredentials);
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
@@ -344,7 +360,10 @@ describe('AuthService - Login', () => {
       username: 'seconduser'
     };
 
-    const mockHashedPassword = '$2b$10$differenthash';
+    const mockStoredCredentials = {
+      userId: 42,
+      hashedPassword: '$2b$10$differenthash'
+    };
     const mockAccessToken = 'different.access.token';
     const mockRefreshTokenResult = {
       id: 'b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e',
@@ -353,7 +372,7 @@ describe('AuthService - Login', () => {
     };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
-    mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
+    mockCredentialDao.findByUserId.mockResolvedValue(mockStoredCredentials);
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
@@ -385,10 +404,13 @@ describe('AuthService - Login', () => {
       username: 'testuser'
     };
 
-    const mockHashedPassword = '$2b$10$hashedpassword';
+    const mockStoredCredentials = {
+      userId: 1,
+      hashedPassword: '$2b$10$hashedpassword'
+    };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
-    mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
+    mockCredentialDao.findByUserId.mockResolvedValue(mockStoredCredentials);
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(false);
 
     await expect(authService.login(loginDto)).rejects.toThrow(AuthenticationError);
@@ -409,7 +431,10 @@ describe('AuthService - Login', () => {
       username: 'testuser'
     };
 
-    const mockHashedPassword = '$2b$10$hashedpassword';
+    const mockStoredCredentials = {
+      userId: 1,
+      hashedPassword: '$2b$10$hashedpassword'
+    };
     const mockAccessToken = 'access.token';
     const mockRefreshTokenResult = {
       id: 'c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f',
@@ -418,7 +443,7 @@ describe('AuthService - Login', () => {
     };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
-    mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
+    mockCredentialDao.findByUserId.mockResolvedValue(mockStoredCredentials);
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
@@ -444,17 +469,20 @@ describe('AuthService - Login', () => {
       username: 'testuser'
     };
 
-    const mockHashedPassword = '$2b$10$specifichash';
+    const mockStoredCredentials = {
+      userId: 1,
+      hashedPassword: '$2b$10$specifichash'
+    };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
-    mockCredentialDao.findByUserId.mockResolvedValue(mockHashedPassword);
+    mockCredentialDao.findByUserId.mockResolvedValue(mockStoredCredentials);
     vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(false);
 
     await expect(authService.login(loginDto)).rejects.toThrow(AuthenticationError);
 
     expect(passwordHasherModule.comparePasswordHash).toHaveBeenCalledWith(
       'MySecurePassword!',
-      '$2b$10$specifichash'
+      mockStoredCredentials.hashedPassword
     );
   });
 });
