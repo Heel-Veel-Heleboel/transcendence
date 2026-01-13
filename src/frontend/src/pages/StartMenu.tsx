@@ -3,9 +3,9 @@ import "../style.css"
 
 export const StartMenu = (): JSX.Element => {
     return (
-        <div className="">
+        <div id='StartMenu'>
             <Animation />
-            <div id="startMenu" className="relative z-1 text-white text-center">
+            <div id="StartMenuContent" className="relative z-1 text-white text-center">
                 <Title />
                 <Logo />
                 <div id="menuOptions">
