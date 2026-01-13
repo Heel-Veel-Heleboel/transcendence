@@ -79,7 +79,7 @@ export class AuthService {
 
   async refresh(token: RefreshDto): Promise<RefreshedTokensDto> {
     const tokenId = await this.validateRefreshToken({ userId: token.userId, refreshToken: token.refreshToken });
-    const user = await this.userService.findUserById(token.userId);
+    const user = await this.userService.findByUserId(token.userId);
     if (!user) {
       throw new ResourceNotFoundError(AUTH_ERROR_MESSAGES.USER_NOT_FOUND_BY_ID(token.userId));
     }
@@ -96,7 +96,12 @@ export class AuthService {
     };
   }
 
+
   async changePassword(data: ChangePasswordDto): Promise<void> {
+    const user = await this.userService.findByUserId(data.userId);
+    if (!user) {
+      throw new ResourceNotFoundError(AUTH_ERROR_MESSAGES.USER_NOT_FOUND_BY_ID(data.userId));
+    }
     const oldCredentials = await this.credentialsDao.findByUserId({ userId: data.userId });
     if (!oldCredentials) {
       throw new ResourceNotFoundError(AUTH_ERROR_MESSAGES.USER_CREDENTIAL_NOT_FOUND_BY_ID(data.userId));
@@ -104,10 +109,12 @@ export class AuthService {
     if (!(await comparePasswordHash(data.currentPassword, oldCredentials.hashedPassword))) {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
-    await this.credentialsDao.updatePassword({ userId: data.userId, newPassword: data.newPassword });
+    const newHashedPassword = await passwordHasher(data.newPassword, SaltLimits);
+    await this.credentialsDao.updatePassword({ userId: data.userId, newPassword: newHashedPassword });
     await this.refreshTokenDao.purgeRevokedExpired();
   }
   
+
   private async validateRefreshToken({ userId, refreshToken }: { userId: number; refreshToken: string }): Promise<string> {
     const tokenId = validateRefreshTokenFormat(refreshToken);
     if (!tokenId) {
