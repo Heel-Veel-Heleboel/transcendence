@@ -1,7 +1,6 @@
 import { PrismaClient, RefreshToken } from '../../generated/prisma/client.js';
 import { CreateRefreshTokenDto, FindRefreshTokenDto, RevokeAllDto, RevokeRefreshTokenDto } from '../types/dtos/refresh-token.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
-import { th } from 'zod/locales';
 
 /**
  * Data Access Object (DAO) implementation for managing refresh tokens.
