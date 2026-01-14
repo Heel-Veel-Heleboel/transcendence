@@ -4,7 +4,7 @@ export const AUTH_ERROR_MESSAGES = {
   INVALID_TOKEN_FORMAT: 'Invalid refresh token format.',
   INVALID_TOKEN: 'Invalid refresh token.',
   TOKEN_EXPIRED: 'Refresh token has expired.',
-  
+  PASSWORD_SAME_AS_OLD: 'New password cannot be the same as the old password.',
   // Authorization errors
   TOKEN_OWNERSHIP_MISMATCH: 'User ID does not match token owner.',
   

@@ -109,6 +109,9 @@ export class AuthService {
     if (!(await comparePasswordHash(data.currentPassword, oldCredentials.hashedPassword))) {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
+    if (data.currentPassword === data.newPassword) {
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.PASSWORD_SAME_AS_OLD);
+    }
     const newHashedPassword = await passwordHasher(data.newPassword, SaltLimits);
     await this.credentialsDao.updatePassword({ userId: data.userId, newPassword: newHashedPassword });
     await this.refreshTokenDao.revokeAllByUserId({ userId: data.userId });

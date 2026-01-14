@@ -194,7 +194,7 @@ describe('AuthService - changePassword', () => {
     expect(MockRefreshTokenDao.purgeRevokedExpired).toHaveBeenCalled();
   });
 
-  it('Should allow changing to the same password', async () => {
+  it('Should not allow changing to the same password', async () => {
     MockUserService.findByUserId.mockResolvedValue(MockUser);
     MockCredentialsDao.findByUserId.mockResolvedValue(MockCredentials);
     vi.mocked(passwordHashModule.comparePasswordHash).mockResolvedValue(true);
@@ -209,14 +209,14 @@ describe('AuthService - changePassword', () => {
       newPassword: 'oldPassword'
     };
 
-    await expect(authService.changePassword(changePasswordDto)).resolves.toBeUndefined();
+    await expect(authService.changePassword(changePasswordDto)).rejects.toThrow('New password cannot be the same as the old password.');
     
     expect(MockUserService.findByUserId).toHaveBeenCalledWith(1);
     expect(MockCredentialsDao.findByUserId).toHaveBeenCalledWith({ userId: 1 });
     expect(passwordHashModule.comparePasswordHash).toHaveBeenCalledWith('oldPassword', MockCredentials.hashedPassword);
-    expect(MockCredentialsDao.updatePassword).toHaveBeenCalledWith({ userId: 1, newPassword: MockCredentials.hashedPassword });
-    expect(MockRefreshTokenDao.revokeAllByUserId).toHaveBeenCalledWith({ userId: 1 });
-    expect(MockRefreshTokenDao.purgeRevokedExpired).toHaveBeenCalled();
+    expect(MockCredentialsDao.updatePassword).not.toHaveBeenCalled();
+    expect(MockRefreshTokenDao.revokeAllByUserId).not.toHaveBeenCalled();
+    expect(MockRefreshTokenDao.purgeRevokedExpired).not.toHaveBeenCalled();
   });
 
   it('Should handle revoke all tokens failure', async () => {
