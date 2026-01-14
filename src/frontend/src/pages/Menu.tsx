@@ -17,7 +17,9 @@ export const Menu = (): JSX.Element => {
 
 export function Toolbar(): JSX.Element {
     return (
-        <div id="toolbar" className="w-full flex justify-end bg-sky-500">
+        <div id="toolbar" className="w-full flex justify-between bg-sky-500">
+            <div className="px-2">logo</div>
+            <div className="">time</div>
             <div id="toolbarOptionsContainer" className="w-35 flex ">
                 <ToolbarOption id='profile' src='profile.png' />
                 <ToolbarOption id='settings' src='settings.png' />
