@@ -26,6 +26,8 @@ volumes:
     driver: local
   prometheus-data:
     driver: local
+  filebeat-data:
+    driver: local
 
 networks:
   default:
@@ -127,6 +129,38 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+
+  filebeat:
+    depends_on:
+      logstash:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    image: docker.elastic.co/beats/filebeat:${STACK_VERSION}
+    user: "1000:1000"
+    command: filebeat -e
+    volumes:
+      - certs:/usr/share/filebeat/certs:ro
+      - filebeat-data:/usr/share/filebeat/data
+      - "./observability/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro"
+      - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    environment:
+      - ELASTIC_USER=${ELASTIC_USER:-elastic}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_HOSTS=http://kibana:5601
+      - LOGSTASH_HOSTS=logstash:5044
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - >
+          filebeat test output >/dev/null 2>&1
+          && pgrep filebeat >/dev/null 2>&1
+          && find /usr/share/filebeat/data/registry -type f -name '*.json' -size +0c 2>/dev/null | grep -q .
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   logstash:
     depends_on:
