@@ -1,5 +1,5 @@
-import { PrismaClient } from '../../generated/prisma/client.js';  
-import { CreateRefreshTokenDto, DeleteAllForUser, FindRefreshTokenDto, RevokeRefreshTokenDto } from '../types/dtos/refresh-token.js';
+import { PrismaClient, RefreshToken } from '../../generated/prisma/client.js';
+import { CreateRefreshTokenDto, FindRefreshTokenDto, RevokeRefreshTokenDto } from '../types/dtos/refresh-token.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
 
 /**
@@ -19,7 +19,7 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
     private readonly expirationMs: number
   ) {};
 
-  async create(data: CreateRefreshTokenDto): Promise<void> {
+  async store(data: CreateRefreshTokenDto): Promise<void> {
     await this.prismaClient.refreshToken.create({
       data: {
         id: data.id,
@@ -37,22 +37,22 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
     });
   }
 
-  async findByTokenId(data: FindRefreshTokenDto): Promise<string | null> {
+  async findById(data: FindRefreshTokenDto): Promise<RefreshToken | null> {
     const record = await this.prismaClient.refreshToken.findUnique({
       where: { id: data.id }
     });
-    return record ? record.hashedToken : null;
+    return record;
   }
 
-  async deleteAllForUser(data: DeleteAllForUser): Promise<void> {
+  async purgeRevokedExpired(): Promise<void> {
+    const now = new Date();
     await this.prismaClient.refreshToken.deleteMany({
-      where: { userId: data.userId }
-    });
-  }
-
-  async deleteAllRevoked(): Promise<void> {
-    await this.prismaClient.refreshToken.deleteMany({
-      where: { revokedAt: { not: null } }
+      where: {
+        OR: [
+          { revokedAt: { not: null } },
+          { expiredAt: { lt: now } }
+        ]
+      }
     });
   }
 }

@@ -23,16 +23,14 @@ describe('RefreshTokenSessionDao', () => {
     expect((dao as any).expirationMs).toBe(604800000); // 7 days in milliseconds
   });
 
-  it('Should create a refresh token record ', async () => {
-
+  it('Should create a refresh token record', async () => {
     const MockCreateRefreshTokenDto: CreateRefreshTokenDto = {
       id: 'some-unique-id',
       userId: 1,
       refreshToken: 'token'
     };
 
-
-    await dao.create(MockCreateRefreshTokenDto);
+    await dao.store(MockCreateRefreshTokenDto);
     expect(mockPrismaClient.refreshToken.create).toBeCalled();
     expect(mockPrismaClient.refreshToken.create).toBeCalledWith({
       data: {
@@ -53,50 +51,54 @@ describe('RefreshTokenSessionDao', () => {
     });
   });
 
-  it('Should find a refresh token by token id', async () => {
-    mockPrismaClient.refreshToken.findUnique.mockResolvedValueOnce({ hashedToken: 'token' });
-    const result = await dao.findByTokenId({ id: 'some-unique-id' });
+  it('Should purge revoked and expired tokens', async () => {
+    await dao.purgeRevokedExpired();
+    expect(mockPrismaClient.refreshToken.deleteMany).toBeCalled();
+    expect(mockPrismaClient.refreshToken.deleteMany).toBeCalledWith({
+      where: {
+        OR: [
+          { revokedAt: { not: null } },
+          { expiredAt: { lt: expect.any(Date) } }
+        ]
+      }
+    });
+  });
+
+  it('Should find a refresh token by token id and return full record', async () => {
+    const mockRefreshToken = {
+      id: 'some-unique-id',
+      userId: 1,
+      hashedToken: 'hashed-token-value',
+      expiredAt: new Date(),
+      revokedAt: null,
+      createdAt: new Date()
+    };
+
+    mockPrismaClient.refreshToken.findUnique.mockResolvedValueOnce(mockRefreshToken);
+    const result = await dao.findById({ id: 'some-unique-id' });
+    
     expect(mockPrismaClient.refreshToken.findUnique).toBeCalled();
     expect(mockPrismaClient.refreshToken.findUnique).toBeCalledWith({
       where: { id: 'some-unique-id' }
     });
-    expect(result).toBe('token');
-  });
-
-  it('Should delete all refresh tokens for a user', async () => {
-    await dao.deleteAllForUser({ userId: 1 });
-    expect(mockPrismaClient.refreshToken.deleteMany).toBeCalled();
-    expect(mockPrismaClient.refreshToken.deleteMany).toBeCalledWith({
-      where: { userId: 1 }
-    });
-  });
-
-  it('Should delete all revoked refresh tokens', async () => {
-    await dao.deleteAllRevoked();
-    expect(mockPrismaClient.refreshToken.deleteMany).toBeCalled();
-    expect(mockPrismaClient.refreshToken.deleteMany).toBeCalledWith({
-      where: { revokedAt: { not: null } }
-    });
+    expect(result).toEqual(mockRefreshToken);
+    expect(result?.hashedToken).toBe('hashed-token-value');
+    expect(result?.userId).toBe(1);
   });
 
   it('Should return null if token not found', async () => {
     mockPrismaClient.refreshToken.findUnique.mockResolvedValueOnce(null);
-    const result = await dao.findByTokenId({ id: 'nonexistent' });
+    const result = await dao.findById({ id: 'nonexistent' });
     expect(result).toBeNull();
   });
 
   it('Should handle errors gracefully', async () => {
     mockPrismaClient.refreshToken.create.mockRejectedValueOnce(new Error('DB Error'));
-    await expect(dao.create({ id: 'test-id', userId: 1, refreshToken: 'token' })).rejects.toThrow('DB Error');
+    await expect(dao.store({ id: 'test-id', userId: 1, refreshToken: 'token' })).rejects.toThrow('DB Error');
   });
 
   it('Should fail when revoking non-existent token', async () => {
     mockPrismaClient.refreshToken.update.mockRejectedValueOnce(new Error('Token not found'));
     await expect(dao.revoke({ id: 'invalid' })).rejects.toThrow('Token not found');
-  });
-
-  it('Should handle no tokens to delete when deleting all revoked', async () => {
-    mockPrismaClient.refreshToken.deleteMany.mockResolvedValueOnce({ count: 0 });
-    await expect(dao.deleteAllRevoked()).resolves.not.toThrow();
   });
 });
