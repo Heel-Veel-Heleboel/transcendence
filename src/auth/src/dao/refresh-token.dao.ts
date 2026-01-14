@@ -1,6 +1,7 @@
 import { PrismaClient, RefreshToken } from '../../generated/prisma/client.js';
-import { CreateRefreshTokenDto, FindRefreshTokenDto, RevokeRefreshTokenDto } from '../types/dtos/refresh-token.js';
+import { CreateRefreshTokenDto, FindRefreshTokenDto, RevokeAllDto, RevokeRefreshTokenDto } from '../types/dtos/refresh-token.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
+import { th } from 'zod/locales';
 
 /**
  * Data Access Object (DAO) implementation for managing refresh tokens.
@@ -33,6 +34,13 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
   async revoke(tokenData: RevokeRefreshTokenDto): Promise<void> {
     await this.prismaClient.refreshToken.update({
       where: { id: tokenData.id },
+      data: { revokedAt: new Date() }
+    });
+  }
+
+  async revokeAllByUserId(tokenData: RevokeAllDto): Promise<void> {
+    await this.prismaClient.refreshToken.updateMany({
+      where: { userId: tokenData.userId },
       data: { revokedAt: new Date() }
     });
   }

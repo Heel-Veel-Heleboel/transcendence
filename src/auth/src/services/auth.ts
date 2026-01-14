@@ -111,6 +111,7 @@ export class AuthService {
     }
     const newHashedPassword = await passwordHasher(data.newPassword, SaltLimits);
     await this.credentialsDao.updatePassword({ userId: data.userId, newPassword: newHashedPassword });
+    await this.refreshTokenDao.revokeAllByUserId({ userId: data.userId });
     await this.refreshTokenDao.purgeRevokedExpired();
   }
   

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthService } from '../../../src/auth/src/services/auth.js';
 import * as passwordHashModule from '../../../src/auth/src/utils/password-hash.js';
-import {SaltLimits} from '../../../src/auth/src/constants/password.js';
+import { SaltLimits } from '../../../src/auth/src/constants/password.js';
 
 vi.mock('../../../src/auth/src/utils/password-hash.js', () => ({
   passwordHasher: vi.fn(),
@@ -18,6 +18,7 @@ const MockCredentialsDao = {
 };
 
 const MockRefreshTokenDao = {
+  revokeAllByUserId: vi.fn(),
   purgeRevokedExpired: vi.fn()
 };
 
@@ -42,6 +43,7 @@ describe('AuthService - changePassword', () => {
     vi.mocked(passwordHashModule.comparePasswordHash).mockResolvedValue(true);
     vi.mocked(passwordHashModule.passwordHasher).mockResolvedValue('newHashedPassword');
     MockCredentialsDao.updatePassword.mockResolvedValue(undefined);
+    MockRefreshTokenDao.revokeAllByUserId.mockResolvedValue(undefined);
     MockRefreshTokenDao.purgeRevokedExpired.mockResolvedValue(undefined);
 
     const changePasswordDto = {
@@ -56,6 +58,7 @@ describe('AuthService - changePassword', () => {
     expect(MockCredentialsDao.findByUserId).toHaveBeenCalledWith({ userId: 1 });
     expect(passwordHashModule.comparePasswordHash).toHaveBeenCalledWith('oldPassword', MockCredentials.hashedPassword);
     expect(MockCredentialsDao.updatePassword).toHaveBeenCalledWith({ userId: 1, newPassword: 'newHashedPassword' });
+    expect(MockRefreshTokenDao.revokeAllByUserId).toHaveBeenCalledWith({ userId: 1 });
     expect(MockRefreshTokenDao.purgeRevokedExpired).toHaveBeenCalled();
   });
 
@@ -75,6 +78,7 @@ describe('AuthService - changePassword', () => {
     expect(MockCredentialsDao.findByUserId).not.toHaveBeenCalled();
     expect(passwordHashModule.comparePasswordHash).not.toHaveBeenCalled();
     expect(MockCredentialsDao.updatePassword).not.toHaveBeenCalled();
+    expect(MockRefreshTokenDao.revokeAllByUserId).not.toHaveBeenCalled();
     expect(MockRefreshTokenDao.purgeRevokedExpired).not.toHaveBeenCalled();
   });
 
@@ -95,6 +99,7 @@ describe('AuthService - changePassword', () => {
     expect(MockCredentialsDao.findByUserId).toHaveBeenCalledWith({ userId: 1 });
     expect(passwordHashModule.comparePasswordHash).toHaveBeenCalledWith('wrongOldPassword', MockCredentials.hashedPassword);
     expect(MockCredentialsDao.updatePassword).not.toHaveBeenCalled();
+    expect(MockRefreshTokenDao.revokeAllByUserId).not.toHaveBeenCalled();
     expect(MockRefreshTokenDao.purgeRevokedExpired).not.toHaveBeenCalled();
   });
 
@@ -114,6 +119,7 @@ describe('AuthService - changePassword', () => {
     expect(MockCredentialsDao.findByUserId).toHaveBeenCalledWith({ userId: 1 });
     expect(passwordHashModule.comparePasswordHash).not.toHaveBeenCalled();
     expect(MockCredentialsDao.updatePassword).not.toHaveBeenCalled();
+    expect(MockRefreshTokenDao.revokeAllByUserId).not.toHaveBeenCalled();
     expect(MockRefreshTokenDao.purgeRevokedExpired).not.toHaveBeenCalled();
   }); 
 
@@ -136,6 +142,7 @@ describe('AuthService - changePassword', () => {
     expect(MockCredentialsDao.findByUserId).toHaveBeenCalledWith({ userId: 1 });
     expect(passwordHashModule.comparePasswordHash).toHaveBeenCalledWith('oldPassword', MockCredentials.hashedPassword);
     expect(MockCredentialsDao.updatePassword).toHaveBeenCalledWith({ userId: 1, newPassword: 'newHashedPassword' });
+    expect(MockRefreshTokenDao.revokeAllByUserId).not.toHaveBeenCalled();
     expect(MockRefreshTokenDao.purgeRevokedExpired).not.toHaveBeenCalled();
   });
 
@@ -158,6 +165,7 @@ describe('AuthService - changePassword', () => {
     expect(passwordHashModule.comparePasswordHash).toHaveBeenCalledWith('oldPassword', MockCredentials.hashedPassword);
     expect(passwordHashModule.passwordHasher).toHaveBeenCalledWith('newPassword', SaltLimits);
     expect(MockCredentialsDao.updatePassword).not.toHaveBeenCalled();
+    expect(MockRefreshTokenDao.revokeAllByUserId).not.toHaveBeenCalled();
     expect(MockRefreshTokenDao.purgeRevokedExpired).not.toHaveBeenCalled();
   });
 
@@ -167,6 +175,7 @@ describe('AuthService - changePassword', () => {
     vi.mocked(passwordHashModule.comparePasswordHash).mockResolvedValue(true);
     vi.mocked(passwordHashModule.passwordHasher).mockResolvedValue('newHashedPassword');
     MockCredentialsDao.updatePassword.mockResolvedValue(undefined);
+    MockRefreshTokenDao.revokeAllByUserId.mockResolvedValue(undefined);
     MockRefreshTokenDao.purgeRevokedExpired.mockRejectedValue(new Error('Purge failed'));
 
     const changePasswordDto = {
@@ -181,6 +190,7 @@ describe('AuthService - changePassword', () => {
     expect(MockCredentialsDao.findByUserId).toHaveBeenCalledWith({ userId: 1 });
     expect(passwordHashModule.comparePasswordHash).toHaveBeenCalledWith('oldPassword', MockCredentials.hashedPassword);
     expect(MockCredentialsDao.updatePassword).toHaveBeenCalledWith({ userId: 1, newPassword: 'newHashedPassword' });
+    expect(MockRefreshTokenDao.revokeAllByUserId).toHaveBeenCalledWith({ userId: 1 });
     expect(MockRefreshTokenDao.purgeRevokedExpired).toHaveBeenCalled();
   });
 
@@ -190,6 +200,7 @@ describe('AuthService - changePassword', () => {
     vi.mocked(passwordHashModule.comparePasswordHash).mockResolvedValue(true);
     vi.mocked(passwordHashModule.passwordHasher).mockResolvedValue(MockCredentials.hashedPassword);
     MockCredentialsDao.updatePassword.mockResolvedValue(undefined);
+    MockRefreshTokenDao.revokeAllByUserId.mockResolvedValue(undefined);
     MockRefreshTokenDao.purgeRevokedExpired.mockResolvedValue(undefined);
 
     const changePasswordDto = {
@@ -204,6 +215,31 @@ describe('AuthService - changePassword', () => {
     expect(MockCredentialsDao.findByUserId).toHaveBeenCalledWith({ userId: 1 });
     expect(passwordHashModule.comparePasswordHash).toHaveBeenCalledWith('oldPassword', MockCredentials.hashedPassword);
     expect(MockCredentialsDao.updatePassword).toHaveBeenCalledWith({ userId: 1, newPassword: MockCredentials.hashedPassword });
+    expect(MockRefreshTokenDao.revokeAllByUserId).toHaveBeenCalledWith({ userId: 1 });
     expect(MockRefreshTokenDao.purgeRevokedExpired).toHaveBeenCalled();
+  });
+
+  it('Should handle revoke all tokens failure', async () => {
+    MockUserService.findByUserId.mockResolvedValue(MockUser);
+    MockCredentialsDao.findByUserId.mockResolvedValue(MockCredentials);
+    vi.mocked(passwordHashModule.comparePasswordHash).mockResolvedValue(true);
+    vi.mocked(passwordHashModule.passwordHasher).mockResolvedValue('newHashedPassword');
+    MockCredentialsDao.updatePassword.mockResolvedValue(undefined);
+    MockRefreshTokenDao.revokeAllByUserId.mockRejectedValue(new Error('Revoke all failed'));
+
+    const changePasswordDto = {
+      userId: 1,
+      currentPassword: 'oldPassword',
+      newPassword: 'newPassword'
+    };
+
+    await expect(authService.changePassword(changePasswordDto)).rejects.toThrow('Revoke all failed');
+    
+    expect(MockUserService.findByUserId).toHaveBeenCalledWith(1);
+    expect(MockCredentialsDao.findByUserId).toHaveBeenCalledWith({ userId: 1 });
+    expect(passwordHashModule.comparePasswordHash).toHaveBeenCalledWith('oldPassword', MockCredentials.hashedPassword);
+    expect(MockCredentialsDao.updatePassword).toHaveBeenCalledWith({ userId: 1, newPassword: 'newHashedPassword' });
+    expect(MockRefreshTokenDao.revokeAllByUserId).toHaveBeenCalledWith({ userId: 1 });
+    expect(MockRefreshTokenDao.purgeRevokedExpired).not.toHaveBeenCalled();
   });
 });
