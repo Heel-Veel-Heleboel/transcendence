@@ -81,7 +81,22 @@ export function TitleBar({ logoPath, title }: { logoPath: string, title: string 
         <div className="titleBarBorders border-1 bg-lime-300 flex justify-between px-1">
             <div>{logoPath}</div>
             <div>{title}</div>
-            <div>buttons</div>
+            {/*
+                <a href="https://www.flaticon.com/free-icons/minus-button" title="minus button icons">Minus button icons created by Circlon Tech - Flaticon</a>
+                <a href="https://www.flaticon.com/free-icons/maximize" title="maximize icons">Maximize icons created by Ranah Pixel Studio - Flaticon</a>
+                <a href="https://www.flaticon.com/free-icons/close" title="close icons">Close icons created by Pixel perfect - Flaticon</a>
+            */}
+            <div className='w-20 flex'>
+                <div className="px-2 py-2">
+                    <img src='minimize.png' alt='minimize' />
+                </div>
+                <div className="px-2 py-2">
+                    <img src='maximize.png' alt='maximize' />
+                </div>
+                <div className="px-2 py-2">
+                    <img src='close.png' alt='close' />
+                </div>
+            </div >
         </div>
     )
 }
