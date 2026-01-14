@@ -1,5 +1,6 @@
-import { JSX } from "react"
+import { JSX, useState, useEffect } from "react"
 import platform from 'platform';
+import { IAudioMetadata, IPicture, parseWebStream, selectCover } from 'music-metadata';
 import { browsers } from "../utils/browserLogos";
 
 export const Menu = (): JSX.Element => {
@@ -20,7 +21,9 @@ export const Menu = (): JSX.Element => {
 export function Toolbar(): JSX.Element {
     return (
         <div id="toolbar" className="w-full flex justify-between bg-sky-500">
+            {/* TODO update with own logo*/}
             <div className="px-2">logo</div>
+            {/* TODO change to realtime implementation*/}
             <div className="">time</div>
             <div id="toolbarOptionsContainer" className="w-35 flex ">
                 <ToolbarOption id='profile' src='profile.png' />
@@ -54,7 +57,7 @@ export function Widgets(): JSX.Element {
             <Widget title="speedmatching" logoPath="matchmaker.png" />
             <Widget title="gymkhana" logoPath="gymkhana.png" />
             <Widget title="trinityfetch" logoPath="crocodile.png" child={TrinityFetch()} />
-            <Widget title="mtvx" logoPath='vinyl.png' />
+            <Widget title="mtvx" logoPath='vinyl.png' child={Mtvx()} />
 
 
         </div>
@@ -63,6 +66,7 @@ export function Widgets(): JSX.Element {
 }
 
 export function TrinityFetch(): JSX.Element {
+    // TODO add user@alias above info
     const browser = (platform.name === null) ? '?' : platform.name;
     const browserVersion = (platform.version === null) ? '?' : platform.version;
     const layout = (platform.layout === null) ? '?' : platform.layout;
@@ -70,7 +74,7 @@ export function TrinityFetch(): JSX.Element {
     const osArchitecture = (platform.os.architecture === null) ? '?' : platform.os.architecture;
     const product = (platform.product === null) ? '?' : platform.product;
     const manufacturer = (platform.manufacturer === null) ? '?' : platform.manufacturer;
-    // update with p5 version
+    // TODO update with p5 version
     const logo = (platform.name === null) ? '?' : browsers.get(platform.name)?.logo;
     return (
         <div className="flex min-h-full">
@@ -97,6 +101,89 @@ export function TrinityFetch(): JSX.Element {
     )
 }
 
+async function parseMusic(): Promise<IAudioMetadata | null> {
+    let metadata = null;
+    try {
+        const response = await fetch('60681z.mp3');
+
+        const contentLength = response.headers.get('Content-Length');
+        const size = contentLength ? parseInt(contentLength, 10) : undefined;
+
+        if (response) {
+            metadata = await parseWebStream(response.body, {
+                mimeType: response.headers.get('Content-Type'),
+                size
+            });
+        } else {
+            throw Error('no valid response');
+        }
+    } catch (error: any) {
+        console.error('Error parsing metadata:', error.message);
+    }
+    return metadata;
+}
+
+export function Mtvx(): JSX.Element {
+    const [metaData, setMetaData] = useState<IAudioMetadata | null>(null);
+    const [cover, setCover] = useState<IPicture | null>(null);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const result = await parseMusic();
+                const coverResult = selectCover(result?.common.picture);
+                setMetaData(result);
+                setCover(coverResult);
+            } catch (error: any) {
+                console.error('Error getting music:', error.message);
+            }
+        };
+
+        fetchData();
+    }, []);
+    const title = (metaData === null) ? '?' : metaData.common.title;
+    const album = (metaData === null) ? '?' : metaData.common.album;
+    const artist = (metaData === null) ? '?' : metaData.common.artist;
+    const duration = (metaData === null) ? '?' : metaData.format.duration;
+    let formattedDuration;
+    if (duration === '?') {
+        formattedDuration = duration
+    } else if (duration) {
+        const minutes = Math.floor(duration / 60);
+        const seconds = minutes % 60;
+        if (seconds < 10) {
+            formattedDuration = `${minutes}:0${seconds}`
+        } else {
+            formattedDuration = `${minutes}:${seconds}`
+        }
+    }
+    if (cover) {
+        console.log(cover);
+        const img = document.getElementById('my-img') as HTMLImageElement;
+        img.src = URL.createObjectURL(
+            new Blob([cover?.data.buffer], { type: 'image/jpeg' } /* (1) */)
+        );
+    }
+
+    return (
+        <div className="flex min-h-full">
+            <div className='min-h-full w-1/2'>
+                <img id="my-img" />
+            </div>
+            <div className="min-h-full w-1/2">
+                <div className="min-h-full flex flex-col justify-between">
+                    <div />
+                    <div className="flex flex-col text-xs">
+                        <p><span className="text-blue-600">title</span>: {title}</p>
+                        <p><span className="text-blue-600">artist</span>:{artist} </p>
+                        <p><span className="text-blue-600">album</span>: {album}</p>
+                        <p><span className="text-blue-600">duration</span>: {formattedDuration}</p>
+                    </div>
+                    <div />
+                </div>
+            </div>
+        </div>
+    )
+}
 export function Widget({ logoPath, title, child }: { logoPath: string, title: string, child: JSX.Element }): JSX.Element {
     return (
         <div className="min-w-1/4 flex flex-col">
@@ -111,7 +198,6 @@ export function Widget({ logoPath, title, child }: { logoPath: string, title: st
 export function LiveChat(): JSX.Element {
     return (
         <div id="liveChat" className="p-2 h-full min-w-full flex flex-col bg-pink-300/50 bg-clip-content">
-
             {/*
                 <a href="https://www.flaticon.com/free-icons/hive" title="hive icons">Hive icons created by gravisio - Flaticon</a>
             */}
