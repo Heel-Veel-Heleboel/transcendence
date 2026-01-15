@@ -158,7 +158,7 @@ export function Mtvx(): JSX.Element {
     }
     if (cover) {
         console.log(cover);
-        const img = document.getElementById('my-img') as HTMLImageElement;
+        const img = document.getElementById('cover-art') as HTMLImageElement;
         img.src = URL.createObjectURL(
             new Blob([cover?.data], { type: 'image/jpg' } /* (1) */)
         );
@@ -167,7 +167,9 @@ export function Mtvx(): JSX.Element {
     return (
         <div className="flex min-h-full">
             <div className='min-h-full w-1/2'>
-                <img id="my-img" />
+                <div className="min-h-full flex items-center justify-center">
+                    <img className="w-1/2 h-1/2" alt="cover-art" id="cover-art" />
+                </div>
             </div>
             <div className="min-h-full w-1/2">
                 <div className="min-h-full flex flex-col justify-between">
