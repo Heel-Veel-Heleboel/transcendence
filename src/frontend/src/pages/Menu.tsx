@@ -5,6 +5,7 @@ import { IAudioMetadata, IPicture, parseWebStream, selectCover } from 'music-met
 import { browsers } from "../utils/browserLogos";
 
 export const Menu = (): JSX.Element => {
+    // TODO: add conditional rendering to render either main menu, profile, or settings
     return (
         <div id='Menu' className="w-full h-full flex flex-col">
             <Toolbar />
