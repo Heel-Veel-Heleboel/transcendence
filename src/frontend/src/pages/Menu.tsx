@@ -160,7 +160,7 @@ export function Mtvx(): JSX.Element {
         console.log(cover);
         const img = document.getElementById('my-img') as HTMLImageElement;
         img.src = URL.createObjectURL(
-            new Blob([cover?.data.buffer], { type: 'image/jpeg' } /* (1) */)
+            new Blob([cover?.data], { type: 'image/jpg' } /* (1) */)
         );
     }
 
