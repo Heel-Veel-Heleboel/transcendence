@@ -1,4 +1,5 @@
 import { JSX, useState, useEffect } from "react"
+import { useNavigate } from 'react-router-dom';
 import platform from 'platform';
 import { IAudioMetadata, IPicture, parseWebStream, selectCover } from 'music-metadata';
 import { browsers } from "../utils/browserLogos";
@@ -17,6 +18,7 @@ export const Menu = (): JSX.Element => {
 
 export function Toolbar(): JSX.Element {
     const time = localeDate();
+    const navigate = useNavigate();
     return (
         <div id="toolbar" className="w-full flex justify-between bg-sky-500">
             {/* TODO update with own logo*/}
@@ -26,17 +28,17 @@ export function Toolbar(): JSX.Element {
             <div id="toolbarOptionsContainer" className="w-35 flex ">
                 <ToolbarOption id='profile' src='profile.png' />
                 <ToolbarOption id='settings' src='settings.png' />
-                <ToolbarOption id='logout' src='logout.png' />
+                <ToolbarOption id='logout' src='logout.png' callback={() => navigate("/")} />
             </div>
         </div>
     )
 }
 
-export function ToolbarOption({ id, src }: { id: string, src: string }): JSX.Element {
+export function ToolbarOption({ id, src, callback }: { id: string, src: string, callback: () => void }): JSX.Element {
     const divId = `toolbarOption${id}`;
     return (
         <div id={divId} className='flex px-2 py-1'>
-            <img src={src} alt={id} />
+            <img src={src} alt={id} onClick={callback} />
         </div >
     )
 }
