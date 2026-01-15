@@ -101,43 +101,29 @@ export function TrinityFetch(): JSX.Element {
     )
 }
 
-async function parseMusic(): Promise<IAudioMetadata | null> {
-    let metadata = null;
-    try {
-        const response = await fetch('60681z.mp3');
-
-        const contentLength = response.headers.get('Content-Length');
-        const size = contentLength ? parseInt(contentLength, 10) : undefined;
-
-        if (response) {
-            metadata = await parseWebStream(response.body, {
-                mimeType: response.headers.get('Content-Type'),
-                size
-            });
-        } else {
-            throw Error('no valid response');
-        }
-    } catch (error: any) {
-        console.error('Error parsing metadata:', error.message);
-    }
-    return metadata;
-}
 
 export function Mtvx(): JSX.Element {
     const [metaData, setMetaData] = useState<IAudioMetadata | null>(null);
     const [cover, setCover] = useState<IPicture | null>(null);
+    const [mp3, setMp3] = useState<string | undefined>('60681z.mp3');
+    // setMp3('60681z.mp3')
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const result = await parseMusic();
-                const coverResult = selectCover(result?.common.picture);
-                setMetaData(result);
-                setCover(coverResult);
-            } catch (error: any) {
+                if (mp3) {
+                    await fetch(mp3).then(async response => {
+                        console.log(response);
+                        const result = await parseMusic(response);
+                        const coverResult = selectCover(result?.common.picture);
+                        setMetaData(result);
+                        setCover(coverResult);
+                    })
+                }
+            }
+            catch (error: any) {
                 console.error('Error getting music:', error.message);
             }
         };
-
         fetchData();
     }, []);
     const title = (metaData === null) ? '?' : metaData.common.title;
@@ -163,6 +149,11 @@ export function Mtvx(): JSX.Element {
             new Blob([cover?.data], { type: 'image/jpg' } /* (1) */)
         );
     }
+    if (mp3) {
+
+        // const player = document.getElementById('audio-player') as HTMLSourceElement;
+        // player.src = mp3;
+    }
 
     return (
         <div className="flex min-h-full">
@@ -172,7 +163,7 @@ export function Mtvx(): JSX.Element {
                 </div>
             </div>
             <div className="min-h-full w-1/2">
-                <div className="min-h-full flex flex-col justify-between">
+                <div className="min-h-full flex flex-col justify-around">
                     <div />
                     <div className="flex flex-col text-xs">
                         <p><span className="text-blue-600">title</span>: {title}</p>
@@ -180,12 +171,38 @@ export function Mtvx(): JSX.Element {
                         <p><span className="text-blue-600">album</span>: {album}</p>
                         <p><span className="text-blue-600">duration</span>: {formattedDuration}</p>
                     </div>
-                    <div />
+
+                    <audio className="w-5/6" controls src={mp3}>
+
+                        ohh hell no, your browser does not support the audio element #sad
+                    </audio>
                 </div>
             </div>
         </div>
     )
 }
+
+async function parseMusic(response: Response): Promise<IAudioMetadata | null> {
+    let metadata = null;
+    try {
+        const contentLength = response.headers.get('Content-Length');
+        const size = contentLength ? parseInt(contentLength, 10) : undefined;
+
+        if (response) {
+            metadata = await parseWebStream(response.body, {
+                mimeType: response.headers.get('Content-Type'),
+                size
+            });
+        } else {
+            throw Error('no valid response');
+        }
+    } catch (error: any) {
+        console.error('Error parsing metadata:', error.message);
+    }
+    return metadata;
+}
+
+
 export function Widget({ logoPath, title, child }: { logoPath: string, title: string, child: JSX.Element }): JSX.Element {
     return (
         <div className="min-w-1/4 flex flex-col">
