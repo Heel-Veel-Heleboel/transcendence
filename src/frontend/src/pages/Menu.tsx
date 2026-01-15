@@ -54,7 +54,7 @@ export function Widgets(): JSX.Element {
                 <a href="https://www.flaticon.com/free-icons/vinyl" title="vinyl icons">Vinyl icons created by Roundicons - Flaticon</a>
             */}
 
-            <Widget title="speedmatching" logoPath="matchmaker.png" />
+            <Widget title="speedmatching" logoPath="matchmaker.png" child={Speedmatching()} />
             <Widget title="gymkhana" logoPath="gymkhana.png" />
             <Widget title="trinityfetch" logoPath="crocodile.png" child={TrinityFetch()} />
             <Widget title="mtvx" logoPath='vinyl.png' child={Mtvx()} />
@@ -63,6 +63,21 @@ export function Widgets(): JSX.Element {
         </div>
     )
 
+}
+
+export function Speedmatching(): JSX.Element {
+    return (
+        <div className="min-h-full flex flex-col">
+            <div className="grow border flex flex-col">
+                <div className="border">Quick Play</div>
+                <div className="grow"></div>
+            </div>
+            <div className="grow border">
+                <div className="border">Customized</div>
+                <div className="grow"></div>
+            </div>
+        </div>
+    );
 }
 
 export function TrinityFetch(): JSX.Element {
