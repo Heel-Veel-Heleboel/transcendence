@@ -9,8 +9,9 @@ export const StartMenu = (): JSX.Element => {
                 <Title />
                 <Logo />
                 <div id="menuOptions">
-                    <MenuContainer text="go to menu" />
-                    <MenuContainer text="go to game" />
+                    <MenuContainer text="login" />
+                    <MenuContainer text="credits" />
+                    <MenuContainer text="quit" />
                 </div>
             </div>
 
