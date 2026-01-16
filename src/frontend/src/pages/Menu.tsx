@@ -4,31 +4,79 @@ import platform from 'platform';
 import { IAudioMetadata, IPicture, parseWebStream, selectCover } from 'music-metadata';
 import { browsers } from "../utils/browserLogos";
 
+const PAGE = Object.freeze({
+    MENU: 0,
+    PROFILE: 1,
+    SETTINGS: 2
+})
+
 export const Menu = (): JSX.Element => {
     // TODO: add conditional rendering to render either main menu, profile, or settings
+
+    const [page, setPage] = useState<number>(PAGE.MENU);
+
+    function redirect(page: number) {
+        setPage(page);
+    }
+
+
     return (
         <div id='Menu' className="w-full h-full flex flex-col">
-            <Toolbar />
+            <Toolbar redirect={redirect} />
             <div id="backgroundImage" className="min-h-full flex flex-col bg-[url(/logan_4.jpg)]">
-                <Widgets />
-                <LiveChat />
+                <GetPage page={page} />
             </div>
         </div>
     )
 }
 
-export function Toolbar(): JSX.Element {
+export function GetPage({ page }: { page: number }): JSX.Element {
+    switch (page) {
+        case PAGE.MENU:
+            return <DefaultMenu />
+        case PAGE.PROFILE:
+            return <Profile />
+        case PAGE.SETTINGS:
+            return <Settings />
+        default:
+            return <DefaultMenu />
+    }
+}
+
+export function DefaultMenu(): JSX.Element {
+    return (
+        <>
+            <Widgets />
+            <LiveChat />
+        </>
+    )
+}
+
+export function Profile(): JSX.Element {
+    return (
+        <div>Profile</div>
+    )
+
+}
+
+export function Settings(): JSX.Element {
+    return (
+        <div>Settings</div>
+    )
+
+}
+
+export function Toolbar({ redirect }: { redirect: (page: number) => void }): JSX.Element {
     const time = localeDate();
     const navigate = useNavigate();
     return (
         <div id="toolbar" className="w-full flex justify-between bg-sky-500">
             {/* TODO update with own logo*/}
-            <div className="px-2 py-2">logo</div>
-            {/* TODO change to realtime implementation*/}
+            <div className="px-2 py-2" onClick={() => redirect(PAGE.MENU)}>logo</div>
             <div className="py-2">{`${time.date} - ${time.time}`}</div>
             <div id="toolbarOptionsContainer" className="w-35 flex ">
-                <ToolbarOption id='profile' src='profile.png' />
-                <ToolbarOption id='settings' src='settings.png' />
+                <ToolbarOption id='profile' src='profile.png' callback={() => redirect(PAGE.PROFILE)} />
+                <ToolbarOption id='settings' src='settings.png' callback={() => redirect(PAGE.SETTINGS)} />
                 <ToolbarOption id='logout' src='logout.png' callback={() => navigate("/")} />
             </div>
         </div>
