@@ -19,7 +19,7 @@ describe('AuthController - register', () => {
     authController = new AuthController(MockAuthService as any);
   });
 
-  it ('should register a new user and return SafeUserDto', async () => {
+  it('Should register a new user and return SafeUserDto', async () => {
     const mockRequest = {
       body: {
         name: 'John Doe',
@@ -47,7 +47,7 @@ describe('AuthController - register', () => {
     expect(MockReply.send).toHaveBeenCalledWith(mockUser);
   });
 
-  it ('Should handle errors during registration', async () => {
+  it('Should handle errors during registration', async () => {
     const mockRequest = {
       body: {
         name: 'Jane Doe',

@@ -15,7 +15,7 @@ export class AuthController {
   
   async login(request: FastifyRequest<{ Body: LoginDto }>, reply: FastifyReply) : Promise<FastifyReply> {
     const { email, password } = request.body;
-    const loggedInUser: LoggedInUserDto = await this.authService.login({ email: email, password: password });
+    const loggedInUser: LoggedInUserDto = await this.authService.login({ email, password });
     return reply.code(200).send(loggedInUser);
   }
 }

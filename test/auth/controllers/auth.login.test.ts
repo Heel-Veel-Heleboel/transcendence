@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AuthController } from '../../../src/auth/src/controllers/auth';
+import { AuthController } from '../../../src/auth/src/controllers/auth.js';
 
 const MockAuthService = {
-  register: vi.fn(),
   login: vi.fn()
 };
 
@@ -11,7 +10,7 @@ const MockReply = {
   send: vi.fn()
 };
 
-describe('Should login user successfuly.', () => {
+describe('AuthController - login', () => {
 
   let authController: AuthController;
 
@@ -21,7 +20,7 @@ describe('Should login user successfuly.', () => {
   });
 
 
-  it('Should successfuly login the user',  async () => {
+  it('Should successfully login the user',  async () => {
 
     const mockRequest = {
       body: {
@@ -34,7 +33,7 @@ describe('Should login user successfuly.', () => {
       id: 1,
       name: 'John Doe',
       email: 'john.doe@example.com',
-      token: 'sometoken',
+      accessToken: 'sometoken',
       refreshToken: 'somerefreshtoken'
     };
 
@@ -61,7 +60,13 @@ describe('Should login user successfuly.', () => {
     MockAuthService.login.mockRejectedValueOnce(mockError);
     
     await expect(authController.login(mockRequest, MockReply as any)).rejects.toThrow('Login failed');
+    expect(MockAuthService.login).toHaveBeenCalledWith({
+      email: 'john.doe@example.com',
+      password: 'securepassword'
+    });
+    expect(MockReply.code).not.toHaveBeenCalled();
+    expect(MockReply.send).not.toHaveBeenCalled();
   });
 
-  
+
 });
