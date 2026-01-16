@@ -27,7 +27,6 @@ describe('AuthController - register', () => {
       }
     };
   });
-
   it('Should register a new user and return SafeUserDto', async () => {
     mockRequest.body = {
       name: 'John Doe',
@@ -84,10 +83,11 @@ describe('AuthController - register', () => {
       { body: mockRequest.body },
       'Registration attempt'
     );
-    // Should not log success
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(
       expect.objectContaining({ userId: expect.anything() }),
       'User registered successfully'
     );
   });
+
+  
 });
