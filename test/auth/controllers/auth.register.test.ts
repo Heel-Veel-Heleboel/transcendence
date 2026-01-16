@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthController } from '../../../src/auth/src/controllers/auth.js';
 
 
-const MsockAuthService = {
+const MockAuthService = {
   register: vi.fn()
 };
 
@@ -16,10 +16,10 @@ describe('AuthController - register', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    authController = new AuthController(MsockAuthService as any);
+    authController = new AuthController(MockAuthService as any);
   });
 
-  it('should register a new user and return SafeUserDto', async () => {
+  it ('should register a new user and return SafeUserDto', async () => {
     const mockRequest = {
       body: {
         name: 'John Doe',
@@ -34,10 +34,10 @@ describe('AuthController - register', () => {
       email: 'john.doe@example.com'
     };
     
-    MsockAuthService.register.mockResolvedValueOnce(mockUser);
+    MockAuthService.register.mockResolvedValueOnce(mockUser);
     await authController.register(mockRequest, MockReply as any);
 
-    expect(MsockAuthService.register).toHaveBeenCalledWith({
+    expect(MockAuthService.register).toHaveBeenCalledWith({
       name: 'John Doe',
       email: 'john.doe@example.com',
       password: 'securepassword'
@@ -57,11 +57,11 @@ describe('AuthController - register', () => {
     } as any;
 
     const mockError = new Error('Registration failed');
-    MsockAuthService.register.mockRejectedValueOnce(mockError);
+    MockAuthService.register.mockRejectedValueOnce(mockError);
 
     await expect(authController.register(mockRequest, MockReply as any)).rejects.toThrow('Registration failed');
 
-    expect(MsockAuthService.register).toHaveBeenCalledWith({
+    expect(MockAuthService.register).toHaveBeenCalledWith({
       name: 'Jane Doe',
       email: 'jane.doe@example.com',
       password: 'anotherpassword'
