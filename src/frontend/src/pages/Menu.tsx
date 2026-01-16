@@ -19,12 +19,11 @@ export const Menu = (): JSX.Element => {
         setPage(page);
     }
 
-
     return (
         <div id='Menu' className="w-full h-full flex flex-col">
             <Toolbar redirect={redirect} />
-            <div id="backgroundImage" className="min-h-full flex flex-col bg-[url(/logan_4.jpg)]">
-                <GetPage page={page} />
+            <div id="backgroundImage" className="flex flex-col grow bg-[url(/logan_4.jpg)]">
+                <MainWindowContainer children={<GetPage page={page} />} />
             </div>
         </div>
     )
@@ -52,9 +51,17 @@ export function DefaultMenu(): JSX.Element {
     )
 }
 
+export function MainWindowContainer({ children }: { children: JSX.Element }): JSX.Element {
+    return (
+        <div className="p-2 min-w-full grow flex flex-col">
+            {children}
+        </div>
+    )
+}
+
 export function Profile(): JSX.Element {
     return (
-        <div>Profile</div>
+        <div className="min-h-full min-w-full">Profile</div>
     )
 
 }
@@ -63,7 +70,6 @@ export function Settings(): JSX.Element {
     return (
         <div>Settings</div>
     )
-
 }
 
 export function Toolbar({ redirect }: { redirect: (page: number) => void }): JSX.Element {
@@ -119,7 +125,7 @@ export function localeDate() {
 
 export function Widgets(): JSX.Element {
     return (
-        <div id="widgetContainer" className="p-2 min-h-1/2 min-w-full flex bg-sky-500/50 bg-clip-content">
+        <div id="widgetContainer" className="min-h-1/2 min-w-full flex bg-sky-500/50 bg-clip-content">
 
             {/*
                 <a href="https://www.flaticon.com/free-icons/matchmaker" title="matchmaker icons">Matchmaker icons created by Smashicons - Flaticon</a>
@@ -342,7 +348,7 @@ export function Widget({ logoPath, title, child }: { logoPath: string, title: st
 
 export function LiveChat(): JSX.Element {
     return (
-        <div id="liveChat" className="p-2 h-full min-w-full flex flex-col bg-pink-300/50 bg-clip-content">
+        <div id="liveChat" className="min-h-1/2 min-w-full flex flex-col bg-pink-300/50 bg-clip-content">
             {/*
                 <a href="https://www.flaticon.com/free-icons/hive" title="hive icons">Hive icons created by gravisio - Flaticon</a>
             */}
