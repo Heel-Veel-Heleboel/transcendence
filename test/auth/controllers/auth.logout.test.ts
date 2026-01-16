@@ -18,7 +18,7 @@ describe('AuthController - logout', () => {
     authController = new AuthController(MockAuthService as any);
   });
 
-  it('Should logout the user successfuly', async () => {
+  it('Should logout the user successfully', async () => {
 
     const mockRequest = {
       body: {
