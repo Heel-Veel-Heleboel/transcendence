@@ -1,12 +1,14 @@
 import { UserManagementService } from '../types/user-management-service.js';
 import { CredentialsDaoShape } from '../types/daos/credentials.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
-import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto, LogoutDto } from '../types/dtos/auth.js';
+import { SafeUserDto, RegisterDto, LoggedInUserDto, LoginDto, LogoutDto, RefreshedTokensDto, RefreshDto } from '../types/dtos/auth.js';
 import { passwordHasher, comparePasswordHash } from '../utils/password-hash.js';
 import { SaltLimits } from '../constants/password.js';
 import { REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
-import { generateAccessToken, generateRefreshToken, compareRefreshToken } from '../utils/jwt.js';
-import { AuthenticationError } from '../error/auth.js';
+import { generateAccessToken, generateRefreshToken, compareRefreshToken, validateRefreshTokenFormat } from '../utils/jwt.js';
+import { AuthenticationError, AuthorizationError, ResourceNotFoundError } from '../error/auth.js';
+import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
+
 
 /** 
  * Authentication Service
@@ -37,7 +39,7 @@ export class AuthService {
       try {
         await this.userService.deleteUser(uId);
       } catch (cleanupError) {
-        console.error('Failed to cleanup user after registration error:', cleanupError);
+        console.error(AUTH_ERROR_MESSAGES.REGISTRATION_CLEANUP_FAILED, cleanupError);
       }
       throw error;
     }
@@ -48,12 +50,12 @@ export class AuthService {
   async login(login: LoginDto ): Promise<LoggedInUserDto> {
     const user = await this.userService.findUserByEmail(login.email);
     if (!user) {
-      throw new AuthenticationError(`User with email: ${login.email} does not exist.`);
+      throw new ResourceNotFoundError(AUTH_ERROR_MESSAGES.USER_NOT_FOUND_BY_EMAIL(login.email));
     }
     const storedPassword = await this.credentialsDao.findByUserId({ userId: user.id });
 
     if (!storedPassword || !(await comparePasswordHash(login.password, storedPassword))) {
-      throw new AuthenticationError('Invalid credentials provided.');
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
     const accessToken = generateAccessToken({ sub: user.id, user_email: user.email });
     const refreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
@@ -70,22 +72,55 @@ export class AuthService {
 
 
   async logout(logout: LogoutDto): Promise<void> {
-    const tokenSegments = logout.refreshToken.includes('.') ? logout.refreshToken.split('.') : null;
-    if (!tokenSegments || tokenSegments.length < 2 || !tokenSegments[0] || !tokenSegments[1]) {
-      throw new AuthenticationError('Invalid refresh token format.');
-    }
-    const tokenId = tokenSegments[0];
-    const storedHashedToken = await this.refreshTokenDao.findById({ id: tokenId });
-    if (!storedHashedToken) {
-      throw new AuthenticationError('Refresh token not found.');
-    }
-    if (!compareRefreshToken(logout.refreshToken, storedHashedToken.hashedToken)) {
-      throw new AuthenticationError('Invalid refresh token.');
-    }
-    if (logout.userId !== storedHashedToken.userId) { 
-      throw new AuthenticationError('User ID does not match token owner.');
-    }
+    const tokenId = await this.validateRefreshToken({ userId: logout.userId, refreshToken: logout.refreshToken });
     await this.refreshTokenDao.revoke({ id: tokenId });
   }
-}
 
+
+  async refresh(token: RefreshDto): Promise<RefreshedTokensDto> {
+    const tokenId = await this.validateRefreshToken({ userId: token.userId, refreshToken: token.refreshToken });
+    const user = await this.userService.findUserById(token.userId);
+    if (!user) {
+      throw new ResourceNotFoundError(AUTH_ERROR_MESSAGES.USER_NOT_FOUND_BY_ID(token.userId));
+    }
+
+    const newAccessToken = generateAccessToken({ sub: user.id, user_email: user.email });
+    const newRefreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
+
+    await this.refreshTokenDao.revoke({ id: tokenId });
+    await this.refreshTokenDao.store( { id: newRefreshToken.id, userId: user.id, refreshToken: newRefreshToken.hashedRefreshToken } );
+
+    return {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken.refreshToken
+    };
+  }
+
+  
+  private async validateRefreshToken({ userId, refreshToken }: { userId: number; refreshToken: string }): Promise<string> {
+    const tokenId = validateRefreshTokenFormat(refreshToken);
+    if (!tokenId) {
+      console.log(tokenId);
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_TOKEN_FORMAT);
+    }
+    
+    const storedTokenObject = await this.refreshTokenDao.findById({ id: tokenId });
+    if (!storedTokenObject || storedTokenObject.revokedAt) {
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_TOKEN);
+    }
+    
+    if (Date.now() >= storedTokenObject.expiredAt.getTime()) {
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.TOKEN_EXPIRED);
+    }
+    
+    if (!compareRefreshToken(refreshToken, storedTokenObject.hashedToken)) {
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_TOKEN);
+    }
+    
+    if (userId !== storedTokenObject.userId) {
+      throw new AuthorizationError(AUTH_ERROR_MESSAGES.TOKEN_OWNERSHIP_MISMATCH);
+    }
+
+    return tokenId;
+  }
+}

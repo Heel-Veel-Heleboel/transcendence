@@ -1,9 +1,9 @@
 import { default as jwt } from 'jsonwebtoken';
 import { JwtPayLoadShape, DecodedJwtPayload } from '../types/jwt.js';
-import { GeneratedRefreshToken } from '../types/dtos/refresh-token.js';
+import { GeneratedRefreshTokenDto } from '../types/dtos/refresh-token.js';
 import { getJwtConfig } from '../config/jwt.js';
-import { CryptoErrorMessage } from '../constants/jwt.js';
-import { randomBytes, createHash, timingSafeEqual } from 'crypto';
+import { CryptoErrorMessage, REFRESH_TOKEN_SIZE, UUID_V4_REGEX } from '../constants/jwt.js';
+import { randomBytes, createHash, timingSafeEqual, randomUUID } from 'crypto';
 
 
 /**
@@ -54,11 +54,11 @@ export function verifyAccessToken(token: string) : DecodedJwtPayload {
  * @throws {RangeError} If size is greater than 2^31 - 1
  * @throws {Error} If there is insufficient entropy available
  */
-export function generateRefreshToken(size: number) : GeneratedRefreshToken {
+export function generateRefreshToken(size: number) : GeneratedRefreshTokenDto {
   if (size <= 0 || size >= 2147483647) {
     throw new Error(CryptoErrorMessage.SIZE_OUT_OF_RANGE.replace('{size}', size.toString()));
   }
-  const id = crypto.randomUUID();
+  const id = randomUUID();
   const opaqueStringRefreshToken = randomBytes(size).toString('hex');
   const refreshToken = `${id}.${opaqueStringRefreshToken}`;
   const hashedRefreshToken = hashRefreshToken(refreshToken);
@@ -104,4 +104,27 @@ export function compareRefreshToken(refreshToken: string, hashedToken: string, a
   }
   const hashToCompare = createHash(algorithm).update(refreshToken).digest('hex');
   return timingSafeEqual(Buffer.from(hashToCompare), Buffer.from(hashedToken));
+}
+
+
+
+
+export function validateRefreshTokenFormat(token: string): string | null {
+  const tokenSegments = token.includes('.') ? token.split('.') : null;
+  if (!tokenSegments || tokenSegments.length !== 2 || !tokenSegments[0] || !tokenSegments[1]) {
+    return null;
+  }
+  const uuidSegment = tokenSegments[0];
+  if (!UUID_V4_REGEX.test(uuidSegment)) {
+    return null;
+  }
+  
+  if (tokenSegments[1].length !== REFRESH_TOKEN_SIZE * 2) {
+    return null;
+  }
+  
+  if (!/^[0-9a-f]+$/i.test(tokenSegments[1])) {
+    return null;
+  }
+  return uuidSegment;
 }
