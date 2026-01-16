@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthController } from '../../../src/auth/src/controllers/auth.js';
-import { RefreshDto, RefreshedTokensDto } from '../../../src/auth/src/types/dtos/auth.js';
+import { RefreshedTokensDto } from '../../../src/auth/src/types/dtos/auth.js';
 
 const MockAuthService = {
   refresh: vi.fn()
@@ -19,7 +19,7 @@ describe('AuthController - refresh', () => {
     authController = new AuthController(MockAuthService as any);
   });
 
-  it('should refresh tokens and return RefreshedTokensDto', async () => {
+  it('Should refresh tokens and return RefreshedTokensDto', async () => {
     const mockRequest = {
       body: {
         userId: 1,
@@ -41,7 +41,7 @@ describe('AuthController - refresh', () => {
     expect(MockReply.send).toHaveBeenCalledWith(mockTokens);
   });
 
-  it('should propagate errors from AuthService.refresh', async () => {
+  it('Should propagate errors from AuthService.refresh', async () => {
     const mockRequest = {
       body: {
         userId: 2,
