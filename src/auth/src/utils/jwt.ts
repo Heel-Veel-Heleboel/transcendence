@@ -106,9 +106,6 @@ export function compareRefreshToken(refreshToken: string, hashedToken: string, a
   return timingSafeEqual(Buffer.from(hashToCompare), Buffer.from(hashedToken));
 }
 
-
-
-
 export function validateRefreshTokenFormat(token: string): string | null {
   const tokenSegments = token.includes('.') ? token.split('.') : null;
   if (!tokenSegments || tokenSegments.length !== 2 || !tokenSegments[0] || !tokenSegments[1]) {

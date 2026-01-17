@@ -8,6 +8,10 @@ export interface RevokeRefreshTokenDto {
   id: string
 }
 
+export interface RevokeAllDto {
+  userId: number
+}
+
 export interface FindRefreshTokenDto {
   id: string
 }
