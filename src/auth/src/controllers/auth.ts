@@ -1,6 +1,6 @@
 import { AuthService } from '../services/auth.js';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { RegisterDto, SafeUserDto, LoginDto, LoggedInUserDto, LogoutDto, RefreshDto, RefreshedTokensDto } from '../types/dtos/auth.js';
+import { RegisterDto, SafeUserDto, LoginDto, LoggedInUserDto, LogoutDto, RefreshDto, RefreshedTokensDto, ChangePasswordDto } from '../types/dtos/auth.js';
 
 
 export class AuthController {
@@ -34,5 +34,12 @@ export class AuthController {
     const refreshTokens: RefreshedTokensDto = await this.authService.refresh(request.body);
     request.log.info({ userId: request.body.userId }, 'Tokens refreshed successfully');
     return reply.code(200).send(refreshTokens);
+  }
+
+  async changePassword(request: FastifyRequest<{ Body: ChangePasswordDto }>, reply: FastifyReply): Promise<FastifyReply> {
+    request.log.info({ body: request.body }, 'Change password attempt');
+    await this.authService.changePassword(request.body);
+    request.log.info({ userId: request.body.userId }, 'Password changed successfully');
+    return reply.code(204).send();
   }
 }
