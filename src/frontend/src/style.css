@@ -5,8 +5,14 @@
     src: url('/Monofett-Regular.ttf');
 }
 
+@font-face{
+    font-family: Orbitron;
+    src: url('/Orbitron-Regular.ttf');
+}
+
 @theme {
     --font-mono: "Monofett";
+    --font-orbi: "Orbitron";
     --color-metalgear: #fF2A00;
 }
 
