@@ -11,10 +11,6 @@ const MockReply = {
 };
 
 describe('AuthController - login', () => {
-<<<<<<< HEAD
-
-=======
->>>>>>> bc98a1e (fix: Refactor login method and update test descriptions for consistency)
   let authController: AuthController;
   let mockRequest: any;
 
@@ -31,23 +27,11 @@ describe('AuthController - login', () => {
     };
   });
 
-<<<<<<< HEAD
-
-  it('Should successfully login the user',  async () => {
-
-    const mockRequest = {
-      body: {
-        email: 'john.doe@example.com',
-        password: 'securepassword'
-      }
-    } as any;
-=======
   it('Should successfully login the user', async () => {
     mockRequest.body = {
       email: 'john.doe@example.com',
       password: 'securepassword'
     };
->>>>>>> bc98a1e (fix: Refactor login method and update test descriptions for consistency)
 
     const mockLoggedInUser = {
       id: 1,
@@ -84,19 +68,6 @@ describe('AuthController - login', () => {
 
     const mockError = new Error('Login failed');
     MockAuthService.login.mockRejectedValueOnce(mockError);
-<<<<<<< HEAD
-    
-    await expect(authController.login(mockRequest, MockReply as any)).rejects.toThrow('Login failed');
-    expect(MockAuthService.login).toHaveBeenCalledWith({
-      email: 'john.doe@example.com',
-      password: 'securepassword'
-    });
-    expect(MockReply.code).not.toHaveBeenCalled();
-    expect(MockReply.send).not.toHaveBeenCalled();
-  });
-
-
-=======
 
     await expect(authController.login(mockRequest, MockReply as any)).rejects.toThrow('Login failed');
     expect(MockAuthService.login).toHaveBeenCalledWith({
@@ -114,5 +85,4 @@ describe('AuthController - login', () => {
       'User logged in successfully'
     );
   });
->>>>>>> bc98a1e (fix: Refactor login method and update test descriptions for consistency)
 });
