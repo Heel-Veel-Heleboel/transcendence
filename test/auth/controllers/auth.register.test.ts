@@ -2,39 +2,46 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthController } from '../../../src/auth/src/controllers/auth.js';
 
 
-const MockAuthService = {
-  register: vi.fn()
-};
-
-const MockReply = {
-  code: vi.fn().mockReturnThis(),
-  send: vi.fn()
-};
-
 describe('AuthController - register', () => {
-  let authController: AuthController;
+  const MockAuthService = {
+    register: vi.fn()
+  };
+
+  const MockReply = {
+    code: vi.fn().mockReturnThis(),
+    send: vi.fn()
+  };
+
+  let authController: any;
+  let mockRequest: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
     authController = new AuthController(MockAuthService as any);
+    mockRequest = {
+      body: {},
+      log: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn()
+      }
+    };
   });
 
   it('Should register a new user and return SafeUserDto', async () => {
-    const mockRequest = {
-      body: {
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        password: 'securepassword'
-      }
-    } as any;
+    mockRequest.body = {
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      password: 'securepassword'
+    };
 
     const mockUser = {
       id: 1,
       name: 'John Doe',
       email: 'john.doe@example.com'
     };
-    
     MockAuthService.register.mockResolvedValueOnce(mockUser);
+
     await authController.register(mockRequest, MockReply as any);
 
     expect(MockAuthService.register).toHaveBeenCalledWith({
@@ -42,19 +49,24 @@ describe('AuthController - register', () => {
       email: 'john.doe@example.com',
       password: 'securepassword'
     });
-
     expect(MockReply.code).toHaveBeenCalledWith(201);
     expect(MockReply.send).toHaveBeenCalledWith(mockUser);
+    expect(mockRequest.log.info).toHaveBeenCalledWith(
+      { body: mockRequest.body },
+      'Registration attempt'
+    );
+    expect(mockRequest.log.info).toHaveBeenCalledWith(
+      { userId: mockUser.id },
+      'User registered successfully'
+    );
   });
 
   it('Should handle errors during registration', async () => {
-    const mockRequest = {
-      body: {
-        name: 'Jane Doe',
-        email: 'jane.doe@example.com',
-        password: 'anotherpassword'
-      }
-    } as any;
+    mockRequest.body = {
+      name: 'Jane Doe',
+      email: 'jane.doe@example.com',
+      password: 'anotherpassword'
+    };
 
     const mockError = new Error('Registration failed');
     MockAuthService.register.mockRejectedValueOnce(mockError);
@@ -68,5 +80,14 @@ describe('AuthController - register', () => {
     });
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
+    expect(mockRequest.log.info).toHaveBeenCalledWith(
+      { body: mockRequest.body },
+      'Registration attempt'
+    );
+    // Should not log success
+    expect(mockRequest.log.info).not.toHaveBeenCalledWith(
+      expect.objectContaining({ userId: expect.anything() }),
+      'User registered successfully'
+    );
   });
 });
