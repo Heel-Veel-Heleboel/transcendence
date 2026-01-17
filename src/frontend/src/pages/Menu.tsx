@@ -11,8 +11,6 @@ const PAGE = Object.freeze({
 })
 
 export const Menu = (): JSX.Element => {
-    // TODO: add conditional rendering to render either main menu, profile, or settings
-
     const [page, setPage] = useState<number>(PAGE.MENU);
 
     function redirect(page: number) {
@@ -34,9 +32,9 @@ export function GetPage({ page }: { page: number }): JSX.Element {
         case PAGE.MENU:
             return <DefaultMenu />
         case PAGE.PROFILE:
-            return <Profile />
+            return <Widget logoPath="profile.png" title="profile" width="w-full" child={<Profile />} />
         case PAGE.SETTINGS:
-            return <Settings />
+            return <Widget logoPath="settings.png" title="settings" width="w-full" child={<Settings />} />
         default:
             return <DefaultMenu />
     }
@@ -124,6 +122,7 @@ export function localeDate() {
 
 
 export function Widgets(): JSX.Element {
+    const widgetWidth = "w-1/4"
     return (
         <div id="widgetContainer" className="min-h-1/2 min-w-full flex bg-sky-500/50 bg-clip-content">
 
@@ -134,10 +133,10 @@ export function Widgets(): JSX.Element {
                 <a href="https://www.flaticon.com/free-icons/vinyl" title="vinyl icons">Vinyl icons created by Roundicons - Flaticon</a>
             */}
 
-            <Widget title="speedmatching" logoPath="matchmaker.png" child={Speedmatching()} />
-            <Widget title="gymkhana" logoPath="gymkhana.png" child={Gymkhana()} />
-            <Widget title="trinityfetch" logoPath="crocodile.png" child={TrinityFetch()} />
-            <Widget title="mtvx" logoPath='vinyl.png' child={Mtvx()} />
+            <Widget title="speedmatching" logoPath="matchmaker.png" width={widgetWidth} child={Speedmatching()} />
+            <Widget title="gymkhana" logoPath="gymkhana.png" width={widgetWidth} child={Gymkhana()} />
+            <Widget title="trinityfetch" logoPath="crocodile.png" width={widgetWidth} child={TrinityFetch()} />
+            <Widget title="mtvx" logoPath='vinyl.png' width={widgetWidth} child={Mtvx()} />
 
 
         </div>
@@ -335,9 +334,10 @@ async function parseMusic(response: Response): Promise<IAudioMetadata | null> {
 }
 
 
-export function Widget({ logoPath, title, child }: { logoPath: string, title: string, child: JSX.Element }): JSX.Element {
+export function Widget({ logoPath, title, width, child }: { logoPath: string, title: string, width: string, child: JSX.Element }): JSX.Element {
+    const outerContainerCss = `${width} flex flex-col grow`
     return (
-        <div className="min-w-1/4 flex flex-col">
+        <div className={outerContainerCss}>
             <TitleBar logoPath={logoPath} title={title} />
             <div className="border grow">
                 {child}
