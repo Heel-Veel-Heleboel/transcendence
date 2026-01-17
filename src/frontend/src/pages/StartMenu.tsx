@@ -12,9 +12,9 @@ export function GetPage({ page, redirect }: { page: number, redirect: (page: num
         case PAGE.MENU:
             return <DefaultStartMenu redirect={redirect} />
         case PAGE.LOGIN:
-            return <Login />
+            return <CenterContainer children={Login()} />
         case PAGE.CREDITS:
-            return <Credits />
+            return <CenterContainer children={Credits()} />
         default:
             return <DefaultStartMenu redirect={redirect} />
     }
@@ -28,7 +28,7 @@ export const StartMenu = (): JSX.Element => {
     }
 
     return (
-        <div id='StartMenu'>
+        <div id='StartMenu' className="min-h-full">
             <Animation />
             <MainWindowContainer children={<GetPage page={page} redirect={redirect} />} />
         </div >
@@ -51,19 +51,29 @@ export const DefaultStartMenu = ({ redirect }: { redirect: (page: number) => voi
 
 export function Login(): JSX.Element {
     return (
-        <div>login</div>
+        <div className="text-white min-h-full">login</div>
     )
 }
 
 export function Credits(): JSX.Element {
     return (
-        <div>login</div>
+        <div className="text-white">credits</div>
+    )
+}
+
+export function CenterContainer({ children }: { children: JSX.Element }): JSX.Element {
+    return (
+        <div className="flex justify-between min-h-full grow">
+            <div />
+            {children}
+            <div />
+        </div>
     )
 }
 
 export function MainWindowContainer({ children }: { children: JSX.Element }): JSX.Element {
     return (
-        <div className="min-w-full">
+        <div className="min-h-full">
             {children}
         </div>
     )
