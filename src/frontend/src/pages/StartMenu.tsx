@@ -1,25 +1,75 @@
-import { JSX } from "react"
+import { JSX, useState } from "react"
 import "../style.css"
 
+const PAGE = Object.freeze({
+    MENU: 0,
+    LOGIN: 1,
+    CREDITS: 2
+})
+
+export function GetPage({ page, redirect }: { page: number, redirect: (page: number) => void }): JSX.Element {
+    switch (page) {
+        case PAGE.MENU:
+            return <DefaultStartMenu redirect={redirect} />
+        case PAGE.LOGIN:
+            return <Login />
+        case PAGE.CREDITS:
+            return <Credits />
+        default:
+            return <DefaultStartMenu redirect={redirect} />
+    }
+}
+
 export const StartMenu = (): JSX.Element => {
+    const [page, setPage] = useState<number>(PAGE.MENU);
+
+    function redirect(page: number) {
+        setPage(page);
+    }
+
     return (
         <div id='StartMenu'>
             <Animation />
-            <div id="StartMenuContent" className="relative z-1 text-white text-center">
-                <Title />
-                <Logo />
-                <div id="menuOptions">
-                    <MenuContainer text="login" />
-                    <MenuContainer text="credits" />
-                    <MenuContainer text="quit" />
-                </div>
-            </div>
-
+            <MainWindowContainer children={<GetPage page={page} redirect={redirect} />} />
         </div >
     )
 }
 
-export default function Animation(): JSX.Element {
+export const DefaultStartMenu = ({ redirect }: { redirect: (page: number) => void }): JSX.Element => {
+    return (
+        <div id="StartMenuContent" className="relative z-1 text-white text-center">
+            <Title />
+            <Logo />
+            <div id="menuOptions">
+                <MenuOption text="LOGIN" callback={() => redirect(PAGE.LOGIN)} />
+                <MenuOption text="CREDITS" callback={() => redirect(PAGE.CREDITS)} />
+                <MenuOption text="QUIT" callback={() => window.location.replace("https://www.youtube.com/watch?v=dQw4w9WgXcQ")} />
+            </div>
+        </div>
+    )
+}
+
+export function Login(): JSX.Element {
+    return (
+        <div>login</div>
+    )
+}
+
+export function Credits(): JSX.Element {
+    return (
+        <div>login</div>
+    )
+}
+
+export function MainWindowContainer({ children }: { children: JSX.Element }): JSX.Element {
+    return (
+        <div className="min-w-full">
+            {children}
+        </div>
+    )
+}
+
+export function Animation(): JSX.Element {
     return (
         <video autoPlay muted loop className="fixed right-0 bottom-0 min-w-full min-h-full -z-1 object-cover" id="bgVideo">
             <source src="/bg.mp4" type="video/mp4" />
@@ -31,24 +81,19 @@ export function Title(): JSX.Element { return (<h1 className="text-8xl font-mono
 
 export function Logo(): JSX.Element {
     return (
-
         <div className="flex justify-center ml-auto mr-auto opacity-95 contrast-200">
             <img src="/logo.png" alt="Login Page Logo" />
         </div>
     )
 }
 
-export function MenuContainer({ text }: { text: string }) {
+export function MenuOption({ text, callback }: { text: string, callback: () => void }): JSX.Element {
+    const highlight = "text-zinc-300";
+    const css = `font-orbi text-center text-5xl text-zinc-600 hover:${highlight} focus:${highlight}`
     return (
-        <div className="w-1/5 h-1/5 border-10 m-10 border-solid border-[#5500FF] ml-auto mr-auto grid place-items-center text-center bg-[#A500FF] opacity-90" >
-            <MenuOption text={text} />
+        <div className="w-1/5 h-1/5 m-10 ml-auto mr-auto grid place-items-center text-center opacity-90" >
+            <button className={css} onClick={callback}>{text}</button >
         </div>
-    )
-}
-
-export function MenuOption({ text }: { text: string }): JSX.Element {
-    return (
-        <button className="border-none text-center inline-block mt-2 mb-2">{text}</button >
     )
 }
 
