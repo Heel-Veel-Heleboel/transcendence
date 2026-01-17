@@ -44,6 +44,6 @@ export function authErrorHandler(
   return reply.status(500).send({
     statusCode: 500,
     error: 'Internal Server Error',
-    message: 'Internal Server Error'
+    message: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : error.message
   });
 }
