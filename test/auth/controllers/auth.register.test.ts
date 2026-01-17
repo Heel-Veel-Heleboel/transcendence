@@ -88,6 +88,4 @@ describe('AuthController - register', () => {
       'User registered successfully'
     );
   });
-
-  
 });
