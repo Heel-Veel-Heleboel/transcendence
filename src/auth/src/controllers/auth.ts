@@ -30,7 +30,9 @@ export class AuthController {
   }
 
   async refresh(request: FastifyRequest<{ Body: RefreshDto }>, reply: FastifyReply): Promise<FastifyReply> {
+    request.log.info({ body: request.body }, 'Token refresh attempt');
     const refreshTokens: RefreshedTokensDto = await this.authService.refresh(request.body);
+    request.log.info({ userId: request.body.userId }, 'Tokens refreshed successfully');
     return reply.code(200).send(refreshTokens);
   }
 }

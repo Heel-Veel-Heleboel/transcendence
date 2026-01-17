@@ -24,6 +24,11 @@ describe('AuthController - refresh', () => {
       body: {
         userId: 1,
         refreshToken: 'refresh-token'
+      },
+      log: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn()
       }
     } as any;
 
@@ -39,6 +44,14 @@ describe('AuthController - refresh', () => {
     expect(MockAuthService.refresh).toHaveBeenCalledWith(mockRequest.body);
     expect(MockReply.code).toHaveBeenCalledWith(200);
     expect(MockReply.send).toHaveBeenCalledWith(mockTokens);
+    expect(mockRequest.log.info).toHaveBeenCalledWith(
+      { body: mockRequest.body },
+      'Token refresh attempt'
+    );
+    expect(mockRequest.log.info).toHaveBeenCalledWith(
+      { userId: mockRequest.body.userId },
+      'Tokens refreshed successfully'
+    );
   });
 
   it('Should propagate errors from AuthService.refresh', async () => {
@@ -46,6 +59,11 @@ describe('AuthController - refresh', () => {
       body: {
         userId: 2,
         refreshToken: 'bad-token'
+      },
+      log: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn()
       }
     } as any;
 
@@ -55,5 +73,13 @@ describe('AuthController - refresh', () => {
     await expect(authController.refresh(mockRequest, MockReply as any)).rejects.toThrow('Refresh failed');
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
+    expect(mockRequest.log.info).toHaveBeenCalledWith(
+      { body: mockRequest.body },
+      'Token refresh attempt'
+    );
+    expect(mockRequest.log.info).not.toHaveBeenCalledWith(
+      { userId: mockRequest.body.userId },
+      'Tokens refreshed successfully'
+    );
   });
 });
