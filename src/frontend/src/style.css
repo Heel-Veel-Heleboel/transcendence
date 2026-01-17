@@ -19,9 +19,3 @@ html, body, #root, #app {
     object-fit: fill;
 }
 
-.titleBarBorders {
-    border-top-style: dotted;
-    border-right-style: solid;
-    border-bottom-style: dotted;
-    border-left-style: solid;
-}
