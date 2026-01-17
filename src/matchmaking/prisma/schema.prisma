@@ -99,7 +99,7 @@ model Match {
   scheduledAt   DateTime     @default(now())
   deadline      DateTime?               // For tournament matches (time limit to complete)
   startedAt     DateTime?
-  completedAt   DateTime?
+  completedAt   DateTime?              // When status = COMPLETED, application logic MUST set this
   winnerId      Int?
   player1Score  Int?
   player2Score  Int?
