@@ -1,5 +1,5 @@
 import { RefreshToken } from '../../../generated/prisma/client.js';
-import { RevokeRefreshTokenDto, CreateRefreshTokenDto, FindRefreshTokenDto } from '../dtos/refresh-token.js';
+import { RevokeRefreshTokenDto, CreateRefreshTokenDto, FindRefreshTokenDto, RevokeAllDto } from '../dtos/refresh-token.js';
 
 /**
  * Data Access Object (DAO) interface for managing refresh tokens.
@@ -14,6 +14,7 @@ import { RevokeRefreshTokenDto, CreateRefreshTokenDto, FindRefreshTokenDto } fro
 export interface RefreshTokenDaoShape {
   store(data: CreateRefreshTokenDto): Promise<void>;
   revoke(data: RevokeRefreshTokenDto): Promise<void>;
+  revokeAllByUserId(data: RevokeAllDto): Promise<void>;
   findById(data: FindRefreshTokenDto): Promise<RefreshToken | null>;
   purgeRevokedExpired(): Promise<void>;
 }

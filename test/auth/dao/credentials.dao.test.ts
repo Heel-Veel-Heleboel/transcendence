@@ -40,13 +40,13 @@ describe('CredentialsDao', () => {
   });
 
   it('Should find a credential by user id', async () => {
-    mockPrismaClient.userCredentials.findUnique.mockResolvedValueOnce({ hashedPassword: 'hashedPassword' });
+    mockPrismaClient.userCredentials.findUnique.mockResolvedValueOnce({ userId: 1, hashedPassword: 'hashedPassword' });
     const result = await dao.findByUserId({ userId: 1 });
     expect(mockPrismaClient.userCredentials.findUnique).toBeCalled();
     expect(mockPrismaClient.userCredentials.findUnique).toBeCalledWith({
       where: { userId: 1 }
     });
-    expect(result).toBe('hashedPassword');
+    expect(result).toEqual({ userId: 1, hashedPassword: 'hashedPassword' });
   });
 
   it('Should delete a credential by user id', async () => {
