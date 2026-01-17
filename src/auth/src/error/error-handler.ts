@@ -1,6 +1,11 @@
 import { FastifyReply, FastifyRequest, FastifyError } from 'fastify';
 import { AuthenticationError, AuthorizationError, ResourceNotFoundError } from './auth.js';
 
+
+function isValidationError(error: unknown): error is { validation: unknown } {
+  return typeof error === 'object' && error !== null && 'validation' in error;
+}
+
 export function authErrorHandler(
   error: FastifyError | Error,
   request: FastifyRequest,
@@ -32,12 +37,12 @@ export function authErrorHandler(
     });
   }
 
-  if ('validation' in error) {
+  if (isValidationError(error)) {
     return reply.status(400).send({
       statusCode: 400,
       error: 'Bad Request',
       message: 'Validation failed',
-      validation: (error as any).validation
+      details: error.validation
     });
   }
 
