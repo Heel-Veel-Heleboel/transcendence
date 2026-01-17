@@ -25,12 +25,13 @@ enum MatchStatus {
   SCHEDULED     // Match created, not started
   IN_PROGRESS   // Players notified, game in session
   COMPLETED     // Result recorded
-  FORFEITED     // Deadline passed or player left
+  FORFEITED     // Player left
+  TIMEOUT       // Deadline passed
 }
 
 // Player pool for casual matchmaking (in-memory backed by DB)
 model PlayerPool {
-  id          Int      @id @default(autoincrement())
+  id          Int      @id @default(autoincrement()) // Should get ID from user-service
   userId      Int      @unique
   joinedAt    DateTime @default(now())
   lastActive  DateTime @default(now())

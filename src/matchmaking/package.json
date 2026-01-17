@@ -13,7 +13,7 @@
     "db:studio": "prisma studio",
     "test": "vitest"
   },
-  "author": "",
+  "author": "Vova Shkonda",
   "license": "ISC",
   "dependencies": {
     "@fastify/cors": "^9.0.1",
