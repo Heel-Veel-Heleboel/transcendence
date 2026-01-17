@@ -8,8 +8,9 @@ export class AuthController {
   ){}
 
   async register(request: FastifyRequest<{ Body: RegisterDto }>, reply: FastifyReply) : Promise<FastifyReply> {
-    const { name, email, password } = request.body;
-    const user: SafeUserDto = await this.authService.register({ name, email, password });
+    request.log.info({ body: request.body }, 'Registration attempt');
+    const user: SafeUserDto = await this.authService.register(request.body);
+    request.log.info({ userId: user.id }, 'User registered successfully');
     return reply.code(201).send(user);
   }
 }
