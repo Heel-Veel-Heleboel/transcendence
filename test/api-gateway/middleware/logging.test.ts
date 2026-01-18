@@ -166,7 +166,7 @@ describe('requestLoggingMiddleware', () => {
         method: 'GET',
         url: '/api/test',
         userAgent: 'test-agent',
-        userId: undefined,
+        user_id: undefined,
         ip: '127.0.0.1',
         correlationId: 'test-correlation-id',
       },
@@ -187,7 +187,7 @@ describe('requestLoggingMiddleware', () => {
 
     expect(mockRequest.log?.info).toHaveBeenCalledWith(
       expect.objectContaining({
-        userId: 'user-123',
+        user_id: 'user-123',
       }),
       'Incoming request'
     );
@@ -213,7 +213,7 @@ describe('requestLoggingMiddleware', () => {
         url: '/api/test',
         statusCode: 200,
         duration: expect.any(Number),
-        userId: undefined,
+        user_id: undefined,
         correlationId: 'test-correlation-id',
       }),
       'Request completed'
@@ -284,7 +284,7 @@ describe('requestLoggingMiddleware', () => {
 
     expect(mockRequest.log?.info).toHaveBeenCalledWith(
       expect.objectContaining({
-        userId: 'user-456',
+        user_id: 'user-456',
       }),
       'Request completed'
     );

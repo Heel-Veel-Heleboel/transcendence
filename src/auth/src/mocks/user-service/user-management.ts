@@ -6,7 +6,7 @@ import { UserManagementService } from '../../types/user-management-service.js';
  * It does not persist data and is intended for use in unit tests.
  * Methods:
  * - createUser: Simulates creating a user and returns a mock user ID.
- * - findByUserId: Simulates finding a user by ID and returns mock user data or null.
+ * - findByuser_id: Simulates finding a user by ID and returns mock user data or null.
  * - findUserByEmail: Simulates finding a user by email and returns mock user data or null.
  * - deleteUser: Simulates deleting a user by ID.
  */
@@ -29,7 +29,7 @@ export class UserManagementMock implements UserManagementService {
     return userId;
   }
 
-  async findByUserId(userId: number): Promise<{ id: number; email: string; username: string } | null> {
+  async findByUserId(user_id: number): Promise<{ id: number; email: string; username: string } | null> {
     return this.users.get(userId) || null;
   }
 
@@ -42,7 +42,7 @@ export class UserManagementMock implements UserManagementService {
     return null;
   }
 
-  async deleteUser(userId: number): Promise<void> {
+  async deleteUser(user_id: number): Promise<void> {
     this.users.delete(userId);
   }
 }

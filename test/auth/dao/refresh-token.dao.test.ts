@@ -26,7 +26,7 @@ describe('RefreshTokenSessionDao', () => {
   it('Should create a refresh token record', async () => {
     const MockCreateRefreshTokenDto: CreateRefreshTokenDto = {
       id: 'some-unique-id',
-      userId: 1,
+      user_id: 1,
       refreshToken: 'token'
     };
 
@@ -35,9 +35,9 @@ describe('RefreshTokenSessionDao', () => {
     expect(mockPrismaClient.refreshToken.create).toBeCalledWith({
       data: {
         id: 'some-unique-id',
-        userId: 1,
-        hashedToken: 'token',
-        expiredAt: expect.any(Date)
+        user_id: 1,
+        hashed_token: 'token',
+        expired_at: expect.any(Date)
       }
     });
   });
@@ -47,7 +47,7 @@ describe('RefreshTokenSessionDao', () => {
     expect(mockPrismaClient.refreshToken.update).toBeCalled();
     expect(mockPrismaClient.refreshToken.update).toBeCalledWith({
       where: { id: 'some-unique-id' },
-      data: { revokedAt: expect.any(Date) }
+      data: { revoked_at: expect.any(Date) }
     });
   });
 
@@ -57,8 +57,8 @@ describe('RefreshTokenSessionDao', () => {
     expect(mockPrismaClient.refreshToken.deleteMany).toBeCalledWith({
       where: {
         OR: [
-          { revokedAt: { not: null } },
-          { expiredAt: { lt: expect.any(Date) } }
+          { revoked_at: { not: null } },
+          { expired_at: { lt: expect.any(Date) } }
         ]
       }
     });
@@ -67,10 +67,10 @@ describe('RefreshTokenSessionDao', () => {
   it('Should find a refresh token by token id and return full record', async () => {
     const mockRefreshToken = {
       id: 'some-unique-id',
-      userId: 1,
-      hashedToken: 'hashed-token-value',
-      expiredAt: new Date(),
-      revokedAt: null,
+      user_id: 1,
+      hashed_token: 'hashed-token-value',
+      expired_at: new Date(),
+      revoked_at: null,
       createdAt: new Date()
     };
 
@@ -82,8 +82,8 @@ describe('RefreshTokenSessionDao', () => {
       where: { id: 'some-unique-id' }
     });
     expect(result).toEqual(mockRefreshToken);
-    expect(result?.hashedToken).toBe('hashed-token-value');
-    expect(result?.userId).toBe(1);
+    expect(result?.hashed_token).toBe('hashed-token-value');
+    expect(result?.user_id).toBe(1);
   });
 
   it('Should return null if token not found', async () => {
@@ -94,7 +94,7 @@ describe('RefreshTokenSessionDao', () => {
 
   it('Should handle errors gracefully', async () => {
     mockPrismaClient.refreshToken.create.mockRejectedValueOnce(new Error('DB Error'));
-    await expect(dao.store({ id: 'test-id', userId: 1, refreshToken: 'token' })).rejects.toThrow('DB Error');
+    await expect(dao.store({ id: 'test-id', user_id: 1, refreshToken: 'token' })).rejects.toThrow('DB Error');
   });
 
   it('Should fail when revoking non-existent token', async () => {

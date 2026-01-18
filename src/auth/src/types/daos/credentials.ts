@@ -8,8 +8,8 @@ import { UserCredentials } from '../../../generated/prisma/client.js';
  * Methods:
  * - create: Creates a new user password record.
  * - updatePassword: Updates an existing user's password. 
- * - findByUserId: Finds a user's password by their user ID.
- * - deleteByUserId: Deletes a user's password record by their user ID.
+ * - findByuser_id: Finds a user's password by their user ID.
+ * - deleteByuser_id: Deletes a user's password record by their user ID.
  */
 export interface CredentialsDaoShape {
   create(data: CreatePasswordDto): Promise<void>;

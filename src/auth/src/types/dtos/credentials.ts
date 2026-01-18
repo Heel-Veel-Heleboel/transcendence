@@ -1,17 +1,17 @@
 export interface CreatePasswordDto {
-  userId: number,
+  user_id: number,
   password: string
 }
 
 export interface UpdatePasswordDto {
-  userId: number,
+  user_id: number,
   newPassword: string
 }
 
 export interface DeletePasswordDto {
-  userId: number
+  user_id: number
 }
 
 export interface FindPasswordDto {
-  userId: number
+  user_id: number
 }

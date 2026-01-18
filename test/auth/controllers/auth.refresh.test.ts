@@ -22,7 +22,7 @@ describe('AuthController - refresh', () => {
   it('Should refresh tokens and return RefreshedTokensDto', async () => {
     const mockRequest = {
       body: {
-        userId: 1,
+        user_id: 1,
         refreshToken: 'refresh-token'
       },
       log: {
@@ -49,7 +49,7 @@ describe('AuthController - refresh', () => {
       'Token refresh attempt'
     );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { userId: mockRequest.body.userId },
+      { user_id: mockRequest.body.user_id },
       'Tokens refreshed successfully'
     );
   });
@@ -57,7 +57,7 @@ describe('AuthController - refresh', () => {
   it('Should propagate errors from AuthService.refresh', async () => {
     const mockRequest = {
       body: {
-        userId: 2,
+        user_id: 2,
         refreshToken: 'bad-token'
       },
       log: {
@@ -78,7 +78,7 @@ describe('AuthController - refresh', () => {
       'Token refresh attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(
-      { userId: mockRequest.body.userId },
+      { user_id: mockRequest.body.userId },
       'Tokens refreshed successfully'
     );
   });

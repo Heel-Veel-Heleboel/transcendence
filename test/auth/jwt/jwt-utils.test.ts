@@ -50,7 +50,7 @@ describe('JWT Utils', () => {
 
   describe('generateAccessToken', () => {
     it('should call jwt.sign with correct payload and private key', () => {
-      const mockPayload = { userId: 123, email: 'test@example.com' };
+      const mockPayload = { user_id: 123, email: 'test@example.com' };
       const mockToken = 'mock.jwt.token';
       
       vi.mocked(jwt.sign).mockReturnValue(mockToken as any);
@@ -72,7 +72,7 @@ describe('JWT Utils', () => {
     });
 
     it('should use correct algorithm from config', () => {
-      const mockPayload = { userId: 456 };
+      const mockPayload = { user_id: 456 };
       vi.mocked(jwt.sign).mockReturnValue('token' as any);
       
       generateAccessToken(mockPayload);
@@ -82,7 +82,7 @@ describe('JWT Utils', () => {
     });
 
     it('should use correct expiration time from config', () => {
-      const mockPayload = { userId: 789 };
+      const mockPayload = { user_id: 789 };
       vi.mocked(jwt.sign).mockReturnValue('token' as any);
       
       generateAccessToken(mockPayload);
@@ -92,7 +92,7 @@ describe('JWT Utils', () => {
     });
 
     it('should include issuer and audience claims', () => {
-      const mockPayload = { userId: 999 };
+      const mockPayload = { user_id: 999 };
       vi.mocked(jwt.sign).mockReturnValue('token' as any);
       
       generateAccessToken(mockPayload);
@@ -108,7 +108,7 @@ describe('JWT Utils', () => {
       const expectedToken = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.mock';
       vi.mocked(jwt.sign).mockReturnValue(expectedToken as any);
       
-      const result = generateAccessToken({ userId: 1 });
+      const result = generateAccessToken({ user_id: 1 });
       
       expect(result).toBe(expectedToken);
     });
@@ -131,14 +131,14 @@ describe('JWT Utils', () => {
         throw error;
       });
       
-      expect(() => generateAccessToken({ userId: 1 })).toThrow('Invalid key format');
+      expect(() => generateAccessToken({ user_id: 1 })).toThrow('Invalid key format');
     });
   });
 
   describe('verifyAccessToken', () => {
     it('should call jwt.verify with correct token and public key', () => {
       const mockToken = 'valid.jwt.token';
-      const mockDecoded = { userId: 123, email: 'test@example.com' };
+      const mockDecoded = { user_id: 123, email: 'test@example.com' };
       
       vi.mocked(jwt.verify).mockReturnValue(mockDecoded as any);
       
@@ -159,7 +159,7 @@ describe('JWT Utils', () => {
 
 
     it('should verify with correct algorithm', () => {
-      vi.mocked(jwt.verify).mockReturnValue({ userId: 1 } as any);
+      vi.mocked(jwt.verify).mockReturnValue({ user_id: 1 } as any);
       
       verifyAccessToken('token');
       
@@ -168,7 +168,7 @@ describe('JWT Utils', () => {
     });
 
     it('should verify issuer claim', () => {
-      vi.mocked(jwt.verify).mockReturnValue({ userId: 1 } as any);
+      vi.mocked(jwt.verify).mockReturnValue({ user_id: 1 } as any);
       
       verifyAccessToken('token');
       
@@ -178,7 +178,7 @@ describe('JWT Utils', () => {
     });
 
     it('should verify audience claim', () => {
-      vi.mocked(jwt.verify).mockReturnValue({ userId: 1 } as any);
+      vi.mocked(jwt.verify).mockReturnValue({ user_id: 1 } as any);
       
       verifyAccessToken('token');
       
@@ -189,7 +189,7 @@ describe('JWT Utils', () => {
 
     it('should return decoded payload', () => {
       const expectedDecoded = { 
-        userId: 456, 
+        user_id: 456, 
         email: 'user@test.com',
         iat: 1234567890,
         exp: 1234568890
@@ -282,10 +282,10 @@ describe('Refresh Token Utils', () => {
   describe('hashRefreshToken', () => {
     it('should return a hashed version of the refresh token', () => {
       const refreshToken = 'sample-refresh-token';
-      const hashedToken = hashRefreshToken(refreshToken, 'sha256');
-      expect(typeof hashedToken).toBe('string');
-      expect(hashedToken).not.toBe(refreshToken);
-      expect(hashedToken.length).toBe(64); 
+      const hashed_token = hashRefreshToken(refreshToken, 'sha256');
+      expect(typeof hashed_token).toBe('string');
+      expect(hashed_token).not.toBe(refreshToken);
+      expect(hashed_token.length).toBe(64); 
     });
 
     it('should throw error when hashing an empty token', () => {
@@ -296,22 +296,22 @@ describe('Refresh Token Utils', () => {
   describe('compareRefreshToken', () => {
     it('should return true for matching refresh token and hash', () => {
       const refreshToken = 'another-sample-token';
-      const hashedToken = hashRefreshToken(refreshToken, 'sha256');
-      const isMatch = compareRefreshToken(refreshToken, hashedToken, 'sha256');
+      const hashed_token = hashRefreshToken(refreshToken, 'sha256');
+      const isMatch = compareRefreshToken(refreshToken, hashed_token, 'sha256');
       expect(isMatch).toBe(true);
     });
 
     it('should return false for non-matching refresh token and hash', () => {
       const refreshToken =  'sample-token-one';
       const differentToken = 'sample-token-two';
-      const hashedToken = hashRefreshToken(refreshToken, 'sha256');
-      const isMatch = compareRefreshToken(differentToken, hashedToken, 'sha256');
+      const hashed_token = hashRefreshToken(refreshToken, 'sha256');
+      const isMatch = compareRefreshToken(differentToken, hashed_token, 'sha256');
       expect(isMatch).toBe(false);
     });
 
     it('should return false when comparing with an empty refresh token', () => {
-      const hashedToken = hashRefreshToken('valid-token', 'sha256');
-      const isMatch = compareRefreshToken('', hashedToken, 'sha256');
+      const hashed_token = hashRefreshToken('valid-token', 'sha256');
+      const isMatch = compareRefreshToken('', hashed_token, 'sha256');
       expect(isMatch).toBe(false);
     });
 
@@ -322,8 +322,8 @@ describe('Refresh Token Utils', () => {
 
     it('should throw error when hashing algorithm is missing', () => {
       const refreshToken = 'test-token';
-      const hashedToken = hashRefreshToken(refreshToken, 'sha256');
-      expect(() => compareRefreshToken(refreshToken, hashedToken, '')).toThrow('Hashing algorithm must be specified.');
+      const hashed_token = hashRefreshToken(refreshToken, 'sha256');
+      expect(() => compareRefreshToken(refreshToken, hashed_token, '')).toThrow('Hashing algorithm must be specified.');
     });
   });
 });

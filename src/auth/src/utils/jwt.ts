@@ -90,20 +90,20 @@ export function hashRefreshToken(refreshToken: string, algorithm: string = 'sha2
  * Compares a refresh token with its hashed counterpart using timing-safe comparison.
  * 
  * @param refreshToken - The plain refresh token to compare
- * @param hashedToken - The previously hashed refresh token
+ * @param hashed_token - The previously hashed refresh token
  * @param algorithm - The hashing algorithm used to hash the refresh token
  * @returns true if the tokens match, false otherwise
  * @throws {TypeError} If either buffer cannot be converted or they have different lengths
  */
-export function compareRefreshToken(refreshToken: string, hashedToken: string, algorithm: string = 'sha256') : boolean {
-  if (!refreshToken || !hashedToken ) {
+export function compareRefreshToken(refreshToken: string, hashed_token: string, algorithm: string = 'sha256') : boolean {
+  if (!refreshToken || !hashed_token ) {
     return false;
   }
   if (!algorithm) {
     throw new Error(CryptoErrorMessage.HASHING_ALGORITHM_MISSING);
   }
   const hashToCompare = createHash(algorithm).update(refreshToken).digest('hex');
-  return timingSafeEqual(Buffer.from(hashToCompare), Buffer.from(hashedToken));
+  return timingSafeEqual(Buffer.from(hashToCompare), Buffer.from(hashed_token));
 }
 
 export function validateRefreshTokenFormat(token: string): string | null {

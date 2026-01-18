@@ -17,29 +17,19 @@ export interface RefreshedTokensDto {
 }
 
 //incoming dtos for auth operations
-export interface RegisterDto {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface LoginDto {
-  email: string;
-  password: string;
-}
 
 export interface LogoutDto {
-  userId: number;
+  user_id: number;
   refreshToken: string;
 }
 
 export interface RefreshDto  {
-  userId: number;
+  user_id: number;
   refreshToken: string;
 }
 
 export interface ChangePasswordDto {
-  userId: number;
+  user_id: number;
   currentPassword: string;
   newPassword: string;
 }

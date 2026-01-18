@@ -46,11 +46,11 @@ describe('AuthService - Login', () => {
       username: 'testuser'
     };
     const mockStoredCredentials = {
-      userId: 1,
-      hashedPassword: '$2b$10$hashedpassword'
+      user_id: 1,
+      hashed_password: '$2b$10$hashed_password'
     };
 
-    const mockHashedPassword = '$2b$10$hashedpassword';
+    const mockhashed_password = '$2b$10$hashed_password';
     const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
     const mockRefreshTokenResult = {
       id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
@@ -72,10 +72,10 @@ describe('AuthService - Login', () => {
     expect(mockUserService.findUserByEmail).toHaveBeenCalledWith(loginDto.email);
     expect(mockUserService.findUserByEmail).toBeCalledTimes(1);
 
-    expect(mockCredentialDao.findByUserId).toHaveBeenCalledWith({ userId: mockUser.id });
+    expect(mockCredentialDao.findByUserId).toHaveBeenCalledWith({ user_id: mockUser.id });
     expect(mockCredentialDao.findByUserId).toBeCalledTimes(1);
 
-    expect(passwordHasherModule.comparePasswordHash).toHaveBeenCalledWith(loginDto.password, mockHashedPassword);
+    expect(passwordHasherModule.comparePasswordHash).toHaveBeenCalledWith(loginDto.password, mockhashed_password);
     expect(passwordHasherModule.comparePasswordHash).toBeCalledTimes(1);
 
     expect(jwtModule.generateAccessToken).toHaveBeenCalledWith({ sub: mockUser.id, user_email: mockUser.email });
@@ -86,7 +86,7 @@ describe('AuthService - Login', () => {
 
     expect(mockRefreshTokenDao.store).toHaveBeenCalledWith({
       id: mockRefreshTokenResult.id,
-      userId: mockUser.id,
+      user_id: mockUser.id,
       refreshToken: mockRefreshTokenResult.hashedRefreshToken
     });
     expect(mockRefreshTokenDao.store).toBeCalledTimes(1);
@@ -137,8 +137,8 @@ describe('AuthService - Login', () => {
     };
 
     const mockStoredCredentials = {
-      userId: 1,
-      hashedPassword: '$2b$10$hashedpassword'
+      user_id: 1,
+      hashed_password: '$2b$10$hashed_password'
     };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
@@ -148,7 +148,7 @@ describe('AuthService - Login', () => {
     await expect(authService.login(loginDto)).rejects.toThrow(AuthenticationError);
     await expect(authService.login(loginDto)).rejects.toThrow('Invalid credentials provided.');
 
-    expect(passwordHasherModule.comparePasswordHash).toHaveBeenCalledWith(loginDto.password, mockStoredCredentials.hashedPassword);
+    expect(passwordHasherModule.comparePasswordHash).toHaveBeenCalledWith(loginDto.password, mockStoredCredentials.hashed_password);
     expect(jwtModule.generateAccessToken).not.toHaveBeenCalled();
     expect(jwtModule.generateRefreshToken).not.toHaveBeenCalled();
     expect(mockRefreshTokenDao.store).not.toHaveBeenCalled();
@@ -237,8 +237,8 @@ describe('AuthService - Login', () => {
     };
 
     const mockStoredCredentials = {
-      userId: 1,
-      hashedPassword: '$2b$10$hashedpassword'
+      user_id: 1,
+      hashed_password: '$2b$10$hashed_password'
     };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
@@ -271,8 +271,8 @@ describe('AuthService - Login', () => {
     };
 
     const mockStoredCredentials = {
-      userId: 1,
-      hashedPassword: '$2b$10$hashedpassword'
+      user_id: 1,
+      hashed_password: '$2b$10$hashed_password'
     };
     const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
 
@@ -307,8 +307,8 @@ describe('AuthService - Login', () => {
     };
 
     const mockStoredCredentials = {
-      userId: 1,
-      hashedPassword: '$2b$10$hashedpassword'
+      user_id: 1,
+      hashed_password: '$2b$10$hashed_password'
     };
     const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
     const mockRefreshTokenResult = {
@@ -361,8 +361,8 @@ describe('AuthService - Login', () => {
     };
 
     const mockStoredCredentials = {
-      userId: 42,
-      hashedPassword: '$2b$10$differenthash'
+      user_id: 42,
+      hashed_password: '$2b$10$differenthash'
     };
     const mockAccessToken = 'different.access.token';
     const mockRefreshTokenResult = {
@@ -405,8 +405,8 @@ describe('AuthService - Login', () => {
     };
 
     const mockStoredCredentials = {
-      userId: 1,
-      hashedPassword: '$2b$10$hashedpassword'
+      user_id: 1,
+      hashed_password: '$2b$10$hashed_password'
     };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
@@ -432,8 +432,8 @@ describe('AuthService - Login', () => {
     };
 
     const mockStoredCredentials = {
-      userId: 1,
-      hashedPassword: '$2b$10$hashedpassword'
+      user_id: 1,
+      hashed_password: '$2b$10$hashed_password'
     };
     const mockAccessToken = 'access.token';
     const mockRefreshTokenResult = {
@@ -470,8 +470,8 @@ describe('AuthService - Login', () => {
     };
 
     const mockStoredCredentials = {
-      userId: 1,
-      hashedPassword: '$2b$10$specifichash'
+      user_id: 1,
+      hashed_password: '$2b$10$specifichash'
     };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
@@ -482,7 +482,7 @@ describe('AuthService - Login', () => {
 
     expect(passwordHasherModule.comparePasswordHash).toHaveBeenCalledWith(
       'MySecurePassword!',
-      mockStoredCredentials.hashedPassword
+      mockStoredCredentials.hashed_password
     );
   });
 });

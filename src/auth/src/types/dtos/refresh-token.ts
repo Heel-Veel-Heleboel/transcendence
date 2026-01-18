@@ -1,6 +1,6 @@
 export interface CreateRefreshTokenDto {
   id: string,
-  userId: number,
+  user_id: number,
   refreshToken: string
 }
 
@@ -9,7 +9,7 @@ export interface RevokeRefreshTokenDto {
 }
 
 export interface RevokeAllDto {
-  userId: number
+  user_id: number
 }
 
 export interface FindRefreshTokenDto {

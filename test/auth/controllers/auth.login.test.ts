@@ -55,7 +55,7 @@ describe('AuthController - login', () => {
       'Login attempt'
     );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { userId: mockLoggedInUser.id },
+      { user_id: mockLoggedInUser.id },
       'User logged in successfully'
     );
   });
@@ -81,7 +81,7 @@ describe('AuthController - login', () => {
       'Login attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(
-      expect.objectContaining({ userId: expect.anything() }),
+      expect.objectContaining({ user_id: expect.anything() }),
       'User logged in successfully'
     );
   });
