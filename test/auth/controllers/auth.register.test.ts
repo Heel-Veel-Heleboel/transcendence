@@ -56,7 +56,7 @@ describe('AuthController - register', () => {
     expect(MockReply.code).toHaveBeenCalledWith(201);
     expect(MockReply.send).toHaveBeenCalledWith(mockUser);
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { body: mockRequest.body },
+      { email: mockRequest.body.email },
       'Registration attempt'
     );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
@@ -85,7 +85,7 @@ describe('AuthController - register', () => {
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { body: mockRequest.body },
+      { email: mockRequest.body.email },
       'Registration attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(
