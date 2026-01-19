@@ -23,7 +23,7 @@ describe('AuthController - refresh', () => {
     const mockRequest = {
       body: {
         user_id: 1,
-        refreshToken: 'refresh-token'
+        refresh_token: 'refresh-token'
       },
       log: {
         info: vi.fn(),
@@ -33,8 +33,8 @@ describe('AuthController - refresh', () => {
     } as any;
 
     const mockTokens: RefreshedTokensDto = {
-      accessToken: 'new-access-token',
-      refreshToken: 'new-refresh-token'
+      access_token: 'new-access-token',
+      refresh_token: 'new-refresh-token'
     };
 
     MockAuthService.refresh.mockResolvedValueOnce(mockTokens);
@@ -58,7 +58,7 @@ describe('AuthController - refresh', () => {
     const mockRequest = {
       body: {
         user_id: 2,
-        refreshToken: 'bad-token'
+        refresh_token: 'bad-token'
       },
       log: {
         info: vi.fn(),
@@ -78,7 +78,7 @@ describe('AuthController - refresh', () => {
       'Token refresh attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(
-      { user_id: mockRequest.body.userId },
+      { user_id: mockRequest.body.user_id },
       'Tokens refreshed successfully'
     );
   });

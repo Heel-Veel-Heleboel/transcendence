@@ -1,7 +1,7 @@
 import { UserManagementService } from '../types/user-management-service.js';
 import { CredentialsDaoShape } from '../types/daos/credentials.js';
 import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
-import { SafeUserDto, LoggedInUserDto, LogoutDto, RefreshedTokensDto, RefreshDto, ChangePasswordDto } from '../types/dtos/auth.js';
+import { SafeUserDto, LoggedInUserDto, RefreshedTokensDto } from '../types/dtos/auth.js';
 import { passwordHasher, comparePasswordHash } from '../utils/password-hash.js';
 import { SaltLimits } from '../constants/password.js';
 import { REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
@@ -63,10 +63,10 @@ export class AuthService {
     const accessToken = generateAccessToken({ sub: user.id, user_email: user.email });
     const refreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
 
-    await this.refreshTokenDao.store( { id: refreshToken.id, user_id: user.id, refreshToken: refreshToken.hashedRefreshToken } );
+    await this.refreshTokenDao.store( { id: refreshToken.id, user_id: user.id, hashed_refresh_token: refreshToken.hashed_refresh_token } );
     return {
-      accessToken,
-      refreshToken: refreshToken.refreshToken,
+      access_token: accessToken,
+      refresh_token: refreshToken.refresh_token,
       id: user.id,
       name: user.username,
       email: user.email
@@ -74,14 +74,14 @@ export class AuthService {
   }
 
 
-  async logout(logout: LogoutDto): Promise<void> {
-    const tokenId = await this.validateRefreshToken({ user_id: logout.user_id, refreshToken: logout.refreshToken });
+  async logout(logout: SchemaTypes.LogoutSchemaType): Promise<void> {
+    const tokenId = await this.validateRefreshToken({ user_id: logout.user_id, refresh_token: logout.refresh_token });
     await this.refreshTokenDao.revoke({ id: tokenId });
   }
 
 
-  async refresh(token: RefreshDto): Promise<RefreshedTokensDto> {
-    const tokenId = await this.validateRefreshToken({ user_id: token.user_id, refreshToken: token.refreshToken });
+  async refresh(token: SchemaTypes.RefreshSchemaType): Promise<RefreshedTokensDto> {
+    const tokenId = await this.validateRefreshToken({ user_id: token.user_id, refresh_token: token.refresh_token });
     const user = await this.userService.findByUserId(token.user_id);
 
     if (!user) {
@@ -92,16 +92,16 @@ export class AuthService {
     const newRefreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
 
     await this.refreshTokenDao.revoke({ id: tokenId });
-    await this.refreshTokenDao.store( { id: newRefreshToken.id, user_id: user.id, refreshToken: newRefreshToken.hashedRefreshToken } );
+    await this.refreshTokenDao.store( { id: newRefreshToken.id, user_id: user.id, hashed_refresh_token: newRefreshToken.hashed_refresh_token } );
 
     return {
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken.refreshToken
+      access_token: newAccessToken,
+      refresh_token: newRefreshToken.refresh_token
     };
   }
 
 
-  async changePassword(data: ChangePasswordDto): Promise<void> {
+  async changePassword(data: SchemaTypes.ChangePasswordSchemaType): Promise<void> {
     const user = await this.userService.findByUserId(data.user_id);
 
     if (!user) {
@@ -113,22 +113,22 @@ export class AuthService {
       throw new ResourceNotFoundError(AUTH_ERROR_MESSAGES.USER_CREDENTIAL_NOT_FOUND_BY_ID(data.user_id));
     }
 
-    if (!(await comparePasswordHash(data.currentPassword, oldCredentials.hashed_password))) {
+    if (!(await comparePasswordHash(data.current_password, oldCredentials.hashed_password))) {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
-    if (data.currentPassword === data.newPassword) {
+    if (data.current_password === data.new_password) {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.PASSWORD_SAME_AS_OLD);
     }
-    const newhashed_password = await passwordHasher(data.newPassword, SaltLimits);
-    await this.credentialsDao.updatePassword({ user_id: data.user_id, newPassword: newhashed_password });
+    const new_hashed_password = await passwordHasher(data.new_password, SaltLimits);
+    await this.credentialsDao.updatePassword({ user_id: data.user_id, new_password: new_hashed_password });
     await this.refreshTokenDao.revokeAllByUserId({ user_id: data.user_id });
     await this.refreshTokenDao.purgeRevokedExpired();
   }
   
 
-  private async validateRefreshToken({ user_id, refreshToken }: { user_id: number; refreshToken: string }): Promise<string> {
-    const tokenId = validateRefreshTokenFormat(refreshToken);
+  private async validateRefreshToken({ user_id, refresh_token }: { user_id: number; refresh_token: string }): Promise<string> {
+    const tokenId = validateRefreshTokenFormat(refresh_token);
 
     if (!tokenId) {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_TOKEN_FORMAT);
@@ -143,7 +143,7 @@ export class AuthService {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.TOKEN_EXPIRED);
     }
     
-    if (!compareRefreshToken(refreshToken, storedTokenObject.hashed_token)) {
+    if (!compareRefreshToken(refresh_token, storedTokenObject.hashed_token)) {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_TOKEN);
     }
     

@@ -24,7 +24,7 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
       data: {
         id: data.id,
         user_id: data.user_id,
-        hashed_token: data.refreshToken,
+        hashed_token: data.hashed_refresh_token,
         expired_at: new Date(Date.now() + this.expirationMs)
       }
     });
@@ -63,3 +63,4 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
     });
   }
 }
+  

@@ -23,7 +23,7 @@ export type LoginSchemaType = Static<typeof LoginSchema>;
 
 export const LogoutSchema = Type.Object({
   user_id: Type.Number(),
-  refreshToken: Type.String()
+  refresh_token: Type.String()
 });
 
 export type LogoutSchemaType = Static<typeof LogoutSchema>;
@@ -31,7 +31,7 @@ export type LogoutSchemaType = Static<typeof LogoutSchema>;
 
 export const RefreshSchema = Type.Object({
   user_id: Type.Number(),
-  refreshToken: Type.String()
+  refresh_token: Type.String()
 });
 
 export type RefreshSchemaType = Static<typeof RefreshSchema>;
@@ -39,8 +39,8 @@ export type RefreshSchemaType = Static<typeof RefreshSchema>;
 
 export const ChangePasswordSchema = Type.Object({
   user_id: Type.Number(),
-  currentPassword: Type.String(),
-  newPassword: Type.String({ minLength: PasswordPolicyConfig.minLength })
+  current_password: Type.String(),
+  new_password: Type.String({ minLength: PasswordPolicyConfig.minLength })
 });
 
 export type ChangePasswordSchemaType = Static<typeof ChangePasswordSchema>;

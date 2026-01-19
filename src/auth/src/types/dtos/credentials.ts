@@ -5,7 +5,7 @@ export interface CreatePasswordDto {
 
 export interface UpdatePasswordDto {
   user_id: number,
-  newPassword: string
+  new_password: string
 }
 
 export interface DeletePasswordDto {

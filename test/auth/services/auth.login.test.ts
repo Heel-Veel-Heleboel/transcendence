@@ -54,8 +54,8 @@ describe('AuthService - Login', () => {
     const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
     const mockRefreshTokenResult = {
       id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-      refreshToken: 'a1b2c3d4e5f64a5b8c9d0e1f2a3b4c5d',
-      hashedRefreshToken: 'fv233h2fv233h2b4v2vn2jnmn24m42m42b42nbteb4v2vn2jnmn24m42m42b42nb'
+      refresh_token: 'a1b2c3d4e5f64a5b8c9d0e1f2a3b4c5d',
+      hashed_refresh_token: 'fv233h2fv233h2b4v2vn2jnmn24m42m42b42nbteb4v2vn2jnmn24m42m42b42nb'
     };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
@@ -87,13 +87,13 @@ describe('AuthService - Login', () => {
     expect(mockRefreshTokenDao.store).toHaveBeenCalledWith({
       id: mockRefreshTokenResult.id,
       user_id: mockUser.id,
-      refreshToken: mockRefreshTokenResult.hashedRefreshToken
+      hashed_refresh_token: mockRefreshTokenResult.hashed_refresh_token
     });
     expect(mockRefreshTokenDao.store).toBeCalledTimes(1);
 
     expect(result).toEqual({
-      accessToken: mockAccessToken,
-      refreshToken: mockRefreshTokenResult.refreshToken,
+      access_token: mockAccessToken,
+      refresh_token: mockRefreshTokenResult.refresh_token,
       id: mockUser.id,
       name: mockUser.username,
       email: mockUser.email
@@ -367,8 +367,8 @@ describe('AuthService - Login', () => {
     const mockAccessToken = 'different.access.token';
     const mockRefreshTokenResult = {
       id: 'b2c3d4e5-f6a7-5b6c-9d0e-1f2a3b4c5d6e',
-      refreshToken: 'b2c3d4e5f6a75b6c9d0e1f2a3b4c5d6e',
-      hashedRefreshToken: 'differenthashedrefreshtoken'
+      refresh_token: 'b2c3d4e5f6a75b6c9d0e1f2a3b4c5d6e',
+      hashed_refresh_token: 'differenthashedrefreshtoken'
     };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
@@ -381,8 +381,8 @@ describe('AuthService - Login', () => {
     const result = await authService.login(loginDto);
 
     expect(result).toEqual({
-      accessToken: mockAccessToken,
-      refreshToken: mockRefreshTokenResult.refreshToken,
+      access_token: mockAccessToken,
+      refresh_token: mockRefreshTokenResult.refresh_token,
       id: 42,
       name: 'seconduser',
       email: 'user2@test.com'

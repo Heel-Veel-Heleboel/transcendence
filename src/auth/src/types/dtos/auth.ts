@@ -6,30 +6,30 @@ export interface SafeUserDto {
 }
 
 export interface LoggedInUserDto extends SafeUserDto {
-  accessToken: string;
-  refreshToken: string;
+  access_token: string;
+  refresh_token: string;
 }
 
 
 export interface RefreshedTokensDto {
-  accessToken: string;
-  refreshToken: string;
+  access_token: string;
+  refresh_token: string;
 }
 
 //incoming dtos for auth operations
 
 export interface LogoutDto {
   user_id: number;
-  refreshToken: string;
+  refresh_token: string;
 }
 
 export interface RefreshDto  {
   user_id: number;
-  refreshToken: string;
+  refresh_token: string;
 }
 
 export interface ChangePasswordDto {
   user_id: number;
-  currentPassword: string;
-  newPassword: string;
+  current_password: string;
+  new_password: string;
 }

@@ -27,7 +27,7 @@ describe('RefreshTokenSessionDao', () => {
     const MockCreateRefreshTokenDto: CreateRefreshTokenDto = {
       id: 'some-unique-id',
       user_id: 1,
-      refreshToken: 'token'
+      hashed_refresh_token: 'token'
     };
 
     await dao.store(MockCreateRefreshTokenDto);
