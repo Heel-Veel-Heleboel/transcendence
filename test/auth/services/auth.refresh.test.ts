@@ -20,7 +20,7 @@ import { AUTH_ERROR_MESSAGES } from '../../../src/auth/src/constants/auth.js';
 
 const mockUserService = { 
   findUserByEmail: vi.fn(),
-  findUserById: vi.fn()
+  findByUserId: vi.fn()
 };
 const mockCredentialsDao = { findByUserId: vi.fn() };
 const mockRefreshTokenDao = {
@@ -76,7 +76,7 @@ describe('AuthService - refresh', () => {
       expiredAt: new Date(Date.now() + 1000000)
     });
 
-    mockUserService.findUserById.mockResolvedValueOnce({
+    mockUserService.findByUserId.mockResolvedValueOnce({
       id: userId,
       username: 'testuser',
       email: 'test@example.com'
@@ -94,7 +94,7 @@ describe('AuthService - refresh', () => {
     expect(validateRefreshTokenFormat).toHaveBeenCalledWith(refreshToken);
     expect(mockRefreshTokenDao.findById).toHaveBeenCalledWith({ id: tokenId });
     expect(compareRefreshToken).toHaveBeenCalledWith(refreshToken, hashedToken);
-    expect(mockUserService.findUserById).toHaveBeenCalledWith(userId);
+    expect(mockUserService.findByUserId).toHaveBeenCalledWith(userId);
     expect(generateAccessToken).toHaveBeenCalledWith({
       sub: userId,
       user_email: 'test@example.com'
@@ -137,7 +137,7 @@ describe('AuthService - refresh', () => {
         expiredAt: new Date(Date.now() + 1000000)
       });
 
-    mockUserService.findUserById
+    mockUserService.findByUserId
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(null);
 
@@ -403,7 +403,7 @@ describe('AuthService - refresh', () => {
       expiredAt: new Date(Date.now() + 1000000)
     });
 
-    mockUserService.findUserById.mockResolvedValueOnce({
+    mockUserService.findByUserId.mockResolvedValueOnce({
       id: userId,
       username: 'testuser',
       email: 'test@example.com'
@@ -446,7 +446,7 @@ describe('AuthService - refresh', () => {
       expiredAt: new Date(Date.now() + 1000000)
     });
 
-    mockUserService.findUserById.mockResolvedValueOnce({
+    mockUserService.findByUserId.mockResolvedValueOnce({
       id: userId,
       username: 'testuser',
       email: 'test@example.com'

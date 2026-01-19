@@ -13,7 +13,7 @@ export const REFRESH_TOKEN_SIZE = 64 as const;
  * UUID v4 regex pattern: 8-4-4-4-12 hexadecimal characters with hyphens
  * Example: 550e8400-e29b-41d4-a716-446655440000
  */
-export const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i ;
+export const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export const JwtSchemaErrorMessage = {
   JWT_PRIVATE_KEY_PATH_MISSING: 'Missing JWT_PRIVATE_KEY_PATH',
