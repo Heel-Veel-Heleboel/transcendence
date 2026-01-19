@@ -5,7 +5,7 @@ describe('validateRefreshTokenFormat', () => {
   it.each([
     '',
     'invalidtokenformat',
-    '550e8400-e29b-41d4-a716-446655440000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',// Missing dot
+    '550e8400-e29b-41d4-a716-446655440000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', // Missing dot
     '550e8400-e29b-41d4-a716-446655440000', // Missing dot and token part
     '550e8400-e29b-41d4-a716-446655440000.', // Missing token part
     '.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', // Missing UUID part

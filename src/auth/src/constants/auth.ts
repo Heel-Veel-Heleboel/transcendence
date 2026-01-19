@@ -4,13 +4,14 @@ export const AUTH_ERROR_MESSAGES = {
   INVALID_TOKEN_FORMAT: 'Invalid refresh token format.',
   INVALID_TOKEN: 'Invalid refresh token.',
   TOKEN_EXPIRED: 'Refresh token has expired.',
-  
+  PASSWORD_SAME_AS_OLD: 'New password cannot be the same as the old password.',
   // Authorization errors
   TOKEN_OWNERSHIP_MISMATCH: 'User ID does not match token owner.',
   
   // Resource not found errors
   USER_NOT_FOUND_BY_EMAIL: (email: string) => `User with email: ${email} does not exist.`,
   USER_NOT_FOUND_BY_ID: (id: number) => `User with ID: ${id} does not exist.`,
+  USER_CREDENTIAL_NOT_FOUND_BY_ID: (id: number) => `User credentials for user ID: ${id} do not exist.`,
   
   // Registration errors
   REGISTRATION_CLEANUP_FAILED: 'Failed to cleanup user after registration error:'

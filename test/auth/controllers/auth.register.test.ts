@@ -27,13 +27,13 @@ describe('AuthController - register', () => {
       }
     };
   });
+
   it('Should register a new user and return SafeUserDto', async () => {
     mockRequest.body = {
       name: 'John Doe',
       email: 'john.doe@example.com',
       password: 'securepassword'
     };
-
     const mockUser = {
       id: 1,
       name: 'John Doe',
