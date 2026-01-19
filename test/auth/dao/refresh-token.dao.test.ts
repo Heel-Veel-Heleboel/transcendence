@@ -94,7 +94,7 @@ describe('RefreshTokenSessionDao', () => {
 
   it('Should handle errors gracefully', async () => {
     mockPrismaClient.refreshToken.create.mockRejectedValueOnce(new Error('DB Error'));
-    await expect(dao.store({ id: 'test-id', user_id: 1, refreshToken: 'token' })).rejects.toThrow('DB Error');
+    await expect(dao.store({ id: 'test-id', user_id: 1, hashed_refresh_token: 'token' })).rejects.toThrow('DB Error');
   });
 
   it('Should fail when revoking non-existent token', async () => {

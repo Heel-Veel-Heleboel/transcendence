@@ -30,7 +30,7 @@ export class CredentialsDao implements CredentialsDaoShape {
   async updatePassword(data: UpdatePasswordDto): Promise<void> {
     await this.prismaClient.userCredentials.update({
       where: { user_id: data.user_id },
-      data: { hashed_password: data.newPassword }
+      data: { hashed_password: data.new_password }
     });
   }
 

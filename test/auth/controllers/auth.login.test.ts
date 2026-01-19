@@ -51,7 +51,7 @@ describe('AuthController - login', () => {
     expect(MockReply.code).toHaveBeenCalledWith(200);
     expect(MockReply.send).toHaveBeenCalledWith(mockLoggedInUser);
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { body: mockRequest.body },
+      { email: mockRequest.body.email },
       'Login attempt'
     );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
@@ -77,7 +77,7 @@ describe('AuthController - login', () => {
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { body: mockRequest.body },
+      { email: mockRequest.body.email },
       'Login attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(

@@ -31,7 +31,7 @@ describe('CredentialsDao', () => {
   });
 
   it('Should update a user password', async () => {
-    await dao.updatePassword({ user_id: 1, newPassword: 'new_hashed_password' });
+    await dao.updatePassword({ user_id: 1, new_password: 'new_hashed_password' });
     expect(mockPrismaClient.userCredentials.update).toBeCalled();
     expect(mockPrismaClient.userCredentials.update).toBeCalledWith({
       where: { user_id: 1 },

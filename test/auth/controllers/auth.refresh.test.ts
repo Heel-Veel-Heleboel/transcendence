@@ -45,7 +45,7 @@ describe('AuthController - refresh', () => {
     expect(MockReply.code).toHaveBeenCalledWith(200);
     expect(MockReply.send).toHaveBeenCalledWith(mockTokens);
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { body: mockRequest.body },
+      { user_id: mockRequest.body.user_id },
       'Token refresh attempt'
     );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
@@ -74,7 +74,7 @@ describe('AuthController - refresh', () => {
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { body: mockRequest.body },
+      { user_id: mockRequest.body.user_id },
       'Token refresh attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(

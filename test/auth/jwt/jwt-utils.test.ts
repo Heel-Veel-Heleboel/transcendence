@@ -240,12 +240,12 @@ import { CryptoErrorMessage } from '../../../src/auth/src/constants/jwt.ts';
 
 describe('Refresh Token Utils', () => {
   describe('generateRefreshToken', () => {
-    it('should return an object with id and hashedRefreshToken', () => {
+    it('should return an object with id and hashed_refresh_token', () => {
       const result = generateRefreshToken(64);
       expect(result).toHaveProperty('id');
-      expect(result).toHaveProperty('hashedRefreshToken');
+      expect(result).toHaveProperty('hashed_refresh_token');
       expect(typeof result.id).toBe('string');
-      expect(typeof result.hashedRefreshToken).toBe('string');
+      expect(typeof result.hashed_refresh_token).toBe('string');
     });
 
     it('should generate a valid UUID as id', () => {
@@ -256,14 +256,14 @@ describe('Refresh Token Utils', () => {
 
     it('should generate a hashed token (sha256 produces 64 char hex)', () => {
       const result = generateRefreshToken(64);
-      expect(result.hashedRefreshToken.length).toBe(64);
+      expect(result.hashed_refresh_token.length).toBe(64);
     });
 
     it('should generate unique tokens on multiple calls', () => {
       const result1 = generateRefreshToken(64);
       const result2 = generateRefreshToken(64);
       expect(result1.id).not.toBe(result2.id);
-      expect(result1.hashedRefreshToken).not.toBe(result2.hashedRefreshToken);
+      expect(result1.hashed_refresh_token).not.toBe(result2.hashed_refresh_token);
     });
 
     it('should generate unique ids for different sizes', () => {

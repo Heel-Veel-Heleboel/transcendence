@@ -41,7 +41,7 @@ describe('AuthController - logout', () => {
     expect(MockReply.code).toHaveBeenCalledWith(204);
     expect(MockReply.send).toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { body: mockRequest.body },
+      { user_id: mockRequest.body.user_id },
       'Logout attempt'
     );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
@@ -75,7 +75,7 @@ describe('AuthController - logout', () => {
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { body: mockRequest.body },
+      { user_id: mockRequest.body.user_id },
       'Logout attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(

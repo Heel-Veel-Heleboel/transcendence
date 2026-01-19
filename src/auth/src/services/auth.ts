@@ -60,13 +60,13 @@ export class AuthService {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
-    const accessToken = generateAccessToken({ sub: user.id, user_email: user.email });
-    const refreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
+    const access_token = generateAccessToken({ sub: user.id, user_email: user.email });
+    const refresh_token = generateRefreshToken(REFRESH_TOKEN_SIZE);
 
-    await this.refreshTokenDao.store( { id: refreshToken.id, user_id: user.id, hashed_refresh_token: refreshToken.hashed_refresh_token } );
+    await this.refreshTokenDao.store( { id: refresh_token.id, user_id: user.id, hashed_refresh_token: refresh_token.hashed_refresh_token } );
     return {
-      access_token: accessToken,
-      refresh_token: refreshToken.refresh_token,
+      access_token: access_token,
+      refresh_token: refresh_token.refresh_token,
       id: user.id,
       name: user.username,
       email: user.email
@@ -88,15 +88,15 @@ export class AuthService {
       throw new ResourceNotFoundError(AUTH_ERROR_MESSAGES.USER_NOT_FOUND_BY_ID(token.user_id));
     }
 
-    const newAccessToken = generateAccessToken({ sub: user.id, user_email: user.email });
-    const newRefreshToken = generateRefreshToken(REFRESH_TOKEN_SIZE);
+    const new_access_token = generateAccessToken({ sub: user.id, user_email: user.email });
+    const new_refresh_token = generateRefreshToken(REFRESH_TOKEN_SIZE);
 
     await this.refreshTokenDao.revoke({ id: tokenId });
-    await this.refreshTokenDao.store( { id: newRefreshToken.id, user_id: user.id, hashed_refresh_token: newRefreshToken.hashed_refresh_token } );
+    await this.refreshTokenDao.store( { id: new_refresh_token.id, user_id: user.id, hashed_refresh_token: new_refresh_token.hashed_refresh_token } );
 
     return {
-      access_token: newAccessToken,
-      refresh_token: newRefreshToken.refresh_token
+      access_token: new_access_token,
+      refresh_token: new_refresh_token.refresh_token
     };
   }
 

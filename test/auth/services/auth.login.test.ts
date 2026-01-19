@@ -313,8 +313,8 @@ describe('AuthService - Login', () => {
     const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
     const mockRefreshTokenResult = {
       id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
-      refreshToken: 'a1b2c3d4e5f64a5b8c9d0e1f2a3b4c5d',
-      hashedRefreshToken: 'fv233h2fv233h2b4v2vn2jnmn24m42m42b42nb'
+      refresh_token: 'a1b2c3d4e5f64a5b8c9d0e1f2a3b4c5d',
+      hashed_refresh_token: 'fv233h2fv233h2b4v2vn2jnmn24m42m42b42nb'
     };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
@@ -438,8 +438,8 @@ describe('AuthService - Login', () => {
     const mockAccessToken = 'access.token';
     const mockRefreshTokenResult = {
       id: 'c3d4e5f6-a7b8-6c7d-0e1f-2a3b4c5d6e7f',
-      refreshToken: 'c3d4e5f6a7b86c7d0e1f2a3b4c5d6e7f',
-      hashedRefreshToken: 'hashedrefreshtoken'
+      refresh_token: 'c3d4e5f6a7b86c7d0e1f2a3b4c5d6e7f',
+      hashed_refresh_token: 'hashedrefreshtoken'
     };
 
     mockUserService.findUserByEmail.mockResolvedValue(mockUser);
