@@ -1,5 +1,5 @@
 import { CredentialsDaoShape } from '../types/daos/credentials.js';
-import { PrismaClient } from '../../generated/prisma/client.js';
+import { PrismaClient, UserCredentials } from '../../generated/prisma/client.js';
 import { CreatePasswordDto, UpdatePasswordDto, DeletePasswordDto, FindPasswordDto } from '../types/dtos/credentials.js';
 
 
@@ -34,11 +34,11 @@ export class CredentialsDao implements CredentialsDaoShape {
     });
   }
 
-  async findByUserId(data: FindPasswordDto): Promise<string | null> {
+  async findByUserId(data: FindPasswordDto): Promise<UserCredentials | null> {
     const record = await this.prismaClient.userCredentials.findUnique({
       where: { userId: data.userId }
     });
-    return record ? record.hashedPassword : null;
+    return record;
   }
 
   async deleteByUserId(userId: DeletePasswordDto): Promise<void> {

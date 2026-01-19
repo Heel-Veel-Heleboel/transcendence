@@ -16,7 +16,7 @@ export interface RefreshedTokensDto {
   refreshToken: string;
 }
 
-//argument dtos for auth operations
+//incoming dtos for auth operations
 export interface RegisterDto {
   name: string;
   email: string;
@@ -36,4 +36,10 @@ export interface LogoutDto {
 export interface RefreshDto  {
   userId: number;
   refreshToken: string;
+}
+
+export interface ChangePasswordDto {
+  userId: number;
+  currentPassword: string;
+  newPassword: string;
 }
