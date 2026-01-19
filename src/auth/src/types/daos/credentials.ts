@@ -1,6 +1,6 @@
 
 import { UpdatePasswordDto, CreatePasswordDto, DeletePasswordDto, FindPasswordDto } from '../dtos/credentials.js';
-
+import { UserCredentials } from '../../../generated/prisma/client.js';
 
 /**
  * Data Access Object (DAO) interface for managing user credentials.
@@ -14,6 +14,6 @@ import { UpdatePasswordDto, CreatePasswordDto, DeletePasswordDto, FindPasswordDt
 export interface CredentialsDaoShape {
   create(data: CreatePasswordDto): Promise<void>;
   updatePassword(data: UpdatePasswordDto): Promise<void>;
-  findByUserId(data: FindPasswordDto): Promise<string | null>;
+  findByUserId(data: FindPasswordDto): Promise<UserCredentials | null>;
   deleteByUserId(data: DeletePasswordDto): Promise<void>;
 }

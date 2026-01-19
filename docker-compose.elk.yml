@@ -24,6 +24,8 @@ volumes:
     driver: local
   logstash-data:
     driver: local
+  prometheus-data:
+    driver: local
   filebeat-data:
     driver: local
 
@@ -194,3 +196,48 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
+  # Docker Socket Proxy - Secure proxy for Docker socket access
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy
+    container_name: transcendence-docker-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - CONTAINERS=1  # Allow listing containers
+      - NETWORKS=1    # Allow listing networks
+      - SERVICES=0    # Disable services
+      - TASKS=0       # Disable tasks
+      - POST=0        # Disable write operations
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:2375/version']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+  prometheus:
+    image: prom/prometheus:v3.8.1
+    container_name: transcendence-prometheus
+    depends_on:
+      docker-proxy:
+        condition: service_healthy
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - '9090:9090'
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9090/-/healthy']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
