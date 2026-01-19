@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthController } from '../../../src/auth/src/controllers/auth.js';
 
-
 describe('AuthController - register', () => {
   const MockAuthService = {
     register: vi.fn()

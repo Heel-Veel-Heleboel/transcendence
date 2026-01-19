@@ -19,7 +19,6 @@ describe('AuthController - logout', () => {
   });
 
   it('Should logout the user successfully', async () => {
-
     const mockRequest = {
       body: {
         userId: 1,

@@ -4,9 +4,8 @@ import { RegisterDto, SafeUserDto, LoginDto, LoggedInUserDto, LogoutDto, Refresh
 
 
 export class AuthController {
-  constructor( 
-  private readonly authService: AuthService
-  ){}
+  constructor(private readonly authService: AuthService)
+  {}
 
   async register(request: FastifyRequest<{ Body: RegisterDto }>, reply: FastifyReply) : Promise<FastifyReply> {
     request.log.info({ email: request.body.email }, 'Registration attempt');
