@@ -6,7 +6,7 @@ import { UserManagementService } from '../../types/user-management-service.js';
  * It does not persist data and is intended for use in unit tests.
  * Methods:
  * - createUser: Simulates creating a user and returns a mock user ID.
- * - findByuser_id: Simulates finding a user by ID and returns mock user data or null.
+ * - findByUserId: Simulates finding a user by ID and returns mock user data or null.
  * - findUserByEmail: Simulates finding a user by email and returns mock user data or null.
  * - deleteUser: Simulates deleting a user by ID.
  */

@@ -14,10 +14,10 @@ import { compareRefreshToken } from '../../../src/auth/src/utils/jwt.js';
 import { AuthService } from '../../../src/auth/src/services/auth';
 
 const mockUserService = { findUserByEmail: vi.fn() };
-const mockCredentialsDao = { findByuser_id: vi.fn() };
+const mockCredentialsDao = { findByUserId: vi.fn() };
 const mockRefreshTokenDao = {
   store: vi.fn(),
-  findByuser_id: vi.fn(),
+  findByUserId: vi.fn(),
   findById: vi.fn(),
   revoke: vi.fn()
 };
