@@ -8,8 +8,8 @@ import { REFRESH_TOKEN_SIZE } from '../constants/jwt.js';
 import { generateAccessToken, generateRefreshToken, compareRefreshToken, validateRefreshTokenFormat } from '../utils/jwt.js';
 import { AuthenticationError, AuthorizationError, ResourceNotFoundError } from '../error/auth.js';
 import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
-
 import * as SchemaTypes from '../schemas/auth.js';
+
 /** 
  * Authentication Service
  * 
