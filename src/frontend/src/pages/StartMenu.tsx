@@ -98,11 +98,9 @@ export function Logo(): JSX.Element {
 }
 
 export function MenuOption({ text, callback }: { text: string, callback: () => void }): JSX.Element {
-    const highlight = "text-zinc-300";
-    const css = `font-orbi text-center text-5xl text-zinc-600 hover:${highlight} focus:${highlight}`
     return (
         <div className="w-1/5 h-1/5 m-10 ml-auto mr-auto grid place-items-center text-center opacity-90" >
-            <button className={css} onClick={callback}>{text}</button >
+            <button className="font-orbi text-center text-5xl text-zinc-600 hover:text-zinc-300 focus:text-zinc-300" onClick={callback}>{text}</button >
         </div>
     )
 }
