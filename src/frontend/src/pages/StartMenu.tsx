@@ -74,8 +74,8 @@ export function CreditsSectionMembers(): JSX.Element {
         <div>
             <CreditsSectionTitle title="Members" />
             <CreditsSectionContent Key="" value="amysiv" />
-            <CreditsSectionContent Key="" value="vshkonda" />
             <CreditsSectionContent Key="" value="spenning" />
+            <CreditsSectionContent Key="" value="vshkonda" />
         </div>
     )
 
