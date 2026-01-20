@@ -41,9 +41,9 @@ export const DefaultStartMenu = ({ redirect }: { redirect: (page: number) => voi
             <Title />
             <Logo />
             <div id="menuOptions">
-                <MenuOption text="LOGIN" callback={() => redirect(PAGE.LOGIN)} />
-                <MenuOption text="CREDITS" callback={() => redirect(PAGE.CREDITS)} />
-                <MenuOption text="QUIT" callback={() => window.location.replace("https://www.youtube.com/watch?v=dQw4w9WgXcQ")} />
+                <MenuOption text="LOGIN" margin={10} callback={() => redirect(PAGE.LOGIN)} />
+                <MenuOption text="CREDITS" margin={10} callback={() => redirect(PAGE.CREDITS)} />
+                <MenuOption text="QUIT" margin={10} callback={() => window.location.replace("https://www.youtube.com/watch?v=dQw4w9WgXcQ")} />
             </div>
         </div>
     )
@@ -61,7 +61,7 @@ export function Credits({ redirect }: { redirect: (page: number) => void }): JSX
             <div />
             <CreditsSectionMembers />
             <CreditsSectionServices />
-            <MenuOption text="MENU" callback={() => redirect(PAGE.MENU)} />
+            <MenuOption text="BACK TO MENU" margin={0} callback={() => redirect(PAGE.MENU)} />
             <div />
         </div>
     )
@@ -71,9 +71,9 @@ export function CreditsSectionMembers(): JSX.Element {
     return (
         <div>
             <CreditsSectionTitle title="Members" />
+            <CreditsSectionContent Key="" value="amysiv" />
             <CreditsSectionContent Key="" value="vshkonda" />
             <CreditsSectionContent Key="" value="spenning" />
-            <CreditsSectionContent Key="" value="amysiv" />
         </div>
     )
 
@@ -163,9 +163,10 @@ export function Logo(): JSX.Element {
     )
 }
 
-export function MenuOption({ text, callback }: { text: string, callback: () => void }): JSX.Element {
+export function MenuOption({ text, margin, callback }: { text: string, margin: number, callback: () => void }): JSX.Element {
+    const divCss = `m-${margin} ml-auto mr-auto grid place-items-center text-center opacity-90`;
     return (
-        <div className="w-1/5 h-1/5 m-10 ml-auto mr-auto grid place-items-center text-center opacity-90" >
+        <div className={divCss}>
             <button className="font-orbi text-center text-5xl text-zinc-600 hover:text-zinc-300 focus:text-zinc-300" onClick={callback}>{text}</button >
         </div>
     )
