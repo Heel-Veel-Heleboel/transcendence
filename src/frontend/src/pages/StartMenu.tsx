@@ -37,7 +37,8 @@ export const StartMenu = (): JSX.Element => {
 
 export const DefaultStartMenu = ({ redirect }: { redirect: (page: number) => void }): JSX.Element => {
     return (
-        <div id="StartMenuContent" className="relative z-1 text-white text-center">
+        <div id="StartMenuContent" className="h-screen relative z-1 text-white text-center flex flex-col justify-between">
+            <div></div>
             <Title />
             <Logo />
             <div id="menuOptions">
@@ -45,6 +46,7 @@ export const DefaultStartMenu = ({ redirect }: { redirect: (page: number) => voi
                 <MenuOption text="CREDITS" margin={10} callback={() => redirect(PAGE.CREDITS)} />
                 <MenuOption text="QUIT" margin={10} callback={() => window.location.replace("https://www.youtube.com/watch?v=dQw4w9WgXcQ")} />
             </div>
+            <div></div>
         </div>
     )
 }
