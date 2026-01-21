@@ -21,6 +21,10 @@ html, body, #root, #app {
     width: 100vw;
 }
 
+#StartMenu {
+    background: rgba(0,0,0,0);
+}
+
 #bgVideo {
     object-fit: fill;
 }
