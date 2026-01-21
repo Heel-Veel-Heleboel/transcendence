@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { AuthController } from '../controllers/auth.js';
 import * as SchemaTypes from '../schemas/auth.js';
-import { authErrorHandler } from '../error/error-handler.js';
+import { authErrorHandler } from '../middleware/error-handler.js';
 
 export async function authRoutes(fastify: FastifyInstance, authController: AuthController) {
 
