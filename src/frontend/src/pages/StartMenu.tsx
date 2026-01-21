@@ -7,12 +7,18 @@ const PAGE = Object.freeze({
     CREDITS: 2
 })
 
+const LOGIN_OPTION = Object.freeze({
+    DEFAULT_LOGIN: 0,
+    SIGIN: 1,
+    REGISTER: 2
+})
+
 export function GetPage({ page, redirect }: { page: number, redirect: (page: number) => void }): JSX.Element {
     switch (page) {
         case PAGE.MENU:
             return <DefaultStartMenu redirect={redirect} />
         case PAGE.LOGIN:
-            return <CenterContainer children={Login()} />
+            return <CenterContainer children={Login({ redirect })} />
         case PAGE.CREDITS:
             return <CenterContainer children={Credits({ redirect })} />
         default:
@@ -51,9 +57,71 @@ export const DefaultStartMenu = ({ redirect }: { redirect: (page: number) => voi
     )
 }
 
-export function Login(): JSX.Element {
+export function Login({ redirect }: { redirect: (page: number) => void }): JSX.Element {
+    const [loginOption, setLoginOption] = useState<number>(LOGIN_OPTION.DEFAULT_LOGIN);
+    let component;
+    switch (loginOption) {
+        case LOGIN_OPTION.DEFAULT_LOGIN:
+            component = <DefaultLogin callback={setLoginOption} />
+            break;
+        case LOGIN_OPTION.SIGIN:
+            component = <SignInForm callback={setLoginOption} />
+            break;
+        case LOGIN_OPTION.REGISTER:
+            component = <RegisterForm callback={setLoginOption} />
+            break;
+        default:
+            component = <DefaultLogin callback={setLoginOption} />
+    }
     return (
-        <div className="text-white min-h-full">login</div>
+        <div className="min-h-full text-white text-center flex flex-col justify-around bg-zinc-400/60 border font-orbi">
+            {component}
+            <MenuOption text="BACK TO MENU" margin={0} callback={() => redirect(PAGE.MENU)} />
+        </div>
+    )
+}
+
+export function DefaultLogin({ callback }: { callback: (page: number) => void }): JSX.Element {
+    return (
+
+        <div className="text-3xl">
+            <button onClick={() => callback(LOGIN_OPTION.SIGIN)} className="border w-3xs">SIGN IN</button>
+            <br />
+            <br />
+            <button onClick={() => callback(LOGIN_OPTION.REGISTER)} className="border w-3xs">REGISTER</button>
+        </div>
+    )
+}
+
+export function SignInForm({ callback }: { callback: (page: number) => void }): JSX.Element {
+    return (
+        <div>
+            <form action="">
+                <label htmlFor="user-name">user-name</label><br />
+                <input type="text" id="user-name" className="border" /> <br />
+                <label htmlFor="password">password</label><br />
+                <input type="text" id="password" className="border" /> <br /><br />
+                <input type="submit" value="SIGN IN" className="border w-1/4" />
+            </form>
+            <button onClick={() => callback(LOGIN_OPTION.DEFAULT_LOGIN)} className="m-10">GO BACK</button>
+        </div>
+    )
+}
+
+export function RegisterForm({ callback }: { callback: (page: number) => void }): JSX.Element {
+    return (
+        <div>
+            <form action="">
+                <label htmlFor="email address">email address</label><br />
+                <input type="text" id="email address" className="border" /> <br />
+                <label htmlFor="user-name">user-name</label><br />
+                <input type="text" id="user-name" className="border" /> <br />
+                <label htmlFor="password">password</label><br />
+                <input type="text" id="password" className="border" /> <br /><br />
+                <input type="submit" value="REGISTER" className="border w-1/4" />
+            </form>
+            <button onClick={() => callback(LOGIN_OPTION.DEFAULT_LOGIN)} className="m-10">GO BACK</button>
+        </div>
     )
 }
 
