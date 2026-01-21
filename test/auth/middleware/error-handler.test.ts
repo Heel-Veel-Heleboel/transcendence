@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { authErrorHandler } from '../../../src/auth/src/error/error-handler.js';
+import { authErrorHandler } from '../../../src/auth/src/middleware/error-handler.js';
 import { AuthenticationError, AuthorizationError, ResourceNotFoundError } from '../../../src/auth/src/error/auth.js';
 
 describe('authErrorHandler', () => {
