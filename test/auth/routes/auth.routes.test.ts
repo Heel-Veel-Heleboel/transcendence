@@ -19,7 +19,7 @@ describe('Auth routes', () => {
       refresh: vi.fn(),
       changePassword: vi.fn()
     };
-    await authRoutes(MockFastify as any, MockControllers as any);
+    await authRoutes(MockFastify as any, { authController: MockControllers as any });
 
     expect(MockFastify.post).toBeCalledTimes(5);
     expect(MockFastify.post).toHaveBeenCalledWith('/register', expect.objectContaining({
