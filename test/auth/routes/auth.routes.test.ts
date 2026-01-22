@@ -1,6 +1,6 @@
 import { expect, it, describe, vi } from 'vitest';
 import { authRoutes } from '../../../src/auth/src/routes/auth.js';
-import { authErrorHandler } from '../../../src/auth/src/middleware/error-handler.js';
+
 import * as SchemaTypes from '../../../src/auth/src/schemas/auth.js';
 import { validatePasswordHook } from '../../../src/auth/src/middleware/validate-password-hook.js';
 
@@ -9,7 +9,6 @@ describe('Auth rouetes', () => {
   
   it('Should register all routes', async () =>{
     const MockFastify = {
-      setErrorHandler: vi.fn(),
       post: vi.fn()
     };
   
@@ -22,8 +21,6 @@ describe('Auth rouetes', () => {
     };
     await authRoutes(MockFastify as any, MockControllers as any);
 
-    expect(MockFastify.setErrorHandler).toBeCalled();
-    expect(MockFastify.setErrorHandler).toBeCalledWith(authErrorHandler);
     expect(MockFastify.post).toBeCalledTimes(5);
     expect(MockFastify.post).toHaveBeenCalledWith('/register', expect.objectContaining({
       schema: SchemaTypes.RegistrationSchema,
@@ -54,8 +51,4 @@ describe('Auth rouetes', () => {
     expect(MockControllers.refresh).not.toBeCalled();
     expect(MockControllers.changePassword).not.toBeCalled();
   });
-
-
-
-
 });

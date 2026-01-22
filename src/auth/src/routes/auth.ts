@@ -1,17 +1,12 @@
 import { FastifyInstance } from 'fastify';
 import { AuthController } from '../controllers/auth.js';
 import * as SchemaTypes from '../schemas/auth.js';
-import { authErrorHandler } from '../middleware/error-handler.js';
 import { validatePasswordHook } from '../middleware/validate-password-hook.js';
 
 
 
 export async function authRoutes(fastify: FastifyInstance, authController: AuthController) {
   
-  //set error handler
-  fastify.setErrorHandler(authErrorHandler);
-
-  //routes
   fastify.post<{ Body: SchemaTypes.RegistrationSchemaType }>('/register', {
     schema: SchemaTypes.RegistrationSchema,
     preValidation: validatePasswordHook,
