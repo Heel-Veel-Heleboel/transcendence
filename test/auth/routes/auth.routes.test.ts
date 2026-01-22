@@ -5,7 +5,7 @@ import * as SchemaTypes from '../../../src/auth/src/schemas/auth.js';
 import { validatePasswordHook } from '../../../src/auth/src/middleware/validate-password-hook.js';
 
 
-describe('Auth rouetes', () => {
+describe('Auth routes', () => {
   
   it('Should register all routes', async () =>{
     const MockFastify = {
