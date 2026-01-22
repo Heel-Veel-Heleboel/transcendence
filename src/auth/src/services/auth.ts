@@ -26,7 +26,7 @@ export class AuthService {
     private readonly refreshTokenDao: RefreshTokenDaoShape) {}
 
 
-  async register(registerDto: SchemaTypes.RegistrationType): Promise<SafeUserDto> {
+  async register(registerDto: SchemaTypes.RegistrationSchemaType): Promise<SafeUserDto> {
     const uId = await this.userService.createUser(registerDto.email, registerDto.user_name);
 
     try {
