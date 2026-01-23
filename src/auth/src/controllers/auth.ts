@@ -1,6 +1,6 @@
 import { AuthService } from '../services/auth.js';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { RegisterDto, SafeUserDto } from '../types/dtos/auth.js';
+import { RegisterDto, SafeUserDto, LoginDto, LoggedInUserDto } from '../types/dtos/auth.js';
 
 export class AuthController {
   constructor( 
@@ -12,5 +12,12 @@ export class AuthController {
     const user: SafeUserDto = await this.authService.register(request.body);
     request.log.info({ userId: user.id }, 'User registered successfully');
     return reply.code(201).send(user);
+  }
+  
+  async login(request: FastifyRequest<{ Body: LoginDto }>, reply: FastifyReply) : Promise<FastifyReply> {
+    request.log.info({ body: request.body }, 'Login attempt');
+    const loggedInUser: LoggedInUserDto = await this.authService.login(request.body);
+    request.log.info({ userId: loggedInUser.id }, 'User logged in successfully');
+    return reply.code(200).send(loggedInUser);
   }
 }

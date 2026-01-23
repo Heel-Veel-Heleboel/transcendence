@@ -27,8 +27,7 @@ describe('AuthController - register', () => {
       }
     };
   });
-
-  it('should register a new user and return SafeUserDto', async () => {
+  it('Should register a new user and return SafeUserDto', async () => {
     mockRequest.body = {
       name: 'John Doe',
       email: 'john.doe@example.com',
@@ -60,12 +59,13 @@ describe('AuthController - register', () => {
     );
   });
 
-  it('should handle errors during registration', async () => {
+  it('Should handle errors during registration', async () => {
     mockRequest.body = {
       name: 'Jane Doe',
       email: 'jane.doe@example.com',
       password: 'anotherpassword'
     };
+
     const mockError = new Error('Registration failed');
     MockAuthService.register.mockRejectedValueOnce(mockError);
 
@@ -82,7 +82,6 @@ describe('AuthController - register', () => {
       { body: mockRequest.body },
       'Registration attempt'
     );
-    // Should not log success
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(
       expect.objectContaining({ userId: expect.anything() }),
       'User registered successfully'
