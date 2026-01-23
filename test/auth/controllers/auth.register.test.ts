@@ -28,7 +28,7 @@ describe('AuthController - register', () => {
     };
   });
 
-  it('should register a new user and return SafeUserDto', async () => {
+  it('Should register a new user and return SafeUserDto', async () => {
     mockRequest.body = {
       name: 'John Doe',
       email: 'john.doe@example.com',
