@@ -1,6 +1,6 @@
 import { AuthService } from '../services/auth.js';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { RegisterDto, SafeUserDto, LoginDto, LoggedInUserDto, LogoutDto } from '../types/dtos/auth.js';
+import { RegisterDto, SafeUserDto, LoginDto, LoggedInUserDto, LogoutDto, RefreshDto, RefreshedTokensDto } from '../types/dtos/auth.js';
 
 
 export class AuthController {
@@ -27,5 +27,12 @@ export class AuthController {
     await this.authService.logout(request.body);
     request.log.info({ userId: request.body.userId }, 'User logged out successfully');
     return reply.code(204).send();
+  }
+
+  async refresh(request: FastifyRequest<{ Body: RefreshDto }>, reply: FastifyReply): Promise<FastifyReply> {
+    request.log.info({ body: request.body }, 'Token refresh attempt');
+    const refreshTokens: RefreshedTokensDto = await this.authService.refresh(request.body);
+    request.log.info({ userId: request.body.userId }, 'Tokens refreshed successfully');
+    return reply.code(200).send(refreshTokens);
   }
 }

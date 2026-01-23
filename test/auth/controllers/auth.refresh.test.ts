@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthController } from '../../../src/auth/src/controllers/auth.js';
+import { RefreshedTokensDto } from '../../../src/auth/src/types/dtos/auth.js';
 
 const MockAuthService = {
-  logout: vi.fn()
+  refresh: vi.fn()
 };
 
 const MockReply = {
@@ -10,7 +11,7 @@ const MockReply = {
   send: vi.fn()
 };
 
-describe('AuthController - logout', () => {
+describe('AuthController - refresh', () => {
   let authController: AuthController;
 
   beforeEach(() => {
@@ -18,12 +19,11 @@ describe('AuthController - logout', () => {
     authController = new AuthController(MockAuthService as any);
   });
 
-  it('Should logout the user successfully', async () => {
-
+  it('Should refresh tokens and return RefreshedTokensDto', async () => {
     const mockRequest = {
       body: {
         userId: 1,
-        refreshToken: 'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv'
+        refreshToken: 'refresh-token'
       },
       log: {
         info: vi.fn(),
@@ -32,29 +32,33 @@ describe('AuthController - logout', () => {
       }
     } as any;
 
-    await authController.logout(mockRequest, MockReply as any);
+    const mockTokens: RefreshedTokensDto = {
+      accessToken: 'new-access-token',
+      refreshToken: 'new-refresh-token'
+    };
 
-    expect(MockAuthService.logout).toHaveBeenCalledWith({
-      userId: 1,
-      refreshToken: 'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv'
-    });
-    expect(MockReply.code).toHaveBeenCalledWith(204);
-    expect(MockReply.send).toHaveBeenCalled();
+    MockAuthService.refresh.mockResolvedValueOnce(mockTokens);
+
+    await authController.refresh(mockRequest, MockReply as any);
+
+    expect(MockAuthService.refresh).toHaveBeenCalledWith(mockRequest.body);
+    expect(MockReply.code).toHaveBeenCalledWith(200);
+    expect(MockReply.send).toHaveBeenCalledWith(mockTokens);
     expect(mockRequest.log.info).toHaveBeenCalledWith(
       { body: mockRequest.body },
-      'Logout attempt'
+      'Token refresh attempt'
     );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
       { userId: mockRequest.body.userId },
-      'User logged out successfully'
+      'Tokens refreshed successfully'
     );
   });
 
-  it('Should handle errors during logout', async () => {
+  it('Should propagate errors from AuthService.refresh', async () => {
     const mockRequest = {
       body: {
         userId: 2,
-        refreshToken: 'invalidtokenvalue'
+        refreshToken: 'bad-token'
       },
       log: {
         info: vi.fn(),
@@ -63,24 +67,19 @@ describe('AuthController - logout', () => {
       }
     } as any;
 
-    const mockError = new Error('Logout failed');
-    MockAuthService.logout.mockRejectedValueOnce(mockError);
+    const error = new Error('Refresh failed');
+    MockAuthService.refresh.mockRejectedValueOnce(error);
 
-    await expect(authController.logout(mockRequest, MockReply as any)).rejects.toThrow('Logout failed');
-
-    expect(MockAuthService.logout).toHaveBeenCalledWith({
-      userId: 2,
-      refreshToken: 'invalidtokenvalue'
-    });
+    await expect(authController.refresh(mockRequest, MockReply as any)).rejects.toThrow('Refresh failed');
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
       { body: mockRequest.body },
-      'Logout attempt'
+      'Token refresh attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(
       { userId: mockRequest.body.userId },
-      'User logged out successfully'
+      'Tokens refreshed successfully'
     );
   });
 });
