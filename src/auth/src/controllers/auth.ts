@@ -5,9 +5,8 @@ import * as SchemaTypes from '../schemas/auth.js';
 
 
 export class AuthController {
-  constructor( 
-  private readonly authService: AuthService
-  ){}
+  constructor(private readonly authService: AuthService)
+  {}
 
   async register(request: FastifyRequest<{ Body: SchemaTypes.RegistrationType }>, reply: FastifyReply) : Promise<FastifyReply> {
     request.log.info({ email: request.body.email }, 'Registration attempt');
