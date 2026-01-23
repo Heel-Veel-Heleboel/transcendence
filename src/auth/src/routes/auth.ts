@@ -5,7 +5,8 @@ import { validatePasswordHook } from '../middleware/validate-password-hook.js';
 
 
 
-export async function authRoutes(fastify: FastifyInstance, authController: AuthController) {
+export async function authRoutes(fastify: FastifyInstance, options: {authController: AuthController}) {
+  const { authController } = options;
   
   fastify.post<{ Body: SchemaTypes.RegistrationSchemaType }>('/register', {
     schema: SchemaTypes.RegistrationSchema,

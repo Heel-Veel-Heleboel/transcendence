@@ -62,7 +62,7 @@ describe('JWT Utils', () => {
         mockPayload,
         'mock-private-key',
         expect.objectContaining({
-          algorithms: ['RS256'],
+          algorithm: 'RS256',
           expiresIn: '15m',
           issuer: expect.any(String),
           audience: expect.any(String)
@@ -78,7 +78,7 @@ describe('JWT Utils', () => {
       generateAccessToken(mockPayload);
       
       const callArgs = vi.mocked(jwt.sign).mock.calls[0];
-      expect(callArgs[2]).toMatchObject({ algorithms: ['RS256'] });
+      expect(callArgs[2]).toMatchObject({ algorithm: 'RS256' });
     });
 
     it('should use correct expiration time from config', () => {
@@ -149,7 +149,7 @@ describe('JWT Utils', () => {
         mockToken,
         'mock-public-key',
         expect.objectContaining({
-          algorithms: ['RS256'],
+          algorithm: 'RS256',
           issuer: expect.any(String),
           audience: expect.any(String)
         })
@@ -164,7 +164,7 @@ describe('JWT Utils', () => {
       verifyAccessToken('token');
       
       const callArgs = vi.mocked(jwt.verify).mock.calls[0];
-      expect(callArgs[2]).toMatchObject({ algorithms: ['RS256'] });
+      expect(callArgs[2]).toMatchObject({ algorithm: 'RS256' });
     });
 
     it('should verify issuer claim', () => {
