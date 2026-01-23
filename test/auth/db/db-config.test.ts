@@ -25,16 +25,16 @@ describe('Getting database configuration', () => {
 
   it('Throws error if DATABASE_URL is invalid', () => {
     process.env.DATABASE_URL = 'invalid-url';
-    expect(() => getDatabaseConfig()).toThrow('Invalid DATABASE_URL: DATABASE_URL must start with "file:"');
+    expect(() => getDatabaseConfig()).toThrow('Invalid DATABASE_URL: DATABASE_URL must be "file::memory:" or start with "file:" and specify a path');
   });
   
   it('Throws error if DATABASE_URL is empty', () => {
     process.env.DATABASE_URL = '';
-    expect(() => getDatabaseConfig()).toThrow('Invalid DATABASE_URL: DATABASE_URL cannot be empty, DATABASE_URL must start with "file:"');
+    expect(() => getDatabaseConfig()).toThrow('Invalid DATABASE_URL: DATABASE_URL cannot be empty, DATABASE_URL must be "file::memory:" or start with "file:" and specify a path');
   });
   it('Throws error if DATABASE_URL has no path after file:', () => {
     process.env.DATABASE_URL = 'file:';
-    expect(() => getDatabaseConfig()).toThrow('Invalid DATABASE_URL: DATABASE_URL must specify a path after "file:"');
+    expect(() => getDatabaseConfig()).toThrow('Invalid DATABASE_URL: DATABASE_URL must be "file::memory:" or start with "file:" and specify a path');
   });
 
   it('Caches the database configuration after first retrieval', () => {
@@ -43,4 +43,11 @@ describe('Getting database configuration', () => {
     const secondCall = getDatabaseConfig();
     expect(firstCall).toBe(secondCall);
   });
+
+  it('Accepts "file::memory:" as valid DATABASE_URL', () => {
+    process.env.DATABASE_URL = 'file::memory:';
+    const result = getDatabaseConfig();
+    expect(result).toBe('file::memory:');
+  });
+
 });

@@ -18,11 +18,12 @@ export function generateAccessToken(payload: JwtPayLoadShape): string {
   const config = getJwtConfig();
   const token = jwt.sign(payload,
     config.privateKey, {
-      algorithms: [config.algorithm],
+      algorithm: config.algorithm,
       expiresIn: config.expirationAccessToken,
       issuer: config.issuer,
       audience: config.audience
     } as jwt.SignOptions);
+  console.log('Access Token Generated:', token);
   return token;
 }
 
@@ -38,7 +39,7 @@ export function generateAccessToken(payload: JwtPayLoadShape): string {
 export function verifyAccessToken(token: string) : DecodedJwtPayload {
   const config = getJwtConfig();
   const decoded = jwt.verify(token, config.publicKey, {
-    algorithms: [config.algorithm],
+    algorithm: config.algorithm,
     issuer: config.issuer,
     audience: config.audience
   } as jwt.VerifyOptions);
