@@ -1,48 +1,71 @@
 import { Type, Static } from '@sinclair/typebox';
 import { PasswordPolicyConfig } from '../config/password.js';
 
-
-export const RegistrationSchema = Type.Object({
+//registration schema
+export const RegistrationSchemaBody = Type.Object({
   user_name: Type.String({ minLength: 3, maxLength: 20, pattern: '^[a-zA-Z0-9_]+$' }),
   email: Type.String({
     format: 'email'
   }),
   password: Type.String({ minLength: PasswordPolicyConfig.minLength })
 });
+// type for registration schema
+export type RegistrationSchemaType = Static<typeof RegistrationSchemaBody>;
+//wrap and export registration schema for routes
+export const RegistrationSchema = {
+  body: RegistrationSchemaBody
+};
 
-export type RegistrationType = Static<typeof RegistrationSchema>;
 
 
-export const LoginSchema = Type.Object({
+//login schema
+export const LoginSchemaBody = Type.Object({
   email: Type.String(),
   password: Type.String()
 });
+//type for login schema
+export type LoginSchemaType = Static<typeof LoginSchemaBody>;
+//wrap and export login schema for routes
+export const LoginSchema = {
+  body: LoginSchemaBody
+};
 
-export type LoginSchemaType = Static<typeof LoginSchema>;
 
-
-export const LogoutSchema = Type.Object({
+//logout schema
+export const LogoutSchemaBody = Type.Object({
   user_id: Type.Number(),
   refresh_token: Type.String()
 });
+//type for logout schema
+export type LogoutSchemaType = Static<typeof LogoutSchemaBody>;
+//wrap and export logout schema for routes
+export const LogoutSchema = {
+  body: LogoutSchemaBody
+};
 
-export type LogoutSchemaType = Static<typeof LogoutSchema>;
-
-
-export const RefreshSchema = Type.Object({
+//refresh schema
+export const RefreshSchemaBody = Type.Object({
   user_id: Type.Number(),
   refresh_token: Type.String()
 });
+//type for refresh schema
+export type RefreshSchemaType = Static<typeof RefreshSchemaBody>;
+//wrap and export refresh schema for routes
+export const RefreshSchema = {
+  body: RefreshSchemaBody
+};
 
-export type RefreshSchemaType = Static<typeof RefreshSchema>;
-
-
-export const ChangePasswordSchema = Type.Object({
+//change password schema
+export const ChangePasswordSchemaBody = Type.Object({
   user_id: Type.Number(),
   current_password: Type.String(),
   new_password: Type.String({ minLength: PasswordPolicyConfig.minLength })
 });
-
-export type ChangePasswordSchemaType = Static<typeof ChangePasswordSchema>;
+//type for change password schema
+export type ChangePasswordSchemaType = Static<typeof ChangePasswordSchemaBody>;
+//wrap and export change password schema for routes
+export const ChangePasswordSchema = {
+  body: ChangePasswordSchemaBody
+};
 
 

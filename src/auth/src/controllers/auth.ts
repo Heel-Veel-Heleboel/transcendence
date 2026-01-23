@@ -8,7 +8,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService)
   {}
 
-  async register(request: FastifyRequest<{ Body: SchemaTypes.RegistrationType }>, reply: FastifyReply) : Promise<FastifyReply> {
+  async register(request: FastifyRequest<{ Body: SchemaTypes.RegistrationSchemaType }>, reply: FastifyReply) : Promise<FastifyReply> {
     request.log.info({ email: request.body.email }, 'Registration attempt');
     const user: SafeUserDto = await this.authService.register(request.body);
     request.log.info({ user_id: user.id }, 'User registered successfully');

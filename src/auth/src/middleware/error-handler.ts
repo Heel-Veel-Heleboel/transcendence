@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest, FastifyError } from 'fastify';
-import { AuthenticationError, AuthorizationError, ResourceNotFoundError } from './auth.js';
+import { AuthenticationError, AuthorizationError, ResourceNotFoundError } from '../error/auth.js';
 
 
 function isValidationError(error: unknown): error is { validation: unknown } {

@@ -23,7 +23,7 @@ describe('AuthController - logout', () => {
     const mockRequest = {
       body: {
         user_id: 1,
-        refreshToken: 'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv'
+        refresh_token: 'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv'
       },
       log: {
         info: vi.fn(),
@@ -36,7 +36,7 @@ describe('AuthController - logout', () => {
 
     expect(MockAuthService.logout).toHaveBeenCalledWith({
       user_id: 1,
-      refreshToken: 'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv'
+      refresh_token: 'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv'
     });
     expect(MockReply.code).toHaveBeenCalledWith(204);
     expect(MockReply.send).toHaveBeenCalled();
@@ -54,7 +54,7 @@ describe('AuthController - logout', () => {
     const mockRequest = {
       body: {
         user_id: 2,
-        refreshToken: 'invalidtokenvalue'
+        refresh_token: 'invalidtokenvalue'
       },
       log: {
         info: vi.fn(),
@@ -70,7 +70,7 @@ describe('AuthController - logout', () => {
 
     expect(MockAuthService.logout).toHaveBeenCalledWith({
       user_id: 2,
-      refreshToken: 'invalidtokenvalue'
+      refresh_token: 'invalidtokenvalue'
     });
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
@@ -79,7 +79,7 @@ describe('AuthController - logout', () => {
       'Logout attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(
-      { user_id: mockRequest.body.userId },
+      { user_id: mockRequest.body.user_id },
       'User logged out successfully'
     );
   });

@@ -18,7 +18,7 @@ describe('AuthController - changePassword', () => {
     vi.clearAllMocks();
     authController = new AuthController(MockAuthService as any);
     mockRequest = {
-      body: { user_id: 1, oldPassword: 'oldpass', newPassword: 'newpass' },
+      body: { user_id: 1, old_password: 'oldpass', new_password: 'newpass' },
       log: { info: vi.fn() }
     } as any;
   });
@@ -45,6 +45,6 @@ describe('AuthController - changePassword', () => {
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith({ user_id: mockRequest.body.user_id }, 'Change password attempt');
-    expect(mockRequest.log.info).not.toHaveBeenCalledWith({ user_id: mockRequest.body.userId }, 'Password changed successfully');
+    expect(mockRequest.log.info).not.toHaveBeenCalledWith({ user_id: mockRequest.body.user_id }, 'Password changed successfully');
   });
 });
