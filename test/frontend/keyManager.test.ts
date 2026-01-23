@@ -5,8 +5,8 @@ import {
   KeyboardInfo,
   KeyboardEventTypes
 } from '@babylonjs/core';
-import { KeyManager } from '../../src/frontend/src/game/systems/keyManager.ts';
-import * as KeyManagerUtils from '../../src/frontend/src/game/utils/KeyManagerUtils.ts';
+import { KeyManager } from '../../src/frontend/src/game_client/systems/keyManager.ts';
+import * as KeyManagerUtils from '../../src/frontend/src/game_client/utils/KeyManagerUtils.ts';
 
 const Player = vi.fn();
 Player.prototype.movePrecise = vi.fn(

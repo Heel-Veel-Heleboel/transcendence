@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { engineResizeListener } from '../../src/frontend/src/game/utils/eventListeners';
+import { engineResizeListener } from '../../src/frontend/src/game_client/utils/eventListeners';
 import { NullEngine } from '@babylonjs/core';
-import * as canvasModule from '../../src/frontend/src/game/utils/canvas';
+import * as canvasModule from '../../src/frontend/src/game_client/utils/canvas';
 
 describe('create', () => {
   afterEach(() => {

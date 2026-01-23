@@ -1,13 +1,11 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { getCanvas } from '../../src/frontend/src/game/utils/canvas';
 import {
   createBgMusic,
-  createEngine,
   createCamera,
   createArena,
   createBall,
   createLight
-} from '../../src/frontend/src/game/utils/create';
+} from '../../src/frontend/src/game_client/utils/create';
 import {
   NullEngine,
   Scene,
@@ -16,8 +14,8 @@ import {
   HemisphericLight,
   Sound
 } from '@babylonjs/core';
-import { Arena } from '../../src/frontend/src/game/components/arena';
-import { Ball } from '../../src/frontend/src/game/components/ball';
+import { Arena } from '../../src/frontend/src/game_client/components/arena';
+import { Ball } from '../../src/frontend/src/game_client/components/ball';
 
 // source - https://github.com/BabylonJS/Babylon.js/tree/master/packages/dev/core/test/unit
 vi.mock('@babylonjs/core', async () => {
@@ -30,23 +28,12 @@ vi.mock('@babylonjs/core', async () => {
   };
 });
 
-vi.mock('../../src/frontend/src/game/components/arena');
-vi.mock('../../src/frontend/src/game/components/ball');
+vi.mock('../../src/frontend/src/game_client/components/arena');
+vi.mock('../../src/frontend/src/game_client/components/ball');
 
-function createMockCanvas() {
-  return '<canvas id="renderCanvas"></canvas>';
-}
-
-describe('create', () => {
+describe('create', async () => {
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-
-  it('createEngine', () => {
-    document.body.innerHTML = createMockCanvas();
-    const canvas = getCanvas();
-    const engine = createEngine(canvas);
-    expect(engine).toBeInstanceOf(NullEngine);
   });
 
   it('createCamera', () => {
@@ -63,7 +50,7 @@ describe('create', () => {
     expect(arena).toBeInstanceOf(Arena);
   });
 
-  it('createBall', () => {
+  it('createBall', async () => {
     const engine = new NullEngine();
     const scene = new Scene(engine);
     const ball = createBall(scene, new Vector3(1, 1, 1), 10);

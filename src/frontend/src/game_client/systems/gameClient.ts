@@ -128,9 +128,6 @@ export class GameClient {
   /* v8 ignore stop */
 
   async initGame() {
-    // this.canvas = getCanvas();
-    // this.engine = createEngine(this.canvas);
-    // const defaultScene = new Scene(this.engine);
     await initializePhysics(this.defaultScene);
     prepareImportGLTF(this.defaultScene);
     this.scene = await this.initScene(this.defaultScene);

@@ -1,7 +1,5 @@
 import {
-  Engine,
   Scene,
-  AbstractEngine,
   Sound,
   ArcRotateCamera,
   MeshBuilder,
@@ -11,11 +9,6 @@ import {
 } from '@babylonjs/core';
 import { Ball } from '../components/ball.ts';
 import { Arena } from '../components/arena.ts';
-
-export function createEngine(canvas: HTMLCanvasElement) {
-  const engine = new Engine(canvas) as AbstractEngine;
-  return engine;
-}
 
 export function createCamera(scene: Scene, distance: number) {
   const camera = new ArcRotateCamera(

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { KeyGrid } from '../../src/frontend/src/game/systems/keyGrid.ts';
+import { KeyGrid } from '../../src/frontend/src/game_client/systems/keyGrid.ts';
 import { Vector3 } from '@babylonjs/core';
-import Errors from '../../src/frontend/src/game/utils/error.ts';
+import Errors from '../../src/frontend/src/game_client/utils/error.ts';
 
 describe('KeyGrid - config ', () => {
   afterEach(() => {
