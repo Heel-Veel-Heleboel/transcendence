@@ -19,7 +19,6 @@ describe('AuthController - logout', () => {
   });
 
   it('Should logout the user successfully', async () => {
-
     const mockRequest = {
       body: {
         userId: 1,
@@ -41,7 +40,7 @@ describe('AuthController - logout', () => {
     expect(MockReply.code).toHaveBeenCalledWith(204);
     expect(MockReply.send).toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { body: mockRequest.body },
+      { userId: mockRequest.body.userId },
       'Logout attempt'
     );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
@@ -75,7 +74,7 @@ describe('AuthController - logout', () => {
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { body: mockRequest.body },
+      { userId: mockRequest.body.userId },
       'Logout attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(

@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthController } from '../../../src/auth/src/controllers/auth.js';
 
-
 describe('AuthController - register', () => {
   const MockAuthService = {
     register: vi.fn()
@@ -27,7 +26,6 @@ describe('AuthController - register', () => {
       }
     };
   });
-
   it('Should register a new user and return SafeUserDto', async () => {
     mockRequest.body = {
       name: 'John Doe',
@@ -51,7 +49,7 @@ describe('AuthController - register', () => {
     expect(MockReply.code).toHaveBeenCalledWith(201);
     expect(MockReply.send).toHaveBeenCalledWith(mockUser);
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { body: mockRequest.body },
+      { email: mockRequest.body.email },
       'Registration attempt'
     );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
@@ -80,7 +78,7 @@ describe('AuthController - register', () => {
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { body: mockRequest.body },
+      { email: mockRequest.body.email },
       'Registration attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(
@@ -88,4 +86,5 @@ describe('AuthController - register', () => {
       'User registered successfully'
     );
   });
+
 });
