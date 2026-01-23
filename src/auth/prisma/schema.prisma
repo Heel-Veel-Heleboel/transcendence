@@ -15,16 +15,16 @@ datasource db {
 }
 
 model UserCredentials {
-  userId          Int @id
-  hashedPassword  String
+  user_id          Int @id
+  hashed_password  String
 }
 
 model RefreshToken {
   id          String @id @default(uuid())
-  userId      Int 
-  hashedToken String
-  createdAt   DateTime @default(now())
-  expiredAt   DateTime
-  revokedAt   DateTime?
-  @@index([revokedAt])
+  user_id      Int 
+  hashed_token String
+  created_at   DateTime @default(now())
+  expired_at   DateTime
+  revoked_at   DateTime?
+  @@index([revoked_at])
 }

@@ -22,8 +22,8 @@ describe('AuthController - refresh', () => {
   it('Should refresh tokens and return RefreshedTokensDto', async () => {
     const mockRequest = {
       body: {
-        userId: 1,
-        refreshToken: 'refresh-token'
+        user_id: 1,
+        refresh_token: 'refresh-token'
       },
       log: {
         info: vi.fn(),
@@ -33,8 +33,8 @@ describe('AuthController - refresh', () => {
     } as any;
 
     const mockTokens: RefreshedTokensDto = {
-      accessToken: 'new-access-token',
-      refreshToken: 'new-refresh-token'
+      access_token: 'new-access-token',
+      refresh_token: 'new-refresh-token'
     };
 
     MockAuthService.refresh.mockResolvedValueOnce(mockTokens);
@@ -45,11 +45,11 @@ describe('AuthController - refresh', () => {
     expect(MockReply.code).toHaveBeenCalledWith(200);
     expect(MockReply.send).toHaveBeenCalledWith(mockTokens);
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { userId: mockRequest.body.userId },
+      { user_id: mockRequest.body.user_id },
       'Token refresh attempt'
     );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { userId: mockRequest.body.userId },
+      { user_id: mockRequest.body.user_id },
       'Tokens refreshed successfully'
     );
   });
@@ -57,8 +57,8 @@ describe('AuthController - refresh', () => {
   it('Should propagate errors from AuthService.refresh', async () => {
     const mockRequest = {
       body: {
-        userId: 2,
-        refreshToken: 'bad-token'
+        user_id: 2,
+        refresh_token: 'bad-token'
       },
       log: {
         info: vi.fn(),
@@ -74,11 +74,11 @@ describe('AuthController - refresh', () => {
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { userId: mockRequest.body.userId },
+      { user_id: mockRequest.body.user_id },
       'Token refresh attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(
-      { userId: mockRequest.body.userId },
+      { user_id: mockRequest.body.user_id },
       'Tokens refreshed successfully'
     );
   });

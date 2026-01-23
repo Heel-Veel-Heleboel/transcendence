@@ -1,7 +1,7 @@
 export interface CreateRefreshTokenDto {
   id: string,
-  userId: number,
-  refreshToken: string
+  user_id: number,
+  hashed_refresh_token: string
 }
 
 export interface RevokeRefreshTokenDto {
@@ -9,7 +9,7 @@ export interface RevokeRefreshTokenDto {
 }
 
 export interface RevokeAllDto {
-  userId: number
+  user_id: number
 }
 
 export interface FindRefreshTokenDto {
@@ -19,6 +19,6 @@ export interface FindRefreshTokenDto {
 
 export interface GeneratedRefreshTokenDto {
   id: string;
-  refreshToken: string;
-  hashedRefreshToken: string;
+  refresh_token: string;
+  hashed_refresh_token: string;
 }

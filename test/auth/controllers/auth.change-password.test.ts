@@ -18,7 +18,7 @@ describe('AuthController - changePassword', () => {
     vi.clearAllMocks();
     authController = new AuthController(MockAuthService as any);
     mockRequest = {
-      body: { userId: 1, oldPassword: 'oldpass', newPassword: 'newpass' },
+      body: { user_id: 1, oldPassword: 'oldpass', newPassword: 'newpass' },
       log: { info: vi.fn() }
     } as any;
   });
@@ -29,8 +29,8 @@ describe('AuthController - changePassword', () => {
     await authController.changePassword(mockRequest, MockReply as any);
 
     expect(MockAuthService.changePassword).toHaveBeenCalledWith(mockRequest.body);
-    expect(mockRequest.log.info).toHaveBeenCalledWith({ body: mockRequest.body }, 'Change password attempt');
-    expect(mockRequest.log.info).toHaveBeenCalledWith({ userId: mockRequest.body.userId }, 'Password changed successfully');
+    expect(mockRequest.log.info).toHaveBeenCalledWith({ user_id: mockRequest.body.user_id }, 'Change password attempt');
+    expect(mockRequest.log.info).toHaveBeenCalledWith({ user_id: mockRequest.body.user_id }, 'Password changed successfully');
     expect(MockReply.code).toHaveBeenCalledWith(204);
     expect(MockReply.send).toHaveBeenCalled();
   });
@@ -44,7 +44,7 @@ describe('AuthController - changePassword', () => {
     expect(MockAuthService.changePassword).toHaveBeenCalledWith(mockRequest.body);
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
-    expect(mockRequest.log.info).toHaveBeenCalledWith({ body: mockRequest.body }, 'Change password attempt');
-    expect(mockRequest.log.info).not.toHaveBeenCalledWith({ userId: mockRequest.body.userId }, 'Password changed successfully');
+    expect(mockRequest.log.info).toHaveBeenCalledWith({ user_id: mockRequest.body.user_id }, 'Change password attempt');
+    expect(mockRequest.log.info).not.toHaveBeenCalledWith({ user_id: mockRequest.body.userId }, 'Password changed successfully');
   });
 });

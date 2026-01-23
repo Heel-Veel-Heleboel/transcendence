@@ -346,7 +346,7 @@ describe('Error Sanitization in Production', () => {
   });
 
   it('sanitizes SQL errors in 422 responses', () => {
-    const err = createMockError('Foreign key constraint failed on user_id', 422);
+    const err = createMockError('Foreign key constraint failed on user_id:', 422);
     const { req, reply } = makeFakeReqReply();
 
     formatAndSendError(err, req, reply);

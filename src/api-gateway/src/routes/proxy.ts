@@ -102,7 +102,7 @@ function setupHeaderForwardingHooks(
       if (_request.user) {
         _request.log.info(
           {
-            userId: _request.user.sub,
+            user_id: _request.user.sub,
             email: _request.user.email,
             role: _request.user.role,
             service: service.name

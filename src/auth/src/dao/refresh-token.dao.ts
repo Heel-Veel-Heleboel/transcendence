@@ -23,9 +23,9 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
     await this.prismaClient.refreshToken.create({
       data: {
         id: data.id,
-        userId: data.userId,
-        hashedToken: data.refreshToken,
-        expiredAt: new Date(Date.now() + this.expirationMs)
+        user_id: data.user_id,
+        hashed_token: data.hashed_refresh_token,
+        expired_at: new Date(Date.now() + this.expirationMs)
       }
     });
   }
@@ -33,14 +33,14 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
   async revoke(tokenData: RevokeRefreshTokenDto): Promise<void> {
     await this.prismaClient.refreshToken.update({
       where: { id: tokenData.id },
-      data: { revokedAt: new Date() }
+      data: { revoked_at: new Date() }
     });
   }
 
   async revokeAllByUserId(tokenData: RevokeAllDto): Promise<void> {
     await this.prismaClient.refreshToken.updateMany({
-      where: { userId: tokenData.userId },
-      data: { revokedAt: new Date() }
+      where: { user_id: tokenData.user_id },
+      data: { revoked_at: new Date() }
     });
   }
 
@@ -56,10 +56,11 @@ export class RefreshTokenDao implements RefreshTokenDaoShape {
     await this.prismaClient.refreshToken.deleteMany({
       where: {
         OR: [
-          { revokedAt: { not: null } },
-          { expiredAt: { lt: now } }
+          { revoked_at: { not: null } },
+          { expired_at: { lt: now } }
         ]
       }
     });
   }
 }
+  

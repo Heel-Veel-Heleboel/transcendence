@@ -88,7 +88,7 @@ describe('authMiddleware', () => {
     expect(mockRequest.user?.sub).toBe('user-123');
     expect(mockRequest.user?.email).toBe('test@example.com');
     expect(mockRequest.log?.info).toHaveBeenCalledWith(
-      { userId: 'user-123' },
+      { user_id: 'user-123' },
       'Authenticated request'
     );
   });

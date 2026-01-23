@@ -38,7 +38,7 @@ export async function requestLoggingMiddleware(
       method: request.method,
       url: request.url,
       userAgent: request.headers['user-agent'],
-      userId: request.user?.sub,
+      user_id: request.user?.sub,
       ip: request.ip,
       correlationId: request.correlationId
     },
@@ -55,7 +55,7 @@ export async function requestLoggingMiddleware(
         url: request.url,
         statusCode: reply.raw.statusCode,
         duration,
-        userId: request.user?.sub,
+        user_id: request.user?.sub,
         correlationId: request.correlationId
       },
       'Request completed'

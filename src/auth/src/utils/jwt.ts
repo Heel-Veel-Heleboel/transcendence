@@ -60,29 +60,29 @@ export function generateRefreshToken(size: number) : GeneratedRefreshTokenDto {
   }
   const id = randomUUID();
   const opaqueStringRefreshToken = randomBytes(size).toString('hex');
-  const refreshToken = `${id}.${opaqueStringRefreshToken}`;
-  const hashedRefreshToken = hashRefreshToken(refreshToken);
-  return { id, refreshToken, hashedRefreshToken };
+  const refresh_token = `${id}.${opaqueStringRefreshToken}`;
+  const hashed_refresh_token = hashRefreshToken(refresh_token);
+  return { id, refresh_token, hashed_refresh_token };
 }
 
 /**
  * Hashes a refresh token using the specified algorithm.
  * 
- * @param refreshToken - The refresh token to hash
+ * @param refresh_token - The refresh token to hash
  * @param algorithm - The hashing algorithm to use (e.g., 'sha256')
  * @returns The hex-encoded hash of the refresh token
- * @throws {Error} If refreshToken is empty
+ * @throws {Error} If refresh_token is empty
  * @throws {Error} If algorithm is not specified
  * @throws {Error} If the algorithm is invalid or not supported
  */
-export function hashRefreshToken(refreshToken: string, algorithm: string = 'sha256') : string {
-  if (!refreshToken) {
+export function hashRefreshToken(refresh_token: string, algorithm: string = 'sha256') : string {
+  if (!refresh_token) {
     throw new Error(CryptoErrorMessage.REFRESH_TOKEN_EMPTY);
   }
   if (!algorithm) {
     throw new Error(CryptoErrorMessage.HASHING_ALGORITHM_MISSING);
   }
-  const hash = createHash(algorithm).update(refreshToken).digest('hex');
+  const hash = createHash(algorithm).update(refresh_token).digest('hex');
   return hash;
 }
 
@@ -90,20 +90,20 @@ export function hashRefreshToken(refreshToken: string, algorithm: string = 'sha2
  * Compares a refresh token with its hashed counterpart using timing-safe comparison.
  * 
  * @param refreshToken - The plain refresh token to compare
- * @param hashedToken - The previously hashed refresh token
+ * @param hashed_token - The previously hashed refresh token
  * @param algorithm - The hashing algorithm used to hash the refresh token
  * @returns true if the tokens match, false otherwise
  * @throws {TypeError} If either buffer cannot be converted or they have different lengths
  */
-export function compareRefreshToken(refreshToken: string, hashedToken: string, algorithm: string = 'sha256') : boolean {
-  if (!refreshToken || !hashedToken ) {
+export function compareRefreshToken(refreshToken: string, hashed_token: string, algorithm: string = 'sha256') : boolean {
+  if (!refreshToken || !hashed_token ) {
     return false;
   }
   if (!algorithm) {
     throw new Error(CryptoErrorMessage.HASHING_ALGORITHM_MISSING);
   }
   const hashToCompare = createHash(algorithm).update(refreshToken).digest('hex');
-  return timingSafeEqual(Buffer.from(hashToCompare), Buffer.from(hashedToken));
+  return timingSafeEqual(Buffer.from(hashToCompare), Buffer.from(hashed_token));
 }
 
 export function validateRefreshTokenFormat(token: string): string | null {

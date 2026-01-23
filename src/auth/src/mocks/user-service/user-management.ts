@@ -24,13 +24,13 @@ export class UserManagementMock implements UserManagementService {
         throw new Error('A user with this email already exists.');
       }
     }
-    const userId = this.currentId++;
-    this.users.set(userId, { id: userId, email, username });
-    return userId;
+    const user_id = this.currentId++;
+    this.users.set(user_id, { id: user_id, email, username });
+    return user_id;
   }
 
-  async findByUserId(userId: number): Promise<{ id: number; email: string; username: string } | null> {
-    return this.users.get(userId) || null;
+  async findByUserId(user_id: number): Promise<{ id: number; email: string; username: string } | null> {
+    return this.users.get(user_id) || null;
   }
 
   async findUserByEmail(email: string): Promise<{ id: number; email: string; username: string } | null> {
@@ -42,7 +42,7 @@ export class UserManagementMock implements UserManagementService {
     return null;
   }
 
-  async deleteUser(userId: number): Promise<void> {
-    this.users.delete(userId);
+  async deleteUser(user_id: number): Promise<void> {
+    this.users.delete(user_id);
   }
 }

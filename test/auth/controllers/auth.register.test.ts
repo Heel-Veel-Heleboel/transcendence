@@ -32,6 +32,7 @@ describe('AuthController - register', () => {
       email: 'john.doe@example.com',
       password: 'securepassword'
     };
+
     const mockUser = {
       id: 1,
       name: 'John Doe',
@@ -53,7 +54,7 @@ describe('AuthController - register', () => {
       'Registration attempt'
     );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
-      { userId: mockUser.id },
+      { user_id: mockUser.id },
       'User registered successfully'
     );
   });
@@ -82,7 +83,7 @@ describe('AuthController - register', () => {
       'Registration attempt'
     );
     expect(mockRequest.log.info).not.toHaveBeenCalledWith(
-      expect.objectContaining({ userId: expect.anything() }),
+      expect.objectContaining({ user_id: expect.anything() }),
       'User registered successfully'
     );
   });

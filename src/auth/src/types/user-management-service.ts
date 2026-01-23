@@ -9,7 +9,7 @@
  */
 export interface UserManagementService {
   createUser(email: string, username: string): Promise<number>;
-  findByUserId(userId: number): Promise<{ id: number; email: string; username: string } | null>;
+  findByUserId(user_id: number): Promise<{ id: number; email: string; username: string } | null>;
   findUserByEmail(email: string): Promise<{ id: number; email: string; username: string } | null>;
-  deleteUser(userId: number): Promise<void>;
+  deleteUser(user_id: number): Promise<void>;
 }

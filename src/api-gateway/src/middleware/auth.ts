@@ -35,7 +35,7 @@ export async function authMiddleware(
     return;
   }
   request.user = decoded;
-  request.log.info({ userId: decoded.sub }, 'Authenticated request');
+  request.log.info({ user_id: decoded.sub }, 'Authenticated request');
 }
 
 // Verify JWT token and return payload or null

@@ -11,7 +11,7 @@ import { CreatePasswordDto, UpdatePasswordDto, DeletePasswordDto, FindPasswordDt
  * - create: Creates a new user password record.
  * - updatePassword: Updates an existing user's password. 
  * - findByUserId: Finds a user's password by their user ID.
- * - deleteByUserId: Deletes a user's password record by their user ID.
+ * - deleteByuser_id: Deletes a user's password record by their user ID.
  */
 
 export class CredentialsDao implements CredentialsDaoShape {
@@ -21,29 +21,29 @@ export class CredentialsDao implements CredentialsDaoShape {
   async create(data: CreatePasswordDto): Promise<void> {
     await this.prismaClient.userCredentials.create({
       data: {
-        userId: data.userId,
-        hashedPassword: data.password
+        user_id: data.user_id,
+        hashed_password: data.password
       }
     });
   }
 
   async updatePassword(data: UpdatePasswordDto): Promise<void> {
     await this.prismaClient.userCredentials.update({
-      where: { userId: data.userId },
-      data: { hashedPassword: data.newPassword }
+      where: { user_id: data.user_id },
+      data: { hashed_password: data.new_password }
     });
   }
 
   async findByUserId(data: FindPasswordDto): Promise<UserCredentials | null> {
     const record = await this.prismaClient.userCredentials.findUnique({
-      where: { userId: data.userId }
+      where: { user_id: data.user_id }
     });
     return record;
   }
 
-  async deleteByUserId(userId: DeletePasswordDto): Promise<void> {
+  async deleteByUserId(data: DeletePasswordDto): Promise<void> {
     await this.prismaClient.userCredentials.delete({
-      where: { userId: userId.userId }
+      where: { user_id: data.user_id }
     });
   }
 };
