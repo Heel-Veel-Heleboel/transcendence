@@ -1,0 +1,119 @@
+// Matchmaking Service Prisma Schema
+// Database: SQLite with better-sqlite3 adapter
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Enum for tournament status
+enum TournamentStatus {
+  REGISTRATION  // Open for signups
+  SCHEDULED     // Registration closed, waiting to start
+  IN_PROGRESS   // Matches being played
+  TIE_BREAKER   // Golden game in progress
+  COMPLETED     // All matches finished
+  CANCELLED     // Tournament cancelled
+}
+
+// Enum for match status
+enum MatchStatus {
+  SCHEDULED     // Match created, not started
+  IN_PROGRESS   // Players notified, game in session
+  COMPLETED     // Result recorded
+  FORFEITED     // Player left
+  TIMEOUT       // Deadline passed
+}
+
+// Player pool for casual matchmaking (in-memory backed by DB)
+model PlayerPool {
+  id          Int      @id @default(autoincrement()) // Should get ID from user-service
+  userId      Int      @unique
+  joinedAt    DateTime @default(now())
+  lastActive  DateTime @default(now())
+
+  @@index([joinedAt])
+  @@index([lastActive])
+}
+
+// Tournament configuration and state
+model Tournament {
+  // Tournament configuration (set at creation)
+  id                Int               @id @default(autoincrement())
+  name              String
+  format            String            @default("round_robin") // round_robin, single_elimination
+  minPlayers        Int               @default(2)             // Minimum players to start
+  maxPlayers        Int               @default(8)             // Maximum registration limit
+  matchDeadlineMin  Int               @default(30)            // Minutes per match deadline
+  tieBreaker        String            @default("score_diff")  // score_diff, golden_game, head_to_head
+  createdBy         Int                                       // userId who created tournament
+
+  // Scheduling
+  registrationStart DateTime          @default(now())
+  registrationEnd   DateTime                                  // When registration closes
+  startTime         DateTime?                                 // When matches begin (null = auto-start)
+  endTime           DateTime?                                 // When tournament actually completed
+
+  // State tracking
+  status            TournamentStatus  @default(REGISTRATION)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  participants      TournamentParticipant[]
+  matches           Match[]
+
+  @@index([status])
+  @@index([registrationEnd])
+  @@index([createdBy])
+}
+
+// Tournament participant (player registered for a tournament)
+model TournamentParticipant {
+  id            Int        @id @default(autoincrement())
+  tournamentId  Int
+  userId        Int
+  registeredAt  DateTime   @default(now())
+  wins          Int        @default(0)
+  losses        Int        @default(0)
+  scoreDiff     Int        @default(0)  // For tie-breaking: sum of (own_score - opponent_score)
+  finalRank     Int?                    // Set when tournament completes
+
+  tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([tournamentId, userId])
+  @@index([tournamentId])
+  @@index([userId])
+}
+
+// Match records (both casual and tournament)
+model Match {
+  id            String       @id @default(uuid())
+  tournamentId  Int?                    // null for casual matches
+  player1Id     Int
+  player2Id     Int
+  status        MatchStatus  @default(SCHEDULED)
+  scheduledAt   DateTime     @default(now())
+  deadline      DateTime?               // For tournament matches (time limit to complete)
+  startedAt     DateTime?
+  completedAt   DateTime?              // When status = COMPLETED, application logic MUST set this
+  winnerId      Int?
+  player1Score  Int?
+  player2Score  Int?
+  gameSessionId String?                 // Reference to game-service session
+  isGoldenGame  Boolean      @default(false)  // Flag for tie-breaker matches
+  resultSource  String?                 // Who reported result: "game_service", "admin:userId", "timeout"
+
+  tournament    Tournament?  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@index([tournamentId])
+  @@index([player1Id])
+  @@index([player2Id])
+  @@index([status])
+  @@index([deadline])
+  @@index([gameSessionId])
+}
