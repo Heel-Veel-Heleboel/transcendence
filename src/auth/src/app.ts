@@ -26,7 +26,9 @@ const app = fastify({
 
 app.setErrorHandler(authErrorHandler);
 app.addHook('onClose', prismaDisconnectHook);
-
+app.get('/health', async () => {
+  return { status: 'ok' };
+});
 app.register(authRoutes, { prefix: '/auth', authController }).
   after(() => {
     console.log('Auth routes registered');
