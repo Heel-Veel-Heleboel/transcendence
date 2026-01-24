@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
 import { getEnvSaltRounds } from '../config/password.js';
-import { SaltLimitsShape } from '../types/security.js';
+import { ISaltLimits } from '../types/security.js';
 import { validateSaltLengthLimits } from '../validators/hash.js';
 
-export async function passwordHasher(password: string, saltLimits: SaltLimitsShape): Promise<string> {
+export async function passwordHasher(password: string, saltLimits: ISaltLimits): Promise<string> {
   if (!password) {
     throw new Error('Input password is required');
   }

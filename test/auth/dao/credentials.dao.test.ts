@@ -1,5 +1,5 @@
 import { CredentialsDao } from '../../../src/auth/src/dao/credentials.dao.js';
-import { CredentialsDaoShape } from '../../../src/auth/src/types/daos/credentials.js';
+import { ICredentialsDao } from '../../../src/auth/src/types/daos/credentials.js';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 
@@ -13,7 +13,7 @@ const mockPrismaClient = {
 };
 
 describe('CredentialsDao', () => {
-  let dao: CredentialsDaoShape;
+  let dao: ICredentialsDao;
   beforeEach(() => {
     vi.clearAllMocks();
     dao = new CredentialsDao(mockPrismaClient as any);

@@ -1,6 +1,6 @@
 import { UserManagementService } from '../types/user-management-service.js';
-import { CredentialsDaoShape } from '../types/daos/credentials.js';
-import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
+import { ICredentialsDao } from '../types/daos/credentials.js';
+import { IRefreshTokenDao } from '../types/daos/refresh-token.js';
 import { SafeUserDto, LoggedInUserDto, RefreshedTokensDto } from '../types/dtos/auth.js';
 import { passwordHasher, comparePasswordHash } from '../utils/password-hash.js';
 import { SaltLimits } from '../constants/password.js';
@@ -15,15 +15,15 @@ import * as SchemaTypes from '../schemas/auth.js';
  * 
  * Provides methods for user registration and authentication.
  * Utilizes UserManagementService for user operations,
- * CredentialsDaoShape for managing user credentials,
- * and RefreshTokenDaoShape for handling refresh tokens.
+ * ICredentialsDao for managing user credentials,
+ * and IRefreshTokenDao for handling refresh tokens.
  */ 
 
 export class AuthService {
   constructor(
     private readonly userService: UserManagementService,
-    private readonly credentialsDao: CredentialsDaoShape,
-    private readonly refreshTokenDao: RefreshTokenDaoShape) {}
+    private readonly credentialsDao: ICredentialsDao,
+    private readonly refreshTokenDao: IRefreshTokenDao) {}
 
 
   async register(registerDto: SchemaTypes.RegistrationSchemaType): Promise<SafeUserDto> {

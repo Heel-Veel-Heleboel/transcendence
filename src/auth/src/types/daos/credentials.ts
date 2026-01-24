@@ -11,7 +11,7 @@ import { UserCredentials } from '../../../generated/prisma/client.js';
  * - findByUserId: Finds a user's password by their user ID.
  * - deleteByuser_id: Deletes a user's password record by their user ID.
  */
-export interface CredentialsDaoShape {
+export interface ICredentialsDao {
   create(data: CreatePasswordDto): Promise<void>;
   updatePassword(data: UpdatePasswordDto): Promise<void>;
   findByUserId(data: FindPasswordDto): Promise<UserCredentials | null>;

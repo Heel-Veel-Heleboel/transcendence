@@ -1,4 +1,4 @@
-import { CredentialsDaoShape } from '../types/daos/credentials.js';
+import { ICredentialsDao } from '../types/daos/credentials.js';
 import { PrismaClient, UserCredentials } from '../../generated/prisma/client.js';
 import { CreatePasswordDto, UpdatePasswordDto, DeletePasswordDto, FindPasswordDto } from '../types/dtos/credentials.js';
 
@@ -14,7 +14,7 @@ import { CreatePasswordDto, UpdatePasswordDto, DeletePasswordDto, FindPasswordDt
  * - deleteByuser_id: Deletes a user's password record by their user ID.
  */
 
-export class CredentialsDao implements CredentialsDaoShape {
+export class CredentialsDao implements ICredentialsDao {
 
   constructor(private readonly prismaClient: PrismaClient) {}
 

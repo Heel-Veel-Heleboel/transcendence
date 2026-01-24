@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PasswordPolicyConfigShape } from '../../../src/auth/src/types/password.js';
+import { IPasswordPolicyConfig } from '../../../src/auth/src/types/password.js';
 import {
   checkLowercase,
   checkNumber,
@@ -13,7 +13,7 @@ import {
 
 
 describe('validatePassword', () => {
-  const strictPolicy: PasswordPolicyConfigShape = {
+  const strictPolicy: IPasswordPolicyConfig = {
     minLength: 8,
     maxLength: 30,
     requiredUppercase: true,
@@ -23,7 +23,7 @@ describe('validatePassword', () => {
     allowSpaces: false
   };
 
-  const lenientPolicy: PasswordPolicyConfigShape = {
+  const lenientPolicy: IPasswordPolicyConfig = {
     minLength: 4,
     maxLength: 50,
     requiredUppercase: false,

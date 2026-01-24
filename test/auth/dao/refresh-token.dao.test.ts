@@ -1,5 +1,5 @@
 import { RefreshTokenDao } from '../../../src/auth/src/dao/refresh-token.dao.js';
-import { RefreshTokenDaoShape } from '../../../src/auth/src/types/daos/refresh-token.js';
+import { IRefreshTokenDao } from '../../../src/auth/src/types/daos/refresh-token.js';
 import { CreateRefreshTokenDto } from '../../../src/auth/src/types/dtos/refresh-token.js';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
@@ -13,7 +13,7 @@ const mockPrismaClient = {
 };
 
 describe('RefreshTokenSessionDao', () => {
-  let dao: RefreshTokenDaoShape;
+  let dao: IRefreshTokenDao;
   beforeEach(() => {
     vi.clearAllMocks();
     dao = new RefreshTokenDao(mockPrismaClient as any, 7 * 24 * 60 * 60 * 1000); // 7 days in ms

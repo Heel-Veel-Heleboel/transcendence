@@ -11,7 +11,7 @@ import { RevokeRefreshTokenDto, CreateRefreshTokenDto, FindRefreshTokenDto, Revo
  * - deleteAllForUser: Deletes all refresh tokens associated with a specific user ID.
  * - deleteAllRevoked: Deletes all revoked refresh tokens from the database.
  */
-export interface RefreshTokenDaoShape {
+export interface IRefreshTokenDao {
   store(data: CreateRefreshTokenDto): Promise<void>;
   revoke(data: RevokeRefreshTokenDto): Promise<void>;
   revokeAllByUserId(data: RevokeAllDto): Promise<void>;
