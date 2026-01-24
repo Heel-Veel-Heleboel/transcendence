@@ -8,6 +8,7 @@ import { RefreshTokenDao } from './dao/refresh-token.dao.js';
 import { UserManagementMock } from './mocks/user-service/user-management.js';
 import { getJwtConfig } from './config/jwt.js';
 import { authErrorHandler } from './middleware/error-handler.js';
+import prismaDisconnectHook from './middleware/prisma-disconnect-hook.js';
 
   
 
@@ -24,8 +25,19 @@ const app = fastify({
 });
 
 app.setErrorHandler(authErrorHandler);
+app.addHook('onClose', prismaDisconnectHook);
 
-app.register(authRoutes, { authController });
+app.register(authRoutes, { authController }).
+  after(() => {
+    console.log('Auth routes registered');
+  }).
+  ready((err) => {
+    if (err) {
+      console.error('Error during app readiness:', err);
+      process.exit(1);
+    }
+    console.log('Auth service is ready');
+  });
 
 
 export default app;
