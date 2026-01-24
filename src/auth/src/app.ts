@@ -4,7 +4,7 @@ import { authErrorHandler } from './middleware/error-handler.js';
 import prismaDisconnectHook from './middleware/prisma-disconnect-hook.js';
 import { getAuthController } from './config/auth.js';
 
-const authController = getAuthControllers]();
+const authController = getAuthController();
 
 const app = fastify({
   logger: true
