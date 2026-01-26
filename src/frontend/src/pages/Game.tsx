@@ -3,6 +3,10 @@ import { Scene } from '@babylonjs/core';
 import SceneComponent from 'babylonjs-hook';
 import { GameClient } from '../game_client/systems/gameClient';
 
+
+/* v8 ignore start */
+// NOTE: potential implementation of tests https://humblesoftware.github.io/js-imagediff/test.html
+
 export const Game = (): JSX.Element | null => {
     return (
         <div id="Game" className="h-full w-full">
@@ -27,3 +31,5 @@ const onRender = (scene: Scene) => {
     //     box.rotation.y += ((rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000));
     // }
 }
+
+/* v8 ignore stop */
