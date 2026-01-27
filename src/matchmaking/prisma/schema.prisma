@@ -30,16 +30,8 @@ enum MatchStatus {
   TIMEOUT                  // Deadline passed without starting
 }
 
-// Player pool for casual matchmaking (in-memory backed by DB)
-model PlayerPool {
-  id          Int      @id @default(autoincrement()) // Should get ID from user-service
-  userId      Int      @unique
-  joinedAt    DateTime @default(now())
-  lastActive  DateTime @default(now())
-
-  @@index([joinedAt])
-  @@index([lastActive])
-}
+// NOTE: PlayerPool is kept in-memory only (no database persistence)
+// If service restarts, players simply rejoin the queue
 
 // Tournament configuration and state
 model Tournament {

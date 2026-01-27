@@ -290,4 +290,53 @@ export class MatchDao {
       },
     });
   }
+
+  /**
+   * Convenience method: Acknowledge (alias for recordAcknowledgement)
+   */
+  async acknowledge(matchId: string, playerId: number): Promise<Match> {
+    return await this.recordAcknowledgement(matchId, playerId);
+  }
+
+  /**
+   * Convenience method: Complete match with all details
+   */
+  async completeMatch(
+    matchId: string,
+    result: {
+      winnerId: number;
+      player1Score: number;
+      player2Score: number;
+      gameSessionId?: string;
+      resultSource: string;
+    }
+  ): Promise<Match> {
+    return await this.prisma.match.update({
+      where: { id: matchId },
+      data: {
+        winnerId: result.winnerId,
+        player1Score: result.player1Score,
+        player2Score: result.player2Score,
+        gameSessionId: result.gameSessionId ?? null,
+        resultSource: result.resultSource,
+        status: 'COMPLETED',
+        completedAt: new Date(),
+      },
+    });
+  }
+
+  /**
+   * Find active match for a user (PENDING_ACKNOWLEDGEMENT, SCHEDULED, or IN_PROGRESS)
+   */
+  async findActiveMatchForUser(userId: number): Promise<Match | null> {
+    return await this.prisma.match.findFirst({
+      where: {
+        OR: [{ player1Id: userId }, { player2Id: userId }],
+        status: {
+          in: ['PENDING_ACKNOWLEDGEMENT', 'SCHEDULED', 'IN_PROGRESS'],
+        },
+      },
+      orderBy: { scheduledAt: 'desc' },
+    });
+  }
 }
