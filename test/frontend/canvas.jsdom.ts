@@ -1,25 +1,14 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   engineResize,
-  getCanvas,
   initializeResolution,
   prepareImportGLTF
-} from '../../src/frontend/src/game/utils/canvas';
+} from '../../src/frontend/src/game_client/utils/canvas';
 import { NullEngine, Scene, MeshBuilder } from '@babylonjs/core';
-
-function createMockCanvas() {
-  return '<canvas id="renderCanvas"></canvas>';
-}
 
 describe('keyGridUtils', () => {
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-
-  it('getCanvas', () => {
-    document.body.innerHTML = createMockCanvas();
-    const canvas = getCanvas();
-    expect(canvas).toBeInstanceOf(HTMLCanvasElement);
   });
 
   it('engineResize', () => {

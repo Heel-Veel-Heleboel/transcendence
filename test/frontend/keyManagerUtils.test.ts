@@ -4,7 +4,7 @@ import {
   checkLowerY,
   checkUpperX,
   checkUpperY
-} from '../../src/frontend/src/game/utils/KeyManagerUtils';
+} from '../../src/frontend/src/game_client/utils/KeyManagerUtils';
 
 const Player = vi.fn();
 Player.prototype.movePrecise = vi.fn(

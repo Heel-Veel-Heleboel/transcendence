@@ -2,82 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script type="module" src="/src/main.ts"></script>
-    <!-- <script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script> -->
-    <title>Transcendence</title>
+    <link rel="stylesheet" href="src/style.css" type="text/css" />
+    <title>Vite + React + TS</title>
+    <!--app-head-->
   </head>
   <body>
-    <template id="login">
-      <link rel="stylesheet" href="./src/css/style.css" type="text/css" />
-      <main>
-        <div class="main_div">
-          <div class="video_div">
-            <video autoplay muted loop id="bgVideo">
-              <source src="/bg.mp4" type="video/mp4" />
-            </video>
-          </div>
-          <div class="title"><h1>Counter-pong</h1></div>
-          <div class="image_container">
-            <img src="/logo.png" alt="Login Page Logo" />
-          </div>
-          <div class="options_container">
-            <div id="optionGame" class="option">
-              <button class="option_button">Press X to start</button>
-            </div>
-            <div id="optionLogin" class="option">
-              <button class="option_button">login</button>
-            </div>
-          </div>
-        </div>
-      </main>
-    </template>
-
-    <template id="menu">
-      <link rel="stylesheet" href="./src/css/menu.css" type="text/css" />
-      <div id="main">
-        <main>
-          <div class="toolbar">
-            <section>
-              <div class="icon"></div>
-              <h3>icon_1</h3>
-              <div class="icon"></div>
-              <h3>icon_2</h3>
-              <div class="icon"></div>
-              <h3>icon_3</h3>
-            </section>
-          </div>
-          <div class="pong">
-            <section>
-              <div class="score"><h1>0</h1></div>
-              <div class="field"><h1>|</h1></div>
-              <div class="score"><h1>0</h1></div>
-            </section>
-          </div>
-          <div class="applications">
-            <div class="widgets">
-              <div class="firstRow">
-                <div class="tournaments"></div>
-                <div class="realWorld"></div>
-                <div class="music"></div>
-              </div>
-              <div class="secondRow">
-                <div class="statistics"></div>
-                <div class="neofetch"></div>
-              </div>
-            </div>
-            <div class="chat"><h2>user: lol</h2></div>
-          </div>
-        </main>
-      </div>
-    </template>
-
-    <template id="game">
-      <link rel="stylesheet" href="./src/css/game.css" type="text/css" />
-      <main>
-        <canvas id="renderCanvas"></canvas>
-      </main>
-    </template>
-    <div id="app"></div>
+    <div id="root"><!--app-html--></div>
+    <script type="module" src="/src/entry-client.tsx"></script>
   </body>
 </html>

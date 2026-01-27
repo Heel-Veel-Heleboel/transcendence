@@ -1,29 +1,14 @@
 {
-  "name": "frontend",
+  "name": "frontend-ssr",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
-  "description": "frontend for Transcendence microservices architecture using Typescript",
-  "main": "dist/index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest --watch",
-    "clean": "rm -rf ./dist/"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/earcut": "^3.0.0",
-    "emmet-ls": "^0.4.2",
-    "globals": "^16.5.0",
-    "typescript": "~5.6.2",
-    "vite": "^5.4.10"
+    "dev": "node server",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vite build --outDir dist/client",
+    "build:server": "vite build --ssr src/entry-server.tsx --outDir dist/server",
+    "preview": "cross-env NODE_ENV=production node server"
   },
   "dependencies": {
     "@babylonjs/core": "^8.38.0",
@@ -32,7 +17,35 @@
     "@babylonjs/inspector": "^8.38.0",
     "@babylonjs/loaders": "^8.38.0",
     "@babylonjs/materials": "^8.42.0",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tailwindcss/vite": "^4.1.18",
+    "babylonjs-hook": "^0.1.1",
     "colyseus.js": "^0.16.22",
-    "earcut": "^3.0.2"
+    "compression": "^1.8.1",
+    "earcut": "^3.0.2",
+    "express": "^5.2.1",
+    "music-metadata": "^11.10.5",
+    "platform": "^1.3.6",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "react-router-dom": "^6.30.2",
+    "sirv": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/earcut": "^3.0.0",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.10.2",
+    "@types/platform": "^1.3.6",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react-swc": "^4.2.2",
+    "autoprefixer": "^10.4.23",
+    "cross-env": "^10.1.0",
+    "emmet-ls": "^0.4.2",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.7"
   }
 }

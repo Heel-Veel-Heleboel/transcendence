@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@font-face{
+    font-family: Monofett;
+    src: url('/Monofett-Regular.ttf');
+}
+
+@font-face{
+    font-family: Orbitron;
+    src: url('/Orbitron-Regular.ttf');
+}
+
+@theme {
+    --font-mono: "Monofett";
+    --font-orbi: "Orbitron";
+    --color-metalgear: #fF2A00;
+}
+
+html, body, #root, #app {
+    height: 100vh;
+    width: 100vw;
+}
+
+#StartMenu {
+    background: rgba(0,0,0,0);
+}
+
+#bgVideo {
+    object-fit: fill;
+}
+
+.font-inherit {
+    font-family: inherit;
+}
+
