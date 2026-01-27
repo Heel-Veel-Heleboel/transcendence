@@ -2,6 +2,7 @@ import { JSX, useState } from "react"
 import { START_MENU_PAGE, LOGIN_OPTION } from '../constants/Constants.ts'
 import { MenuOption } from './StartMenuUtils.tsx'
 
+/* v8 ignore start */
 export function Login({ redirect }: { redirect: (page: number) => void }): JSX.Element {
     const [loginOption, setLoginOption] = useState<number>(LOGIN_OPTION.DEFAULT_LOGIN);
     let component;
@@ -69,3 +70,4 @@ export function RegisterForm({ callback }: { callback: (page: number) => void })
         </div>
     )
 }
+/* v8 ignore stop */

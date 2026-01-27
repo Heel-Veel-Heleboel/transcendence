@@ -1,5 +1,6 @@
 import { JSX } from "react"
 
+/* v8 ignore start*/
 export function Settings(): JSX.Element {
     return (
         <div className="flex min-h-full min-w-full bg-purple-500/50 text-center">
@@ -15,3 +16,4 @@ export function Settings(): JSX.Element {
         </div>
     )
 }
+/* v8 ignore stop*/

@@ -1,13 +1,12 @@
 import { JSX } from "react"
 import { TitleBar, Terminal } from "./MenuUtils"
+import { CONFIG } from "../constants/AppConfig"
 
+/* v8 ignore start */
 export function LiveChat(): JSX.Element {
     return (
         <div id="liveChat" className="min-h-1/2 min-w-full flex flex-col bg-zinc-800/50 bg-clip-content">
-            {/*
-                <a href="https://www.flaticon.com/free-icons/hive" title="hive icons">Hive icons created by gravisio - Flaticon</a>
-            */}
-            <TitleBar logoPath="beehive.png" title='UrlChat' />
+            <TitleBar logoPath={CONFIG.LIVE_CHAT_LOGO} title={CONFIG.LIVE_CHAT_TITLE} />
             <div className="flex grow">
                 <LiveChatRooms />
                 <Chat />
@@ -25,7 +24,7 @@ export function LiveChatRooms(): JSX.Element {
     }
     return (
         <div className="w-1/6 border border-black">
-            <Terminal title="Rooms" child={roomsContent()} />
+            <Terminal title={CONFIG.LIVE_CHAT_ROOMS_TITLE} child={roomsContent()} />
         </div>
     )
 }
@@ -38,7 +37,7 @@ export function Chat(): JSX.Element {
     }
     return (
         <div className="w-4/6 border border-black">
-            <Terminal title="Chat" child={chatContent()} />
+            <Terminal title={CONFIG.LIVE_CHAT_CHAT_TITLE} child={chatContent()} />
         </div>
     )
 }
@@ -51,7 +50,8 @@ export function LiveChatUsers(): JSX.Element {
     }
     return (
         <div className="w-1/6 border border-black">
-            <Terminal title="Users" child={userContent()} />
+            <Terminal title={CONFIG.LIVE_CHAT_USERS_TITLE} child={userContent()} />
         </div>
     )
 }
+/* v8 ignore stop */

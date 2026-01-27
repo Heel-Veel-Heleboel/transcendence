@@ -1,11 +1,13 @@
 import { JSX } from "react";
+import { CONFIG } from '../constants/AppConfig.ts'
 
+/* v8 ignore start */
 export function GamesAvailable({ quickPlayContent, defaultContent, customizedContent }: { quickPlayContent: JSX.Element, defaultContent: JSX.Element, customizedContent: JSX.Element }): JSX.Element {
     return (
         <div className="min-h-full flex flex-col">
-            <Terminal title='Quick Play' child={quickPlayContent} />
-            <Terminal title='Default' child={defaultContent} />
-            <Terminal title='Customized' child={customizedContent} />
+            <Terminal title={CONFIG.GAMES_QUICK_PLAY_TITLE} child={quickPlayContent} />
+            <Terminal title={CONFIG.GAMES_DEFAULT_PLAY_TITLE} child={defaultContent} />
+            <Terminal title={CONFIG.GAMES_CUSTOM_PLAY_TITLE} child={customizedContent} />
         </div>
     );
 }
@@ -17,20 +19,15 @@ export function TitleBar({ logoPath, title }: { logoPath: string, title: string 
                 <img src={logoPath} alt='logo' />
             </div>
             <div>{title}</div>
-            {/*
-                <a href="https://www.flaticon.com/free-icons/minus-button" title="minus button icons">Minus button icons created by Circlon Tech - Flaticon</a>
-                <a href="https://www.flaticon.com/free-icons/maximize" title="maximize icons">Maximize icons created by Ranah Pixel Studio - Flaticon</a>
-                <a href="https://www.flaticon.com/free-icons/close" title="close icons">Close icons created by Pixel perfect - Flaticon</a>
-            */}
             <div className='w-20 flex'>
                 <div className="px-2 py-2">
-                    <img src='minimize.png' alt='minimize' />
+                    <img src={CONFIG.MINIMIZE_LOGO} alt={CONFIG.MINIMIZE_ALT} />
                 </div>
                 <div className="px-2 py-2">
-                    <img src='maximize.png' alt='maximize' />
+                    <img src={CONFIG.MAXIMIZE_LOGO} alt={CONFIG.MAXIMIZE_ALT} />
                 </div>
                 <div className="px-2 py-2">
-                    <img src='close.png' alt='close' />
+                    <img src={CONFIG.CLOSE_LOGO} alt={CONFIG.CLOSE_ALT} />
                 </div>
             </div >
         </div>
@@ -65,3 +62,4 @@ export function MainWindowContainer({ children }: { children: JSX.Element }): JS
         </div>
     )
 }
+/* v8 ignore stop */

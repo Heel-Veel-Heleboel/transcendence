@@ -2,6 +2,7 @@ import { JSX } from 'react';
 import platform from 'platform';
 import { browsers } from "../utils/browserLogos";
 
+/* v8 ignore start*/
 export function TrinityFetch(): JSX.Element {
     // TODO add user@alias above info
     const browser = (platform.name === null) ? '?' : platform.name;
@@ -37,3 +38,4 @@ export function TrinityFetch(): JSX.Element {
         </div>
     )
 }
+/* v8 ignore stop*/

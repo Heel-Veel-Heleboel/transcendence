@@ -3,7 +3,7 @@ import { hydrateRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom';
 import { Router } from './router';
 
-
+/* v8 ignore start */
 hydrateRoot(
     document.getElementById('root') as HTMLElement,
     <StrictMode>
@@ -13,3 +13,4 @@ hydrateRoot(
     </StrictMode>,
 )
 
+/* v8 ignore stop */

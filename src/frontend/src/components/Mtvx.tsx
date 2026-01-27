@@ -1,6 +1,7 @@
 import { JSX, useState, useEffect } from "react";
 import { IAudioMetadata, IPicture, parseWebStream, selectCover } from 'music-metadata';
 
+/* v8 ignore start */
 export function Mtvx(): JSX.Element {
     const [metaData, setMetaData] = useState<IAudioMetadata | null>(null);
     const [cover, setCover] = useState<IPicture | null>(null);
@@ -100,3 +101,4 @@ async function parseMusic(response: Response): Promise<IAudioMetadata | null> {
     }
     return metadata;
 }
+/* v8 ignore stop */

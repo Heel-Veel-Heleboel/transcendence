@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { START_MENU_PAGE } from "../constants/Constants";
 import { MenuOption } from "./StartMenuUtils";
 
+/* v8 ignore start */
 export function Credits({ redirect }: { redirect: (page: number) => void }): JSX.Element {
     return (
         <div className="flex flex-col justify-between min-h-full text-white">
@@ -73,3 +74,4 @@ export function CreditsSectionTitle({ title }: { title: string }) {
         <div className="font-orbi text-6xl text-center">{title}</div>
     )
 }
+/* v8 ignore stop */

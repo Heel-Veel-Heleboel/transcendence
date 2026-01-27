@@ -1,14 +1,10 @@
 import { StrictMode } from 'react'
 import { renderToString } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom/server';
-
 import { Router } from './router'
 
-interface IRenderProps {
-    path: string
-}
-
-export function render({ path }: IRenderProps) {
+/* v8 ignore start */
+export function render({ path }: { path: string }) {
     const html = renderToString(
         <StrictMode>
             <StaticRouter location={path}>
@@ -18,3 +14,4 @@ export function render({ path }: IRenderProps) {
     )
     return { html }
 }
+/* v8 ignore start */

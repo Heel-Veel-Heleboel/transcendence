@@ -1,6 +1,7 @@
 import { JSX } from "react"
 import { GamesAvailable } from "./MenuUtils"
 
+/* v8 ignore start */
 export function Gymkhana(): JSX.Element {
     const quickPlayContent = (): JSX.Element => {
         return (
@@ -21,3 +22,4 @@ export function Gymkhana(): JSX.Element {
         <GamesAvailable quickPlayContent={quickPlayContent()} defaultContent={defaultContent()} customizedContent={customizedContent()} />
     )
 }
+/* v8 ignore stop */

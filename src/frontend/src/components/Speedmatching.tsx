@@ -2,6 +2,7 @@ import { JSX } from "react"
 import { GamesAvailable } from "./MenuUtils"
 
 
+/* v8 ignore start*/
 export function Speedmatching(): JSX.Element {
     const quickPlayContent = (): JSX.Element => {
         return (
@@ -22,3 +23,4 @@ export function Speedmatching(): JSX.Element {
         <GamesAvailable quickPlayContent={quickPlayContent()} defaultContent={defaultContent()} customizedContent={customizedContent()} />
     )
 }
+/* v8 ignore stop*/

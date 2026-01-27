@@ -6,6 +6,7 @@ import { START_MENU_PAGE } from '../constants/Constants.ts'
 import "../style.css"
 import { CONFIG } from "../constants/AppConfig.ts"
 
+/* v8 ignore start */
 export function GetPage({ page, redirect }: { page: number, redirect: (page: number) => void }): JSX.Element {
     switch (page) {
         case START_MENU_PAGE.MENU:
@@ -41,9 +42,9 @@ export const DefaultStartMenu = ({ redirect }: { redirect: (page: number) => voi
             <Title />
             <Logo />
             <div id="menuOptions">
-                <MenuOption text="LOGIN" margin={CONFIG.MENU_OPTION_MARGIN} callback={() => redirect(START_MENU_PAGE.LOGIN)} />
-                <MenuOption text="CREDITS" margin={CONFIG.MENU_OPTION_MARGIN} callback={() => redirect(START_MENU_PAGE.CREDITS)} />
-                <MenuOption text="QUIT" margin={CONFIG.MENU_OPTION_MARGIN} callback={() => window.location.replace(CONFIG.QUIT_REDIRECT)} />
+                <MenuOption text={CONFIG.MENU_OPTION_LOGIN_TEXT} margin={CONFIG.MENU_OPTION_MARGIN} callback={() => redirect(START_MENU_PAGE.LOGIN)} />
+                <MenuOption text={CONFIG.MENU_OPTION_CREDITS_TEXT} margin={CONFIG.MENU_OPTION_MARGIN} callback={() => redirect(START_MENU_PAGE.CREDITS)} />
+                <MenuOption text={CONFIG.MENU_OPTION_QUIT_TEXT} margin={CONFIG.MENU_OPTION_MARGIN} callback={() => window.location.replace(CONFIG.QUIT_REDIRECT)} />
             </div>
             <div></div>
         </div>

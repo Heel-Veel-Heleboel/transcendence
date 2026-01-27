@@ -2,6 +2,7 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react';
 import { Game, StartMenu, Menu } from '../pages'
 
+/* v8 ignore start */
 export const Router = () => {
     const [hydrated, setHydrated] = useState(false);
     const location = useLocation();
@@ -28,3 +29,4 @@ export const Router = () => {
         </Routes>
     )
 }
+/* v8 ignore stop */

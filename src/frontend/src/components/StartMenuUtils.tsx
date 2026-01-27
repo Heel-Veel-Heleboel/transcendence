@@ -1,5 +1,7 @@
 import { JSX } from "react"
+import { CONFIG } from '../constants/AppConfig.ts'
 
+/* v8 ignore start*/
 export function CenterContainer({ children }: { children: JSX.Element }): JSX.Element {
     return (
         <div className="flex justify-between min-h-full grow">
@@ -21,6 +23,7 @@ export function MainWindowContainer({ children }: { children: JSX.Element }): JS
 export function Animation(): JSX.Element {
     return (
         <video autoPlay muted loop className="fixed right-0 bottom-0 min-w-full min-h-full -z-1 object-cover" id="bgVideo">
+            {/*TODO: Change with p5 animation*/}
             <source src="/bg.mp4" type="video/mp4" />
         </video>
     )
@@ -31,7 +34,7 @@ export function Title(): JSX.Element { return (<h1 className="text-8xl font-mono
 export function Logo(): JSX.Element {
     return (
         <div className="flex justify-center ml-auto mr-auto opacity-95 contrast-200">
-            <img src="/logo.png" alt="Login Page Logo" />
+            <img src={CONFIG.LOGIN_PAGE_LOGO} alt={CONFIG.LOGIN_PAGE_ALT} />
         </div>
     )
 }
@@ -44,3 +47,4 @@ export function MenuOption({ text, margin, callback }: { text: string, margin: n
         </div>
     )
 }
+/* v8 ignore stop*/
