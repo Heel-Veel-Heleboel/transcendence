@@ -1,6 +1,8 @@
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react';
-import { Game, StartMenu, Menu } from '../pages'
+import { Game } from '../pages/Game.tsx'
+import { Menu } from '../pages/Menu.tsx'
+import { StartMenu } from '../pages/StartMenu.tsx'
 
 /* v8 ignore start */
 export const Router = () => {

@@ -23,7 +23,7 @@ const onSceneReady = async (scene: Scene) => {
 /**
  * Will run on every frame render.  We are spinning the box on y-axis.
  */
-const onRender = (scene: Scene) => {
+const onRender = (_scene: Scene) => {
     // if (box !== undefined) {
     //     var deltaTimeInMillis = scene.getEngine().getDeltaTime();
     //

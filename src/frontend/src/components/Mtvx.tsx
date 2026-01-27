@@ -6,7 +6,7 @@ export function Mtvx(): JSX.Element {
     const [metaData, setMetaData] = useState<IAudioMetadata | null>(null);
     const [cover, setCover] = useState<IPicture | null>(null);
     const [mp3, setMp3] = useState<string | undefined>('60681z.mp3');
-    // setMp3('60681z.mp3')
+    setMp3('60681z.mp3')
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -43,11 +43,14 @@ export function Mtvx(): JSX.Element {
         }
     }
     if (cover) {
-        console.log(cover);
         const img = document.getElementById('cover-art') as HTMLImageElement;
-        img.src = URL.createObjectURL(
-            new Blob([cover?.data], { type: 'image/jpg' } /* (1) */)
-        );
+        const coverBuffer = [cover?.data] as unknown as Uint8Array<ArrayBuffer>
+        if (coverBuffer) {
+
+            img.src = URL.createObjectURL(
+                new Blob([coverBuffer], { type: 'image/jpg' } /* (1) */)
+            );
+        }
     }
     if (mp3) {
 
@@ -88,11 +91,15 @@ async function parseMusic(response: Response): Promise<IAudioMetadata | null> {
         const contentLength = response.headers.get('Content-Length');
         const size = contentLength ? parseInt(contentLength, 10) : undefined;
 
-        if (response) {
-            metadata = await parseWebStream(response.body, {
-                mimeType: response.headers.get('Content-Type'),
-                size
-            });
+        if (response.body) {
+            const contentType = response.headers.get('Content-Type');
+            if (contentType) {
+                metadata = await parseWebStream(response.body, {
+                    mimeType: contentType,
+                    size
+                });
+
+            }
         } else {
             throw Error('no valid response');
         }

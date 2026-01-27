@@ -8,12 +8,12 @@ export function TrinityFetch(): JSX.Element {
     const browser = (platform.name === null) ? '?' : platform.name;
     const browserVersion = (platform.version === null) ? '?' : platform.version;
     const layout = (platform.layout === null) ? '?' : platform.layout;
-    const os = (platform.os.family === null) ? '?' : platform.os.family;
-    const osArchitecture = (platform.os.architecture === null) ? '?' : platform.os.architecture;
+    const os = (platform.os?.family === null) ? '?' : platform.os?.family;
+    const osArchitecture = (platform.os?.architecture === null) ? '?' : platform.os?.architecture;
     const product = (platform.product === null) ? '?' : platform.product;
     const manufacturer = (platform.manufacturer === null) ? '?' : platform.manufacturer;
     // TODO update with p5 version
-    const logo = (platform.name === null) ? '?' : browsers.get(platform.name)?.logo;
+    const logo = (platform.name === undefined) ? '?' : (browsers.get(platform.name)?.logo);
     return (
         <div className="flex min-h-full">
             <div className='min-h-full w-1/2'>
