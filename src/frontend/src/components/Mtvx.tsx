@@ -6,7 +6,6 @@ export function Mtvx(): JSX.Element {
     const [metaData, setMetaData] = useState<IAudioMetadata | null>(null);
     const [cover, setCover] = useState<IPicture | null>(null);
     const [mp3, setMp3] = useState<string | undefined>('60681z.mp3');
-    setMp3('60681z.mp3')
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -17,6 +16,7 @@ export function Mtvx(): JSX.Element {
                         const coverResult = selectCover(result?.common.picture);
                         setMetaData(result);
                         setCover(coverResult);
+                        setMp3('60681z.mp3');
                     })
                 }
             }
@@ -44,7 +44,8 @@ export function Mtvx(): JSX.Element {
     }
     if (cover) {
         const img = document.getElementById('cover-art') as HTMLImageElement;
-        const coverBuffer = [cover?.data] as unknown as Uint8Array<ArrayBuffer>
+        const coverBuffer = cover?.data as unknown as Uint8Array<ArrayBuffer>
+
         if (coverBuffer) {
 
             img.src = URL.createObjectURL(
