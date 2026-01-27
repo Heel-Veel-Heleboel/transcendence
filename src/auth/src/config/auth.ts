@@ -4,17 +4,19 @@ import { RefreshTokenDao } from '../dao/refresh-token.dao.js';
 import { UserManagementMock } from '../mocks/user-service/user-management.js';
 import { getPrismaClient } from '../db/prisma.client.js';
 import { getJwtConfig } from '../config/jwt.js';
+import { AuthController } from '../controllers/auth.js';
 
-let auth: AuthService | null = null;
+let controllers: AuthController | null = null;
 
-export function getAuthService(): AuthService {
-  if (!auth) {
+export function getAuthController(): AuthController {
+  if (!controllers) {
     const jwtConfig = getJwtConfig();
     const prisma = getPrismaClient();
     const credentialsDao = new CredentialsDao(prisma);
     const userManagementService = new UserManagementMock();
     const refreshTokenDao = new RefreshTokenDao(prisma, jwtConfig.expirationRefreshToken);
-    auth = new AuthService(userManagementService, credentialsDao, refreshTokenDao);
+    const auth = new AuthService(userManagementService, credentialsDao, refreshTokenDao);
+    controllers = new AuthController(auth);
   }
-  return auth;
+  return controllers;
 }
