@@ -1,6 +1,6 @@
 import { PrismaClient, RefreshToken } from '../../generated/prisma/client.js';
 import { CreateRefreshTokenDto, FindRefreshTokenDto, RevokeAllDto, RevokeRefreshTokenDto } from '../types/dtos/refresh-token.js';
-import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
+import { IRefreshTokenDao } from '../types/daos/refresh-token.js';
 
 /**
  * Data Access Object (DAO) implementation for managing refresh tokens.
@@ -13,7 +13,7 @@ import { RefreshTokenDaoShape } from '../types/daos/refresh-token.js';
  * - deleteAllRevoked: Deletes all revoked refresh tokens from the database.
  */
 
-export class RefreshTokenDao implements RefreshTokenDaoShape {
+export class RefreshTokenDao implements IRefreshTokenDao {
   constructor(
     private readonly prismaClient: PrismaClient,
     private readonly expirationMs: number

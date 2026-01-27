@@ -1,5 +1,5 @@
 import { default as jwt } from 'jsonwebtoken';
-import { JwtPayLoadShape, DecodedJwtPayload } from '../types/jwt.js';
+import { IJwtPayLoad, DecodedJwtPayload } from '../types/jwt.js';
 import { GeneratedRefreshTokenDto } from '../types/dtos/refresh-token.js';
 import { getJwtConfig } from '../config/jwt.js';
 import { CryptoErrorMessage, REFRESH_TOKEN_SIZE, UUID_V4_REGEX } from '../constants/jwt.js';
@@ -14,7 +14,7 @@ import { randomBytes, createHash, timingSafeEqual, randomUUID } from 'crypto';
  * @throws {JsonWebTokenError} If the private key is invalid or signing fails
  * @throws {Error} If JWT configuration cannot be loaded
  */
-export function generateAccessToken(payload: JwtPayLoadShape): string {
+export function generateAccessToken(payload: IJwtPayLoad): string {
   const config = getJwtConfig();
   const token = jwt.sign(payload,
     config.privateKey, {

@@ -18,7 +18,7 @@ export interface JwtConfigShape {
  * @property {string} user_email - The email address of the authenticated user. Used for user identification and notifications.
  *                         
  */
-export interface JwtPayLoadShape {
+export interface IJwtPayLoad {
   sub: number;
   user_email: string;
 };
@@ -26,17 +26,17 @@ export interface JwtPayLoadShape {
 /**
  * A decoded JWT access token with all standard registered claims.
  * 
- * This interface extends JwtPayLoadShape with the standard JWT claims that are
+ * This interface extends IJwtPayLoad with the standard JWT claims that are
  * automatically added by the jwt library during token creation and verification.
  * 
- * @extends {JwtPayLoadShape}
+ * @extends {IJwtPayLoad}
  * @property {number} iat - Issued At claim. Unix timestamp (seconds) when the token was created.
  * @property {number} exp - Expiration Time claim. Unix timestamp (seconds) when the token expires.
  * @property {string} iss - Issuer claim. Identifies the principal that issued the token (set to JWT_ISSUER constant).
  * @property {string} aud - Audience claim. Identifies the intended recipient of the token (set to JWT_AUDIENCE constant).
  * @property {number} [nbf] - Optional. Not Before claim. Unix timestamp (seconds) before which the token is not valid.
  */
-export interface DecodedJwtPayload extends JwtPayLoadShape {
+export interface DecodedJwtPayload extends IJwtPayLoad {
   iat: number;
   exp: number;
   iss: string;

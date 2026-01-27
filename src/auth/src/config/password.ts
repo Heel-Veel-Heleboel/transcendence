@@ -1,5 +1,5 @@
 import { PasswordLimitsConfig } from '../constants/password.js';
-import { PasswordLimitsConfigShape, PasswordPolicyConfigShape } from '../types/password.js';
+import { IPasswordLimitsConfig, IPasswordPolicyConfig } from '../types/password.js';
 import { validatePasswordLengthLimits } from '../validators/password.js';
 import { parseIntSave } from '../utils/parse-int-save.js';
 
@@ -12,7 +12,7 @@ export function getEnvSaltRounds(def: number): number {
 const minLength = parseIntSave(process.env.PASSWORD_MIN_LENGTH, PasswordLimitsConfig.DEFAULT_MIN_LENGTH);
 const maxLength = parseIntSave(process.env.PASSWORD_MAX_LENGTH, PasswordLimitsConfig.DEFAULT_MAX_LENGTH);
 
-export function createPasswordPolicyConfig(minLength: number, maxLength: number, limits: PasswordLimitsConfigShape) : Readonly<PasswordPolicyConfigShape> {
+export function createPasswordPolicyConfig(minLength: number, maxLength: number, limits: IPasswordLimitsConfig) : Readonly<IPasswordPolicyConfig> {
   validatePasswordLengthLimits(minLength, maxLength, limits);
   return {
     minLength,
