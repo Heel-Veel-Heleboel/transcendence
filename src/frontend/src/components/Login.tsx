@@ -40,6 +40,10 @@ export function DefaultLogin({ callback }: { callback: (page: number) => void })
 }
 
 export function SignInForm({ callback }: { callback: (page: number) => void }): JSX.Element {
+    // TODO: take data from form and send object to api-gateway:port/api/auth/login
+    // TODO: check if login was succesful
+    // TODO: auth service will return refresh token and acces token
+    // TODO: check how to store tokens
     return (
         <div>
             <form action="">
@@ -55,6 +59,8 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
 }
 
 export function RegisterForm({ callback }: { callback: (page: number) => void }): JSX.Element {
+    // TODO: take data from form and send object to api-gateway:port/api/auth/register
+    // TODO: check if registration was succesful
     return (
         <div>
             <form action="">
