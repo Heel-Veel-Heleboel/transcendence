@@ -6,10 +6,6 @@ import {
 } from '../../src/frontend/src/game_client/utils/canvas';
 import { NullEngine, Scene, MeshBuilder } from '@babylonjs/core';
 
-function createMockCanvas() {
-  return '<canvas id="renderCanvas"></canvas>';
-}
-
 describe('keyGridUtils', () => {
   afterEach(() => {
     vi.restoreAllMocks();
