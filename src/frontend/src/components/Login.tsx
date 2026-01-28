@@ -44,14 +44,21 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
     // TODO: check if login was succesful
     // TODO: auth service will return refresh token and acces token
     // TODO: check how to store tokens
+    function submit(form: FormData) {
+        const username = form.get("user-name");
+        const password = form.get("password");
+        console.log(form)
+        console.log(username);
+        console.log(password);
+    };
     return (
         <div>
-            <form action="">
+            <form action={submit}>
                 <label htmlFor="user-name">user-name</label><br />
-                <input type="text" id="user-name" className="border" /> <br />
+                <input type="text" name="user-name" className="border" /> <br />
                 <label htmlFor="password">password</label><br />
-                <input type="text" id="password" className="border" /> <br /><br />
-                <input type="submit" value="SIGN IN" className="border w-1/4" />
+                <input type="text" name="password" className="border" /> <br /><br />
+                <button type="submit" className="border w-1/4" > SIGN IN</button>
             </form>
             <button onClick={() => callback(LOGIN_OPTION.DEFAULT_LOGIN)} className="m-10">GO BACK</button>
         </div>
