@@ -1,5 +1,7 @@
 import { JSX, useState } from "react"
 import { START_MENU_PAGE, LOGIN_OPTION } from '../constants/Constants.ts'
+import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "./ErrorFallBack.tsx";
 import { MenuOption } from './StartMenuUtils.tsx'
 
 /* v8 ignore start */
@@ -47,20 +49,28 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
     function submit(form: FormData) {
         const username = form.get("user-name");
         const password = form.get("password");
-        console.log(form)
+
         console.log(username);
-        console.log(password);
+        if (username === null) {
+            throw Error('non-valid user-name')
+        }
+        if (password === null) {
+            throw Error('non-valid password')
+        }
+
     };
     return (
         <div>
-            <form action={submit}>
-                <label htmlFor="user-name">user-name</label><br />
-                <input type="text" name="user-name" className="border" /> <br />
-                <label htmlFor="password">password</label><br />
-                <input type="text" name="password" className="border" /> <br /><br />
-                <button type="submit" className="border w-1/4" > SIGN IN</button>
-            </form>
-            <button onClick={() => callback(LOGIN_OPTION.DEFAULT_LOGIN)} className="m-10">GO BACK</button>
+            <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <form action={submit}>
+                    <label htmlFor="user-name">user-name</label><br />
+                    <input type="text" name="user-name" className="border" /> <br />
+                    <label htmlFor="password">password</label><br />
+                    <input type="text" name="password" className="border" /> <br /><br />
+                    <button type="submit" className="border w-1/4" > SIGN IN</button>
+                </form>
+                <button onClick={() => callback(LOGIN_OPTION.DEFAULT_LOGIN)} className="m-10">GO BACK</button>
+            </ErrorBoundary>
         </div>
     )
 }
