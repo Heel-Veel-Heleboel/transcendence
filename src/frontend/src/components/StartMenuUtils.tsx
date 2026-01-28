@@ -29,7 +29,7 @@ export function Animation(): JSX.Element {
     )
 }
 
-export function Title(): JSX.Element { return (<h1 className="text-8xl font-mono text-metalgear">Counter-pong</h1>) }
+export function Title(): JSX.Element { return (<h1 className="text-8xl font-monof text-metalgear">Counter-pong</h1>) }
 
 export function Logo(): JSX.Element {
     return (
