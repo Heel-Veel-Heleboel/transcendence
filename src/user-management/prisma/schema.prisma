@@ -14,9 +14,9 @@ datasource db {
 model User {
   id                    Int     @id @default(autoincrement())
 
-  email                 String  @unique
-  user_name             String?
+  name                  String?
   profile               Profile?
+  email                 String  @unique
   activity_status       ActivityStatus @default(OFFLINE)
 
   created_at            DateTime @default(now())
@@ -28,7 +28,6 @@ model User {
   matches_as_player1    Match[] @relation("Player_1_Matches")
   matches_as_player2    Match[] @relation("Player_2_Matches")
   matches_won           Match[] @relation("MatchWinner")
-
 }
 
 model Profile {
@@ -39,6 +38,7 @@ model Profile {
   losses                Int @default(0)
   avatar_url            String?
   win_rate              Float @default(0.0)
+
   user                  User @relation(fields: [user_id], references: [id])
   user_id               Int @unique
 
@@ -48,28 +48,37 @@ model Profile {
 
 model Friendship {
   id                     Int  @id @default(autoincrement())
+
   requester              User @relation("sent_friendships", fields: [requester_id], references: [id])
   requester_id           Int
+
   addressee              User @relation("received_friendships", fields: [addressee_id], references: [id])
   addressee_id           Int
+
   status                 FriendshipStatus
+
   created_at             DateTime @default(now())
   updated_at             DateTime @updatedAt
+
   @@unique([requester_id, addressee_id])
 }
 
 model Match {
   id Int @id @default(autoincrement())
+
   player1 User @relation("Player_1_Matches", fields: [player1_id], references: [id])
   player1_id Int 
+
   player2 User @relation("Player_2_Matches", fields: [player2_id], references: [id])
   player2_id Int
+
   winner User? @relation("MatchWinner", fields: [winner_id], references: [id])
   winner_id Int?
+
   played_at DateTime @default(now())
+
   score1  Int
   score2  Int
-
 }
 
 enum FriendshipStatus {
