@@ -7,6 +7,7 @@ COPY . .
 RUN npm run build
 CMD npm run prod
  
+# TODO: think about whether to seperate stages
 # # Production Stage
 # FROM node:24-alpine  AS production
 # COPY --from=build /app/dist .
