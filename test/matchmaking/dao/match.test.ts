@@ -46,6 +46,7 @@ describe('MatchDao', () => {
         data: {
           player1Id: 100,
           player2Id: 101,
+          gameMode: 'classic',
           tournamentId: null,
           deadline,
           isGoldenGame: false,
@@ -79,6 +80,7 @@ describe('MatchDao', () => {
         data: {
           player1Id: 100,
           player2Id: 101,
+          gameMode: 'classic',
           tournamentId: 5,
           deadline,
           isGoldenGame: false,
