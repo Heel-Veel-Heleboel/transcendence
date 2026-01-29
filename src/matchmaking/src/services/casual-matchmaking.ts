@@ -1,5 +1,6 @@
 import { MatchDao } from '../dao/match.js';
 import { PlayerPool } from '../models/player-pool.js';
+import { Logger } from '../types/logger.js';
 
 /**
  * MatchmakingService
@@ -15,7 +16,7 @@ export class MatchmakingService {
   private pool: PlayerPool = new PlayerPool();
 
   // Pairing interval
-  private pairingInterval?: NodeJS.Timeout;
+  private pairingInterval?: ReturnType<typeof setInterval>;
 
   // Configuration
   private readonly ACK_TIMEOUT_MS: number;
@@ -24,7 +25,7 @@ export class MatchmakingService {
 
   constructor(
     private readonly matchDao: MatchDao,
-    private readonly logger?: any,
+    private readonly logger?: Logger,
     config?: {
       ackTimeoutMs?: number;
       maxWaitTimeMs?: number;
@@ -292,7 +293,7 @@ export class MatchmakingService {
   /**
    * Simple logging wrapper
    */
-  private log(level: string, message: string, meta?: any): void {
+  private log(level: 'info' | 'warn' | 'error', message: string, meta?: Record<string, unknown>): void {
     if (this.logger) {
       this.logger[level]({ ...meta, service: 'matchmaking' }, message);
     } else {
