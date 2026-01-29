@@ -19,6 +19,7 @@ export class MatchDao {
   async create(data: {
     player1Id: number;
     player2Id: number;
+    gameMode?: string;
     tournamentId?: number | null;
     deadline?: Date | null;
     isGoldenGame?: boolean;
@@ -27,6 +28,7 @@ export class MatchDao {
       data: {
         player1Id: data.player1Id,
         player2Id: data.player2Id,
+        gameMode: data.gameMode ?? 'classic',
         tournamentId: data.tournamentId ?? null,
         deadline: data.deadline ?? null,
         isGoldenGame: data.isGoldenGame ?? false,

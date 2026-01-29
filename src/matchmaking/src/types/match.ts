@@ -5,6 +5,24 @@ import { MatchStatus } from '../../generated/prisma/index.js';
  */
 
 /**
+ * Supported game modes for matchmaking
+ * Add new modes here as they're implemented
+ */
+export type GameMode = 'classic' | 'powerup';
+
+/**
+ * All available game modes
+ */
+export const GAME_MODES: readonly GameMode[] = ['classic', 'powerup'] as const;
+
+/**
+ * Validate if a string is a valid game mode
+ */
+export function isValidGameMode(mode: string): mode is GameMode {
+  return GAME_MODES.includes(mode as GameMode);
+}
+
+/**
  * Data structure for updating match status
  * Used in MatchDao.updateStatus()
  */
@@ -30,6 +48,7 @@ export interface MatchAcknowledgementUpdateData {
 export interface CreateMatchData {
   player1Id: number;
   player2Id: number;
+  gameMode?: GameMode;
   tournamentId?: number | null;
   deadline?: Date | null;
   isGoldenGame?: boolean;
