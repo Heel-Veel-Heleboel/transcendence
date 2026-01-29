@@ -14,6 +14,10 @@ fclean: clean
 
 re: fclean all
 
+dev:
+	docker compose up --watch frontend-dev
+	touch $(NAME)
+
 $(NAME):
-	docker compose up --detach
+	docker compose up --detach frontend
 	touch $(NAME)
