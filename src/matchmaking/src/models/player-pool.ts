@@ -25,7 +25,7 @@ export class PlayerPool {
   /**
    * Add a player to the back of the queue (normal join)
    */
-  add(userId: number): PlayerPoolEntry {
+  addToBack(userId: number): PlayerPoolEntry {
     if (this.userMap.has(userId)) {
       throw new Error(`User ${userId} already in pool`);
     }
@@ -33,7 +33,7 @@ export class PlayerPool {
     const entry: PlayerPoolEntry = {
       userId,
       joinedAt: new Date(),
-      lastActive: new Date(),
+      lastActive: new Date()
     };
 
     // Add to back of queue
@@ -54,7 +54,7 @@ export class PlayerPool {
     const entry: PlayerPoolEntry = {
       userId,
       joinedAt: new Date(),
-      lastActive: new Date(),
+      lastActive: new Date()
     };
 
     // Add to front of queue (priority)
@@ -108,10 +108,10 @@ export class PlayerPool {
 
   /**
    * Get the first N players from the front of the queue (for auto-pairing)
-   * This is O(1) since we just slice from the front
+   * Complexity: O(n) where n is the number of players to retrieve
    */
-  getOldest(limit: number): PlayerPoolEntry[] {
-    return this.queue.slice(0, limit);
+  getNOldestPlayers(n: number): PlayerPoolEntry[] {
+    return this.queue.slice(0, n);
   }
 
   /**

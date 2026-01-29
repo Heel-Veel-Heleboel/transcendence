@@ -1,4 +1,8 @@
 import { PrismaClient, Match, MatchStatus } from '../../generated/prisma/index.js';
+import {
+  MatchStatusUpdateData,
+  MatchAcknowledgementUpdateData
+} from '../types/match.js';
 
 /**
  * Data Access Object for Match
@@ -27,8 +31,8 @@ export class MatchDao {
         deadline: data.deadline ?? null,
         isGoldenGame: data.isGoldenGame ?? false,
         status: 'PENDING_ACKNOWLEDGEMENT',
-        scheduledAt: new Date(),
-      },
+        scheduledAt: new Date()
+      }
     });
   }
 
@@ -37,7 +41,7 @@ export class MatchDao {
    */
   async findById(matchId: string): Promise<Match | null> {
     return await this.prisma.match.findUnique({
-      where: { id: matchId },
+      where: { id: matchId }
     });
   }
 
@@ -47,9 +51,9 @@ export class MatchDao {
   async findByPlayerId(playerId: number): Promise<Match[]> {
     return await this.prisma.match.findMany({
       where: {
-        OR: [{ player1Id: playerId }, { player2Id: playerId }],
+        OR: [{ player1Id: playerId }, { player2Id: playerId }]
       },
-      orderBy: { scheduledAt: 'desc' },
+      orderBy: { scheduledAt: 'desc' }
     });
   }
 
@@ -59,7 +63,7 @@ export class MatchDao {
   async findByTournamentId(tournamentId: number): Promise<Match[]> {
     return await this.prisma.match.findMany({
       where: { tournamentId },
-      orderBy: { scheduledAt: 'asc' },
+      orderBy: { scheduledAt: 'asc' }
     });
   }
 
@@ -69,7 +73,7 @@ export class MatchDao {
   async findByStatus(status: MatchStatus): Promise<Match[]> {
     return await this.prisma.match.findMany({
       where: { status },
-      orderBy: { scheduledAt: 'asc' },
+      orderBy: { scheduledAt: 'asc' }
     });
   }
 
@@ -82,8 +86,8 @@ export class MatchDao {
     return await this.prisma.match.findMany({
       where: {
         deadline: { lt: now },
-        status: 'PENDING_ACKNOWLEDGEMENT',
-      },
+        status: 'PENDING_ACKNOWLEDGEMENT'
+      }
     });
   }
 
@@ -96,8 +100,8 @@ export class MatchDao {
     return await this.prisma.match.findMany({
       where: {
         deadline: { lt: now },
-        status: 'SCHEDULED',
-      },
+        status: 'SCHEDULED'
+      }
     });
   }
 
@@ -105,17 +109,17 @@ export class MatchDao {
    * Update match status
    */
   async updateStatus(matchId: string, status: MatchStatus): Promise<Match> {
-    const updateData: any = { status };
+    const updateData: MatchStatusUpdateData = { status };
 
     if (status === 'IN_PROGRESS') {
       updateData.startedAt = new Date();
-    } else if (status === 'COMPLETED' || status === 'FORFEITED') {
+    } else if (status === 'COMPLETED' || status === 'FORFEITED' || status === 'TIMEOUT') {
       updateData.completedAt = new Date();
     }
 
     return await this.prisma.match.update({
       where: { id: matchId },
-      data: updateData,
+      data: updateData
     });
   }
 
@@ -139,8 +143,8 @@ export class MatchDao {
         player2Score: result.player2Score,
         resultSource: result.resultSource,
         status: 'COMPLETED',
-        completedAt: new Date(),
-      },
+        completedAt: new Date()
+      }
     });
   }
 
@@ -161,9 +165,9 @@ export class MatchDao {
       throw new Error(`Player ${playerId} is not part of match ${matchId}`);
     }
 
-    const updateData: any = {
+    const updateData: MatchAcknowledgementUpdateData = {
       player1Acknowledged: isPlayer1 ? true : match.player1Acknowledged,
-      player2Acknowledged: isPlayer2 ? true : match.player2Acknowledged,
+      player2Acknowledged: isPlayer2 ? true : match.player2Acknowledged
     };
 
     // If both players have now acknowledged, transition to SCHEDULED
@@ -177,7 +181,7 @@ export class MatchDao {
 
     return await this.prisma.match.update({
       where: { id: matchId },
-      data: updateData,
+      data: updateData
     });
   }
 
@@ -211,8 +215,8 @@ export class MatchDao {
           player1Score: 7,
           player2Score: 0,
           resultSource: 'ack_forfeit:player2_no_ack',
-          completedAt: new Date(),
-        },
+          completedAt: new Date()
+        }
       });
     }
 
@@ -225,8 +229,8 @@ export class MatchDao {
           player1Score: 0,
           player2Score: 7,
           resultSource: 'ack_forfeit:player1_no_ack',
-          completedAt: new Date(),
-        },
+          completedAt: new Date()
+        }
       });
     }
 
@@ -239,8 +243,8 @@ export class MatchDao {
         player1Score: 0,
         player2Score: 0,
         resultSource: 'ack_forfeit:both_no_ack',
-        completedAt: new Date(),
-      },
+        completedAt: new Date()
+      }
     });
   }
 
@@ -250,7 +254,7 @@ export class MatchDao {
   async setGameSessionId(matchId: string, gameSessionId: string): Promise<Match> {
     return await this.prisma.match.update({
       where: { id: matchId },
-      data: { gameSessionId },
+      data: { gameSessionId }
     });
   }
 
@@ -259,7 +263,7 @@ export class MatchDao {
    */
   async delete(matchId: string): Promise<void> {
     await this.prisma.match.delete({
-      where: { id: matchId },
+      where: { id: matchId }
     });
   }
 
@@ -268,7 +272,7 @@ export class MatchDao {
    */
   async countByStatus(status: MatchStatus): Promise<number> {
     return await this.prisma.match.count({
-      where: { status },
+      where: { status }
     });
   }
 
@@ -284,10 +288,10 @@ export class MatchDao {
         tournamentId,
         AND: [
           { player1Id: { in: playerIds } },
-          { player2Id: { in: playerIds } },
+          { player2Id: { in: playerIds } }
         ],
-        status: 'COMPLETED',
-      },
+        status: 'COMPLETED'
+      }
     });
   }
 
@@ -320,8 +324,8 @@ export class MatchDao {
         gameSessionId: result.gameSessionId ?? null,
         resultSource: result.resultSource,
         status: 'COMPLETED',
-        completedAt: new Date(),
-      },
+        completedAt: new Date()
+      }
     });
   }
 
@@ -333,10 +337,10 @@ export class MatchDao {
       where: {
         OR: [{ player1Id: userId }, { player2Id: userId }],
         status: {
-          in: ['PENDING_ACKNOWLEDGEMENT', 'SCHEDULED', 'IN_PROGRESS'],
-        },
+          in: ['PENDING_ACKNOWLEDGEMENT', 'SCHEDULED', 'IN_PROGRESS']
+        }
       },
-      orderBy: { scheduledAt: 'desc' },
+      orderBy: { scheduledAt: 'desc' }
     });
   }
 }

@@ -394,7 +394,7 @@ describe('MatchDao', () => {
         player1Acknowledged: true,
       });
 
-      const result = await dao.recordAcknowledgement('match-uuid', 100);
+      await dao.recordAcknowledgement('match-uuid', 100);
 
       expect(mockPrismaClient.match.update).toBeCalledWith({
         where: { id: 'match-uuid' },
@@ -420,7 +420,7 @@ describe('MatchDao', () => {
         player2Acknowledged: true,
       });
 
-      const result = await dao.recordAcknowledgement('match-uuid', 101);
+      await dao.recordAcknowledgement('match-uuid', 101);
 
       expect(mockPrismaClient.match.update).toBeCalledWith({
         where: { id: 'match-uuid' },
@@ -515,7 +515,7 @@ describe('MatchDao', () => {
         player2Score: 0,
       });
 
-      const result = await dao.handleAckForfeit('match-uuid');
+      await dao.handleAckForfeit('match-uuid');
 
       expect(mockPrismaClient.match.update).toBeCalledWith({
         where: { id: 'match-uuid' },
@@ -547,7 +547,7 @@ describe('MatchDao', () => {
         player2Score: 7,
       });
 
-      const result = await dao.handleAckForfeit('match-uuid');
+      await dao.handleAckForfeit('match-uuid');
 
       expect(mockPrismaClient.match.update).toBeCalledWith({
         where: { id: 'match-uuid' },
@@ -579,7 +579,7 @@ describe('MatchDao', () => {
         player2Score: 0,
       });
 
-      const result = await dao.handleAckForfeit('match-uuid');
+      await dao.handleAckForfeit('match-uuid');
 
       expect(mockPrismaClient.match.update).toBeCalledWith({
         where: { id: 'match-uuid' },

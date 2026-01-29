@@ -2,7 +2,7 @@ import fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import { getPrismaClient, disconnectPrisma } from './db/prisma.client.js';
-import { MatchDao } from './dao/match.dao.js';
+import { MatchDao } from './dao/match.js';
 import { MatchmakingService } from './services/matchmaking.service.js';
 import { registerMatchmakingRoutes } from './routes/matchmaking.routes.js';
 import { registerMatchRoutes } from './routes/match.routes.js';
