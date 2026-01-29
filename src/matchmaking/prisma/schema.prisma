@@ -22,23 +22,16 @@ enum TournamentStatus {
 
 // Enum for match status
 enum MatchStatus {
-  SCHEDULED     // Match created, not started
-  IN_PROGRESS   // Players notified, game in session
-  COMPLETED     // Result recorded
-  FORFEITED     // Player left
-  TIMEOUT       // Deadline passed
+  PENDING_ACKNOWLEDGEMENT  // Waiting for both players to confirm ready
+  SCHEDULED                // Both players ready, waiting to start
+  IN_PROGRESS              // Game in session
+  COMPLETED                // Result recorded
+  FORFEITED                // Player left or failed to acknowledge
+  TIMEOUT                  // Deadline passed without starting
 }
 
-// Player pool for casual matchmaking (in-memory backed by DB)
-model PlayerPool {
-  id          Int      @id @default(autoincrement()) // Should get ID from user-service
-  userId      Int      @unique
-  joinedAt    DateTime @default(now())
-  lastActive  DateTime @default(now())
-
-  @@index([joinedAt])
-  @@index([lastActive])
-}
+// NOTE: PlayerPool is kept in-memory only (no database persistence)
+// If service restarts, players simply rejoin the queue
 
 // Tournament configuration and state
 model Tournament {
@@ -92,21 +85,25 @@ model TournamentParticipant {
 
 // Match records (both casual and tournament)
 model Match {
-  id            String       @id @default(uuid())
-  tournamentId  Int?                    // null for casual matches
-  player1Id     Int
-  player2Id     Int
-  status        MatchStatus  @default(SCHEDULED)
-  scheduledAt   DateTime     @default(now())
-  deadline      DateTime?               // For tournament matches (time limit to complete)
-  startedAt     DateTime?
-  completedAt   DateTime?              // When status = COMPLETED, application logic MUST set this
-  winnerId      Int?
-  player1Score  Int?
-  player2Score  Int?
-  gameSessionId String?                 // Reference to game-service session
-  isGoldenGame  Boolean      @default(false)  // Flag for tie-breaker matches
-  resultSource  String?                 // Who reported result: "game_service", "admin:userId", "timeout"
+  id                    String       @id @default(uuid())
+  tournamentId          Int?                    // null for casual matches
+  player1Id             Int
+  player2Id             Int
+  status                MatchStatus  @default(PENDING_ACKNOWLEDGEMENT)
+  scheduledAt           DateTime     @default(now())
+  deadline              DateTime?               // Deadline for acknowledgement AND match completion
+                                                 // - Before both ACK: deadline to acknowledge
+                                                 // - After both ACK: deadline to complete match
+  player1Acknowledged   Boolean      @default(false)  // Has player1 confirmed ready
+  player2Acknowledged   Boolean      @default(false)  // Has player2 confirmed ready
+  startedAt             DateTime?               // When game session actually started
+  completedAt           DateTime?               // When status = COMPLETED/FORFEITED/TIMEOUT
+  winnerId              Int?
+  player1Score          Int?
+  player2Score          Int?
+  gameSessionId         String?                 // Reference to game-service session
+  isGoldenGame          Boolean      @default(false)  // Flag for tie-breaker matches
+  resultSource          String?                 // Who reported result: "game_service", "admin:userId", "timeout", "ack_forfeit"
 
   tournament    Tournament?  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
