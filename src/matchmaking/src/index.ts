@@ -3,7 +3,7 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import { getPrismaClient, disconnectPrisma } from './db/prisma.client.js';
 import { MatchDao } from './dao/match.js';
-import { MatchmakingService } from './services/matchmaking.service.js';
+import { MatchmakingService } from './services/casual-matchmaking.js';
 import { registerMatchmakingRoutes } from './routes/matchmaking.routes.js';
 import { registerMatchRoutes } from './routes/match.routes.js';
 
@@ -77,6 +77,7 @@ const shutdown = async (signal: string) => {
   server.log.info(`Received ${signal}, shutting down gracefully`);
 
   try {
+    await matchmakingService.shutdown();
     await disconnectPrisma();
     await server.close();
     server.log.info('Server closed successfully');
