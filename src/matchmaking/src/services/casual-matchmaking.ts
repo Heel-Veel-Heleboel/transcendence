@@ -22,9 +22,11 @@ export class MatchmakingService {
   private readonly ACK_TIMEOUT_MS: number;
   private readonly MAX_WAIT_TIME_MS: number;
   private readonly PAIRING_INTERVAL_MS: number;
+  private readonly gameMode: string;
 
   constructor(
     private readonly matchDao: MatchDao,
+    gameMode: string,
     private readonly logger?: Logger,
     config?: {
       ackTimeoutMs?: number;
@@ -32,6 +34,7 @@ export class MatchmakingService {
       pairingIntervalMs?: number;
     }
   ) {
+    this.gameMode = gameMode;
     this.ACK_TIMEOUT_MS = config?.ackTimeoutMs ?? 5 * 60 * 1000; // Default: 5 minutes
     this.MAX_WAIT_TIME_MS = config?.maxWaitTimeMs ?? 30 * 60 * 1000; // Default: 30 minutes
     this.PAIRING_INTERVAL_MS = config?.pairingIntervalMs ?? 100; // Default: 100ms
@@ -100,6 +103,7 @@ export class MatchmakingService {
         const match = await this.matchDao.create({
           player1Id: player1.userId,
           player2Id: player2.userId,
+          gameMode: this.gameMode,
           deadline
         });
 
@@ -207,6 +211,7 @@ export class MatchmakingService {
     const match = await this.matchDao.create({
       player1Id: player1.userId,
       player2Id: player2.userId,
+      gameMode: this.gameMode,
       deadline
     });
 
