@@ -72,3 +72,6 @@ src/matchmaking/generated/
 src/matchmaking/prisma/dev.db
 src/matchmaking/prisma/dev.db-journal
 src/matchmaking/prisma/migrations/
+
+# frontend docker-compose
+.docker_compose_started
