@@ -44,5 +44,17 @@ export const CONFIG = Object.create({
   NEOFETCH_TITLE: 'trinityfetch',
   NEOFETCH_LOGO: 'trinityfetch.png', // <a href="https://www.flaticon.com/free-icons/crocodile" title="crocodile icons">Crocodile icons created by Freepik - Flaticon</a>
   MUSICPLAYER_TITLE: 'mtvx',
-  MUSICPLAYER_LOGO: 'mtvx.png' // <a href="https://www.flaticon.com/free-icons/vinyl" title="vinyl icons">Vinyl icons created by Roundicons - Flaticon</a>
+  MUSICPLAYER_LOGO: 'mtvx.png', // <a href="https://www.flaticon.com/free-icons/vinyl" title="vinyl icons">Vinyl icons created by Roundicons - Flaticon</a>
+
+  // URLs
+  REQUEST_SIGNIN: 'http://localhost:3000/api/auth/login',
+  REQUEST_SIGNIN_METHOD: 'POST',
+  REQUEST_SIGNIN_HEADERS: {
+    'Content-Type': 'application/json'
+  },
+  REQUEST_REGISTER: 'http://localhost:3000/api/auth/register',
+  REQUEST_REGISTER_METHOD: 'POST',
+  REQUEST_REGISTER_HEADERS: {
+    'Content-Type': 'application/json'
+  }
 });
