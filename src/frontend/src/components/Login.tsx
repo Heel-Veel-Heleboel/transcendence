@@ -19,6 +19,9 @@ export function Login({ redirect }: { redirect: (page: number) => void }): JSX.E
         case LOGIN_OPTION.REGISTER:
             component = <RegisterForm callback={setLoginOption} />
             break;
+        case LOGIN_OPTION.REGISTER_SUCCESFULL:
+            component = <RegisterSuccesfull callback={setLoginOption} />
+            break;
         default:
             component = <DefaultLogin callback={setLoginOption} />
     }
@@ -116,15 +119,20 @@ export function RegisterForm({ callback }: { callback: (page: number) => void })
 
             });
             if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
+                throw new Error(`${response.status}`);
             }
 
             const result = await response.json();
             console.log(result);
-        } catch (error: any) {
-            console.error(error.message);
-        }
+            const test = () => callback(LOGIN_OPTION.SIGIN);
+            test();
 
+        } catch (error: any) {
+            if (error.message === '500') {
+                throw new Error("credentials are already used");
+            }
+            throw new Error(`unknown error with status code: ${error.message}`)
+        }
     };
     return (
         <ErrorBoundary FallbackComponent={ErrorFallback}>
@@ -139,6 +147,16 @@ export function RegisterForm({ callback }: { callback: (page: number) => void })
             </form>
             <button onClick={() => callback(LOGIN_OPTION.DEFAULT_LOGIN)} className="m-10">GO BACK</button>
         </ErrorBoundary>
+    )
+}
+
+
+export function RegisterSuccesfull({ callback }: { callback: (page: number) => void }): JSX.Element {
+    return (
+        <div>
+            <div className="text-3xl">Registration succesfull</div>
+            <button onClick={() => callback(LOGIN_OPTION.DEFAULT_LOGIN)} className="m-10">GO TO LOGIN</button>
+        </div>
     )
 }
 /* v8 ignore stop */
