@@ -13,5 +13,6 @@ export const MENU_PAGE = Object.freeze({
 export const LOGIN_OPTION = Object.freeze({
   DEFAULT_LOGIN: 0,
   SIGIN: 1,
-  REGISTER: 2
+  REGISTER: 2,
+  REGISTER_SUCCESFULL: 3
 });
