@@ -24,10 +24,6 @@ model User {
 
   sent_friendships      Friendship[] @relation("sent_friendships")
   received_friendships  Friendship[] @relation("received_friendships")
-
-  matches_as_player1    Match[] @relation("Player_1_Matches")
-  matches_as_player2    Match[] @relation("Player_2_Matches")
-  matches_won           Match[] @relation("MatchWinner")
 }
 
 model Profile {
@@ -61,24 +57,6 @@ model Friendship {
   updated_at             DateTime @updatedAt
 
   @@unique([requester_id, addressee_id])
-}
-
-model Match {
-  id Int @id @default(autoincrement())
-
-  player1 User @relation("Player_1_Matches", fields: [player1_id], references: [id])
-  player1_id Int 
-
-  player2 User @relation("Player_2_Matches", fields: [player2_id], references: [id])
-  player2_id Int
-
-  winner User? @relation("MatchWinner", fields: [winner_id], references: [id])
-  winner_id Int?
-
-  played_at DateTime @default(now())
-
-  score1  Int
-  score2  Int
 }
 
 enum FriendshipStatus {

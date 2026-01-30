@@ -1,8 +1,8 @@
 -- CreateTable
 CREATE TABLE "User" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT,
     "email" TEXT NOT NULL,
-    "user_name" TEXT,
     "activity_status" TEXT NOT NULL DEFAULT 'OFFLINE',
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL
@@ -32,20 +32,6 @@ CREATE TABLE "Friendship" (
     "updated_at" DATETIME NOT NULL,
     CONSTRAINT "Friendship_requester_id_fkey" FOREIGN KEY ("requester_id") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Friendship_addressee_id_fkey" FOREIGN KEY ("addressee_id") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "Match" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "player1_id" INTEGER NOT NULL,
-    "player2_id" INTEGER NOT NULL,
-    "winner_id" INTEGER,
-    "played_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "score1" INTEGER NOT NULL,
-    "score2" INTEGER NOT NULL,
-    CONSTRAINT "Match_player1_id_fkey" FOREIGN KEY ("player1_id") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Match_player2_id_fkey" FOREIGN KEY ("player2_id") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Match_winner_id_fkey" FOREIGN KEY ("winner_id") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateIndex
