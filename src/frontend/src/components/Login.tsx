@@ -1,5 +1,6 @@
 import { JSX, useState } from "react"
 import { START_MENU_PAGE, LOGIN_OPTION } from '../constants/Constants.ts'
+import { CONFIG } from "../constants/AppConfig.ts";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "./ErrorFallBack.tsx";
 import { MenuOption } from './StartMenuUtils.tsx'
@@ -46,16 +47,33 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
     // TODO: check if login was succesful
     // TODO: auth service will return refresh token and acces token
     // TODO: check how to store tokens
-    function submit(form: FormData) {
+    async function submit(form: FormData) {
         const username = form.get("user-name");
         const password = form.get("password");
 
-        console.log(username);
         if (username === null) {
             throw Error('non-valid user-name')
         }
         if (password === null) {
             throw Error('non-valid password')
+        }
+        try {
+            const response = await fetch(CONFIG.REQUEST_SIGIN, {
+                method: CONFIG.REQUEST_SIGIN_METHOD,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username: username, password: password }),
+
+            });
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log(result);
+        } catch (error: any) {
+            console.error(error.message);
         }
 
     };
@@ -63,8 +81,8 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
         <div>
             <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <form action={submit}>
-                    <label htmlFor="user-name">user-name</label><br />
-                    <input type="text" name="user-name" className="border" /> <br />
+                    <label htmlFor="username">username</label><br />
+                    <input type="text" name="username" className="border" /> <br />
                     <label htmlFor="password">password</label><br />
                     <input type="text" name="password" className="border" /> <br /><br />
                     <button type="submit" className="border w-1/4" > SIGN IN</button>
@@ -78,19 +96,49 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
 export function RegisterForm({ callback }: { callback: (page: number) => void }): JSX.Element {
     // TODO: take data from form and send object to api-gateway:port/api/auth/register
     // TODO: check if registration was succesful
+    async function submit(form: FormData) {
+        const email = form.get("email");
+        const username = form.get("username");
+        const password = form.get("password");
+
+        if (username === null) {
+            throw Error('non-valid user-name')
+        }
+        if (password === null) {
+            throw Error('non-valid password')
+        }
+        try {
+            // const test = await fetch('http://localhost:3003/health');
+            const response = await fetch(CONFIG.REQUEST_REGISTER, {
+                method: CONFIG.REQUEST_REGISTER_METHOD,
+                headers: CONFIG.REQUEST_REGISTER_HEADERS,
+                body: JSON.stringify({ email: email, user_name: username, password: password }),
+
+            });
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log(result);
+        } catch (error: any) {
+            console.error(error.message);
+        }
+
+    };
     return (
-        <div>
-            <form action="">
-                <label htmlFor="email address">email address</label><br />
-                <input type="text" id="email address" className="border" /> <br />
-                <label htmlFor="user-name">user-name</label><br />
-                <input type="text" id="user-name" className="border" /> <br />
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <form action={submit}>
+                <label htmlFor="email">email</label><br />
+                <input type="text" name="email" className="border" /> <br />
+                <label htmlFor="username">username</label><br />
+                <input type="text" name="username" className="border" /> <br />
                 <label htmlFor="password">password</label><br />
-                <input type="text" id="password" className="border" /> <br /><br />
-                <input type="submit" value="REGISTER" className="border w-1/4" />
+                <input type="text" name="password" className="border" /> <br /><br />
+                <button type="submit" className="border w-1/4" >REGISTER</button>
             </form>
             <button onClick={() => callback(LOGIN_OPTION.DEFAULT_LOGIN)} className="m-10">GO BACK</button>
-        </div>
+        </ErrorBoundary>
     )
 }
 /* v8 ignore stop */
