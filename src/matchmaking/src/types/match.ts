@@ -48,6 +48,8 @@ export interface MatchAcknowledgementUpdateData {
 export interface CreateMatchData {
   player1Id: number;
   player2Id: number;
+  player1Username: string;
+  player2Username: string;
   gameMode?: GameMode;
   tournamentId?: number | null;
   deadline?: Date | null;
@@ -74,3 +76,47 @@ export interface CompleteMatchData {
   gameSessionId?: string;
   resultSource: string;
 }
+
+// ============================================================================
+// Inter-Service Messaging Types
+// ============================================================================
+
+/**
+ * Match result for a single player
+ * Sent to User Management service after match completes
+ */
+export type MatchResult = 'W' | 'L';
+
+/**
+ * Message sent to User Management service to update player stats
+ * One message per player (2 messages per match)
+ */
+export interface PlayerMatchResultMessage {
+  playerId: number;
+  result: MatchResult;
+}
+
+/**
+ * Single match entry in player's match history
+ * Used when building the full history list for a player
+ *
+ * Note: Casual matches that were forfeited/timed out are NOT included in history
+ * (they were never actually played). Tournament forfeits ARE included (affect standings).
+ */
+export interface MatchHistoryEntry {
+  matchId: string;
+  opponentId: number;           // For linking to opponent's profile
+  opponentUsername: string;     // Snapshot at time of match (for display)
+  result: MatchResult;
+  userScore: number;
+  opponentScore: number;
+  gameMode: GameMode;
+  tournamentId: number | null;  // null = casual match, number = tournament match
+  completedAt: Date;
+}
+
+/**
+ * Full match history for a player
+ * Returned by GET /api/matchmaking/players/:userId/history
+ */
+export type MatchHistory = MatchHistoryEntry[];

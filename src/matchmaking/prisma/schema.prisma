@@ -90,6 +90,8 @@ model Match {
   gameMode              String       @default("classic")  // "classic" or "powerup" - tells game-service which variant to start
   player1Id             Int
   player2Id             Int
+  player1Username       String                           // Snapshot at match creation (for history display)
+  player2Username       String                           // Snapshot at match creation (for history display)
   status                MatchStatus  @default(PENDING_ACKNOWLEDGEMENT)
   scheduledAt           DateTime     @default(now())
   deadline              DateTime?               // Deadline for acknowledgement AND match completion
