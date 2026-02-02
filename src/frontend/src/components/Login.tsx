@@ -1,9 +1,10 @@
 import { JSX, useState } from "react"
 import { START_MENU_PAGE, LOGIN_OPTION } from '../constants/Constants.ts'
-import { CONFIG } from "../constants/AppConfig.ts";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "./ErrorFallBack.tsx";
 import { MenuOption } from './StartMenuUtils.tsx'
+import { useAuth } from "./Auth.tsx";
+import { Navigate, useNavigate } from "react-router-dom";
 
 /* v8 ignore start */
 export function Login({ redirect }: { redirect: (page: number) => void }): JSX.Element {
@@ -46,6 +47,9 @@ export function DefaultLogin({ callback }: { callback: (page: number) => void })
 }
 
 export function SignInForm({ callback }: { callback: (page: number) => void }): JSX.Element {
+
+    const auth = useAuth();
+    const navigate = useNavigate();
     async function submit(form: FormData) {
         const email = form.get("email");
         const username = form.get("username");
@@ -60,41 +64,9 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
         if (password === null) {
             throw Error('non-valid password')
         }
-        // TODO: delete when refresh_token is implemented as http-only from auth server
-        function createCookie(name: string, value: string, days: number) {
-            let expires;
-            if (days) {
-                let date = new Date();
-                date.setDate(date.getDate() + days);
-                expires = "; expires=" + date;
-            }
-            else {
-                expires = "";
-            }
-            document.cookie = name + "=" + value + expires + "; path=/";
-        }
-        try {
-            // TODO: change from fetch to axios
-            const response = await fetch(CONFIG.REQUEST_SIGNIN, {
-                method: CONFIG.REQUEST_SIGNIN_METHOD,
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email: email, username: username, password: password }),
 
-            });
-            if (!response.ok) {
-                throw new Error(`Response status: ${response.status}`);
-            }
-
-            const result = await response.json();
-            console.log(result);
-            // TODO: delete when refresh_token is implemented as http-only from auth server
-            createCookie("refresh_token", result.refresh_token, 7);
-        } catch (error: any) {
-            console.error(error.message);
-        }
-
+        auth.logIn({ email, username, password });
+        navigate('/menu');
     };
     return (
         <div>
@@ -115,6 +87,7 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
 }
 
 export function RegisterForm({ callback }: { callback: (page: number) => void }): JSX.Element {
+    const auth = useAuth();
     async function submit(form: FormData) {
         const email = form.get("email");
         const username = form.get("username");
@@ -126,28 +99,10 @@ export function RegisterForm({ callback }: { callback: (page: number) => void })
         if (password === null) {
             throw Error('non-valid password')
         }
-        try {
-            // TODO: change from fetch to axios
-            const response = await fetch(CONFIG.REQUEST_REGISTER, {
-                method: CONFIG.REQUEST_REGISTER_METHOD,
-                headers: CONFIG.REQUEST_REGISTER_HEADERS,
-                body: JSON.stringify({ email: email, user_name: username, password: password }),
 
-            });
-            if (!response.ok) {
-                throw new Error(`${response.status}`);
-            }
+        auth.register({ email, username, password });
+        callback(LOGIN_OPTION.REGISTER_SUCCESFULL);
 
-            const result = await response.json();
-            console.log(result);
-            callback(LOGIN_OPTION.REGISTER_SUCCESFULL);
-
-        } catch (error: any) {
-            if (error.message === '500') {
-                throw new Error("credentials are already used");
-            }
-            throw new Error(`unknown error with status code: ${error.message}`)
-        }
     };
     return (
         <ErrorBoundary FallbackComponent={ErrorFallback}>

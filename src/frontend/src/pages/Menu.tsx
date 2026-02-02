@@ -10,10 +10,19 @@ import { Gymkhana } from "../components/Gymkhana.tsx";
 import { Speedmatching } from "../components/Speedmatching.tsx";
 import { Mtvx } from "../components/Mtvx.tsx";
 import { TrinityFetch } from "../components/TrinityFetch.tsx";
+import { useAuth } from "../components/Auth.tsx";
 
 /* v8 ignore start */
 export const Menu = (): JSX.Element => {
     const [page, setPage] = useState<number>(MENU_PAGE.MENU);
+    const auth = useAuth();
+
+    console.log(auth.token);
+    if (auth.token === null) {
+        return (
+            <div>You are not logged in</div>
+        )
+    }
 
     function redirect(page: number) {
         setPage(page);
