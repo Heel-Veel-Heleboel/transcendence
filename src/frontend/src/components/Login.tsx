@@ -97,8 +97,6 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
 }
 
 export function RegisterForm({ callback }: { callback: (page: number) => void }): JSX.Element {
-    // TODO: take data from form and send object to api-gateway:port/api/auth/register
-    // TODO: check if registration was succesful
     async function submit(form: FormData) {
         const email = form.get("email");
         const username = form.get("username");
