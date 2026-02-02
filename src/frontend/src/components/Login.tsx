@@ -13,7 +13,7 @@ export function Login({ redirect }: { redirect: (page: number) => void }): JSX.E
         case LOGIN_OPTION.DEFAULT_LOGIN:
             component = <DefaultLogin callback={setLoginOption} />
             break;
-        case LOGIN_OPTION.SIGIN:
+        case LOGIN_OPTION.SIGN_IN:
             component = <SignInForm callback={setLoginOption} />
             break;
         case LOGIN_OPTION.REGISTER:
@@ -37,7 +37,7 @@ export function DefaultLogin({ callback }: { callback: (page: number) => void })
     return (
 
         <div className="text-3xl">
-            <button onClick={() => callback(LOGIN_OPTION.SIGIN)} className="border w-3xs">SIGN IN</button>
+            <button onClick={() => callback(LOGIN_OPTION.SIGN_IN)} className="border w-3xs">SIGN IN</button>
             <br />
             <br />
             <button onClick={() => callback(LOGIN_OPTION.REGISTER)} className="border w-3xs">REGISTER</button>
@@ -124,8 +124,7 @@ export function RegisterForm({ callback }: { callback: (page: number) => void })
 
             const result = await response.json();
             console.log(result);
-            const test = () => callback(LOGIN_OPTION.SIGIN);
-            test();
+            callback(LOGIN_OPTION.REGISTER_SUCCESFULL);
 
         } catch (error: any) {
             if (error.message === '500') {
@@ -154,8 +153,8 @@ export function RegisterForm({ callback }: { callback: (page: number) => void })
 export function RegisterSuccesfull({ callback }: { callback: (page: number) => void }): JSX.Element {
     return (
         <div>
-            <div className="text-3xl">Registration succesfull</div>
-            <button onClick={() => callback(LOGIN_OPTION.DEFAULT_LOGIN)} className="m-10">GO TO LOGIN</button>
+            <div className="text-3xl text-green-400">Registration succesfull</div>
+            <button onClick={() => callback(LOGIN_OPTION.SIGN_IN)} className="m-10">GO TO LOGIN</button>
         </div>
     )
 }
