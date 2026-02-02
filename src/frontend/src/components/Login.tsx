@@ -74,6 +74,7 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
             document.cookie = name + "=" + value + expires + "; path=/";
         }
         try {
+            // TODO: change from fetch to axios
             const response = await fetch(CONFIG.REQUEST_SIGNIN, {
                 method: CONFIG.REQUEST_SIGNIN_METHOD,
                 headers: {
@@ -126,6 +127,7 @@ export function RegisterForm({ callback }: { callback: (page: number) => void })
             throw Error('non-valid password')
         }
         try {
+            // TODO: change from fetch to axios
             const response = await fetch(CONFIG.REQUEST_REGISTER, {
                 method: CONFIG.REQUEST_REGISTER_METHOD,
                 headers: CONFIG.REQUEST_REGISTER_HEADERS,
