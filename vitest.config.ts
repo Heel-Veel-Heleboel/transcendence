@@ -2,11 +2,6 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    env: {
-      DATABASE_URL: 'file::memory:',
-      JWT_PRIVATE_KEY_PATH: './test/auth/keys/test_jwt_private.pem',
-      JWT_PUBLIC_KEY_PATH: './test/auth/keys/test_jwt_public.pem'
-    },
     // Coverage configuration
     coverage: {
       provider: 'v8', // Use V8 coverage provider
