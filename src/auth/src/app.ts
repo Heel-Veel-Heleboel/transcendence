@@ -3,6 +3,7 @@ import { authRoutes } from './routes/auth.js';
 import { authErrorHandler } from './middleware/error-handler.js';
 import prismaDisconnectHook from './middleware/prisma-disconnect-hook.js';
 import { getAuthController } from './config/auth.js';
+import  cookie  from '@fastify/cookie';
 
 const authController = getAuthController();
 
@@ -10,6 +11,7 @@ const app = fastify({
   logger: true
 });
 
+app.register(cookie);
 app.setErrorHandler(authErrorHandler);
 app.addHook('onClose', prismaDisconnectHook);
 app.get('/health', async () => {

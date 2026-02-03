@@ -12,5 +12,5 @@ export interface LoggedInUserDto extends SafeUserDto {
 
 export interface RefreshedTokensDto {
   access_token: string;
-  refresh_token: string;
+  new_refresh_token: string;
 }
