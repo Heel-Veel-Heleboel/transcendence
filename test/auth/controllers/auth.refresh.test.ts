@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthController } from '../../../src/auth/src/controllers/auth.js';
 import { RefreshedTokensDto } from '../../../src/auth/src/types/dtos/auth.js';
 import { AuthenticationError } from '../../../src/auth/src/error/auth.js';
+import { log, warn } from 'console';
 
 vi.mock('../../../src/auth/src/config/jwt.js', () => ({
   getJwtConfig: vi.fn(() => ({
@@ -154,6 +155,11 @@ describe('AuthController - refresh', () => {
     } as any;
 
     await expect(authController.refresh(mockRequest, MockReply as any)).rejects.toThrow(new AuthenticationError('Refresh token cookie is missing'));
+    
+    expect(mockRequest.log.warn).toHaveBeenCalledWith(
+      { user_id: mockRequest.body.user_id },
+      'Refresh token cookie is missing'
+    );
   });
 
   it('Should NOT include new_refresh_token in response body', async () => {
