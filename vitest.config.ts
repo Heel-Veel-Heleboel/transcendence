@@ -13,7 +13,9 @@ export default defineConfig({
         'test/',
         '**/*.d.ts',
         '**/*.config.*',
-        '**/coverage/**'
+        '**/coverage/**',
+        '**/generated/**',
+        '**/prisma/generated/**'  
       ],
       // Coverage thresholds
       thresholds: {
