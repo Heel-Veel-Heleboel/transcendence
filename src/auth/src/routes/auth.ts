@@ -4,7 +4,6 @@ import * as SchemaTypes from '../schemas/auth.js';
 import { validatePasswordHook } from '../middleware/validate-password-hook.js';
 
 
-
 export async function authRoutes(fastify: FastifyInstance, options: {authController: AuthController}) {
   const { authController } = options;
   

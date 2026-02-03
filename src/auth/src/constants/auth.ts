@@ -16,3 +16,6 @@ export const AUTH_ERROR_MESSAGES = {
   // Registration errors
   REGISTRATION_CLEANUP_FAILED: 'Failed to cleanup user after registration error:'
 } as const;
+
+
+export const AUTH_PREFIX = '/auth';
