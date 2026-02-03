@@ -47,8 +47,5 @@
     "typescript": "^5.3.3",
     "vitest": "^3.2.4",
     "vitest-webgl-canvas-mock": "^1.1.0"
-  },
-  "dependencies": {
-    "@fastify/cookie": "^11.0.2"
   }
 }
