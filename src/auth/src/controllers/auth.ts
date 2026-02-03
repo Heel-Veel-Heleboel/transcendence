@@ -57,6 +57,7 @@ export class AuthController {
 
     const refresh_token = request.cookies['refresh_token'];
     if (!refresh_token) {
+      request.log.warn({ user_id: request.body.user_id }, 'Refresh token cookie is missing');
       throw new AuthenticationError('Refresh token cookie is missing');
     }
     const { new_refresh_token, ...access_token }: RefreshedTokensDto = await this.authService.refresh({ user_id: request.body.user_id }, refresh_token);
