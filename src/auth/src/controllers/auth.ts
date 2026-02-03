@@ -4,12 +4,11 @@ import { SafeUserDto, LoggedInUserDto, RefreshedTokensDto } from '../types/dtos/
 import * as SchemaTypes from '../schemas/auth.js';
 import { getJwtConfig } from '../config/jwt.js';
 import { AuthenticationError } from '../error/auth.js';
-
+import { AUTH_PREFIX } from '../constants/auth.js';
 export class AuthController {
 
   constructor(private readonly authService: AuthService) {}
-
-
+  
   async register(request: FastifyRequest<{ Body: SchemaTypes.RegistrationSchemaType }>, reply: FastifyReply) : Promise<FastifyReply> {
     request.log.info({ email: request.body.email }, 'Registration attempt');
     const user: SafeUserDto = await this.authService.register(request.body);
@@ -22,10 +21,10 @@ export class AuthController {
     request.log.info({ email: request.body.email }, 'Login attempt');
     const { refresh_token, ...safeUser }: LoggedInUserDto = await this.authService.login(request.body);
     request.log.info({ user_id: safeUser.id }, 'User logged in successfully');
-
+    
     reply.setCookie('refresh_token', refresh_token, {
       httpOnly: true,
-      path: '/auth',
+      path: AUTH_PREFIX,
       maxAge: getJwtConfig().expirationRefreshToken,
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production'
@@ -42,7 +41,7 @@ export class AuthController {
 
     reply.setCookie('refresh_token', '', {
       httpOnly: true,
-      path: '/auth',
+      path: AUTH_PREFIX,
       maxAge: 0,
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production'
@@ -66,7 +65,7 @@ export class AuthController {
 
     reply.setCookie('refresh_token', new_refresh_token, {
       httpOnly: true,
-      path: '/auth',
+      path: AUTH_PREFIX,
       maxAge: getJwtConfig().expirationRefreshToken,
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production'
