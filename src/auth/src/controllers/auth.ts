@@ -3,6 +3,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { SafeUserDto, LoggedInUserDto, RefreshedTokensDto } from '../types/dtos/auth.js';
 import * as SchemaTypes from '../schemas/auth.js';
 import { getJwtConfig } from '../config/jwt.js';
+import { AuthenticationError } from '../error/auth.js';
 
 export class AuthController {
 
@@ -56,7 +57,7 @@ export class AuthController {
 
     const refresh_token = request.cookies['refresh_token'];
     if (!refresh_token) {
-      return reply.code(400).send({ message: 'Refresh token cookie is missing' });
+      throw new AuthenticationError('Refresh token cookie is missing');
     }
     const { new_refresh_token, ...access_token }: RefreshedTokensDto = await this.authService.refresh({ user_id: request.body.user_id }, refresh_token);
 

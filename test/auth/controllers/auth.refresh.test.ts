@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthController } from '../../../src/auth/src/controllers/auth.js';
 import { RefreshedTokensDto } from '../../../src/auth/src/types/dtos/auth.js';
+import { AuthenticationError } from '../../../src/auth/src/error/auth.js';
 
 vi.mock('../../../src/auth/src/config/jwt.js', () => ({
   getJwtConfig: vi.fn(() => ({
@@ -139,7 +140,7 @@ describe('AuthController - refresh', () => {
     );
   });
 
-  it('Should return 400 when refresh_token cookie is missing', async () => {
+  it('Should throw AuthenticationError when refresh_token cookie is missing', async () => {
     const mockRequest = {
       body: {
         user_id: 6
@@ -152,12 +153,7 @@ describe('AuthController - refresh', () => {
       }
     } as any;
 
-    await authController.refresh(mockRequest, MockReply as any);
-
-    expect(MockReply.code).toHaveBeenCalledWith(400);
-    expect(MockReply.send).toHaveBeenCalledWith({ message: 'Refresh token cookie is missing' });
-    expect(MockAuthService.refresh).not.toHaveBeenCalled();
-    expect(MockReply.setCookie).not.toHaveBeenCalled();
+    await expect(authController.refresh(mockRequest, MockReply as any)).rejects.toThrow(new AuthenticationError('Refresh token cookie is missing'));
   });
 
   it('Should NOT include new_refresh_token in response body', async () => {
