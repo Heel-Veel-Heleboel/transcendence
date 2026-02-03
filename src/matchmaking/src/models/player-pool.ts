@@ -4,6 +4,7 @@
  */
 export interface PlayerPoolEntry {
   userId: number;
+  username: string;
   joinedAt: Date;
   lastActive: Date;
 }
@@ -25,13 +26,14 @@ export class PlayerPool {
   /**
    * Add a player to the back of the queue (normal join)
    */
-  addToBack(userId: number): PlayerPoolEntry {
+  addToBack(userId: number, username: string): PlayerPoolEntry {
     if (this.userMap.has(userId)) {
       throw new Error(`User ${userId} already in pool`);
     }
 
     const entry: PlayerPoolEntry = {
       userId,
+      username,
       joinedAt: new Date(),
       lastActive: new Date()
     };
@@ -46,13 +48,14 @@ export class PlayerPool {
   /**
    * Add a player to the front of the queue (priority - for returning after failed opponent ack)
    */
-  addToFront(userId: number): PlayerPoolEntry {
+  addToFront(userId: number, username: string): PlayerPoolEntry {
     if (this.userMap.has(userId)) {
       throw new Error(`User ${userId} already in pool`);
     }
 
     const entry: PlayerPoolEntry = {
       userId,
+      username,
       joinedAt: new Date(),
       lastActive: new Date()
     };

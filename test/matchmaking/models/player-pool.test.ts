@@ -10,7 +10,7 @@ describe('PlayerPool', () => {
 
   describe('addToBack()', () => {
     it('should add a player to the back of the queue', () => {
-      const entry = pool.addToBack(1);
+      const entry = pool.addToBack(1, 'user1');
 
       expect(entry.userId).toBe(1);
       expect(entry.joinedAt).toBeInstanceOf(Date);
@@ -20,9 +20,9 @@ describe('PlayerPool', () => {
     });
 
     it('should maintain FIFO order when adding multiple players', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToBack(3);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
 
       const all = pool.getAll();
       expect(all.map(e => e.userId)).toEqual([1, 2, 3]);
@@ -30,16 +30,16 @@ describe('PlayerPool', () => {
     });
 
     it('should throw error when adding duplicate userId', () => {
-      pool.addToBack(1);
-      expect(() => pool.addToBack(1)).toThrow('User 1 already in pool');
+      pool.addToBack(1, 'user1');
+      expect(() => pool.addToBack(1, 'user1')).toThrow('User 1 already in pool');
     });
   });
 
   describe('addToFront()', () => {
     it('should add a player to the front of the queue', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToFront(99);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToFront(99, 'user99');
 
       const all = pool.getAll();
       expect(all.map(e => e.userId)).toEqual([99, 1, 2]);
@@ -47,10 +47,10 @@ describe('PlayerPool', () => {
     });
 
     it('should give priority to players added to front', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToBack(3);
-      pool.addToFront(100); // Return after failed opponent ack
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
+      pool.addToFront(100, 'user100'); // Return after failed opponent ack
 
       const oldest = pool.getNOldestPlayers(2);
       expect(oldest[0].userId).toBe(100); // Priority player first
@@ -58,16 +58,16 @@ describe('PlayerPool', () => {
     });
 
     it('should throw error when adding duplicate userId to front', () => {
-      pool.addToBack(1);
-      expect(() => pool.addToFront(1)).toThrow('User 1 already in pool');
+      pool.addToBack(1, 'user1');
+      expect(() => pool.addToFront(1, 'user1')).toThrow('User 1 already in pool');
     });
   });
 
   describe('remove()', () => {
     it('should remove a player from the queue', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToBack(3);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
 
       const removed = pool.remove(2);
 
@@ -83,18 +83,18 @@ describe('PlayerPool', () => {
     });
 
     it('should remove from front correctly', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToBack(3);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
 
       pool.remove(1);
       expect(pool.getAll().map(e => e.userId)).toEqual([2, 3]);
     });
 
     it('should remove from back correctly', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToBack(3);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
 
       pool.remove(3);
       expect(pool.getAll().map(e => e.userId)).toEqual([1, 2]);
@@ -103,7 +103,7 @@ describe('PlayerPool', () => {
 
   describe('get() and inPool()', () => {
     it('should retrieve player entry by userId', () => {
-      pool.addToBack(1);
+      pool.addToBack(1, 'user1');
       const entry = pool.get(1);
 
       expect(entry).toBeDefined();
@@ -116,7 +116,7 @@ describe('PlayerPool', () => {
     });
 
     it('should check if player is in pool', () => {
-      pool.addToBack(1);
+      pool.addToBack(1, 'user1');
 
       expect(pool.inPool(1)).toBe(true);
       expect(pool.inPool(999)).toBe(false);
@@ -125,9 +125,9 @@ describe('PlayerPool', () => {
 
   describe('getAll()', () => {
     it('should return all players in queue order', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToFront(99);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToFront(99, 'user99');
 
       const all = pool.getAll();
       expect(all.length).toBe(3);
@@ -140,9 +140,9 @@ describe('PlayerPool', () => {
     });
 
     it('should return a copy of the queue (not reference)', () => {
-      pool.addToBack(1);
+      pool.addToBack(1, 'user1');
       const all1 = pool.getAll();
-      pool.addToBack(2);
+      pool.addToBack(2, 'user2');
       const all2 = pool.getAll();
 
       expect(all1.length).toBe(1);
@@ -152,18 +152,18 @@ describe('PlayerPool', () => {
 
   describe('getNOldestPlayers()', () => {
     it('should return first N players from front of queue', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToBack(3);
-      pool.addToBack(4);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
+      pool.addToBack(4, 'user4');
 
       const oldest = pool.getNOldestPlayers(2);
       expect(oldest.map(e => e.userId)).toEqual([1, 2]);
     });
 
     it('should return all players if limit exceeds size', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
 
       const oldest = pool.getNOldestPlayers(10);
       expect(oldest.length).toBe(2);
@@ -176,10 +176,10 @@ describe('PlayerPool', () => {
     });
 
     it('should respect priority players added to front', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToFront(99);
-      pool.addToBack(3);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToFront(99, 'user99');
+      pool.addToBack(3, 'user3');
 
       const oldest = pool.getNOldestPlayers(2);
       expect(oldest.map(e => e.userId)).toEqual([99, 1]);
@@ -188,9 +188,9 @@ describe('PlayerPool', () => {
 
   describe('getPosition()', () => {
     it('should return correct 1-indexed position', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToBack(3);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
 
       expect(pool.getPosition(1)).toBe(1); // Front
       expect(pool.getPosition(2)).toBe(2); // Middle
@@ -198,14 +198,14 @@ describe('PlayerPool', () => {
     });
 
     it('should return -1 for non-existent player', () => {
-      pool.addToBack(1);
+      pool.addToBack(1, 'user1');
       expect(pool.getPosition(999)).toBe(-1);
     });
 
     it('should reflect priority position for players added to front', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToFront(99);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToFront(99, 'user99');
 
       expect(pool.getPosition(99)).toBe(1); // Priority player
       expect(pool.getPosition(1)).toBe(2);  // Pushed back
@@ -219,7 +219,7 @@ describe('PlayerPool', () => {
       const now = new Date('2026-01-01T00:00:00.000Z');
       vi.setSystemTime(now);
 
-      pool.addToBack(1);
+      pool.addToBack(1, 'user1');
       const entry1 = pool.get(1);
       const originalTime = entry1?.lastActive;
 
@@ -245,9 +245,9 @@ describe('PlayerPool', () => {
       const now = new Date();
       const old = new Date(now.getTime() - 60000); // 1 minute ago
 
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToBack(3);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
 
       // Manually set joinedAt to old date for testing
       const entry1 = pool.get(1);
@@ -266,9 +266,9 @@ describe('PlayerPool', () => {
     });
 
     it('should not remove entries newer than cutoff', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToBack(3);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
 
       const cutoff = new Date(Date.now() - 60000); // 1 minute ago
       const removed = pool.removeStale(cutoff);
@@ -288,11 +288,11 @@ describe('PlayerPool', () => {
     it('should return correct pool size', () => {
       expect(pool.size()).toBe(0);
 
-      pool.addToBack(1);
+      pool.addToBack(1, 'user1');
       expect(pool.size()).toBe(1);
 
-      pool.addToBack(2);
-      pool.addToBack(3);
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
       expect(pool.size()).toBe(3);
 
       pool.remove(2);
@@ -302,9 +302,9 @@ describe('PlayerPool', () => {
 
   describe('clear()', () => {
     it('should remove all entries from pool', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToBack(3);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
 
       pool.clear();
 
@@ -324,10 +324,10 @@ describe('PlayerPool', () => {
   describe('Integration: Priority Queue Behavior', () => {
     it('should handle realistic matchmaking scenario', () => {
       // Normal users join
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToBack(3);
-      pool.addToBack(4);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
+      pool.addToBack(4, 'user4');
 
       // Pair first two (1 and 2)
       const pair1 = pool.getNOldestPlayers(2);
@@ -336,7 +336,7 @@ describe('PlayerPool', () => {
       pool.remove(2);
 
       // User 2's opponent failed to ack, return user 2 to front
-      pool.addToFront(2);
+      pool.addToFront(2, 'user2');
 
       // Now pool should be: [2 (priority), 3, 4]
       expect(pool.getAll().map(e => e.userId)).toEqual([2, 3, 4]);
@@ -347,16 +347,16 @@ describe('PlayerPool', () => {
     });
 
     it('should handle multiple priority returns', () => {
-      pool.addToBack(1);
-      pool.addToBack(2);
-      pool.addToBack(3);
-      pool.addToBack(4);
+      pool.addToBack(1, 'user1');
+      pool.addToBack(2, 'user2');
+      pool.addToBack(3, 'user3');
+      pool.addToBack(4, 'user4');
 
       // Both 1 and 2 failed to get matched, return to front
       pool.remove(1);
       pool.remove(2);
-      pool.addToFront(2);
-      pool.addToFront(1);
+      pool.addToFront(2, 'user2');
+      pool.addToFront(1, 'user1');
 
       // Pool should be: [1, 2, 3, 4] (both priority, but 1 added last so it's first)
       expect(pool.getAll().map(e => e.userId)).toEqual([1, 2, 3, 4]);

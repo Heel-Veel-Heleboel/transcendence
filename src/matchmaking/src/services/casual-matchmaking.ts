@@ -103,6 +103,8 @@ export class MatchmakingService {
         const match = await this.matchDao.create({
           player1Id: player1.userId,
           player2Id: player2.userId,
+          player1Username: player1.username,
+          player2Username: player2.username,
           gameMode: this.gameMode,
           deadline
         });
@@ -123,7 +125,7 @@ export class MatchmakingService {
    * Add a player to the matchmaking pool
    * Pairing happens automatically via background interval
    */
-  async joinPool(userId: number): Promise<{ success: boolean; queuePosition: number }> {
+  async joinPool(userId: number, username: string): Promise<{ success: boolean; queuePosition: number }> {
     // Check if already in pool
     if (this.pool.inPool(userId)) {
       this.log('warn', `User ${userId} already in pool`);
@@ -134,9 +136,9 @@ export class MatchmakingService {
     }
 
     // Add to in-memory pool
-    this.pool.addToBack(userId);
+    this.pool.addToBack(userId, username);
 
-    this.log('info', `User ${userId} joined pool (pool size: ${this.pool.size()})`);
+    this.log('info', `User ${userId} (${username}) joined pool (pool size: ${this.pool.size()})`);
 
     const queuePosition = this.getQueuePosition(userId);
 
@@ -211,6 +213,8 @@ export class MatchmakingService {
     const match = await this.matchDao.create({
       player1Id: player1.userId,
       player2Id: player2.userId,
+      player1Username: player1.username,
+      player2Username: player2.username,
       gameMode: this.gameMode,
       deadline
     });
@@ -219,7 +223,7 @@ export class MatchmakingService {
     this.pool.remove(player1.userId);
     this.pool.remove(player2.userId);
 
-    this.log('info', `Paired users ${player1.userId} and ${player2.userId} (match: ${match.id})`);
+    this.log('info', `Paired users ${player1.userId} (${player1.username}) and ${player2.userId} (${player2.username}) (match: ${match.id})`);
 
     return {
       paired: true,
@@ -231,7 +235,7 @@ export class MatchmakingService {
    * Return a player to the pool (called when their opponent failed to acknowledge)
    * Adds player to the FRONT of the queue (priority) for fairness
    */
-  async returnToPool(userId: number): Promise<void> {
+  async returnToPool(userId: number, username: string): Promise<void> {
     // Check if already in pool
     if (this.pool.inPool(userId)) {
       this.log('warn', `User ${userId} already in pool, skipping return`);
@@ -239,9 +243,9 @@ export class MatchmakingService {
     }
 
     // Add to front of queue (priority)
-    this.pool.addToFront(userId);
+    this.pool.addToFront(userId, username);
 
-    this.log('info', `User ${userId} returned to front of pool (priority)`);
+    this.log('info', `User ${userId} (${username}) returned to front of pool (priority)`);
   }
 
   /**
