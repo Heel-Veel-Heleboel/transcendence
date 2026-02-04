@@ -6,7 +6,7 @@
   "type": "module",
   "workspaces": [
     "src/api-gateway",
-    "src/auth",
+    "src/auth"
   ],
   "scripts": {
     "build": "tsc -b",
