@@ -34,7 +34,7 @@ export async function registerMatchmakingRoutes(
     if (!isValidGameMode(gameMode)) {
       return reply.status(400).send({
         error: 'Bad Request',
-        message: `Invalid gameMode. Must be one of: classic, powerup`
+        message: 'Invalid gameMode. Must be one of: classic, powerup'
       });
     }
 
@@ -103,7 +103,7 @@ export async function registerMatchmakingRoutes(
     if (!isValidGameMode(gameMode)) {
       return reply.status(400).send({
         error: 'Bad Request',
-        message: `Invalid gameMode. Must be one of: classic, powerup`
+        message: 'Invalid gameMode. Must be one of: classic, powerup'
       });
     }
 

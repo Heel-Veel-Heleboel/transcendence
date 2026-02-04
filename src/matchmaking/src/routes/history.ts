@@ -25,12 +25,15 @@ export async function registerHistoryRoutes(
       });
     }
 
-    const limitNum = limit ? parseInt(limit, 10) : undefined;
-    if (limit && (isNaN(limitNum!) || limitNum! < 1)) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'limit must be a positive number'
-      });
+    let limitNum: number | undefined;
+    if (limit) {
+      limitNum = parseInt(limit, 10);
+      if (isNaN(limitNum) || limitNum < 1) {
+        return reply.status(400).send({
+          error: 'Bad Request',
+          message: 'limit must be a positive number'
+        });
+      }
     }
 
     try {
