@@ -7,7 +7,6 @@
   "workspaces": [
     "src/api-gateway",
     "src/auth",
-    "src/frontend"
   ],
   "scripts": {
     "build": "tsc -b",
