@@ -29,6 +29,7 @@
     "@sinclair/typebox": "^0.34.47",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.5.0",
+    "fastify": "^5.7.4",
     "jsonwebtoken": "^9.0.3",
     "typebox": "^1.0.13",
     "zod": "^4.1.13"
