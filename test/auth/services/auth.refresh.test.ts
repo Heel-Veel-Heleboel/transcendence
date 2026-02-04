@@ -85,11 +85,11 @@ describe('AuthService - refresh', () => {
     mockRefreshTokenDao.store.mockResolvedValueOnce(undefined);
     mockRefreshTokenDao.revoke.mockResolvedValueOnce(undefined);
 
-    const result = await authService.refresh({ user_id: userId, refresh_token: refreshToken });
+    const result = await authService.refresh({ user_id: userId }, refreshToken);
 
     expect(result).toEqual({
       access_token: newAccessToken,
-      refresh_token: newRefreshToken
+      new_refresh_token: newRefreshToken
     });
     expect(validateRefreshTokenFormat).toHaveBeenCalledWith(refreshToken);
     expect(mockRefreshTokenDao.findById).toHaveBeenCalledWith({ id: tokenId });
@@ -141,9 +141,9 @@ describe('AuthService - refresh', () => {
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(null);
 
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(ResourceNotFoundError);
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AUTH_ERROR_MESSAGES.USER_NOT_FOUND_BY_ID(userId));
   });
 
@@ -156,9 +156,9 @@ describe('AuthService - refresh', () => {
       .mockReturnValueOnce(false)
       .mockReturnValueOnce(false);
 
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AuthenticationError);
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AUTH_ERROR_MESSAGES.INVALID_TOKEN_FORMAT);
     expect(validateRefreshTokenFormat).toHaveBeenCalledWith(refreshToken);
   });
@@ -174,9 +174,9 @@ describe('AuthService - refresh', () => {
       .mockReturnValueOnce(false)
       .mockReturnValueOnce(false);
 
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AuthenticationError);
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AUTH_ERROR_MESSAGES.INVALID_TOKEN_FORMAT);
     expect(validateRefreshTokenFormat).toHaveBeenCalledWith(refreshToken);
   });
@@ -192,9 +192,9 @@ describe('AuthService - refresh', () => {
       .mockReturnValueOnce(false)
       .mockReturnValueOnce(false);
 
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AuthenticationError);
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AUTH_ERROR_MESSAGES.INVALID_TOKEN_FORMAT);
     expect(validateRefreshTokenFormat).toHaveBeenCalledWith(refreshToken);
   });
@@ -210,9 +210,9 @@ describe('AuthService - refresh', () => {
       .mockReturnValueOnce(false)
       .mockReturnValueOnce(false);
 
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AuthenticationError);
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AUTH_ERROR_MESSAGES.INVALID_TOKEN_FORMAT);
     expect(validateRefreshTokenFormat).toHaveBeenCalledWith(refreshToken);
   });
@@ -228,9 +228,9 @@ describe('AuthService - refresh', () => {
       .mockReturnValueOnce(false)
       .mockReturnValueOnce(false);
 
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AuthenticationError);
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AUTH_ERROR_MESSAGES.INVALID_TOKEN_FORMAT);
     expect(validateRefreshTokenFormat).toHaveBeenCalledWith(refreshToken);
   });
@@ -249,9 +249,9 @@ describe('AuthService - refresh', () => {
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(null);
 
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AuthenticationError);
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AUTH_ERROR_MESSAGES.INVALID_TOKEN);
   });
 
@@ -280,9 +280,9 @@ describe('AuthService - refresh', () => {
         expired_at: new Date(Date.now() - 1000)
       });
 
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AuthenticationError);
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AUTH_ERROR_MESSAGES.TOKEN_EXPIRED);
   });
 
@@ -315,9 +315,9 @@ describe('AuthService - refresh', () => {
         expired_at: new Date(Date.now() + 1000000)
       });
 
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AuthenticationError);
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AUTH_ERROR_MESSAGES.INVALID_TOKEN);
   });
 
@@ -351,9 +351,9 @@ describe('AuthService - refresh', () => {
         expired_at: new Date(Date.now() + 1000000)
       });
 
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AuthorizationError);
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AUTH_ERROR_MESSAGES.TOKEN_OWNERSHIP_MISMATCH);
   });
 
@@ -369,7 +369,7 @@ describe('AuthService - refresh', () => {
     const dbError = new Error('Database connection failed');
     mockRefreshTokenDao.findById.mockRejectedValueOnce(dbError);
 
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow('Database connection failed');
   });
 
@@ -412,7 +412,7 @@ describe('AuthService - refresh', () => {
     const dbError = new Error('Failed to store new token');
     mockRefreshTokenDao.store.mockRejectedValueOnce(dbError);
 
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow('Failed to store new token');
   });
 
@@ -455,15 +455,15 @@ describe('AuthService - refresh', () => {
     mockRefreshTokenDao.store.mockResolvedValueOnce(undefined);
     mockRefreshTokenDao.revoke.mockResolvedValueOnce(undefined);
 
-    const result = await authService.refresh({ user_id: userId, refresh_token: refreshToken });
+    const result = await authService.refresh({ user_id: userId }, refreshToken);
 
     expect(result).toHaveProperty('access_token');
-    expect(result).toHaveProperty('refresh_token');
+    expect(result).toHaveProperty('new_refresh_token');
     expect(result).not.toHaveProperty('id');
     expect(result).not.toHaveProperty('name');
     expect(result).not.toHaveProperty('email');
     expect(typeof result.access_token).toBe('string');
-    expect(typeof result.refresh_token).toBe('string');
+    expect(typeof result.new_refresh_token).toBe('string');
   });
 
   it('Should throw AuthenticationError when refresh token is revoked', async () => {
@@ -482,9 +482,9 @@ describe('AuthService - refresh', () => {
       expired_at: new Date(Date.now() + 1000000),
       revoked_at: new Date(Date.now() - 1000) // Revoked 1 second ago
     });
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AuthenticationError);
-    await expect(authService.refresh({ user_id: userId, refresh_token: refreshToken }))
+    await expect(authService.refresh({ user_id: userId }, refreshToken))
       .rejects.toThrow(AUTH_ERROR_MESSAGES.INVALID_TOKEN);
   });
 });

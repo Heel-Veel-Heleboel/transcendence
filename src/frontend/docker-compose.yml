@@ -1,0 +1,52 @@
+services:
+  frontend-dev:
+    container_name: frontend-dev
+    build: 
+      context: ../frontend
+      dockerfile: ./Dockerfile.dev
+    ports:
+      - "5173:5173"
+    networks:
+      - "app-net"
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+    # TODO: add healthcheck + environment variables
+    # environment:
+    #   DOMAIN: ${DOMAIN}
+    # healthcheck:
+    #   test: ["CMD", "curl", "-k", "--fail", "https://localhost:443"]
+    #   start_period: 10s
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 3
+  frontend:
+    container_name: frontend
+    build: 
+      context: ../frontend
+      dockerfile: ./Dockerfile
+    ports:
+      - "5173:5173"
+    networks:
+      - "app-net"
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 15s
+
+networks:
+  app-net:
+    driver: bridge
