@@ -30,7 +30,6 @@ export async function registerMatchmakingRoutes(
   server.post('/matchmaking/:gameMode/join', async (request: FastifyRequest, reply: FastifyReply) => {
     const { gameMode } = request.params as { gameMode: string };
 
-    // Validate gameMode
     if (!isValidGameMode(gameMode)) {
       return reply.status(400).send({
         error: 'Bad Request',
@@ -38,8 +37,6 @@ export async function registerMatchmakingRoutes(
       });
     }
 
-    // TODO: Extract from x-user-id and x-user-name headers once API Gateway forwards them
-    // For now, accept in body for testing
     const { userId, username } = request.body as { userId: number; username: string };
 
     if (!userId || typeof userId !== 'number') {
@@ -56,7 +53,6 @@ export async function registerMatchmakingRoutes(
       });
     }
 
-    // Check if user is already in another pool
     const currentPool = poolRegistry.getCurrentPool(userId);
     if (currentPool && currentPool !== gameMode) {
       return reply.status(409).send({
@@ -99,7 +95,6 @@ export async function registerMatchmakingRoutes(
   server.post('/matchmaking/:gameMode/leave', async (request: FastifyRequest, reply: FastifyReply) => {
     const { gameMode } = request.params as { gameMode: string };
 
-    // Validate gameMode
     if (!isValidGameMode(gameMode)) {
       return reply.status(400).send({
         error: 'Bad Request',
@@ -107,7 +102,6 @@ export async function registerMatchmakingRoutes(
       });
     }
 
-    // TODO: Extract from x-user-id header once API Gateway forwards it
     const { userId } = request.body as { userId: number };
 
     if (!userId || typeof userId !== 'number') {
@@ -117,7 +111,6 @@ export async function registerMatchmakingRoutes(
       });
     }
 
-    // Check if user is in this pool
     const currentPool = poolRegistry.getCurrentPool(userId);
     if (currentPool && currentPool !== gameMode) {
       return reply.status(400).send({
