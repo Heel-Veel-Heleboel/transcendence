@@ -2,12 +2,13 @@ import { AuthService } from '../services/auth.js';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { SafeUserDto, LoggedInUserDto, RefreshedTokensDto } from '../types/dtos/auth.js';
 import * as SchemaTypes from '../schemas/auth.js';
-
-
+import { getJwtConfig } from '../config/jwt.js';
+import { AuthenticationError } from '../error/auth.js';
+import { AUTH_PREFIX } from '../constants/auth.js';
 export class AuthController {
-  constructor(private readonly authService: AuthService)
-  {}
 
+  constructor(private readonly authService: AuthService) {}
+  
   async register(request: FastifyRequest<{ Body: SchemaTypes.RegistrationSchemaType }>, reply: FastifyReply) : Promise<FastifyReply> {
     request.log.info({ email: request.body.email }, 'Registration attempt');
     const user: SafeUserDto = await this.authService.register(request.body);
@@ -15,25 +16,62 @@ export class AuthController {
     return reply.code(201).send(user);
   }
   
+
   async login(request: FastifyRequest<{ Body: SchemaTypes.LoginSchemaType }>, reply: FastifyReply) : Promise<FastifyReply> {
     request.log.info({ email: request.body.email }, 'Login attempt');
-    const loggedInUser: LoggedInUserDto = await this.authService.login(request.body);
-    request.log.info({ user_id: loggedInUser.id }, 'User logged in successfully');
-    return reply.code(200).send(loggedInUser);
+    const { refresh_token, ...safeUser }: LoggedInUserDto = await this.authService.login(request.body);
+    request.log.info({ user_id: safeUser.id }, 'User logged in successfully');
+    
+    reply.setCookie('refresh_token', refresh_token, {
+      httpOnly: true,
+      path: AUTH_PREFIX,
+      maxAge: getJwtConfig().expirationRefreshToken,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production'
+    });
+
+    return reply.code(200).send(safeUser);
   }
+
 
   async logout(request: FastifyRequest<{ Body: SchemaTypes.LogoutSchemaType }>, reply: FastifyReply) : Promise<FastifyReply> {
     request.log.info({ user_id: request.body.user_id }, 'Logout attempt');
     await this.authService.logout(request.body);
     request.log.info({ user_id: request.body.user_id }, 'User logged out successfully');
+
+    reply.setCookie('refresh_token', '', {
+      httpOnly: true,
+      path: AUTH_PREFIX,
+      maxAge: 0,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production'
+    });
+
     return reply.code(204).send();
   }
 
+
   async refresh(request: FastifyRequest<{ Body: SchemaTypes.RefreshSchemaType }>, reply: FastifyReply): Promise<FastifyReply> {
     request.log.info({ user_id: request.body.user_id }, 'Token refresh attempt');
-    const refreshTokens: RefreshedTokensDto = await this.authService.refresh(request.body);
+
+    const refresh_token = request.cookies['refresh_token'];
+    if (!refresh_token) {
+      request.log.warn({ user_id: request.body.user_id }, 'Refresh token cookie is missing');
+      throw new AuthenticationError('Refresh token cookie is missing');
+    }
+    const { new_refresh_token, ...access_token }: RefreshedTokensDto = await this.authService.refresh({ user_id: request.body.user_id }, refresh_token);
+
     request.log.info({ user_id: request.body.user_id }, 'Tokens refreshed successfully');
-    return reply.code(200).send(refreshTokens);
+
+    reply.setCookie('refresh_token', new_refresh_token, {
+      httpOnly: true,
+      path: AUTH_PREFIX,
+      maxAge: getJwtConfig().expirationRefreshToken,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production'
+    });
+
+    return reply.code(200).send(access_token);
   }
 
   async changePassword(request: FastifyRequest<{ Body: SchemaTypes.ChangePasswordSchemaType }>, reply: FastifyReply): Promise<FastifyReply> {

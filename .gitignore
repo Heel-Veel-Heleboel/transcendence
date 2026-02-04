@@ -66,6 +66,8 @@ src/auth/keys/
 src/auth/generated/
 # database file
 src/auth/dev.db
+src/auth/prisma/dev.db-journal
+src/auth/prisma/migrations/
 
 # matchmaking service
 src/matchmaking/generated/
