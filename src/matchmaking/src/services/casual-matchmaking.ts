@@ -164,7 +164,7 @@ export class MatchmakingService {
       // Return both players to front of pool on failure
       this.pool.addToFront(pair.player1.userId);
       this.pool.addToFront(pair.player2.userId);
-      this.log('error', `Failed to create match, returned players to pool`, {
+      this.log('error', 'Failed to create match, returned players to pool', {
         player1: pair.player1.userId,
         player2: pair.player2.userId,
         error
