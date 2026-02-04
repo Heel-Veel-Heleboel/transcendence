@@ -2,6 +2,13 @@ import fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import { getPrismaClient, disconnectPrisma } from './db/prisma.client.js';
+import { MatchDao } from './dao/match.js';
+import { MatchmakingService } from './services/casual-matchmaking.js';
+import { PoolRegistry } from './services/pool-registry.js';
+import { MatchReporting } from './services/match-reporting.js';
+import { registerMatchmakingRoutes } from './routes/matchmaking.js';
+import { registerMatchRoutes } from './routes/match.js';
+import { GameMode } from './types/match.js';
 
 const server = fastify({
   logger: {
@@ -26,6 +33,33 @@ await server.register(helmet, {
   contentSecurityPolicy: false, // Disable for API
 });
 
+// Initialize services
+const prisma = getPrismaClient();
+const matchDao = new MatchDao(prisma);
+
+// Create matchmaking pools for each game mode
+const classicPool = new MatchmakingService(matchDao, 'classic', server.log);
+const powerupPool = new MatchmakingService(matchDao, 'powerup', server.log);
+
+const pools: Record<GameMode, MatchmakingService> = {
+  classic: classicPool,
+  powerup: powerupPool,
+};
+
+// Pool registry to track which pool each user is in
+const poolRegistry = new PoolRegistry();
+
+// Match reporting service (for sending results to user management)
+// TODO: Replace with actual UserManagementClient when available
+const mockUserManagementClient = {
+  reportMatchResult: async () => {},
+};
+const matchReporting = new MatchReporting(matchDao, mockUserManagementClient, server.log);
+
+// Initialize all matchmaking pools
+await classicPool.initialize();
+await powerupPool.initialize();
+
 // Health check endpoint
 server.get('/health', async () => {
   return {
@@ -36,10 +70,8 @@ server.get('/health', async () => {
   };
 });
 
-// Detailed health check (includes database)
+// Detailed health check (includes database and pool sizes)
 server.get('/health/detailed', async () => {
-  const prisma = getPrismaClient();
-
   let dbHealthy = false;
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -54,14 +86,25 @@ server.get('/health/detailed', async () => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     database: dbHealthy ? 'connected' : 'disconnected',
+    pools: {
+      classic: classicPool.getPoolSize(),
+      powerup: powerupPool.getPoolSize(),
+    },
   };
 });
+
+// Register routes
+await registerMatchmakingRoutes(server, pools, poolRegistry);
+await registerMatchRoutes(server, matchDao, matchReporting);
+await registerHistoryRoutes(server, matchReporting);
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {
   server.log.info(`Received ${signal}, shutting down gracefully`);
 
   try {
+    await classicPool.shutdown();
+    await powerupPool.shutdown();
     await disconnectPrisma();
     await server.close();
     server.log.info('Server closed successfully');
