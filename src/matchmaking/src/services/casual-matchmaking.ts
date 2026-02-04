@@ -161,9 +161,10 @@ export class MatchmakingService {
       const { matchId } = await this.createMatch(pair);
       return { paired: true, matchId };
     } catch (error) {
-      // Return both players to front of pool on failure
-      this.pool.addToFront(pair.player1.userId);
+      // Return both players to front of pool on failure.
+      // Call order preserves original pair ordering in the queue.
       this.pool.addToFront(pair.player2.userId);
+      this.pool.addToFront(pair.player1.userId);
       this.log('error', 'Failed to create match, returned players to pool', {
         player1: pair.player1.userId,
         player2: pair.player2.userId,
