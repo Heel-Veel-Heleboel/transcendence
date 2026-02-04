@@ -1,4 +1,4 @@
-import { JSX, useState } from "react"
+import { JSX, useEffect, useState } from "react"
 import { Toolbar } from "../components/Toolbar.tsx";
 import { MENU_PAGE } from '../constants/Constants.ts'
 import { CONFIG } from '../constants/AppConfig.ts'
@@ -17,12 +17,11 @@ export const Menu = (): JSX.Element => {
     const [page, setPage] = useState<number>(MENU_PAGE.MENU);
     const auth = useAuth();
 
-    console.log(auth.token);
-    if (auth.token === null) {
-        return (
-            <div>You are not logged in</div>
-        )
-    }
+    useEffect(() => {
+        if (auth.token === null) {
+            auth.gotoLogin();
+        }
+    }, [])
 
     function redirect(page: number) {
         setPage(page);

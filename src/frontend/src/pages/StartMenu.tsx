@@ -1,10 +1,13 @@
-import { JSX, useState } from "react"
+import { JSX, useEffect, useLayoutEffect, useState } from "react"
 import { Login } from '../components/Login.tsx'
 import { Credits } from '../components/Credits.tsx'
 import { CenterContainer, MainWindowContainer, Logo, MenuOption, Title, Animation } from "../components/StartMenuUtils.tsx"
 import { START_MENU_PAGE } from '../constants/Constants.ts'
 import "../style.css"
 import { CONFIG } from "../constants/AppConfig.ts"
+import { useAuth } from "../components/Auth.tsx"
+import { useNavigate } from "react-router-dom"
+import { getCookie } from "../utils/cookies.tsx"
 
 /* v8 ignore start */
 export function GetPage({ page, redirect }: { page: number, redirect: (page: number) => void }): JSX.Element {
@@ -22,7 +25,14 @@ export function GetPage({ page, redirect }: { page: number, redirect: (page: num
 
 export const StartMenu = (): JSX.Element => {
     const [page, setPage] = useState<number>(START_MENU_PAGE.MENU);
+    const navigate = useNavigate();
 
+    useEffect(() => {
+        if (getCookie('refresh_token')) {
+            console.log('found token');
+            navigate('/menu');
+        }
+    }, [])
     function redirect(page: number) {
         setPage(page);
     }

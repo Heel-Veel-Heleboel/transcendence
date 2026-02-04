@@ -1,6 +1,7 @@
 import axios from 'axios';
 import {
     createContext,
+    useRef,
     useContext,
     useEffect,
     useLayoutEffect,
@@ -10,6 +11,7 @@ import {
 } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { CONFIG } from '../constants/AppConfig';
+import { getCookie, createCookie } from '../utils/cookies';
 
 interface ICredentials {
     email: string;
@@ -22,6 +24,8 @@ interface IAuthContext {
     register: Function;
     logIn: Function;
     logOut: Function;
+    refresh: Function;
+    gotoLogin: Function;
 }
 
 const AuthContext = createContext<IAuthContext | undefined>(undefined);
@@ -29,7 +33,7 @@ const AuthContext = createContext<IAuthContext | undefined>(undefined);
 export function useAuth() {
     const authContext = useContext(AuthContext);
 
-    if (!authContext) {
+    if (authContext === undefined) {
         throw new Error('useAuth has to be used within AuthProvider');
     }
 
@@ -40,18 +44,18 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     const [token, setToken] = useState<string | null>(null);
     const [user, setUser] = useState<number>(0);
     const navigate = useNavigate();
+    const isFetching = useRef(false);
 
     useEffect(() => {
         async function fetchAccess() {
             try {
+                console.log('trying to refresh');
                 refresh();
             } catch {
-                setToken(null);
-                navigate('/');
+                gotoLogin();
             }
         }
 
-        // NOTE: needs to be with await or not?
         fetchAccess();
     }, []);
 
@@ -66,37 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         };
     }, [token]);
 
-    //TODO: fix looping issue
-    useLayoutEffect(() => {
-        const refreshInterceptor = axios.interceptors.response.use((response) => response,
-            async (error) => {
-                const originalRequest = error.config;
-
-                if (
-                    // TODO: change to actual unauthorized error status
-                    error.response.status === 500
-                ) {
-                    try {
-                        refresh();
-
-                        // NOTE: following two lines could be removed, as setToken sets token anyway for request interceptor to be used
-                        // originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
-                        // originalRequest._retry = true;
-                        return axios(originalRequest);
-                    } catch {
-                        setToken(null);
-                        navigate('/');
-                    }
-                }
-
-                return Promise.reject(error);
-            }
-        )
-        return function cleanup() {
-            axios.interceptors.request.eject(refreshInterceptor);
-        };
-    }, []);
-
     async function register(credentials: ICredentials) {
         try {
             const response = await axios({
@@ -105,15 +78,11 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
                 headers: CONFIG.REQUEST_REGISTER_HEADERS,
                 data: JSON.stringify({ email: credentials.email, user_name: credentials.username, password: credentials.password }),
             })
-            // if (response.status !== 201) {
-            //     throw new Error(`Response status: ${response.status}`);
-            // }
-            console.log(response);
-        } catch (error: any) {
-            if (error.message === '500') {
-                throw new Error("credentials are already used");
+        } catch (e: any) {
+            if (e.response.status === CONFIG.REQUEST_REGISTER_CREDENTIALS_TAKEN) {
+                throw new Error("credentials are already in use");
             }
-            throw new Error(`unknown error with status code: ${error.message}`)
+            throw new Error(`unknown error: ${e.message}`);
         }
     }
 
@@ -125,16 +94,14 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
                 headers: CONFIG.REQUEST_SIGNIN_HEADERS,
                 data: JSON.stringify({ email: credentials.email, username: credentials.username, password: credentials.password }),
             })
-            // if (response.status !== 200) {
-            //     throw new Error(`Response status: ${response.status}`);
-            // }
-            console.log(response);
-            // TODO: delete when refresh_token is implemented as http-only from auth server
             setUser(response.data.id);
             setToken(response.data.access_token);
+            // TODO: delete when refresh_token is implemented as http-only from auth server
+            createCookie('user_id', response.data.id, 7);
+            console.log(response);
             createCookie("refresh_token", response.data.refresh_token, 7);
-        } catch (error: any) {
-            throw new Error(`unknown error with status code: ${error.message}`)
+        } catch (e: any) {
+            throw new Error(`unknown error: ${e.message}`);
         }
     }
 
@@ -147,67 +114,55 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
                 // TODO: delete refresh_token once http-only is implemented
                 data: JSON.stringify({ user_id: user, refresh_token: getCookie('refresh_token') }),
             })
-            if (response.status === 204) {
-                navigate('/');
-            }
-            else {
+            if (response.status === CONFIG.REQUEST_LOGOUT_SUCCESFULL) {
+                createCookie('refresh_token', '', -1);
+                createCookie('user_id', '', -1);
+                gotoLogin();
+            } else {
                 throw new Error(`Response status: ${response.status}`);
             }
-            console.log(response);
-        } catch (error: any) {
-            throw new Error(`unknown error with status code: ${error.message}`)
+        } catch (e: any) {
+            throw new Error(`unknown error: ${e.message}`);
         }
     }
 
     async function refresh() {
+        if (isFetching.current) return; // Prevent duplicate requests
+        isFetching.current = true;
         try {
+            const usr = getCookie('user_id');
+            if (!usr) {
+                throw new Error('No user logged in');
+            }
+            console.log(usr);
             const response = await axios({
                 url: CONFIG.REQUEST_REFRESH,
                 method: CONFIG.REQUEST_REFRESH_METHOD,
                 headers: CONFIG.REQUEST_REFRESH_HEADERS,
                 // TODO: delete refresh_token once http-only is implemented
-                data: JSON.stringify({ user_id: user, refresh_token: getCookie('refresh_token') }),
+                data: JSON.stringify({ user_id: usr, refresh_token: getCookie('refresh_token') }),
             })
-            if (response.status === 500) {
-                throw new Error(`Response status: ${response.status}`);
-            }
             setToken(response.data.accessToken);
-            console.log(response);
-        } catch (error: any) {
-            navigate('/');
-            throw new Error(`unknown error with status code: ${error.message}`)
+            createCookie("refresh_token", response.data.refresh_token, 7);
+            console.log('succesfull refresh');
+        } catch (e: any) {
+            console.error(e);
+            setToken(null);
+            createCookie("refresh_token", '', -1);
+        } finally {
+            isFetching.current = false;
         }
     }
 
+    function gotoLogin() {
+        setToken(null);
+        navigate('/');
+    }
+
     return (
-        <AuthContext.Provider value={{ token, register, logIn, logOut }}>
+        <AuthContext.Provider value={{ token, register, logIn, logOut, refresh, gotoLogin }} >
             {children}
-        </AuthContext.Provider>
+        </ AuthContext.Provider>
     )
 }
 
-
-// TODO: delete when refresh_token is implemented as http-only from auth server
-function createCookie(name: string, value: string, days: number) {
-    let expires;
-    if (days) {
-        let date = new Date();
-        date.setDate(date.getDate() + days);
-        expires = "; expires=" + date;
-    }
-    else {
-        expires = "";
-    }
-    document.cookie = name + "=" + value + expires + "; path=/";
-}
-
-function getCookie(name: string): string {
-    let nameEQ = name + "=";
-    let ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-    }
-    return "";
-}
