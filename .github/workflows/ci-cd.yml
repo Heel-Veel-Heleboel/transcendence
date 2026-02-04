@@ -62,6 +62,15 @@ jobs:
     
     - name: Install dependencies
       run: npm ci
+
+    
+    - name: Install matchmaking dependencies
+      run: npm ci
+      working-directory: src/matchmaking
+
+    - name: Generate Prisma client for matchmaking
+      run: npx prisma generate
+      working-directory: src/matchmaking
     
     - name: Build project
       run: npm run build
