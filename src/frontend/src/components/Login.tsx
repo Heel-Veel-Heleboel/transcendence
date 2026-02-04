@@ -4,11 +4,12 @@ import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "./ErrorFallBack.tsx";
 import { MenuOption } from './StartMenuUtils.tsx'
 import { useAuth } from "./Auth.tsx";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 /* v8 ignore start */
 export function Login({ redirect }: { redirect: (page: number) => void }): JSX.Element {
     const [loginOption, setLoginOption] = useState<number>(LOGIN_OPTION.DEFAULT_LOGIN);
+
     let component;
     switch (loginOption) {
         case LOGIN_OPTION.DEFAULT_LOGIN:
@@ -47,7 +48,6 @@ export function DefaultLogin({ callback }: { callback: (page: number) => void })
 }
 
 export function SignInForm({ callback }: { callback: (page: number) => void }): JSX.Element {
-
     const auth = useAuth();
     const navigate = useNavigate();
     async function submit(form: FormData) {
@@ -65,7 +65,11 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
             throw Error('non-valid password')
         }
 
-        auth.logIn({ email, username, password });
+        try {
+            await auth.logIn({ email, username, password });
+        } catch (e: any) {
+            throw e;
+        }
         navigate('/menu');
     };
     return (
@@ -88,6 +92,7 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
 
 export function RegisterForm({ callback }: { callback: (page: number) => void }): JSX.Element {
     const auth = useAuth();
+
     async function submit(form: FormData) {
         const email = form.get("email");
         const username = form.get("username");
@@ -100,7 +105,11 @@ export function RegisterForm({ callback }: { callback: (page: number) => void })
             throw Error('non-valid password')
         }
 
-        auth.register({ email, username, password });
+        try {
+            await auth.register({ email, username, password });
+        } catch (e: any) {
+            throw e;
+        }
         callback(LOGIN_OPTION.REGISTER_SUCCESFULL);
 
     };
