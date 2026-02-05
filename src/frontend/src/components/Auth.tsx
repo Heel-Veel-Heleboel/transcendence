@@ -96,10 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             })
             setUser(response.data.id);
             setToken(response.data.access_token);
-            // TODO: delete when refresh_token is implemented as http-only from auth server
-            createCookie('user_id', response.data.id, 7);
+            // createCookie('user_id', response.data.id, 7);
             console.log(response);
-            createCookie("refresh_token", response.data.refresh_token, 7);
         } catch (e: any) {
             throw new Error(`unknown error: ${e.message}`);
         }
@@ -111,11 +109,9 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
                 url: CONFIG.REQUEST_LOGOUT,
                 method: CONFIG.REQUEST_LOGOUT_METHOD,
                 headers: CONFIG.REQUEST_LOGOUT_HEADERS,
-                // TODO: delete refresh_token once http-only is implemented
-                data: JSON.stringify({ user_id: user, refresh_token: getCookie('refresh_token') }),
+                data: JSON.stringify({ user_id: user }),
             })
             if (response.status === CONFIG.REQUEST_LOGOUT_SUCCESFULL) {
-                createCookie('refresh_token', '', -1);
                 createCookie('user_id', '', -1);
                 gotoLogin();
             } else {
@@ -139,16 +135,13 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
                 url: CONFIG.REQUEST_REFRESH,
                 method: CONFIG.REQUEST_REFRESH_METHOD,
                 headers: CONFIG.REQUEST_REFRESH_HEADERS,
-                // TODO: delete refresh_token once http-only is implemented
-                data: JSON.stringify({ user_id: usr, refresh_token: getCookie('refresh_token') }),
+                data: JSON.stringify({ user_id: usr }),
             })
             setToken(response.data.accessToken);
-            createCookie("refresh_token", response.data.refresh_token, 7);
             console.log('succesfull refresh');
         } catch (e: any) {
             console.error(e);
             setToken(null);
-            createCookie("refresh_token", '', -1);
         } finally {
             isFetching.current = false;
         }
