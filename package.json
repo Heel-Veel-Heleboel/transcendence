@@ -26,6 +26,7 @@
     "@types/node": "^20.19.25",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
+    "@vitejs/plugin-react-swc": "^4.2.3",
     "@vitest/coverage-v8": "^3.2.4",
     "emmet-ls": "^0.4.2",
     "eslint": "^9.37.0",
