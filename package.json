@@ -22,6 +22,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.19.25",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
@@ -39,5 +40,11 @@
     "typescript": "^5.3.3",
     "vitest": "^3.2.4",
     "vitest-webgl-canvas-mock": "^1.1.0"
+  },
+  "dependencies": {
+    "@babylonjs/core": "^8.50.0",
+    "@fastify/http-proxy": "^11.4.1",
+    "fastify": "^4.29.1",
+    "jsonwebtoken": "^9.0.3"
   }
 }
