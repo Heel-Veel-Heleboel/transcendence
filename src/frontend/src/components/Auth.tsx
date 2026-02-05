@@ -93,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
                 method: CONFIG.REQUEST_SIGNIN_METHOD,
                 headers: CONFIG.REQUEST_SIGNIN_HEADERS,
                 data: JSON.stringify({ email: credentials.email, username: credentials.username, password: credentials.password }),
+                withCredentials: true
             })
             setUser(response.data.id);
             setToken(response.data.access_token);
