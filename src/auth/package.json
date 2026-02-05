@@ -8,7 +8,7 @@
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=production node --env-file-if-exists=.env dist/src/index.js",
-    "dev": "NODE_ENV=development node --env-file-if-exists=.env tsx src/index.ts",
+    "dev": "npx prisma migrate deploy && npx prisma generate && npm run build && npm run start",
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf ../../dist/auth"
   },
@@ -22,7 +22,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@fastify/cookie": "^11.0.2",
+    "@fastify/cookie": "^9.4.0",
     "@fastify/type-provider-typebox": "^6.1.0",
     "@prisma/adapter-better-sqlite3": "^7.2.0",
     "@prisma/client": "^7.2.0",
