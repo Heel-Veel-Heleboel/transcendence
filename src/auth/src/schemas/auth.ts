@@ -33,8 +33,7 @@ export const LoginSchema = {
 
 //logout schema
 export const LogoutSchemaBody = Type.Object({
-  user_id: Type.Number(),
-  refresh_token: Type.String()
+  user_id: Type.Number()
 });
 //type for logout schema
 export type LogoutSchemaType = Static<typeof LogoutSchemaBody>;

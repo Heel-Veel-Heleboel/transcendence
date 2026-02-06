@@ -29,7 +29,9 @@ describe('AuthController - logout', () => {
 
     const mockRequest = {
       body: {
-        user_id: 1,
+        user_id: 1
+      },
+      cookies: {
         refresh_token: 'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv'
       },
       log: {
@@ -41,10 +43,10 @@ describe('AuthController - logout', () => {
 
     await authController.logout(mockRequest, MockReply as any);
 
-    expect(MockAuthService.logout).toHaveBeenCalledWith({
-      user_id: 1,
-      refresh_token: 'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv'
-    });
+    expect(MockAuthService.logout).toHaveBeenCalledWith(
+      { user_id: 1 },
+      'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv'
+    );
     expect(MockReply.code).toHaveBeenCalledWith(204);
     expect(MockReply.send).toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
@@ -60,7 +62,9 @@ describe('AuthController - logout', () => {
   it('Should handle errors during logout', async () => {
     const mockRequest = {
       body: {
-        user_id: 2,
+        user_id: 2
+      },
+      cookies: {
         refresh_token: 'invalidtokenvalue'
       },
       log: {
@@ -75,10 +79,10 @@ describe('AuthController - logout', () => {
 
     await expect(authController.logout(mockRequest, MockReply as any)).rejects.toThrow('Logout failed');
 
-    expect(MockAuthService.logout).toHaveBeenCalledWith({
-      user_id: 2,
-      refresh_token: 'invalidtokenvalue'
-    });
+    expect(MockAuthService.logout).toHaveBeenCalledWith(
+      { user_id: 2 },
+      'invalidtokenvalue'
+    );
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
@@ -94,7 +98,9 @@ describe('AuthController - logout', () => {
   it('Should clear refresh_token cookie on successful logout', async () => {
     const mockRequest = {
       body: {
-        user_id: 3,
+        user_id: 3
+      },
+      cookies: {
         refresh_token: 'valid-token'
       },
       log: {
@@ -123,7 +129,9 @@ describe('AuthController - logout', () => {
   it('Should NOT clear cookie when logout fails', async () => {
     const mockRequest = {
       body: {
-        user_id: 4,
+        user_id: 4
+      },
+      cookies: {
         refresh_token: 'bad-token'
       },
       log: {
@@ -137,6 +145,30 @@ describe('AuthController - logout', () => {
 
     await expect(authController.logout(mockRequest, MockReply as any)).rejects.toThrow('Logout error');
 
+    expect(MockReply.setCookie).not.toHaveBeenCalled();
+  });
+
+  it('Should throw error when refresh token cookie is missing', async () => {
+    const mockRequest = {
+      body: {
+        user_id: 5
+      },
+      cookies: {},
+      log: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn()
+      }
+    } as any;
+
+    await expect(authController.logout(mockRequest, MockReply as any))
+      .rejects.toThrow('Refresh token cookie is missing');
+
+    expect(mockRequest.log.warn).toHaveBeenCalledWith(
+      { user_id: 5 },
+      'Refresh token cookie is missing during logout'
+    );
+    expect(MockAuthService.logout).not.toHaveBeenCalled();
     expect(MockReply.setCookie).not.toHaveBeenCalled();
   });
 });

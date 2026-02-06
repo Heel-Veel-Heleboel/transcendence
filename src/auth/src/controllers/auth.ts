@@ -36,7 +36,12 @@ export class AuthController {
 
   async logout(request: FastifyRequest<{ Body: SchemaTypes.LogoutSchemaType }>, reply: FastifyReply) : Promise<FastifyReply> {
     request.log.info({ user_id: request.body.user_id }, 'Logout attempt');
-    await this.authService.logout(request.body);
+    const refresh_token = request.cookies['refresh_token'];
+    if (!refresh_token) {
+      request.log.warn({ user_id: request.body.user_id }, 'Refresh token cookie is missing during logout');
+      throw new AuthenticationError('Refresh token cookie is missing');
+    }
+    await this.authService.logout(request.body, refresh_token);
     request.log.info({ user_id: request.body.user_id }, 'User logged out successfully');
 
     reply.setCookie('refresh_token', '', {

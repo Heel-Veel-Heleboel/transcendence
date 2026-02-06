@@ -74,8 +74,8 @@ export class AuthService {
   }
 
 
-  async logout(logout: SchemaTypes.LogoutSchemaType): Promise<void> {
-    const tokenId = await this.validateRefreshToken({ user_id: logout.user_id, refresh_token: logout.refresh_token });
+  async logout(logout: SchemaTypes.LogoutSchemaType, refresh_token: string): Promise<void> {
+    const tokenId = await this.validateRefreshToken({ user_id: logout.user_id, refresh_token: refresh_token });
     await this.refreshTokenDao.revoke({ id: tokenId });
   }
 
