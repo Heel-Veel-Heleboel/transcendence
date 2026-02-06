@@ -66,9 +66,14 @@ src/auth/keys/
 src/auth/generated/
 # database file
 src/auth/dev.db
+src/auth/prisma/dev.db-journal
+src/auth/prisma/migrations/
 
 # matchmaking service
 src/matchmaking/generated/
 src/matchmaking/prisma/dev.db
 src/matchmaking/prisma/dev.db-journal
 src/matchmaking/prisma/migrations/
+
+# frontend docker-compose
+.docker_compose_started
