@@ -42,7 +42,6 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
     const [token, setToken] = useState<string | null>(null);
-    const [user, setUser] = useState<number>(0);
     const navigate = useNavigate();
     const isFetching = useRef(false);
 
@@ -95,9 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
                 data: JSON.stringify({ email: credentials.email, username: credentials.username, password: credentials.password }),
                 withCredentials: true
             })
-            setUser(response.data.id);
             setToken(response.data.access_token);
-            // createCookie('user_id', response.data.id, 7);
+            createCookie('user_id', response.data.id, 7);
             console.log(response);
         } catch (e: any) {
             throw new Error(`unknown error: ${e.message}`);
@@ -106,11 +104,13 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
     async function logOut() {
         try {
+            const user = getCookie('user_id');
             const response = await axios({
                 url: CONFIG.REQUEST_LOGOUT,
                 method: CONFIG.REQUEST_LOGOUT_METHOD,
                 headers: CONFIG.REQUEST_LOGOUT_HEADERS,
                 data: JSON.stringify({ user_id: user }),
+                withCredentials: true
             })
             if (response.status === CONFIG.REQUEST_LOGOUT_SUCCESFULL) {
                 createCookie('user_id', '', -1);
@@ -127,18 +127,18 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         if (isFetching.current) return; // Prevent duplicate requests
         isFetching.current = true;
         try {
-            const usr = getCookie('user_id');
-            if (!usr) {
+            const user = getCookie('user_id');
+            if (!user) {
                 throw new Error('No user logged in');
             }
-            console.log(usr);
             const response = await axios({
                 url: CONFIG.REQUEST_REFRESH,
                 method: CONFIG.REQUEST_REFRESH_METHOD,
                 headers: CONFIG.REQUEST_REFRESH_HEADERS,
-                data: JSON.stringify({ user_id: usr }),
+                data: JSON.stringify({ user_id: user }),
+                withCredentials: true
             })
-            setToken(response.data.accessToken);
+            setToken(response.data.access_token);
             console.log('succesfull refresh');
         } catch (e: any) {
             console.error(e);

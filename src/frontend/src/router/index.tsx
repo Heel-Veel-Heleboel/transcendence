@@ -20,12 +20,10 @@ export const Router = () => {
         }
         document.title = `Transcendance | ${name}`
     }, [])
-    console.log('herein router');
 
     if (hydrated === false) {
         return null;
     }
-    console.log('hereafter router');
     return (
         <AuthProvider>
             <Routes>

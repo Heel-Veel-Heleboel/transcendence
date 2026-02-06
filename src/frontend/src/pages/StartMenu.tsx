@@ -26,13 +26,13 @@ export function GetPage({ page, redirect }: { page: number, redirect: (page: num
 export const StartMenu = (): JSX.Element => {
     const [page, setPage] = useState<number>(START_MENU_PAGE.MENU);
     const navigate = useNavigate();
+    const auth = useAuth();
 
-    useEffect(() => {
-        if (getCookie('refresh_token')) {
-            console.log('found token');
+    useLayoutEffect(() => {
+        if (auth.token) {
             navigate('/menu');
         }
-    }, [])
+    }, [auth])
     function redirect(page: number) {
         setPage(page);
     }
