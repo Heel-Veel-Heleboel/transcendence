@@ -32,7 +32,7 @@ describe('MatchmakingService', () => {
       findActiveMatchForUser: vi.fn(),
     } as any;
 
-    service = new MatchmakingService(mockMatchDao, undefined, {
+    service = new MatchmakingService(mockMatchDao, 'classic', undefined, {
       ackTimeoutMs: TEST_ACK_TIMEOUT_MS,
       maxWaitTimeMs: TEST_MAX_WAIT_TIME_MS,
     });

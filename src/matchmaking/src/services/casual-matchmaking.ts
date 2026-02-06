@@ -32,12 +32,14 @@ export class MatchmakingService {
 
   constructor(
     private readonly matchDao: MatchDao,
+    gameMode: string,
     private readonly logger?: Logger,
     config?: {
       ackTimeoutMs?: number;
       maxWaitTimeMs?: number;
     }
   ) {
+    this.gameMode = gameMode;
     this.ACK_TIMEOUT_MS = config?.ackTimeoutMs ?? 5 * 60 * 1000; // Default: 5 minutes
     this.MAX_WAIT_TIME_MS = config?.maxWaitTimeMs ?? 30 * 60 * 1000; // Default: 30 minutes
   }
@@ -139,6 +141,7 @@ export class MatchmakingService {
     const match = await this.matchDao.create({
       player1Id: pair.player1.userId,
       player2Id: pair.player2.userId,
+      gameMode: this.gameMode,
       deadline
     });
 

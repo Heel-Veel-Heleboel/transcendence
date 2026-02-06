@@ -87,6 +87,7 @@ model TournamentParticipant {
 model Match {
   id                    String       @id @default(uuid())
   tournamentId          Int?                    // null for casual matches
+  gameMode              String       @default("classic")  // "classic" or "powerup" - tells game-service which variant to start
   player1Id             Int
   player2Id             Int
   status                MatchStatus  @default(PENDING_ACKNOWLEDGEMENT)
@@ -113,4 +114,5 @@ model Match {
   @@index([status])
   @@index([deadline])
   @@index([gameSessionId])
+  @@index([gameMode])
 }
