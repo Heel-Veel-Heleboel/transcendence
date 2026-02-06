@@ -47,12 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
     useEffect(() => {
         async function fetchAccess() {
-            try {
-                console.log('trying to refresh');
-                refresh();
-            } catch {
-                gotoLogin();
-            }
+            refreshAttempt();
         }
 
         fetchAccess();
@@ -66,6 +61,25 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
         return function cleanup() {
             api.interceptors.request.eject(authInterceptor);
+        };
+    }, [token]);
+
+    useLayoutEffect(() => {
+        const refreshIntercept = api.interceptors.response.use((config) => {
+            return config;
+        }, async (error) => {
+            if (error.response.status === 403) {
+                refreshAttempt();
+                // TODO: check if followinf if statement works when access_token is actually implemented
+                if (token === null)
+                    return Promise.reject(error);
+                return api(error.config);
+            }
+            return Promise.reject(error);
+        });
+
+        return function cleanup() {
+            api.interceptors.request.eject(refreshIntercept);
         };
     }, [token]);
 
@@ -142,6 +156,15 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             setToken(null);
         } finally {
             isFetching.current = false;
+        }
+    }
+
+    function refreshAttempt() {
+        try {
+            console.log('trying to refresh');
+            refresh();
+        } catch {
+            gotoLogin();
         }
     }
 
