@@ -8,7 +8,14 @@
     "dev": "tsx watch --env-file=.env src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file=.env dist/index.js",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src/**/src/**/*.ts test/**/*.ts --ext .ts",
+    "lint:fix": "eslint src/**/src/**/*.ts test/**/*.ts --ext .ts --fix",
+    "format": "prettier --write src/**/src/**/*.ts test/**/*.ts",
+    "format:check": "prettier --check src/**/src/**/*.ts test/**/*.ts"
   },
   "keywords": [
     "api-gateway",
@@ -25,11 +32,11 @@
     "@fastify/helmet": "^11.1.1",
     "@fastify/http-proxy": "^9.5.0",
     "@fastify/websocket": "^7.0.1",
-    "axios": "^1.7.2",
     "fastify": "^4.28.1",
     "jsonwebtoken": "^9.0.0",
     "pino": "^8.17.2",
     "pino-pretty": "^10.3.1",
+    "tsx": "^4.20.6",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
@@ -37,7 +44,18 @@
     "@types/node": "^20.11.17",
     "@types/uuid": "^9.0.7",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "@typescript-eslint/eslint-plugin": "^8.46.1",
+    "@typescript-eslint/parser": "^8.46.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.37.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "prettier": "^3.6.2",
+    "vitest": "^3.2.4",
+    "vitest-webgl-canvas-mock": "^1.1.0"
   },
   "engines": {
     "node": ">=18"
