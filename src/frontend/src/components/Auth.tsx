@@ -1,4 +1,3 @@
-import axios from 'axios';
 import {
     createContext,
     useRef,
@@ -9,8 +8,9 @@ import {
     ReactNode,
     JSX
 } from 'react'
-import { useNavigate } from 'react-router-dom';
 import { CONFIG } from '../constants/AppConfig';
+import { useNavigate } from 'react-router-dom';
+import api from './Api';
 import { getCookie, createCookie } from '../utils/cookies';
 
 interface ICredentials {
@@ -59,19 +59,19 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     }, []);
 
     useLayoutEffect(() => {
-        const authInterceptor = axios.interceptors.request.use((config) => {
+        const authInterceptor = api.interceptors.request.use((config) => {
             config.headers.Authorization = token ? `Bearer ${token}` : config.headers.Authorization;
             return (config);
         })
 
         return function cleanup() {
-            axios.interceptors.request.eject(authInterceptor);
+            api.interceptors.request.eject(authInterceptor);
         };
     }, [token]);
 
     async function register(credentials: ICredentials) {
         try {
-            const response = await axios({
+            const response = await api({
                 url: CONFIG.REQUEST_REGISTER,
                 method: CONFIG.REQUEST_REGISTER_METHOD,
                 headers: CONFIG.REQUEST_REGISTER_HEADERS,
@@ -87,12 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
     async function logIn(credentials: ICredentials) {
         try {
-            const response = await axios({
+            const response = await api({
                 url: CONFIG.REQUEST_SIGNIN,
                 method: CONFIG.REQUEST_SIGNIN_METHOD,
                 headers: CONFIG.REQUEST_SIGNIN_HEADERS,
                 data: JSON.stringify({ email: credentials.email, username: credentials.username, password: credentials.password }),
-                withCredentials: true
             })
             setToken(response.data.access_token);
             createCookie('user_id', response.data.id, 7);
@@ -105,12 +104,11 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     async function logOut() {
         try {
             const user = getCookie('user_id');
-            const response = await axios({
+            const response = await api({
                 url: CONFIG.REQUEST_LOGOUT,
                 method: CONFIG.REQUEST_LOGOUT_METHOD,
                 headers: CONFIG.REQUEST_LOGOUT_HEADERS,
                 data: JSON.stringify({ user_id: user }),
-                withCredentials: true
             })
             if (response.status === CONFIG.REQUEST_LOGOUT_SUCCESFULL) {
                 createCookie('user_id', '', -1);
@@ -131,12 +129,11 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             if (!user) {
                 throw new Error('No user logged in');
             }
-            const response = await axios({
+            const response = await api({
                 url: CONFIG.REQUEST_REFRESH,
                 method: CONFIG.REQUEST_REFRESH_METHOD,
                 headers: CONFIG.REQUEST_REFRESH_HEADERS,
                 data: JSON.stringify({ user_id: user }),
-                withCredentials: true
             })
             setToken(response.data.access_token);
             console.log('succesfull refresh');

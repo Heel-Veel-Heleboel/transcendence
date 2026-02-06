@@ -47,24 +47,25 @@ export const CONFIG = Object.create({
   MUSICPLAYER_LOGO: 'mtvx.png', // <a href="https://www.flaticon.com/free-icons/vinyl" title="vinyl icons">Vinyl icons created by Roundicons - Flaticon</a>
 
   // AXIOS
-  REQUEST_REGISTER: 'http://localhost:3000/api/auth/register',
+  REQUEST_BASE_URL: 'http://localhost:3000/',
+  REQUEST_REGISTER: 'api/auth/register',
   REQUEST_REGISTER_METHOD: 'POST',
   REQUEST_REGISTER_HEADERS: {
     'Content-Type': 'application/json'
   },
   REQUEST_REGISTER_CREDENTIALS_TAKEN: 500,
-  REQUEST_SIGNIN: 'http://localhost:3000/api/auth/login',
+  REQUEST_SIGNIN: 'api/auth/login',
   REQUEST_SIGNIN_METHOD: 'POST',
   REQUEST_SIGNIN_HEADERS: {
     'Content-Type': 'application/json'
   },
-  REQUEST_LOGOUT: 'http://localhost:3000/api/auth/logout',
+  REQUEST_LOGOUT: 'api/auth/logout',
   REQUEST_LOGOUT_METHOD: 'POST',
   REQUEST_LOGOUT_HEADERS: {
     'Content-Type': 'application/json'
   },
   REQUEST_LOGOUT_SUCCESFULL: 204,
-  REQUEST_REFRESH: 'http://localhost:3000/api/auth/refresh',
+  REQUEST_REFRESH: 'api/auth/refresh',
   REQUEST_REFRESH_METHOD: 'POST',
   REQUEST_REFRESH_HEADERS: {
     'Content-Type': 'application/json'
