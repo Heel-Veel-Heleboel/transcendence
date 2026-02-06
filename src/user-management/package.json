@@ -1,0 +1,27 @@
+{
+  "name": "user-management",
+  "version": "1.0.0",
+  "description": "",
+  "author": "Artem Mysiv",
+  "license": "ISC",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node --env-file-if-exists=.env dist/src/index.js",
+    "clean": "rm -rf ../../dist/user-management",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.19.30",
+    "dotenv": "^16.6.1",
+    "prisma": "^7.3.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.3.0",
+    "@prisma/client": "^7.3.0"
+  }
+}
