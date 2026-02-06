@@ -22,6 +22,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "fastify": "^4.28.1",
     "@fastify/type-provider-typebox": "^6.1.0",
     "@prisma/adapter-better-sqlite3": "^7.2.0",
     "@prisma/client": "^7.2.0",
