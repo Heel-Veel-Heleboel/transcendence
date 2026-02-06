@@ -2,6 +2,10 @@ import fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import { getPrismaClient, disconnectPrisma } from './db/prisma.client.js';
+import { MatchDao } from './dao/match.js';
+import { MatchmakingService } from './services/matchmaking.service.js';
+import { registerMatchmakingRoutes } from './routes/matchmaking.routes.js';
+import { registerMatchRoutes } from './routes/match.routes.js';
 
 const server = fastify({
   logger: {
@@ -26,6 +30,14 @@ await server.register(helmet, {
   contentSecurityPolicy: false, // Disable for API
 });
 
+// Initialize services
+const prisma = getPrismaClient();
+const matchDao = new MatchDao(prisma);
+const matchmakingService = new MatchmakingService(matchDao, server.log);
+
+// Initialize matchmaking service
+await matchmakingService.initialize();
+
 // Health check endpoint
 server.get('/health', async () => {
   return {
@@ -38,8 +50,6 @@ server.get('/health', async () => {
 
 // Detailed health check (includes database)
 server.get('/health/detailed', async () => {
-  const prisma = getPrismaClient();
-
   let dbHealthy = false;
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -54,8 +64,13 @@ server.get('/health/detailed', async () => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     database: dbHealthy ? 'connected' : 'disconnected',
+    poolSize: matchmakingService.getPoolSize(),
   };
 });
+
+// Register routes
+await registerMatchmakingRoutes(server, matchmakingService);
+await registerMatchRoutes(server, matchDao);
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {
