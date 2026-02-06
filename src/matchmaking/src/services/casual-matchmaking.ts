@@ -139,8 +139,8 @@ export class MatchmakingService {
     const deadline = new Date(Date.now() + this.ACK_TIMEOUT_MS);
 
     const match = await this.matchDao.create({
-      player1Id: player1.userId,
-      player2Id: player2.userId,
+      player1Id: pair.player1.userId,
+      player2Id: pair.player2.userId,
       gameMode: this.gameMode,
       deadline
     });
