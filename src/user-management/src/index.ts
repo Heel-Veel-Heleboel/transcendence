@@ -1,1 +1,0 @@
-console.log('User Management Service say: "Hello World!?"');
