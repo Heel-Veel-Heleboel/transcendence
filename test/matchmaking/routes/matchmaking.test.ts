@@ -55,7 +55,7 @@ describe('Matchmaking Routes', () => {
       expect(body.success).toBe(true);
       expect(body.gameMode).toBe('classic');
       expect(body.message).toContain('classic');
-      expect(mockClassicPool.joinPool).toHaveBeenCalledWith(100);
+      expect(mockClassicPool.joinPool).toHaveBeenCalledWith(100, 'player1');
     });
 
     it('should join powerup pool successfully', async () => {
@@ -69,7 +69,7 @@ describe('Matchmaking Routes', () => {
       const body = JSON.parse(response.body);
       expect(body.success).toBe(true);
       expect(body.gameMode).toBe('powerup');
-      expect(mockPowerupPool.joinPool).toHaveBeenCalledWith(100);
+      expect(mockPowerupPool.joinPool).toHaveBeenCalledWith(100, 'player1');
     });
 
     it('should return 400 for invalid gameMode', async () => {
