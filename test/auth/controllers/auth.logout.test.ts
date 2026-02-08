@@ -1,12 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthController } from '../../../src/auth/src/controllers/auth.js';
 
+vi.mock('../../../src/auth/src/config/jwt.js', () => ({
+  getJwtConfig: vi.fn(() => ({
+    expirationRefreshToken: 7 * 24 * 60 * 60 * 1000
+  }))
+}));
+
 const MockAuthService = {
   logout: vi.fn()
 };
 
 const MockReply = {
   code: vi.fn().mockReturnThis(),
+  setCookie: vi.fn().mockReturnThis(),
   send: vi.fn()
 };
 
@@ -82,5 +89,54 @@ describe('AuthController - logout', () => {
       { user_id: mockRequest.body.user_id },
       'User logged out successfully'
     );
+  });
+
+  it('Should clear refresh_token cookie on successful logout', async () => {
+    const mockRequest = {
+      body: {
+        user_id: 3,
+        refresh_token: 'valid-token'
+      },
+      log: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn()
+      }
+    } as any;
+
+    await authController.logout(mockRequest, MockReply as any);
+
+    expect(MockReply.setCookie).toHaveBeenCalledTimes(1);
+    expect(MockReply.setCookie).toHaveBeenCalledWith(
+      'refresh_token',
+      '',
+      expect.objectContaining({
+        httpOnly: true,
+        path: '/auth',
+        maxAge: 0,
+        sameSite: 'strict',
+        secure: false
+      })
+    );
+  });
+
+  it('Should NOT clear cookie when logout fails', async () => {
+    const mockRequest = {
+      body: {
+        user_id: 4,
+        refresh_token: 'bad-token'
+      },
+      log: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn()
+      }
+    } as any;
+
+    MockAuthService.logout.mockRejectedValueOnce(new Error('Logout error'));
+
+    await expect(authController.logout(mockRequest, MockReply as any)).rejects.toThrow('Logout error');
+
+    expect(MockReply.setCookie).not.toHaveBeenCalled();
   });
 });
