@@ -14,20 +14,20 @@ const server = fastify({
       target: 'pino-pretty',
       options: {
         translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname',
-      },
-    },
-  },
+        ignore: 'pid,hostname'
+      }
+    }
+  }
 });
 
 // Register plugins
 await server.register(cors, {
   origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-  credentials: true,
+  credentials: true
 });
 
 await server.register(helmet, {
-  contentSecurityPolicy: false, // Disable for API
+  contentSecurityPolicy: false // Disable for API
 });
 
 // Initialize services
@@ -44,7 +44,7 @@ server.get('/health', async () => {
     status: 'healthy',
     service: 'matchmaking-service',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
+    uptime: process.uptime()
   };
 });
 
@@ -64,7 +64,7 @@ server.get('/health/detailed', async () => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     database: dbHealthy ? 'connected' : 'disconnected',
-    poolSize: matchmakingService.getPoolSize(),
+    poolSize: matchmakingService.getPoolSize()
   };
 });
 

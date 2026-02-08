@@ -5,10 +5,10 @@
   "description": "Microservices architecture for Transcendence project",
   "type": "module",
   "scripts": {
-    "lint": "eslint 'src/**/src/**/*.ts' 'src/**/test/**/*.ts'",
-    "lint:fix": "eslint 'src/**/src/**/*.ts' 'src/**/test/**/*.ts' --fix",
-    "format": "prettier --write 'src/**/src/**/*.ts' 'src/**/test/**/*.ts'",
-    "format:check": "prettier --check 'src/**/src/**/*.ts' 'src/**/test/**/*.ts'"
+    "lint": "eslint 'src/**/src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/src/**/*.ts' --fix",
+    "format": "prettier --write 'src/**/src/**/*.ts'",
+    "format:check": "prettier --check 'src/**/src/**/*.ts'"
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",

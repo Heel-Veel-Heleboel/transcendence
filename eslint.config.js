@@ -11,8 +11,7 @@ export default [
       parser: typescriptParser,
       parserOptions: {
         ecmaVersion: 2020,
-        sourceType: 'module',
-        project: ['./tsconfig.json', './tsconfig.test.json']
+        sourceType: 'module'
       },
       globals: {
         console: 'readonly',
@@ -24,7 +23,9 @@ export default [
         module: 'readonly',
         require: 'readonly',
         exports: 'readonly',
-        ...globals.browser
+        NodeJS: 'readonly',
+        ...globals.browser,
+        ...globals.node
       }
     },
     plugins: {
@@ -78,7 +79,10 @@ export default [
       'coverage/',
       '*.js',
       '*.d.ts',
-      '*.config.js'
+      '*.config.js',
+      '**/test/**',
+      '**/*.test.ts',
+      '**/*.spec.ts'
     ]
   }
 ];
