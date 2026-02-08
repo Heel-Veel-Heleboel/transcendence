@@ -80,23 +80,23 @@ export class AuthService {
   }
 
 
-  async refresh(token: SchemaTypes.RefreshSchemaType): Promise<RefreshedTokensDto> {
-    const tokenId = await this.validateRefreshToken({ user_id: token.user_id, refresh_token: token.refresh_token });
-    const user = await this.userService.findByUserId(token.user_id);
+  async refresh(data: SchemaTypes.RefreshSchemaType, refresh_token: string): Promise<RefreshedTokensDto> {
+    const oldTokenId = await this.validateRefreshToken({ user_id: data.user_id, refresh_token: refresh_token });
+    const user = await this.userService.findByUserId(data.user_id);
 
     if (!user) {
-      throw new ResourceNotFoundError(AUTH_ERROR_MESSAGES.USER_NOT_FOUND_BY_ID(token.user_id));
+      throw new ResourceNotFoundError(AUTH_ERROR_MESSAGES.USER_NOT_FOUND_BY_ID(data.user_id));
     }
 
     const new_access_token = generateAccessToken({ sub: user.id, user_email: user.email });
     const new_refresh_token = generateRefreshToken(REFRESH_TOKEN_SIZE);
 
-    await this.refreshTokenDao.revoke({ id: tokenId });
+    await this.refreshTokenDao.revoke({ id: oldTokenId });
     await this.refreshTokenDao.store( { id: new_refresh_token.id, user_id: user.id, hashed_refresh_token: new_refresh_token.hashed_refresh_token } );
 
     return {
       access_token: new_access_token,
-      refresh_token: new_refresh_token.refresh_token
+      new_refresh_token: new_refresh_token.refresh_token
     };
   }
 
@@ -138,6 +138,10 @@ export class AuthService {
     if (!storedTokenObject || storedTokenObject.revoked_at) {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_TOKEN);
     }
+
+    if (user_id !== storedTokenObject.user_id) {
+      throw new AuthorizationError(AUTH_ERROR_MESSAGES.TOKEN_OWNERSHIP_MISMATCH);
+    }
     
     if (Date.now() >= storedTokenObject.expired_at.getTime()) {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.TOKEN_EXPIRED);
@@ -147,10 +151,6 @@ export class AuthService {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_TOKEN);
     }
     
-    if (user_id !== storedTokenObject.user_id) {
-      throw new AuthorizationError(AUTH_ERROR_MESSAGES.TOKEN_OWNERSHIP_MISMATCH);
-    }
-
     return tokenId;
   }
 }
