@@ -29,6 +29,7 @@ export class MatchmakingService {
   // Configuration
   private readonly ACK_TIMEOUT_MS: number;
   private readonly MAX_WAIT_TIME_MS: number;
+  private readonly gameMode: string;
 
   constructor(
     private readonly matchDao: MatchDao,
@@ -140,10 +141,10 @@ export class MatchmakingService {
     const deadline = new Date(Date.now() + this.ACK_TIMEOUT_MS);
 
     const match = await this.matchDao.create({
-      player1Id: player1.userId,
-      player2Id: player2.userId,
-      player1Username: player1.username,
-      player2Username: player2.username,
+      player1Id: pair.player1.userId,
+      player2Id: pair.player2.userId,
+      player1Username: pair.player1.username,
+      player2Username: pair.player2.username,
       gameMode: this.gameMode,
       deadline
     });
@@ -169,8 +170,8 @@ export class MatchmakingService {
     } catch (error) {
       // Return both players to front of pool on failure.
       // Call order preserves original pair ordering in the queue.
-      this.pool.addToFront(pair.player2.userId);
-      this.pool.addToFront(pair.player1.userId);
+      this.pool.addToFront(pair.player2.userId, pair.player2.username);
+      this.pool.addToFront(pair.player1.userId, pair.player1.username);
       this.log('error', 'Failed to create match, returned players to pool', {
         player1: pair.player1.userId,
         player2: pair.player2.userId,
