@@ -20,25 +20,26 @@ jobs:
       with:
         node-version: '20.x'
         cache: 'npm'
-    
+        cache-dependency-path: src/api-gateway/package-lock.json
+
     - name: Install dependencies
       run: npm ci
-    
-    
+      working-directory: src/api-gateway
+
     - name: Run tests
-      env:
-          PASSWORD_MIN_LENGTH: ${{ secrets.PASSWORD_MIN_LENGTH }}
-          PASSWORD_MAX_LENGTH: ${{ secrets.PASSWORD_MAX_LENGTH }}
-          BCRYPT_SALT_ROUNDS: ${{ secrets.BCRYPT_SALT_ROUNDS }}
       run: npm run test:run
-    
+      working-directory: src/api-gateway
+
     - name: Run tests with coverage
       run: npm run test:coverage
-    
+      working-directory: src/api-gateway
+
     - name: Build project
       run: npm run build
-    
+      working-directory: src/api-gateway
+
     - name: Check build output
       run: |
         echo "Build completed successfully!"
         ls -la dist/
+      working-directory: src/api-gateway
