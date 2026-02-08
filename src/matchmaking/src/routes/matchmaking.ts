@@ -64,7 +64,7 @@ export async function registerMatchmakingRoutes(
 
     try {
       const pool = pools[gameMode];
-      const result = await pool.joinPool(userId);
+      const result = await pool.joinPool(userId, username);
 
       if (result.success) {
         poolRegistry.registerUser(userId, gameMode);
