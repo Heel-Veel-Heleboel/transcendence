@@ -7,18 +7,42 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  test:
-    name: Test
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        node-version: [20.x, 24.x]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linting
+      run: npm run lint
+
+    - name: Check formatting
+      run: npm run format:check
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 24.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
@@ -30,10 +54,6 @@ jobs:
       run: npm ci
       working-directory: src/api-gateway
 
-    - name: Run linting
-      run: npm run lint --if-present
-      working-directory: src/api-gateway
-
     - name: Run tests
       run: npm run test:run
       working-directory: src/api-gateway
@@ -41,7 +61,7 @@ jobs:
     - name: Run tests with coverage
       run: npm run test:coverage
       working-directory: src/api-gateway
-    
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
@@ -53,7 +73,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: test
+    needs: [lint, test]
 
     steps:
     - name: Checkout code
