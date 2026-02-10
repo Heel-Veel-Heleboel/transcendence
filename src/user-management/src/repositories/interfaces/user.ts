@@ -9,11 +9,11 @@ import {
   FindManyUserDto
 } from '../../dto/user.js';
 
-export interface UserRepository {
+export interface IUserRepository {
   create(data: CreateUserDto): Promise<CreatedUserDto>;
   delete(data: DeleteUserDto): Promise<void>;
   update(data: UpdateUserDto): Promise<void>;
-  updateSatus(data: UpdatedUserStatusDto): Promise<void>;
+  updateStatus(data: UpdatedUserStatusDto): Promise<void>;
   findUnique(data: FindUniqueUserDto): Promise<User | null>;
-  findMany(data: FindManyUserDto): Promise<User[]>;
+  findByStatus(data: FindManyUserDto): Promise<User[] | null>;
 }

@@ -14,7 +14,7 @@ datasource db {
 model User {
   id                    Int     @id @default(autoincrement())
 
-  name                  String?
+  name                  String @unique
   profile               Profile?
   email                 String  @unique
   activity_status       ActivityStatus @default(OFFLINE)
