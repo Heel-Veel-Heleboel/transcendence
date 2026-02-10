@@ -39,6 +39,7 @@ export class GameClient {
   private _player!: Player;
   private _hud!: Hud;
   private _keyManager!: KeyManager;
+  private _balls!: Ball[];
 
   //@ts-ignore
   private _camera!: Camera;
@@ -79,6 +80,9 @@ export class GameClient {
   set keyManager(keyManager: KeyManager) {
     this._keyManager = keyManager;
   }
+  set balls(balls: Ball[]) {
+    this._balls = balls;
+  }
   set camera(camera: Camera) {
     this._camera = camera;
   }
@@ -115,6 +119,9 @@ export class GameClient {
   }
   get keyManager(): KeyManager {
     return this._keyManager;
+  }
+  get balls(): Ball[] {
+    return this._balls;
   }
   get camera(): Camera {
     return this._camera;
@@ -190,29 +197,32 @@ export class GameClient {
     const keyManager = new KeyManager(scene, () => this.frameCount, player);
     this.keyManager = keyManager;
 
-    const balls = [];
-    const ball = addBall(scene);
-    balls.push(ball);
-    scene.onBeforeRenderObservable.add(this.draw(this, balls));
+    let balls: Ball[] = [];
+    balls.push(addBall(scene));
+    balls.push(addBall(scene));
+    this.balls = balls;
+    scene.onBeforeRenderObservable.add(this.draw(this));
     // for hit indicator
     scene.getBoundingBoxRenderer().frontColor.set(1, 0, 0);
     scene.getBoundingBoxRenderer().backColor.set(0, 1, 0);
     return scene;
   }
 
-  draw(g: GameClient, balls: Ball[]) {
+  draw(g: GameClient) {
     return () => {
       if (!(g.frameCount % 600)) {
         const ball = addBall(g.scene);
-        balls.push(ball);
+        g.balls.push(ball);
+        console.log(g.balls);
       }
-      for (const ball of balls) {
+      for (const ball of g.balls) {
         g.player.hitIndicator.detectIncomingHits(ball);
         ball.update();
       }
-      balls = balls.filter(ball => {
+      g.balls.filter(ball => {
         !ball.isDead();
       });
+      // console.log(g.balls);
       if (
         g.keyManager.deltaTime !== 0 &&
         g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames
