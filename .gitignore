@@ -60,6 +60,9 @@ pids/
 # dotenv environment variables file
 .env
 
+# Database files
+*.db
+
 # jwt keys
 src/auth/keys/
 # prisma client
