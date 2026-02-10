@@ -10,15 +10,20 @@
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/src/index.js",
     "clean": "rm -rf ./dist",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20.19.30",
+    "@vitest/coverage-v8": "^2.1.8",
     "dotenv": "^16.6.1",
     "prisma": "^7.3.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.3.0",
