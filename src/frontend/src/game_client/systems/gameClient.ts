@@ -213,7 +213,6 @@ export class GameClient {
       if (!(g.frameCount % 600)) {
         const ball = addBall(g.scene);
         g.balls.push(ball);
-        console.log(g.balls);
       }
       for (const ball of g.balls) {
         g.player.hitIndicator.detectIncomingHits(ball);
@@ -222,7 +221,6 @@ export class GameClient {
       g.balls.filter(ball => {
         !ball.isDead();
       });
-      // console.log(g.balls);
       if (
         g.keyManager.deltaTime !== 0 &&
         g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames

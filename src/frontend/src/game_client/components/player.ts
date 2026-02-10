@@ -103,7 +103,9 @@ export class Player implements IPlayer {
   }
 
   async initGridColumnsHints(scene: Scene) {
-    const fontData = await (await fetch(gameConfig.hintFontPath)).json();
+    const font = await fetch(gameConfig.hintFontPath);
+    const fontData = await font.json();
+    console.log(fontData);
     for (let i = 0; i < this.keyGrid.length; i++) {
       const text = MeshBuilder.CreateText(
         'myText',

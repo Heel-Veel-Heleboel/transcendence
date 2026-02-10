@@ -7,7 +7,7 @@ const gameConfig = {
   goalId1: 'goal_1',
   goalId2: 'goal_2',
   rootMesh: '__root__',
-  hintFontPath: '/Monofett_regular.json'
+  hintFontPath: '/Orbitron_Regular.json'
 };
 
 export default gameConfig;
