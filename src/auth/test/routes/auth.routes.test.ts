@@ -1,8 +1,8 @@
 import { expect, it, describe, vi } from 'vitest';
-import { authRoutes } from '../../../src/auth/src/routes/auth.js';
+import { authRoutes } from '../../src/routes/auth.js';
 
-import * as SchemaTypes from '../../../src/auth/src/schemas/auth.js';
-import { validatePasswordHook } from '../../../src/auth/src/middleware/validate-password-hook.js';
+import * as SchemaTypes from '../../src/schemas/auth.js';
+import { validatePasswordHook } from '../../src/middleware/validate-password-hook.js';
 
 
 describe('Auth routes', () => {

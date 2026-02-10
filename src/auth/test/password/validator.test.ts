@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { IPasswordPolicyConfig } from '../../../src/auth/src/types/password.js';
+import { IPasswordPolicyConfig } from '../../src/types/password.js';
 import {
   checkLowercase,
   checkNumber,
@@ -9,7 +9,7 @@ import {
   checkMaxLength,
   checkSpecialChar,
   validatePassword
-} from '../../../src/auth/src/validators/password.js';
+} from '../../src/validators/password.js';
 
 
 describe('validatePassword', () => {

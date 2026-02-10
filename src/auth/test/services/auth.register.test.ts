@@ -1,4 +1,4 @@
-import { AuthService } from '../../../src/auth/src/services/auth.js';
+import { AuthService } from '../../src/services/auth.js';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 const mockUserService = {

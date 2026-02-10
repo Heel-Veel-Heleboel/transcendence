@@ -1,6 +1,6 @@
-import { RefreshTokenDao } from '../../../src/auth/src/dao/refresh-token.dao.js';
-import { IRefreshTokenDao } from '../../../src/auth/src/types/daos/refresh-token.js';
-import { CreateRefreshTokenDto } from '../../../src/auth/src/types/dtos/refresh-token.js';
+import { RefreshTokenDao } from '../../src/dao/refresh-token.dao.js';
+import { IRefreshTokenDao } from '../../src/types/daos/refresh-token.js';
+import { CreateRefreshTokenDto } from '../../src/types/dtos/refresh-token.js';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 const mockPrismaClient = {

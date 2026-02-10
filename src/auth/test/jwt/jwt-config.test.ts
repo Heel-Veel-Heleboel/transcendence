@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
-import { createJwtConfig } from '../../../src/auth/src/config/jwt.ts';
-import { JwtConfigShape } from '../../../src/auth/src/types/jwt.ts';
-import { JwtSchemaErrorMessage } from '../../../src/auth/src/constants/jwt.ts';
+import { createJwtConfig } from '../../src/config/jwt.js';
+import { JwtConfigShape } from '../../src/types/jwt.js';
+import { JwtSchemaErrorMessage } from '../../src/constants/jwt.js';
 
-vi.mock('../../../src/auth/src/utils/read-file.ts', () => {
+vi.mock('../../src/utils/read-file.js', () => {
   return {
     readFile: vi.fn(() => 'mocked-key-content')
   };
 });
 
-import { readFile } from '../../../src/auth/src/utils/read-file.ts';
+import { readFile } from '../../src/utils/read-file.js';
 
 const mockReadFile = vi.mocked(readFile);
 

@@ -1,13 +1,13 @@
-import { AuthService } from '../../../src/auth/src/services/auth.js';
-import { AuthenticationError, ResourceNotFoundError } from '../../../src/auth/src/error/auth.js';
-import * as passwordHasherModule from '../../../src/auth/src/utils/password-hash.js';
-import * as jwtModule from '../../../src/auth/src/utils/jwt.js';
+import { AuthService } from '../../src/services/auth.js';
+import { AuthenticationError, ResourceNotFoundError } from '../../src/error/auth.js';
+import * as passwordHasherModule from '../../src/utils/password-hash.js';
+import * as jwtModule from '../../src/utils/jwt.js';
 import { expect, describe, beforeEach, vi, it } from 'vitest';
-import { REFRESH_TOKEN_SIZE } from '../../../src/auth/src/constants/jwt.js';
+import { REFRESH_TOKEN_SIZE } from '../../src/constants/jwt.js';
 
 
-vi.mock('../../../src/auth/src/utils/password-hash.js');
-vi.mock('../../../src/auth/src/utils/jwt.js');
+vi.mock('../../src/utils/password-hash.js');
+vi.mock('../../src/utils/jwt.js');
 
 const mockUserService = {
   findUserByEmail: vi.fn()

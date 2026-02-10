@@ -1,5 +1,5 @@
 import { expect, it, describe } from 'vitest';
-import { validateRefreshTokenFormat } from '../../../src/auth/src/utils/jwt.js';
+import { validateRefreshTokenFormat } from '../../src/utils/jwt.js';
 
 describe('validateRefreshTokenFormat', () => {
   it.each([

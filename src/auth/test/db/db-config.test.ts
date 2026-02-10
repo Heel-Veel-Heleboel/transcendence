@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getDatabaseConfig, clearDatabaseConfigCache } from '../../../src/auth/src/config/db.js';
+import { getDatabaseConfig, clearDatabaseConfigCache } from '../../src/config/db.js';
 
 
 describe('Getting database configuration', () => {

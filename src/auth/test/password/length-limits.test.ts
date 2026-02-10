@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { createPasswordPolicyConfig } from '../../../src/auth/src/config/password.js';
-import type { IPasswordLimitsConfig } from '../../../src/auth/src/types/password.js';
+import { createPasswordPolicyConfig } from '../../src/config/password.js';
+import type { IPasswordLimitsConfig } from '../../src/types/password.js';
 
 describe('Password Length Limits Validator', () => {
   const limits: IPasswordLimitsConfig = {

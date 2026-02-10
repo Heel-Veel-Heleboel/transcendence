@@ -1,5 +1,5 @@
-import { CredentialsDao } from '../../../src/auth/src/dao/credentials.dao.js';
-import { ICredentialsDao } from '../../../src/auth/src/types/daos/credentials.js';
+import { CredentialsDao } from '../../src/dao/credentials.dao.js';
+import { ICredentialsDao } from '../../src/types/daos/credentials.js';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 

@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AuthService } from '../../../src/auth/src/services/auth.js';
-import * as passwordHashModule from '../../../src/auth/src/utils/password-hash.js';
-import { SaltLimits } from '../../../src/auth/src/constants/password.js';
+import { AuthService } from '../../src/services/auth.js';
+import * as passwordHashModule from '../../src/utils/password-hash.js';
+import { SaltLimits } from '../../src/constants/password.js';
 
-vi.mock('../../../src/auth/src/utils/password-hash.js', () => ({
+vi.mock('../../src/utils/password-hash.js', () => ({
   passwordHasher: vi.fn(),
   comparePasswordHash: vi.fn()
 }));

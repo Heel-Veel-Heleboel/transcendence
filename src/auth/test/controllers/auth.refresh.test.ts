@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AuthController } from '../../../src/auth/src/controllers/auth.js';
-import { RefreshedTokensDto } from '../../../src/auth/src/types/dtos/auth.js';
+import { AuthController } from '../../src/controllers/auth.js';
+import { RefreshedTokensDto } from '../../src/types/dtos/auth.js';
 
 const MockAuthService = {
   refresh: vi.fn()

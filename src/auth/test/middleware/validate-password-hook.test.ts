@@ -1,7 +1,7 @@
 import { it, describe, expect, beforeEach, vi } from 'vitest';
-import { validatePasswordHook } from '../../../src/auth/src/middleware/validate-password-hook';
-import * as PasswordValidator from '../../../src/auth/src/validators/password.js';
-import { PasswordErrorCode } from '../../../src/auth/src/constants/password';
+import { validatePasswordHook } from '../../src/middleware/validate-password-hook.js';
+import * as PasswordValidator from '../../src/validators/password.js';
+import { PasswordErrorCode } from '../../src/constants/password.js';
 
 
 let MockReply: any;

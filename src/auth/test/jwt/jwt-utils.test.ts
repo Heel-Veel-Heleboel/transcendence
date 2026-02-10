@@ -11,7 +11,7 @@ vi.mock('jsonwebtoken', () => ({
 }));
 
 
-vi.mock('../../../src/auth/src/config/jwt.ts', () => ({
+vi.mock('../../src/config/jwt.js', () => ({
   getJwtConfig: vi.fn(() => ({
     privateKey: 'mock-private-key',
     publicKey: 'mock-public-key',
@@ -36,7 +36,7 @@ describe('JWT Utils', () => {
     jwt = jwtModule.default;
     
 
-    const jwtUtils = await import('../../../src/auth/src/utils/jwt.ts');
+    const jwtUtils = await import('../../src/utils/jwt.js');
     generateAccessToken = jwtUtils.generateAccessToken;
     verifyAccessToken = jwtUtils.verifyAccessToken;
 
@@ -234,8 +234,8 @@ describe('JWT Utils', () => {
 });
 
 
-import { generateRefreshToken, hashRefreshToken, compareRefreshToken } from '../../../src/auth/src/utils/jwt.ts';
-import { CryptoErrorMessage } from '../../../src/auth/src/constants/jwt.ts';
+import { generateRefreshToken, hashRefreshToken, compareRefreshToken } from '../../src/utils/jwt.js';
+import { CryptoErrorMessage } from '../../src/constants/jwt.js';
 
 
 describe('Refresh Token Utils', () => {

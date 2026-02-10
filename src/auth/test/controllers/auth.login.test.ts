@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AuthController } from '../../../src/auth/src/controllers/auth.js';
+import { AuthController } from '../../src/controllers/auth';
 
 const MockAuthService = {
   login: vi.fn()

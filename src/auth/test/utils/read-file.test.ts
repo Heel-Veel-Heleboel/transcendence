@@ -1,5 +1,5 @@
 import {  describe, it, expect, vi } from 'vitest';
-import { readFile } from '../../../src/auth/src/utils/read-file.ts';
+import { readFile } from '../../src/utils/read-file.js';
 
 vi.mock('fs', () => {
   return {

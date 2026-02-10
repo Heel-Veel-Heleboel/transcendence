@@ -1,17 +1,17 @@
 import { expect, it, describe, beforeEach, afterEach, vi } from 'vitest';
-import { REFRESH_TOKEN_SIZE } from '../../../src/auth/src/constants/jwt.js';
+import { REFRESH_TOKEN_SIZE } from '../../src/constants/jwt.js';
 
 // Mock the crypto comparator to avoid length issues
-vi.mock('../../../src/auth/src/utils/jwt.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../../src/auth/src/utils/jwt.js')>();
+vi.mock('../../src/utils/jwt.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/utils/jwt.js')>();
   return {
     ...actual,
     compareRefreshToken: vi.fn()
   };
 });
 
-import { compareRefreshToken } from '../../../src/auth/src/utils/jwt.js';
-import { AuthService } from '../../../src/auth/src/services/auth';
+import { compareRefreshToken } from '../../src/utils/jwt.js';
+import { AuthService } from '../../src/services/auth.js';
 
 const mockUserService = { findUserByEmail: vi.fn() };
 const mockCredentialsDao = { findByUserId: vi.fn() };

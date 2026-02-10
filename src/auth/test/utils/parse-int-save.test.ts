@@ -1,6 +1,6 @@
 import { describe, it , expect } from 'vitest';
-import { IPasswordLimitsConfig } from '../../../src/auth/src/types/password';
-import { parseIntSave } from '../../../src/auth/src/utils/parse-int-save';
+import { IPasswordLimitsConfig } from '../../src/types/password.js';
+import { parseIntSave } from '../../src/utils/parse-int-save.js';
 
 
 
