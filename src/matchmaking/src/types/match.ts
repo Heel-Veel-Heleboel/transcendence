@@ -1,19 +1,29 @@
+import type { MatchStatus as PrismaMatchStatus } from '../../generated/prisma/index.js';
+
 /**
  * Type definitions for Match DAO operations
  */
 
 /**
- * Match status enum - mirrors Prisma schema
- * Defined here to avoid import issues in tests
+ * Match status values - mirrors Prisma schema
+ *
+ * Exposed as a value object so tests and routes can use
+ * `MatchStatus.SCHEDULED`-style access without importing
+ * the Prisma client directly.
+ *
+ * The associated `MatchStatus` type is an alias of the
+ * Prisma-generated enum type, so everything stays in sync.
  */
-export enum MatchStatus {
-  PENDING_ACKNOWLEDGEMENT = 'PENDING_ACKNOWLEDGEMENT',
-  SCHEDULED = 'SCHEDULED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  FORFEITED = 'FORFEITED',
-  TIMEOUT = 'TIMEOUT'
-}
+export const MatchStatus = {
+  PENDING_ACKNOWLEDGEMENT: 'PENDING_ACKNOWLEDGEMENT' as PrismaMatchStatus,
+  SCHEDULED: 'SCHEDULED' as PrismaMatchStatus,
+  IN_PROGRESS: 'IN_PROGRESS' as PrismaMatchStatus,
+  COMPLETED: 'COMPLETED' as PrismaMatchStatus,
+  FORFEITED: 'FORFEITED' as PrismaMatchStatus,
+  TIMEOUT: 'TIMEOUT' as PrismaMatchStatus
+} as const;
+
+export type MatchStatus = PrismaMatchStatus;
 
 /**
  * Supported game modes for matchmaking
