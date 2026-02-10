@@ -12,7 +12,11 @@ export default [
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
-        project: ['./tsconfig.json', './tsconfig.test.json']
+        project: [
+          './tsconfig.json',
+          './tsconfig.test.json',
+          './tsconfig.node.json'
+        ]
       },
       globals: {
         console: 'readonly',
