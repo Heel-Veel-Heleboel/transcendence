@@ -1,4 +1,4 @@
-import { PoolRegistry } from '../../../src/matchmaking/src/services/pool-registry.js';
+import { PoolRegistry } from '../../src/services/pool-registry.js';
 import { describe, expect, it, beforeEach } from 'vitest';
 
 describe('PoolRegistry', () => {

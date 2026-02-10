@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MatchReporting, UserManagementClient } from '../../../src/matchmaking/src/services/match-reporting.js';
-import { MatchDao } from '../../../src/matchmaking/src/dao/match.js';
-import { Match } from '../../../src/matchmaking/generated/prisma/index.js';
+import { MatchReporting, UserManagementClient } from '../../src/services/match-reporting.js';
+import { MatchDao } from '../../src/dao/match.js';
+import { Match } from '../../generated/prisma/index.js';
 
 describe('MatchReporting', () => {
   let matchReporting: MatchReporting;

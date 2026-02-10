@@ -1,4 +1,4 @@
-import { MatchDao } from '../../../src/matchmaking/src/dao/match.js';
+import { MatchDao } from '../../src/dao/match.js';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 const mockPrismaClient = {

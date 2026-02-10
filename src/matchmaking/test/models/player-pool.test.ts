@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { PlayerPool } from '../../../src/matchmaking/src/models/player-pool.js';
+import { PlayerPool } from '../../src/models/player-pool.js';
 
 describe('PlayerPool', () => {
   let pool: PlayerPool;
