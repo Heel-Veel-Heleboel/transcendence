@@ -46,7 +46,7 @@ describe('MatchmakingService', () => {
 
   describe('initialize()', () => {
     it('should clear the pool on initialization', async () => {
-      service.joinPool(1);
+      service.joinPool(1, 'user1');
       expect(service.getPoolSize()).toBe(1);
 
       await service.initialize();
@@ -159,10 +159,10 @@ describe('MatchmakingService', () => {
     });
 
     it('should maintain FIFO order', () => {
-      service.joinPool(1);
-      service.joinPool(2);
-      service.joinPool(3);
-      service.joinPool(4);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
+      service.joinPool(3, 'user3');
+      service.joinPool(4, 'user4');
 
       const pair1 = service.tryFormPair();
       const pair2 = service.tryFormPair();
@@ -242,9 +242,9 @@ describe('MatchmakingService', () => {
       };
       vi.mocked(mockMatchDao.create).mockResolvedValue(mockMatch as Match);
 
-      service.joinPool(1);
-      service.joinPool(2);
-      service.joinPool(3);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
+      service.joinPool(3, 'user3');
 
       const result = await service.tryAutoPair();
 
@@ -255,7 +255,7 @@ describe('MatchmakingService', () => {
     });
 
     it('should return paired: false when not enough players', async () => {
-      service.joinPool(1);
+      service.joinPool(1, 'user1');
 
       const result = await service.tryAutoPair();
 
@@ -267,8 +267,8 @@ describe('MatchmakingService', () => {
     it('should return players to pool on DB error', async () => {
       vi.mocked(mockMatchDao.create).mockRejectedValue(new Error('DB error'));
 
-      service.joinPool(1);
-      service.joinPool(2);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
 
       await expect(service.tryAutoPair()).rejects.toThrow('DB error');
 
@@ -284,7 +284,7 @@ describe('MatchmakingService', () => {
       service.joinPool(2, 'user2');
       service.joinPool(3, 'user3');
 
-      service.returnToPool(99);
+      service.returnToPool(99, 'user99');
 
       const status = service.getPoolStatus(99);
       expect(status.queuePosition).toBe(1);
@@ -327,9 +327,9 @@ describe('MatchmakingService', () => {
 
   describe('getPoolStatus()', () => {
     it('should return status for player in pool', () => {
-      service.joinPool(1);
-      service.joinPool(2);
-      service.joinPool(3);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
+      service.joinPool(3, 'user3');
 
       const status = service.getPoolStatus(2);
 
@@ -340,7 +340,7 @@ describe('MatchmakingService', () => {
     });
 
     it('should return inPool false for player not in pool', () => {
-      service.joinPool(1);
+      service.joinPool(1, 'user1');
 
       const status = service.getPoolStatus(999);
 
@@ -350,9 +350,9 @@ describe('MatchmakingService', () => {
     });
 
     it('should calculate estimated wait time correctly', () => {
-      service.joinPool(1);
-      service.joinPool(2);
-      service.joinPool(3);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
+      service.joinPool(3, 'user3');
 
       const status1 = service.getPoolStatus(1);
       const status3 = service.getPoolStatus(3);
@@ -413,16 +413,16 @@ describe('MatchmakingService', () => {
     it('should return false when less than 2 players', () => {
       expect(service.canFormPair()).toBe(false);
 
-      service.joinPool(1);
+      service.joinPool(1, 'user1');
       expect(service.canFormPair()).toBe(false);
     });
 
     it('should return true when 2 or more players', () => {
-      service.joinPool(1);
-      service.joinPool(2);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
       expect(service.canFormPair()).toBe(true);
 
-      service.joinPool(3);
+      service.joinPool(3, 'user3');
       expect(service.canFormPair()).toBe(true);
     });
   });
@@ -492,7 +492,7 @@ describe('MatchmakingService', () => {
       service.joinPool(3, 'user3');
       expect(service.getPoolSize()).toBe(1);
 
-      service.returnToPool(1);
+      service.returnToPool(1, 'user1');
 
       const pair2 = service.tryFormPair()!;
       expect(pair2.player1.userId).toBe(1); 
@@ -538,16 +538,16 @@ describe('MatchmakingService', () => {
       };
       vi.mocked(mockMatchDao.create).mockResolvedValue(mockMatch as Match);
 
-      const joinResult = service.joinPool(1);
+      const joinResult = service.joinPool(1, 'user1');
       expect(joinResult.success).toBe(true);
 
-      service.joinPool(2);
+      service.joinPool(2, 'user2');
 
       const pair = service.tryFormPair();
       if (pair) {
         const matchPromise = service.createMatch(pair);
 
-        service.joinPool(3);
+        service.joinPool(3, 'user3');
         expect(service.getPoolSize()).toBe(1);
 
         await matchPromise;

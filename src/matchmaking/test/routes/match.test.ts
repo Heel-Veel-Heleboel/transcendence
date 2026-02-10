@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import Fastify, { FastifyInstance } from 'fastify';
-import { registerMatchRoutes } from '../../../src/matchmaking/src/routes/match.js';
-import { MatchDao } from '../../../src/matchmaking/src/dao/match.js';
-import { MatchReporting } from '../../../src/matchmaking/src/services/match-reporting.js';
-import { MatchStatus } from '../../../src/matchmaking/src/types/match.js';
+import { registerMatchRoutes } from '../../src/routes/match.js';
+import { MatchDao } from '../../src/dao/match.js';
+import { MatchReporting } from '../../src/services/match-reporting.js';
+import { MatchStatus } from '../../src/types/match.js';
 
 describe('Match Routes', () => {
   let server: FastifyInstance;

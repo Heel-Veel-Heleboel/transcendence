@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import Fastify, { FastifyInstance } from 'fastify';
-import { registerMatchmakingRoutes } from '../../../src/matchmaking/src/routes/matchmaking.js';
-import { MatchmakingService } from '../../../src/matchmaking/src/services/casual-matchmaking.js';
-import { PoolRegistry } from '../../../src/matchmaking/src/services/pool-registry.js';
-import { GameMode } from '../../../src/matchmaking/src/types/match.js';
+import { registerMatchmakingRoutes } from '../../src/routes/matchmaking.js';
+import { MatchmakingService } from '../../src/services/casual-matchmaking.js';
+import { PoolRegistry } from '../../src/services/pool-registry.js';
+import { GameMode } from '../../src/types/match.js';
 
 describe('Matchmaking Routes', () => {
   let server: FastifyInstance;
