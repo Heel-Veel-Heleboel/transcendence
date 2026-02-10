@@ -120,3 +120,14 @@ export interface MatchHistoryEntry {
  * Returned by GET /api/matchmaking/players/:userId/history
  */
 export type MatchHistory = MatchHistoryEntry[];
+
+/**
+ * Player pool entry
+ * Used in PlayerPool
+ */
+export interface PlayerPoolEntry {
+  userId: number;
+  username: string;
+  joinedAt: Date;
+  lastActive: Date;
+}

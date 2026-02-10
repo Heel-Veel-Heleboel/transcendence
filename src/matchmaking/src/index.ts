@@ -4,8 +4,8 @@ import helmet from '@fastify/helmet';
 import { getPrismaClient, disconnectPrisma } from './db/prisma.client.js';
 import { MatchDao } from './dao/match.js';
 import { MatchmakingService } from './services/casual-matchmaking.js';
-import { registerMatchmakingRoutes } from './routes/matchmaking.routes.js';
-import { registerMatchRoutes } from './routes/match.routes.js';
+import { registerMatchmakingRoutes } from './routes/matchmaking.js';
+import { registerMatchRoutes } from './routes/match.js';
 
 const server = fastify({
   logger: {

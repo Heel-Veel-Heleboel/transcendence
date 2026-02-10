@@ -29,6 +29,7 @@ export class MatchmakingService {
   // Configuration
   private readonly ACK_TIMEOUT_MS: number;
   private readonly MAX_WAIT_TIME_MS: number;
+  private readonly gameMode: string;
 
   constructor(
     private readonly matchDao: MatchDao,
@@ -67,7 +68,7 @@ export class MatchmakingService {
    * Add a player to the matchmaking pool
    * This is instant - always succeeds unless user already in pool
    */
-  joinPool(userId: number): { success: boolean; queuePosition: number } {
+  joinPool(userId: number, username: string): { success: boolean; queuePosition: number } {
     // Check if already in pool
     if (this.pool.inPool(userId)) {
       this.log('warn', `User ${userId} already in pool`);
@@ -77,8 +78,9 @@ export class MatchmakingService {
       };
     }
 
-    // Add to pool (sync, instant)
-    this.pool.addToBack(userId);
+    // Add to in-memory pool
+    this.pool.addToBack(userId, username);
+
     this.log('info', `User ${userId} joined pool (pool size: ${this.pool.size()})`);
 
     return {
@@ -141,6 +143,8 @@ export class MatchmakingService {
     const match = await this.matchDao.create({
       player1Id: pair.player1.userId,
       player2Id: pair.player2.userId,
+      player1Username: pair.player1.username,
+      player2Username: pair.player2.username,
       gameMode: this.gameMode,
       deadline
     });
@@ -166,8 +170,8 @@ export class MatchmakingService {
     } catch (error) {
       // Return both players to front of pool on failure.
       // Call order preserves original pair ordering in the queue.
-      this.pool.addToFront(pair.player2.userId);
-      this.pool.addToFront(pair.player1.userId);
+      this.pool.addToFront(pair.player2.userId, pair.player2.username);
+      this.pool.addToFront(pair.player1.userId, pair.player1.username);
       this.log('error', 'Failed to create match, returned players to pool', {
         player1: pair.player1.userId,
         player2: pair.player2.userId,
@@ -181,13 +185,15 @@ export class MatchmakingService {
    * Return a player to the pool (called when their opponent failed to acknowledge)
    * Adds player to the FRONT of the queue (priority) for fairness
    */
-  returnToPool(userId: number): { success: boolean } {
+  returnToPool(userId: number, username: string): { success: boolean } {
     if (this.pool.inPool(userId)) {
       this.log('warn', `User ${userId} already in pool, skipping return`);
       return { success: false };
     }
 
-    this.pool.addToFront(userId);
+    // Add to front of queue (priority)
+    this.pool.addToFront(userId, username);
+
     this.log('info', `User ${userId} returned to front of pool (priority)`);
 
     return { success: true };
