@@ -5,6 +5,7 @@ import { ActivityStatus } from '../../generated/prisma/client.js';
 export interface CreateUserDto {
   email: string;
   name: string;
+  avatar_url?: string;
 }
 export interface CreatedUserDto {
   id: number;
