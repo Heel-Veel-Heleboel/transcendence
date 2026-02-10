@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { MatchDao } from '../dao/match.js';
 import { MatchReporting } from '../services/match-reporting.js';
-import { MatchStatus } from '../types/match.js';
+import { MatchStatus } from '../../generated/prisma/index.js';
 
 /**
  * Register match-related routes

@@ -3,7 +3,7 @@ import Fastify, { FastifyInstance } from 'fastify';
 import { registerMatchRoutes } from '../../src/routes/match.js';
 import { MatchDao } from '../../src/dao/match.js';
 import { MatchReporting } from '../../src/services/match-reporting.js';
-import { MatchStatus } from '../../src/types/match.js';
+import { MatchStatus } from '../../generated/prisma/index.js';
 
 describe('Match Routes', () => {
   let server: FastifyInstance;
