@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
     "target": "es2022",
     "useDefineForClassFields": true,
     "module": "esnext",
@@ -22,5 +24,7 @@
     "noUncheckedSideEffectImports": true
   },
   "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [
+      { "path": "./tsconfig.node.json" }
+  ]
 }

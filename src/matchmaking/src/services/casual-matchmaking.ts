@@ -1,5 +1,6 @@
 import { MatchDao } from '../dao/match.js';
-import { PlayerPool, PlayerPoolEntry } from '../models/player-pool.js';
+import { PlayerPool } from '../models/player-pool.js';
+import { PlayerPoolEntry } from '../types/match.js';
 import { Logger } from '../types/logger.js';
 
 /**

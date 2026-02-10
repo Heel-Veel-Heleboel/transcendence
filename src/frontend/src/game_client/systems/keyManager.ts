@@ -57,30 +57,30 @@ export class KeyManager implements IKeyManager {
   handlePrecisionKey(key: string) {
     const index = this.precisionKeys.indexOf(key);
     switch (index) {
-      case 0:
-        if (checkUpperY(this.precisionMove, this.player)) {
-          break;
-        }
-        this.player.movePrecise({ x: 0, y: this.precisionMove });
+    case 0:
+      if (checkUpperY(this.precisionMove, this.player)) {
         break;
-      case 1:
-        if (checkLowerX(this.precisionMove, this.player)) {
-          break;
-        }
-        this.player.movePrecise({ x: -this.precisionMove, y: 0 });
+      }
+      this.player.movePrecise({ x: 0, y: this.precisionMove });
+      break;
+    case 1:
+      if (checkLowerX(this.precisionMove, this.player)) {
         break;
-      case 2:
-        if (checkLowerY(this.precisionMove, this.player)) {
-          break;
-        }
-        this.player.movePrecise({ x: 0, y: -this.precisionMove });
+      }
+      this.player.movePrecise({ x: -this.precisionMove, y: 0 });
+      break;
+    case 2:
+      if (checkLowerY(this.precisionMove, this.player)) {
         break;
-      case 3:
-        if (checkUpperX(this.precisionMove, this.player)) {
-          break;
-        }
-        this.player.movePrecise({ x: this.precisionMove, y: 0 });
+      }
+      this.player.movePrecise({ x: 0, y: -this.precisionMove });
+      break;
+    case 3:
+      if (checkUpperX(this.precisionMove, this.player)) {
         break;
+      }
+      this.player.movePrecise({ x: this.precisionMove, y: 0 });
+      break;
     }
   }
 

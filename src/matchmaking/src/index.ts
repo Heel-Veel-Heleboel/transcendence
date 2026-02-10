@@ -4,8 +4,11 @@ import helmet from '@fastify/helmet';
 import { getPrismaClient, disconnectPrisma } from './db/prisma.client.js';
 import { MatchDao } from './dao/match.js';
 import { MatchmakingService } from './services/casual-matchmaking.js';
+import { PoolRegistry } from './services/pool-registry.js';
+import { MatchReporting } from './services/match-reporting.js';
 import { registerMatchmakingRoutes } from './routes/matchmaking.js';
 import { registerMatchRoutes } from './routes/match.js';
+import { GameMode } from './types/match.js';
 
 const server = fastify({
   logger: {
@@ -14,29 +17,63 @@ const server = fastify({
       target: 'pino-pretty',
       options: {
         translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname',
-      },
-    },
-  },
+        ignore: 'pid,hostname'
+      }
+    }
+  }
 });
 
 // Register plugins
 await server.register(cors, {
   origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-  credentials: true,
+  credentials: true
 });
 
 await server.register(helmet, {
-  contentSecurityPolicy: false, // Disable for API
+  contentSecurityPolicy: false // Disable for API
 });
 
 // Initialize services
 const prisma = getPrismaClient();
 const matchDao = new MatchDao(prisma);
-const matchmakingService = new MatchmakingService(matchDao, server.log);
 
-// Initialize matchmaking service
-await matchmakingService.initialize();
+// Create matchmaking pools for each game mode
+const classicPool = new MatchmakingService(matchDao, 'classic', server.log);
+const powerupPool = new MatchmakingService(matchDao, 'powerup', server.log);
+
+const pools: Record<GameMode, MatchmakingService> = {
+  classic: classicPool,
+  powerup: powerupPool
+};
+
+// Pool registry to track which pool each user is in
+const poolRegistry = new PoolRegistry();
+
+// HTTP client for User Management service
+const userManagementClient = {
+  async reportMatchResult(message: { playerId: number; result: 'W' | 'L' }): Promise<void> {
+    const userManagementUrl = process.env.USER_MANAGEMENT_URL || 'http://localhost:3004';
+    try {
+      const response = await fetch(`${userManagementUrl}/api/users/${message.playerId}/match-result`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ result: message.result })
+      });
+      if (!response.ok) {
+        server.log.warn({ playerId: message.playerId, status: response.status }, 'Failed to report match result');
+      }
+    } catch (error) {
+      server.log.error({ error, playerId: message.playerId }, 'Error reporting match result');
+    }
+  }
+};
+
+// Match reporting service for sending results to user management
+const matchReporting = new MatchReporting(matchDao, userManagementClient, server.log);
+
+// Initialize matchmaking pools
+await classicPool.initialize();
+await powerupPool.initialize();
 
 // Health check endpoint
 server.get('/health', async () => {
@@ -44,7 +81,7 @@ server.get('/health', async () => {
     status: 'healthy',
     service: 'matchmaking-service',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
+    uptime: process.uptime()
   };
 });
 
@@ -64,20 +101,25 @@ server.get('/health/detailed', async () => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     database: dbHealthy ? 'connected' : 'disconnected',
-    poolSize: matchmakingService.getPoolSize(),
+    poolSize: {
+      classic: classicPool.getPoolSize(),
+      powerup: powerupPool.getPoolSize(),
+      total: classicPool.getPoolSize() + powerupPool.getPoolSize()
+    }
   };
 });
 
 // Register routes
-await registerMatchmakingRoutes(server, matchmakingService);
-await registerMatchRoutes(server, matchDao);
+await registerMatchmakingRoutes(server, pools, poolRegistry);
+await registerMatchRoutes(server, matchDao, matchReporting);
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {
   server.log.info(`Received ${signal}, shutting down gracefully`);
 
   try {
-    await matchmakingService.shutdown();
+    await classicPool.shutdown();
+    await powerupPool.shutdown();
     await disconnectPrisma();
     await server.close();
     server.log.info('Server closed successfully');
