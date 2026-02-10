@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthController } from '../../src/controllers/auth';
 
-vi.mock('../../../src/auth/src/config/jwt.js', () => ({
+vi.mock('../../src/config/jwt.js', () => ({
   getJwtConfig: vi.fn(() => ({
     expirationRefreshToken: 7 * 24 * 60 * 60 * 1000
   }))
