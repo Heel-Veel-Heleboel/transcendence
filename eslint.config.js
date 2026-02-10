@@ -11,7 +11,12 @@ export default [
       parser: typescriptParser,
       parserOptions: {
         ecmaVersion: 2020,
-        sourceType: 'module'
+        sourceType: 'module',
+        project: [
+          './tsconfig.json',
+          './tsconfig.test.json',
+          './tsconfig.node.json'
+        ]
       },
       globals: {
         console: 'readonly',

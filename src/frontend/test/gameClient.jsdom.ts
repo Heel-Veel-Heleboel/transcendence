@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { GameClient } from '../../src/frontend/src/game_client/systems/gameClient.ts';
-import * as canvasModule from '../../src/frontend/src/game_client/utils/canvas.ts';
-import * as physicsModule from '../../src/frontend/src/game_client/utils/physics.ts';
-import * as eventModule from '../../src/frontend/src/game_client/utils/eventListeners.ts';
-import * as renderModule from '../../src/frontend/src/game_client/utils/render.ts';
+import { GameClient } from '../src/game_client/systems/gameClient.ts';
+import * as canvasModule from '../src/game_client/utils/canvas.ts';
+import * as physicsModule from '../src/game_client/utils/physics.ts';
+import * as eventModule from '../src/game_client/utils/eventListeners.ts';
+import * as renderModule from '../src/game_client/utils/render.ts';
 import { NullEngine, Scene } from '@babylonjs/core';
 
 describe('GameClient Class', () => {

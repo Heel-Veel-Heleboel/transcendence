@@ -3,7 +3,7 @@ import {
   engineResize,
   initializeResolution,
   prepareImportGLTF
-} from '../../src/frontend/src/game_client/utils/canvas';
+} from '../src/game_client/utils/canvas';
 import { NullEngine, Scene, MeshBuilder } from '@babylonjs/core';
 
 describe('keyGridUtils', () => {

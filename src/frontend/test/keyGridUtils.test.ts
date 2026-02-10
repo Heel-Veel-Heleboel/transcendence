@@ -5,10 +5,10 @@ import {
   checkRowColumnVersusKeyLength,
   checkDuplicateInString,
   checkLength
-} from '../../src/frontend/src/game_client/utils/keyGridUtils';
+} from '../src/game_client/utils/keyGridUtils';
 import { Vector3 } from '@babylonjs/core';
-import Errors from '../../src/frontend/src/game_client/utils/error';
-import gameConfig from '../../src/frontend/src/game_client/utils/gameConfig';
+import Errors from '../src/game_client/utils/error';
+import gameConfig from '../src/game_client/utils/gameConfig';
 
 describe('keyGridUtils', () => {
   afterEach(() => {
