@@ -52,6 +52,11 @@ jobs:
       run: npm ci
       working-directory: src/${{ matrix.service }}
 
+    - name: Generate Prisma Client
+      if: matrix.service == 'auth' || matrix.service == 'matchmaking'
+      run: npx prisma generate
+      working-directory: src/${{ matrix.service }}
+
     - name: Run tests
       run: npm run test:run
       working-directory: src/${{ matrix.service }}
