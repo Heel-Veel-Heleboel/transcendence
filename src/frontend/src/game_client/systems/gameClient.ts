@@ -27,6 +27,7 @@ import { Hud } from '../components/hud.ts';
 import { Arena } from '../components/arena.ts';
 import { initializePhysics } from '../utils/physics.ts';
 import { renderLoop } from '../utils/render.ts';
+import { Client } from '@colyseus/sdk';
 
 export class GameClient {
   private _scene!: Scene;
@@ -205,6 +206,17 @@ export class GameClient {
     // for hit indicator
     scene.getBoundingBoxRenderer().frontColor.set(1, 0, 0);
     scene.getBoundingBoxRenderer().backColor.set(0, 1, 0);
+
+    const client = new Client('ws://localhost:2567');
+    client
+      .joinOrCreate('my_room')
+      .then(function (room) {
+        console.log('Connected to roomId: ' + room.roomId);
+      })
+      .catch(function (error) {
+        console.log("Couldn't connect.");
+      });
+
     return scene;
   }
 
