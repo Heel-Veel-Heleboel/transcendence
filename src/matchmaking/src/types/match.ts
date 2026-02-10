@@ -1,8 +1,19 @@
-import { MatchStatus } from '../../generated/prisma/index.js';
-
 /**
  * Type definitions for Match DAO operations
  */
+
+/**
+ * Match status enum - mirrors Prisma schema
+ * Defined here to avoid import issues in tests
+ */
+export enum MatchStatus {
+  PENDING_ACKNOWLEDGEMENT = 'PENDING_ACKNOWLEDGEMENT',
+  SCHEDULED = 'SCHEDULED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  FORFEITED = 'FORFEITED',
+  TIMEOUT = 'TIMEOUT'
+}
 
 /**
  * Supported game modes for matchmaking
@@ -120,3 +131,14 @@ export interface MatchHistoryEntry {
  * Returned by GET /api/matchmaking/players/:userId/history
  */
 export type MatchHistory = MatchHistoryEntry[];
+
+/**
+ * Player pool entry
+ * Used in PlayerPool
+ */
+export interface PlayerPoolEntry {
+  userId: number;
+  username: string;
+  joinedAt: Date;
+  lastActive: Date;
+}

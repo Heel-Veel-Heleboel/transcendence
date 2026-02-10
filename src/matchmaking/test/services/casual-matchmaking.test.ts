@@ -56,7 +56,7 @@ describe('MatchmakingService', () => {
 
   describe('joinPool()', () => {
     it('should add a player to the pool', () => {
-      const result = service.joinPool(1);
+      const result = service.joinPool(1, 'user1');
 
       expect(result.success).toBe(true);
       expect(result.queuePosition).toBe(1);
@@ -65,17 +65,17 @@ describe('MatchmakingService', () => {
     });
 
     it('should return queue position for new player', () => {
-      service.joinPool(1);
-      service.joinPool(2);
-      const result = service.joinPool(3);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
+      const result = service.joinPool(3, 'user3');
 
       expect(result.success).toBe(true);
       expect(result.queuePosition).toBe(3);
     });
 
     it('should return false if player already in pool', () => {
-      service.joinPool(1);
-      const result = service.joinPool(1);
+      service.joinPool(1, 'user1');
+      const result = service.joinPool(1, 'user1');
 
       expect(result.success).toBe(false);
       expect(result.queuePosition).toBe(1);
@@ -83,8 +83,8 @@ describe('MatchmakingService', () => {
     });
 
     it('should not auto-pair (pairing is separate operation)', () => {
-      service.joinPool(1);
-      service.joinPool(2);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
 
       // Players should still be in pool - pairing is manual
       expect(service.getPoolSize()).toBe(2);
@@ -96,7 +96,7 @@ describe('MatchmakingService', () => {
 
   describe('leavePool()', () => {
     it('should remove a player from the pool', () => {
-      service.joinPool(1);
+      service.joinPool(1, 'user1');
       expect(service.isInPool(1)).toBe(true);
 
       const result = service.leavePool(1);
@@ -113,9 +113,9 @@ describe('MatchmakingService', () => {
     });
 
     it('should maintain queue order after removal', () => {
-      service.joinPool(1);
-      service.joinPool(2);
-      service.joinPool(3);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
+      service.joinPool(3, 'user3');
 
       service.leavePool(2);
 
@@ -128,7 +128,7 @@ describe('MatchmakingService', () => {
 
   describe('tryFormPair()', () => {
     it('should return null when less than 2 players', () => {
-      service.joinPool(1);
+      service.joinPool(1, 'user1');
 
       const pair = service.tryFormPair();
 
@@ -143,9 +143,9 @@ describe('MatchmakingService', () => {
     });
 
     it('should return pair and remove players from pool', () => {
-      service.joinPool(1);
-      service.joinPool(2);
-      service.joinPool(3);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
+      service.joinPool(3, 'user3');
 
       const pair = service.tryFormPair();
 
@@ -184,8 +184,8 @@ describe('MatchmakingService', () => {
       };
       vi.mocked(mockMatchDao.create).mockResolvedValue(mockMatch as Match);
 
-      service.joinPool(1);
-      service.joinPool(2);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
       const pair = service.tryFormPair()!;
 
       const result = await service.createMatch(pair);
@@ -212,8 +212,8 @@ describe('MatchmakingService', () => {
       };
       vi.mocked(mockMatchDao.create).mockResolvedValue(mockMatch as Match);
 
-      service.joinPool(1);
-      service.joinPool(2);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
       const pair = service.tryFormPair()!;
 
       await service.createMatch(pair);
@@ -280,9 +280,9 @@ describe('MatchmakingService', () => {
 
   describe('returnToPool()', () => {
     it('should add player to front of queue (priority)', () => {
-      service.joinPool(1);
-      service.joinPool(2);
-      service.joinPool(3);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
+      service.joinPool(3, 'user3');
 
       service.returnToPool(99);
 
@@ -292,10 +292,10 @@ describe('MatchmakingService', () => {
     });
 
     it('should not add player if already in pool', () => {
-      service.joinPool(1);
+      service.joinPool(1, 'user1');
       expect(service.getPoolSize()).toBe(1);
 
-      const result = service.returnToPool(1);
+      const result = service.returnToPool(1, 'user1');
 
       expect(result.success).toBe(false);
       expect(service.getPoolSize()).toBe(1);
@@ -306,15 +306,17 @@ describe('MatchmakingService', () => {
         id: 'match-1',
         player1Id: 99,
         player2Id: 1,
+        player1Username: 'user99',
+        player2Username: 'user1',
         status: 'PENDING_ACKNOWLEDGEMENT',
       };
       vi.mocked(mockMatchDao.create).mockResolvedValue(mockMatch as Match);
 
-      service.joinPool(1);
-      service.joinPool(2);
-      service.joinPool(3);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
+      service.joinPool(3, 'user3');
 
-      service.returnToPool(99);
+      service.returnToPool(99, 'user99');
 
       const pair = service.tryFormPair()!;
 
@@ -367,11 +369,11 @@ describe('MatchmakingService', () => {
       const now = new Date('2026-01-01T00:00:00.000Z');
       vi.setSystemTime(now);
 
-      service.joinPool(1);
+      service.joinPool(1, 'user1');
 
       vi.advanceTimersByTime(TEST_MAX_WAIT_TIME_MS + 100);
 
-      service.joinPool(3); 
+      service.joinPool(3, 'user3'); 
 
       const removed = service.cleanupStaleEntries();
 
@@ -388,8 +390,8 @@ describe('MatchmakingService', () => {
       const now = new Date('2026-01-01T00:00:00.000Z');
       vi.setSystemTime(now);
 
-      service.joinPool(1);
-      service.joinPool(2);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
 
       vi.advanceTimersByTime(TEST_MAX_WAIT_TIME_MS / 2);
 
@@ -431,17 +433,17 @@ describe('MatchmakingService', () => {
     });
 
     it('should track size as players join', () => {
-      service.joinPool(1);
+      service.joinPool(1, 'user1');
       expect(service.getPoolSize()).toBe(1);
 
-      service.joinPool(2);
+      service.joinPool(2, 'user2');
       expect(service.getPoolSize()).toBe(2);
     });
   });
 
   describe('isInPool()', () => {
     it('should return true for player in pool', () => {
-      service.joinPool(1);
+      service.joinPool(1, 'user1');
       expect(service.isInPool(1)).toBe(true);
     });
 
@@ -450,7 +452,7 @@ describe('MatchmakingService', () => {
     });
 
     it('should return false after player leaves', () => {
-      service.joinPool(1);
+      service.joinPool(1, 'user1');
       service.leavePool(1);
       expect(service.isInPool(1)).toBe(false);
     });
@@ -462,12 +464,16 @@ describe('MatchmakingService', () => {
         id: 'match-1',
         player1Id: 1,
         player2Id: 2,
+        player1Username: 'user1',
+        player2Username: 'user2',
         status: 'PENDING_ACKNOWLEDGEMENT',
       };
       const mockMatch2: Partial<Match> = {
         id: 'match-2',
         player1Id: 1,
         player2Id: 3,
+        player1Username: 'user1',
+        player2Username: 'user3',
         status: 'PENDING_ACKNOWLEDGEMENT',
       };
 
@@ -475,15 +481,15 @@ describe('MatchmakingService', () => {
         .mockResolvedValueOnce(mockMatch1 as Match)
         .mockResolvedValueOnce(mockMatch2 as Match);
 
-      service.joinPool(1);
-      service.joinPool(2);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
 
       const pair1 = service.tryFormPair()!;
       await service.createMatch(pair1);
 
       expect(service.getPoolSize()).toBe(0);
 
-      service.joinPool(3);
+      service.joinPool(3, 'user3');
       expect(service.getPoolSize()).toBe(1);
 
       service.returnToPool(1);
@@ -499,9 +505,9 @@ describe('MatchmakingService', () => {
     });
 
     it('should handle player leaving before pairing', async () => {
-      service.joinPool(1);
-      service.joinPool(2);
-      service.joinPool(3);
+      service.joinPool(1, 'user1');
+      service.joinPool(2, 'user2');
+      service.joinPool(3, 'user3');
 
       service.leavePool(2);
 
@@ -509,6 +515,8 @@ describe('MatchmakingService', () => {
         id: 'match-1',
         player1Id: 1,
         player2Id: 3,
+        player1Username: 'user1',
+        player2Username: 'user3',
         status: 'PENDING_ACKNOWLEDGEMENT',
       };
       vi.mocked(mockMatchDao.create).mockResolvedValue(mockMatch as Match);
@@ -524,6 +532,8 @@ describe('MatchmakingService', () => {
         id: 'match-1',
         player1Id: 1,
         player2Id: 2,
+        player1Username: 'user1',
+        player2Username: 'user2',
         status: 'PENDING_ACKNOWLEDGEMENT',
       };
       vi.mocked(mockMatchDao.create).mockResolvedValue(mockMatch as Match);
