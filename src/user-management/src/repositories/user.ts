@@ -19,9 +19,7 @@ export class UserRepository implements IUserRepository {
         email: data.email,
         name: data.name,
         profile: {
-          create: {
-            avatar_url: data.avatar_url
-          }
+          create: {}
         }
       },
       include: {
