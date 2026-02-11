@@ -27,7 +27,7 @@ import { Hud } from '../components/hud.ts';
 import { Arena } from '../components/arena.ts';
 import { initializePhysics } from '../utils/physics.ts';
 import { renderLoop } from '../utils/render.ts';
-import { Client } from '@colyseus/sdk';
+import { Client, Callbacks, Room } from '@colyseus/sdk';
 
 export class GameClient {
   private _scene!: Scene;
@@ -40,7 +40,8 @@ export class GameClient {
   private _player!: Player;
   private _hud!: Hud;
   private _keyManager!: KeyManager;
-  private _balls!: Ball[];
+  private _balls!: Map<string, Ball>;
+  private _room!: Room;
 
   //@ts-ignore
   private _camera!: Camera;
@@ -81,8 +82,11 @@ export class GameClient {
   set keyManager(keyManager: KeyManager) {
     this._keyManager = keyManager;
   }
-  set balls(balls: Ball[]) {
+  set balls(balls: Map<string, Ball>) {
     this._balls = balls;
+  }
+  set room(room: Room) {
+    this._room = room;
   }
   set camera(camera: Camera) {
     this._camera = camera;
@@ -121,8 +125,11 @@ export class GameClient {
   get keyManager(): KeyManager {
     return this._keyManager;
   }
-  get balls(): Ball[] {
+  get balls(): Map<string, Ball> {
     return this._balls;
+  }
+  get room(): Room {
+    return this._room;
   }
   get camera(): Camera {
     return this._camera;
@@ -198,41 +205,84 @@ export class GameClient {
     const keyManager = new KeyManager(scene, () => this.frameCount, player);
     this.keyManager = keyManager;
 
-    let balls: Ball[] = [];
-    balls.push(addBall(scene));
-    balls.push(addBall(scene));
-    this.balls = balls;
+    this.balls = new Map<string, Ball>();
+
+    const client = new Client('ws://localhost:2567');
+    const room = await client
+      .joinOrCreate('my_room')
+      .then(function (room) {
+        console.log('Connected to roomId: ' + room.roomId);
+        return room;
+      })
+      .catch(function (error) {
+        console.log('Could not connect: got following error');
+        console.error(error);
+      });
+
+    // TODO: fix collisions
+    if (room instanceof Room) {
+      this.room = room;
+      console.log('here initializing room');
+      console.log(room.state);
+      const callbacks = Callbacks.get(room);
+      callbacks.onAdd('balls', (entity: any, sessionId: unknown) => {
+        const ball = addBall(scene, { x: entity.x, y: entity.y, z: entity.z });
+        ball.physicsMesh.aggregate.body.applyForce(
+          new Vector3(entity.xForce, entity.yForce, entity.zForce),
+          ball.physicsMesh.mesh.absolutePosition
+        );
+        console.log('ball added: ', entity, 'from sessionId: ', sessionId);
+
+        this.balls.set(entity.id, ball);
+        callbacks.onChange(entity, () => {
+          console.log('entity received:', entity);
+          const ball = this.balls.get(entity.id);
+          if (ball) {
+            console.log('got this ball', ball);
+            const pos = new Vector3(entity.x, entity.y, entity.z);
+            ball.physicsMesh.aggregate.transformNode.setAbsolutePosition(pos);
+          }
+        });
+        callbacks.onRemove(entity, () => {
+          console.log(entity, 'has been removed at', sessionId);
+          const ball = this.balls.get(entity.id);
+          if (ball) {
+            ball.dispose();
+          }
+          // remove your player entity from the game world!
+        });
+      });
+    }
     scene.onBeforeRenderObservable.add(this.draw(this));
     // for hit indicator
     scene.getBoundingBoxRenderer().frontColor.set(1, 0, 0);
     scene.getBoundingBoxRenderer().backColor.set(0, 1, 0);
-
-    const client = new Client('ws://localhost:2567');
-    client
-      .joinOrCreate('my_room')
-      .then(function (room) {
-        console.log('Connected to roomId: ' + room.roomId);
-      })
-      .catch(function (error) {
-        console.log("Couldn't connect.");
-      });
-
     return scene;
   }
 
   draw(g: GameClient) {
     return () => {
       if (!(g.frameCount % 600)) {
-        const ball = addBall(g.scene);
-        g.balls.push(ball);
+        // console.log(g.balls);
       }
-      for (const ball of g.balls) {
+      for (const entity of g.balls) {
+        const ball = entity[1];
         g.player.hitIndicator.detectIncomingHits(ball);
         ball.update();
+        g.room.send(
+          'set-position',
+          ball.physicsMesh.aggregate.transformNode.position
+        );
       }
-      g.balls.filter(ball => {
-        !ball.isDead();
-      });
+      // if (g.balls[0]) {
+      //   g.room.send(
+      //     'set-position',
+      //     g.balls[0].physicsMesh.aggregate.transformNode.position
+      //   );
+      // }
+      // g.balls.filter(ball => {
+      //   !ball.isDead();
+      // });
       if (
         g.keyManager.deltaTime !== 0 &&
         g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames
@@ -245,12 +295,11 @@ export class GameClient {
   }
 }
 
-export function addBall(scene: Scene) {
-  const temp = createBall(scene, new Vector3(0, 0, 0), 1);
-  temp.physicsMesh.aggregate.body.applyForce(
-    new Vector3(Math.random() * 100, Math.random() * 100, Math.random() * 100),
-    temp.physicsMesh.mesh.absolutePosition
-  );
+export function addBall(
+  scene: Scene,
+  pos: { x: number; y: number; z: number }
+) {
+  const temp = createBall(scene, new Vector3(pos.x, pos.y, pos.z), 1);
   return temp;
 }
 /* v8 ignore stop */
