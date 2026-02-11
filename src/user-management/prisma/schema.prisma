@@ -35,7 +35,7 @@ model Profile {
   avatar_url            String?
   win_rate              Float @default(0.0)
 
-  user                  User @relation(fields: [user_id], references: [id])
+  user                  User @relation(fields: [user_id], references: [id], onDelete: Cascade)
   user_id               Int @unique
 
   created_at            DateTime @default(now())
@@ -45,10 +45,10 @@ model Profile {
 model Friendship {
   id                     Int  @id @default(autoincrement())
 
-  requester              User @relation("sent_friendships", fields: [requester_id], references: [id])
+  requester              User @relation("sent_friendships", fields: [requester_id], references: [id], onDelete: Cascade)
   requester_id           Int
 
-  addressee              User @relation("received_friendships", fields: [addressee_id], references: [id])
+  addressee              User @relation("received_friendships", fields: [addressee_id], references: [id], onDelete: Cascade)
   addressee_id           Int
 
   status                 FriendshipStatus
