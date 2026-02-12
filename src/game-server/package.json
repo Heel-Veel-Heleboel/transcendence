@@ -9,20 +9,13 @@
     "node": ">= 20.9.0"
   },
   "scripts": {
-    "start": "node --import module-alias/register ./build/index.js"
+    "start": "node --import module-alias/register ./build/index.js",
     "dev": "tsx watch src/index.ts",
     "loadtest": "tsx loadtest/example.ts --room my_room --numClients 2",
     "build": "npm run clean && tsc -p tsconfig.build.json",
     "clean": "rimraf build",
     "test": "mocha -r tsx test/**.test.ts --exit --timeout 15000"
   },
-  "_moduleAliases": {
-    "@root": ".",
-    "@gameEngine": "src/gameEngine",
-    "@rooms": "src/rooms",
-    "@utils": "src/utils"
-  },
-  "_moduleDirectories": ["node_modules_custom"],
   "author": "",
   "license": "UNLICENSED",
   "bugs": {
@@ -49,7 +42,11 @@
     "babylonjs-loaders": "^8.51.0",
     "colyseus": "^0.17.6",
     "express": "^4.18.2",
-    "express-basic-auth": "^1.2.1",
-    "module-alias": "^2.3.4"
+    "express-basic-auth": "^1.2.1"
+  },
+  "imports": {
+      "#gameEngine/*": "./src/gameEngine/*",
+      "#rooms/*": "./src/rooms/*",
+      "#schema/*": "./src/rooms/schema/*"
   }
 }
