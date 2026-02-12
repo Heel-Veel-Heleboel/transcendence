@@ -1,10 +1,10 @@
 import { Room, Client, CloseCode } from 'colyseus';
-import { MyRoomState, Ball } from './schema/MyRoomState.js';
+import { GameRoomState, Ball } from '#schema/GameRoomState.js';
 
-export class MyRoom extends Room {
+export class GameRoom extends Room {
   maxClients = 4;
   id = 0;
-  state = new MyRoomState();
+  state = new GameRoomState();
 
   messages = {
     'set-position': (client: Client, data: any) => {
@@ -12,7 +12,8 @@ export class MyRoom extends Room {
       ball.x = data._x;
       ball.y = data._y;
       ball.z = data._z;
-      console.log(client.sessionId, 'sent a message:', data);
+      console.log(ball);
+      // console.log(client.sessionId, 'sent a message:', data);
     }
   };
 

@@ -11,6 +11,6 @@ export class Ball extends Schema {
   @type('number') zForce: number;
 }
 
-export class MyRoomState extends Schema {
+export class GameRoomState extends Schema {
   @type({ map: Ball }) balls = new MapSchema<Ball>();
 }

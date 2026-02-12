@@ -11,14 +11,14 @@ import basicAuth from 'express-basic-auth';
 /**
  * Import your Room files
  */
-import { MyRoom } from './rooms/MyRoom.js';
+import { GameRoom } from '#rooms/GameRoom.js';
 
 const server = defineServer({
   /**
    * Define your room handlers:
    */
   rooms: {
-    my_room: defineRoom(MyRoom)
+    game_room: defineRoom(GameRoom)
   },
 
   /**
@@ -71,4 +71,3 @@ const basicAuthMiddleware = basicAuth({
 });
 
 export default server;
-
