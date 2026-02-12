@@ -110,5 +110,5 @@ export interface IArena {
 
 export interface PhysicsMesh {
   mesh: AbstractMesh;
-  aggregate: PhysicsAggregate;
+  // aggregate: PhysicsAggregate;
 }

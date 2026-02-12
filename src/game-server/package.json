@@ -9,7 +9,7 @@
     "node": ">= 20.9.0"
   },
   "scripts": {
-    "start": "node --import module-alias/register ./build/index.js",
+    "start": "node ./build/src/index.js",
     "dev": "tsx watch src/index.ts",
     "loadtest": "tsx loadtest/example.ts --room my_room --numClients 2",
     "build": "npm run clean && tsc -p tsconfig.build.json",
@@ -34,19 +34,23 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@babylonjs/core": "^8.51.0",
     "@babylonjs/havok": "^1.3.11",
+    "@babylonjs/loaders": "^8.51.0",
+    "@babylonjs/materials": "^8.51.0",
     "@colyseus/monitor": "^0.17.7",
     "@colyseus/schema": "^4.0.0",
     "@colyseus/tools": "^0.17.0",
-    "babylonjs": "^8.51.0",
-    "babylonjs-loaders": "^8.51.0",
     "colyseus": "^0.17.6",
     "express": "^4.18.2",
     "express-basic-auth": "^1.2.1"
   },
   "imports": {
-      "#gameEngine/*": "./src/gameEngine/*",
-      "#rooms/*": "./src/rooms/*",
-      "#schema/*": "./src/rooms/schema/*"
+    "#gameEngine/*": "./src/gameEngine/*",
+    "#rooms/*": "./src/rooms/*",
+    "#schema/*": "./src/rooms/schema/*",
+    "#public/*": "./public/*",
+    "#entities/*": "./src/rooms/entities/*",
+    "#types/*": "./src/types/*"
   }
 }
