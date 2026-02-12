@@ -4,10 +4,8 @@ import {
   Scene,
   Mesh,
   MeshBuilder,
-  PhysicsAggregate,
   Vector3,
-  StandardMaterial,
-  PhysicsShapeType
+  StandardMaterial
 } from '@babylonjs/core';
 import earcut from 'earcut';
 import { KeyGrid } from '../systems/keyGrid.ts';
@@ -62,15 +60,15 @@ export class Player implements IPlayer {
     if (padel.material) {
       padel.material.wireframe = true;
     }
-    const aggregate = new PhysicsAggregate(
-      padel,
-      PhysicsShapeType.MESH,
-      { mass: 0, restitution: 1, friction: 0.0 },
-      scene
-    );
-    aggregate.body.setAngularDamping(0.0);
-    aggregate.body.setLinearDamping(0.0);
-    this.physicsMesh = { mesh: padel, aggregate };
+    // const aggregate = new PhysicsAggregate(
+    //   padel,
+    //   PhysicsShapeType.MESH,
+    //   { mass: 0, restitution: 1, friction: 0.0 },
+    //   scene
+    // );
+    // aggregate.body.setAngularDamping(0.0);
+    // aggregate.body.setLinearDamping(0.0);
+    this.physicsMesh = { mesh: padel };
     this.lifespan = 1000;
 
     let sideOrientation;
@@ -179,21 +177,20 @@ export class Player implements IPlayer {
   }
 
   movePrecise(coord: { x: number; y: number }) {
-    this.physicsMesh.aggregate.transformNode.position.x += coord.x;
-    this.physicsMesh.aggregate.transformNode.position.y += coord.y;
+    this.physicsMesh.mesh.position.x += coord.x;
+    this.physicsMesh.mesh.position.y += coord.y;
   }
 
   move(coord: { x: number; y: number }) {
-    this.physicsMesh.aggregate.transformNode.position = new Vector3(
+    this.physicsMesh.mesh.position = new Vector3(
       coord.x,
       coord.y,
-      this.physicsMesh.aggregate.transformNode.absolutePosition.z
+      this.physicsMesh.mesh.absolutePosition.z
     );
   }
 
   dispose(): void {
     this.physicsMesh.mesh.dispose();
-    this.physicsMesh.aggregate.dispose();
   }
 
   decreaseLife(amount: number): void {

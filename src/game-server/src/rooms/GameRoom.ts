@@ -1,10 +1,13 @@
 import { Room, Client, CloseCode } from 'colyseus';
-import { GameRoomState, Ball } from '#schema/GameRoomState.js';
+import { GameRoomState } from '#schema/GameRoomState.js';
+import { createBall } from '#gameEngine/Create.js';
+import { GameEngine } from '#gameEngine/GameEngine.js';
+import { Vector3 } from '@babylonjs/core';
 
 export class GameRoom extends Room {
   maxClients = 4;
-  id = 0;
   state = new GameRoomState();
+  engine: GameEngine;
 
   messages = {
     'set-position': (client: Client, data: any) => {
@@ -17,7 +20,9 @@ export class GameRoom extends Room {
     }
   };
 
-  onCreate(options: any) {
+  async onCreate(options: any) {
+    this.engine = new GameEngine();
+    await this.engine.initGame();
     /**
      * Called when a new room is created.
      */
@@ -25,18 +30,22 @@ export class GameRoom extends Room {
 
   onJoin(client: Client, options: any) {
     console.log(client.sessionId, 'joined!');
-    const ball = new Ball();
+    console.log(this.engine);
+    const ball = createBall(this.engine.scene, new Vector3(0, 0, 0), 1);
 
-    ball.id = this.id;
+    ball.lifespan = 1000;
     ball.x = 0;
     ball.y = 0;
     ball.z = 0;
-    ball.xForce = 0;
-    ball.yForce = 0;
-    ball.zForce = 10;
-    this.id++;
+    ball.physicsMesh.aggregate.body.applyForce(
+      new Vector3(
+        Math.random() * 100,
+        Math.random() * 100,
+        Math.random() * 100
+      ),
+      ball.physicsMesh.mesh.absolutePosition
+    );
     console.log('setting ball in state: ', ball);
-
     this.state.balls.set(client.sessionId, ball);
   }
 

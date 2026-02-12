@@ -25,7 +25,6 @@ import { Player } from '../components/player.ts';
 import { KeyManager } from './keyManager.ts';
 import { Hud } from '../components/hud.ts';
 import { Arena } from '../components/arena.ts';
-import { initializePhysics } from '../utils/physics.ts';
 import { renderLoop } from '../utils/render.ts';
 import { Client, Callbacks, Room } from '@colyseus/sdk';
 
@@ -143,7 +142,7 @@ export class GameClient {
   /* v8 ignore stop */
 
   async initGame() {
-    await initializePhysics(this.defaultScene);
+    // await initializePhysics(this.defaultScene);
     prepareImportGLTF(this.defaultScene);
     this.scene = await this.initScene(this.defaultScene);
     this.frameCount = 0;
@@ -190,26 +189,15 @@ export class GameClient {
     player.initGridColumnsHints(scene);
     player.initGridRowsHints(scene);
 
-    const observable_1 =
-      this.arena.goal_1.aggregate.body.getCollisionObservable();
-    observable_1.add(_collisionEvent => {
-      console.log('goal_1');
-      this.hud.changeHealth(-10);
-    });
-
-    const observable_2 =
-      this.arena.goal_2.aggregate.body.getCollisionObservable();
-    observable_2.add(_collisionEvent => {
-      console.log('goal_2');
-    });
     const keyManager = new KeyManager(scene, () => this.frameCount, player);
     this.keyManager = keyManager;
 
     this.balls = new Map<string, Ball>();
 
+    console.log('here');
     const client = new Client('ws://localhost:2567');
     const room = await client
-      .joinOrCreate('my_room')
+      .joinOrCreate('game_room')
       .then(function (room) {
         console.log('Connected to roomId: ' + room.roomId);
         return room;
@@ -218,8 +206,8 @@ export class GameClient {
         console.log('Could not connect: got following error');
         console.error(error);
       });
+    console.log('here as well');
 
-    // TODO: fix collisions
     if (room instanceof Room) {
       this.room = room;
       console.log('here initializing room');
@@ -227,10 +215,6 @@ export class GameClient {
       const callbacks = Callbacks.get(room);
       callbacks.onAdd('balls', (entity: any, sessionId: unknown) => {
         const ball = addBall(scene, { x: entity.x, y: entity.y, z: entity.z });
-        ball.physicsMesh.aggregate.body.applyForce(
-          new Vector3(entity.xForce, entity.yForce, entity.zForce),
-          ball.physicsMesh.mesh.absolutePosition
-        );
         console.log('ball added: ', entity, 'from sessionId: ', sessionId);
 
         this.balls.set(entity.id, ball);
@@ -240,7 +224,7 @@ export class GameClient {
           if (ball) {
             console.log('got this ball', ball);
             const pos = new Vector3(entity.x, entity.y, entity.z);
-            ball.physicsMesh.aggregate.transformNode.setAbsolutePosition(pos);
+            ball.physicsMesh.mesh.setAbsolutePosition(pos);
           }
         });
         callbacks.onRemove(entity, () => {
@@ -269,10 +253,6 @@ export class GameClient {
         const ball = entity[1];
         g.player.hitIndicator.detectIncomingHits(ball);
         ball.update();
-        g.room.send(
-          'set-position',
-          ball.physicsMesh.aggregate.transformNode.position
-        );
       }
       // if (g.balls[0]) {
       //   g.room.send(
@@ -280,9 +260,6 @@ export class GameClient {
       //     g.balls[0].physicsMesh.aggregate.transformNode.position
       //   );
       // }
-      // g.balls.filter(ball => {
-      //   !ball.isDead();
-      // });
       if (
         g.keyManager.deltaTime !== 0 &&
         g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames

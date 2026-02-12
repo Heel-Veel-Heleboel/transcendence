@@ -3,8 +3,6 @@ import {
   ImportMeshAsync,
   Scene,
   Mesh,
-  PhysicsShapeType,
-  PhysicsAggregate,
   StandardMaterial
 } from '@babylonjs/core';
 import gameConfig from '../utils/gameConfig.ts';
@@ -60,22 +58,20 @@ export class Arena implements IArena {
           if (mesh.material) {
             mesh.material.wireframe = true;
           }
-          const aggregate = new PhysicsAggregate(
-            mesh,
-            PhysicsShapeType.MESH,
-            { mass: 0.0, restitution: 1.0, friction: 0.0 },
-            scene
-          );
-          aggregate.body.setAngularDamping(0.0);
-          aggregate.body.setLinearDamping(0.0);
+          // const aggregate = new PhysicsAggregate(
+          //   mesh,
+          //   PhysicsShapeType.MESH,
+          //   { mass: 0.0, restitution: 1.0, friction: 0.0 },
+          //   scene
+          // );
+          // aggregate.body.setAngularDamping(0.0);
+          // aggregate.body.setLinearDamping(0.0);
           if (mesh.id === gameConfig.areneId) {
-            this._arena = { mesh, aggregate };
+            this._arena = { mesh };
           } else if (mesh.id === gameConfig.goalId1) {
-            aggregate.body.setCollisionCallbackEnabled(true);
-            this.goal_1 = { mesh, aggregate };
+            this.goal_1 = { mesh };
           } else if (mesh.id === gameConfig.goalId2) {
-            aggregate.body.setCollisionCallbackEnabled(true);
-            this.goal_2 = { mesh, aggregate };
+            this.goal_2 = { mesh };
           }
         }
       })

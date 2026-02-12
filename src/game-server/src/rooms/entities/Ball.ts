@@ -1,6 +1,6 @@
-import { IBall, PhysicsMesh } from '../types/types.ts';
+import { IBall, PhysicsMesh } from '#types/Common.js';
+import { Schema, type } from '@colyseus/schema';
 import {
-  AbstractMesh,
   Mesh,
   Scene,
   Vector3,
@@ -9,11 +9,16 @@ import {
 } from '@babylonjs/core';
 
 /* v8 ignore start */
-export class Ball implements IBall {
+export class Ball extends Schema implements IBall {
+  @type('number') lifespan: number;
+  @type('number') x: number;
+  @type('number') y: number;
+  @type('number') z: number;
+
   public physicsMesh: PhysicsMesh;
-  public lifespan!: number;
-  public lines: AbstractMesh | null;
+
   constructor(ball: Mesh, position: Vector3, scene: Scene) {
+    super();
     const mesh = ball;
     mesh.position = position;
     const aggregate = new PhysicsAggregate(
@@ -24,8 +29,14 @@ export class Ball implements IBall {
     );
     aggregate.body.setAngularDamping(0.0);
     aggregate.body.setLinearDamping(0.0);
-    this.physicsMesh = { mesh };
-    this.lines = null;
+    this.physicsMesh = { mesh, aggregate };
+    this.lifespan = 1000;
+  }
+
+  setPosition(pos: Vector3) {
+    this.x = pos._x;
+    this.y = pos._y;
+    this.z = pos._z;
   }
 
   isDead(): boolean {
@@ -38,15 +49,11 @@ export class Ball implements IBall {
 
   dispose(): void {
     this.physicsMesh.mesh.dispose();
-    if (this.lines) {
-      this.lines.dispose();
-    }
+    this.physicsMesh.aggregate.dispose();
   }
 
   update(): void {
-    if (this.isDead()) {
-      this.dispose();
-    }
+    this.lifespan = this.lifespan - 1;
   }
 }
 /* v8 ignore stop */
