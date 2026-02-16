@@ -1,5 +1,6 @@
 import { IProfileRepository } from './interfaces/profile.js';
 import { PrismaClient, Profile } from '../../generated/prisma/client.js';
+
 import { 
   FindProfileDto,
   UpdateBioDto,
@@ -12,20 +13,11 @@ export class ProfileRepository implements IProfileRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async findByUserId(data: FindProfileDto): Promise<Profile | null> {
-    return  await this.prisma.profile.findUnique({
+    return await this.prisma.profile.findUnique({
       where: {
         user_id: data.user_id
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            activity_status: true
-          }
-        }
       }
     });
-
   }
 
   async updateBio(data: UpdateBioDto): Promise<void> {
