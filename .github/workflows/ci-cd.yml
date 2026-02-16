@@ -53,7 +53,7 @@ jobs:
       working-directory: src/${{ matrix.service }}
 
     - name: Generate Prisma Client
-      if: matrix.service == 'auth' || matrix.service == 'matchmaking'
+      if: matrix.service == 'auth' || matrix.service == 'matchmaking' || matrix.service == 'user-management'
       run: npx prisma generate
       working-directory: src/${{ matrix.service }}
 
@@ -98,7 +98,7 @@ jobs:
       working-directory: src/${{ matrix.service }}
 
     - name: Generate Prisma Client
-      if: matrix.service == 'auth' || matrix.service == 'matchmaking'
+      if: matrix.service == 'auth' || matrix.service == 'matchmaking' || matrix.service == 'user-management'
       run: npx prisma generate
       working-directory: src/${{ matrix.service }}
 
