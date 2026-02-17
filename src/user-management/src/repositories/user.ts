@@ -10,7 +10,6 @@ import {
   UpdateUserEmailDto,
   UpdateUserNameDto,
   UpdatedUserStatusDto,
-  FindUniqueUserDto,
   FindManyUserDto
 } from '../dto/user.js';
 
@@ -61,7 +60,7 @@ export class UserRepository implements IUserRepository {
       throw error;
     }
   }
-
+  
 
   async updateEmail(data: UpdateUserEmailDto): Promise<void> {
     try {
@@ -85,7 +84,7 @@ export class UserRepository implements IUserRepository {
       throw error;
     }
   }
-
+  
 
   async updateName(data: UpdateUserNameDto): Promise<void> {
     try {
@@ -109,8 +108,8 @@ export class UserRepository implements IUserRepository {
       throw error;
     }
   }
-
-
+  
+  
   async updateStatus(data: UpdatedUserStatusDto): Promise<void> {
     try {
       await this.prismaClient.user.update({
@@ -128,31 +127,31 @@ export class UserRepository implements IUserRepository {
       throw error;
     }
   }
-
-  async findUnique(data: FindUniqueUserDto): Promise<User | null> {
-    if (data.id) {
-      return await this.prismaClient.user.findUnique({
-        where: {
-          id: data.id
-        }
-      });
-    } else if (data.email) {
-      return await this.prismaClient.user.findUnique({
-        where: {
-          email: data.email
-        }
-      });
-    } else if (data.name) {
-      return await this.prismaClient.user.findUnique({
-        where: {
-          name: data.name
-        }
-      });
-    } else {
-      return null;
-    }
+  
+  async findByEmail(email: string): Promise<User | null> {
+    return await this.prismaClient.user.findUnique({
+      where: {
+        email: email
+      }
+    });
   }
-
+  
+  async findByName(name: string): Promise<User | null> {
+    return await this.prismaClient.user.findUnique({
+      where: {
+        name: name
+      }
+    });
+  }
+  
+  async findById(id: number): Promise<User | null> {
+    return await this.prismaClient.user.findUnique({
+      where: {
+        id: id
+      }
+    });
+  }
+  
   async findByStatus(data: FindManyUserDto): Promise<User[] | null> {
     return await this.prismaClient.user.findMany({
       where: {
