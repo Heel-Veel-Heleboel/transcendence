@@ -6,7 +6,6 @@ import {
   UpdateUserEmailDto,
   UpdateUserNameDto,
   UpdatedUserStatusDto,
-  FindUniqueUserDto,
   FindManyUserDto
 } from '../../dto/user.js';
 
