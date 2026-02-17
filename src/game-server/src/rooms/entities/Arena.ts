@@ -7,6 +7,7 @@ import {
   PhysicsAggregate,
   StandardMaterial
 } from '@babylonjs/core';
+import '@babylonjs/loaders';
 
 /* v8 ignore start */
 export class Arena implements IArena {
@@ -17,7 +18,8 @@ export class Arena implements IArena {
   constructor() {}
 
   async initMesh(scene: Scene) {
-    const model = ImportMeshAsync('#public/arena.gltf', scene);
+    const path = 'http:localhost:2567/arena.gltf';
+    const model = ImportMeshAsync(path, scene);
     await model
       .then(result => {
         if (result.meshes.length !== 4) throw Error('invalid format');

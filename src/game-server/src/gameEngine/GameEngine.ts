@@ -4,6 +4,8 @@ import { Ball } from '#entities/Ball.js';
 import { Arena } from '#entities/Arena.js';
 import { createArena, createCamera, createLight } from '#gameEngine/Create.js';
 import { NullEngine, Scene, Camera, Light } from '@babylonjs/core';
+import XMLHttpRequest from 'xmlhttprequest-ssl';
+global.XMLHttpRequest = XMLHttpRequest;
 
 export class GameEngine {
   private _scene!: Scene;
@@ -37,7 +39,6 @@ export class GameEngine {
     this.light = createLight(scene);
     this.arena = createArena();
     await this.arena.initMesh(scene);
-    console.log(this.arena);
 
     const observable_1 =
       this.arena.goal_1.aggregate.body.getCollisionObservable();

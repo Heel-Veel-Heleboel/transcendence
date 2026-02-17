@@ -7,6 +7,7 @@ import {
   createEndpoint
 } from 'colyseus';
 import basicAuth from 'express-basic-auth';
+import express from 'express';
 
 /**
  * Import your Room files
@@ -39,10 +40,6 @@ const server = defineServer({
    * Read more: https://expressjs.com/en/starter/basic-routing.html
    */
   express: app => {
-    app.get('/hi', (req, res) => {
-      res.send("It's time to kick ass and chew bubblegum!");
-    });
-
     /**
      * Use @colyseus/monitor
      * It is recommended to protect this route with a password
@@ -50,6 +47,7 @@ const server = defineServer({
      */
     app.use('/monitor', basicAuthMiddleware, monitor());
 
+    app.use(express.static('public'));
     /**
      * Use @colyseus/playground
      * (It is not recommended to expose this route in a production environment)

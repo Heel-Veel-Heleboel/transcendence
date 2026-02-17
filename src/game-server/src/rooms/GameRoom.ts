@@ -30,7 +30,6 @@ export class GameRoom extends Room {
 
   onJoin(client: Client, options: any) {
     console.log(client.sessionId, 'joined!');
-    console.log(this.engine);
     const ball = createBall(this.engine.scene, new Vector3(0, 0, 0), 1);
 
     ball.lifespan = 1000;
@@ -45,7 +44,7 @@ export class GameRoom extends Room {
       ),
       ball.physicsMesh.mesh.absolutePosition
     );
-    console.log('setting ball in state: ', ball);
+    console.log('setting ball in state: ');
     this.state.balls.set(client.sessionId, ball);
   }
 

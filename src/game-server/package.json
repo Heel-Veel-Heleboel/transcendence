@@ -10,7 +10,7 @@
     },
     "scripts": {
         "start": "node ./build/src/index.js",
-        "dev": "tsx watch src/index.ts",
+        "dev": "npm run build && npm run start",
         "loadtest": "tsx loadtest/example.ts --room my_room --numClients 2",
         "build": "npm run clean && tsc -p tsconfig.build.json",
         "clean": "rimraf build",
@@ -42,8 +42,10 @@
         "@colyseus/schema": "^4.0.0",
         "@colyseus/tools": "^0.17.0",
         "colyseus": "^0.17.6",
-        "express": "^4.18.2",
-        "express-basic-auth": "^1.2.1"
+        "express": "^4.22.1",
+        "express-basic-auth": "^1.2.1",
+        "xhr2": "^0.2.1",
+        "xmlhttprequest-ssl": "^4.0.0"
     },
     "imports": {
         "#gameEngine/*": {
@@ -59,7 +61,7 @@
             "default": "./src/rooms/schema/*"
         },
         "#public/*": {
-            "node": "./build/public/*",
+            "node": "./public/*",
             "default": "./public/*"
         },
         "#entities/*": {
