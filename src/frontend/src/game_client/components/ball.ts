@@ -12,18 +12,19 @@ import {
 export class Ball implements IBall {
   public physicsMesh: PhysicsMesh;
   public lifespan!: number;
+  public linearVelocity!: Vector3;
   public lines: AbstractMesh | null;
   constructor(ball: Mesh, position: Vector3, scene: Scene) {
     const mesh = ball;
     mesh.position = position;
-    const aggregate = new PhysicsAggregate(
-      mesh,
-      PhysicsShapeType.SPHERE,
-      { mass: 0.1, restitution: 1.023, friction: 0.0 },
-      scene
-    );
-    aggregate.body.setAngularDamping(0.0);
-    aggregate.body.setLinearDamping(0.0);
+    // const aggregate = new PhysicsAggregate(
+    //   mesh,
+    //   PhysicsShapeType.SPHERE,
+    //   { mass: 0.1, restitution: 1.023, friction: 0.0 },
+    //   scene
+    // );
+    // aggregate.body.setAngularDamping(0.0);
+    // aggregate.body.setLinearDamping(0.0);
     this.physicsMesh = { mesh };
     this.lines = null;
   }

@@ -59,9 +59,7 @@ export class HitIndicator implements IHitIndicator {
       const options = {
         points: [
           ball.physicsMesh.mesh.absolutePosition,
-          ball.physicsMesh.aggregate.body
-            .getLinearVelocity()
-            .addInPlace(ball.physicsMesh.mesh.absolutePosition)
+          ball.linearVelocity.addInPlace(ball.physicsMesh.mesh.absolutePosition)
         ],
         updatable: true,
         // no scene parameter needed with options.instance, used for updates
@@ -72,9 +70,7 @@ export class HitIndicator implements IHitIndicator {
       const options = {
         points: [
           ball.physicsMesh.mesh.absolutePosition,
-          ball.physicsMesh.aggregate.body
-            .getLinearVelocity()
-            .addInPlace(ball.physicsMesh.mesh.absolutePosition)
+          ball.linearVelocity.addInPlace(ball.physicsMesh.mesh.absolutePosition)
         ],
         updatable: true
       };

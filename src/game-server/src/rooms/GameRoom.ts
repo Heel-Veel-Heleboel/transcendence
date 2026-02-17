@@ -8,14 +8,18 @@ export class GameRoom extends Room {
   maxClients = 4;
   state = new GameRoomState();
   engine: GameEngine;
+  id = 0;
 
   messages = {
-    'set-position': (client: Client, data: any) => {
+    'set-position': (client: Client) => {
       const ball = this.state.balls.get(client.sessionId);
-      ball.x = data._x;
-      ball.y = data._y;
-      ball.z = data._z;
-      console.log(ball);
+      ball.x = ball.physicsMesh.mesh.absolutePosition.x;
+      ball.y = ball.physicsMesh.mesh.absolutePosition.y;
+      ball.z = ball.physicsMesh.mesh.absolutePosition.z;
+      const lv = ball.physicsMesh.aggregate.body.getLinearVelocity();
+      ball.linearVelocityX = lv.x;
+      ball.linearVelocityY = lv.y;
+      ball.linearVelocityZ = lv.z;
       // console.log(client.sessionId, 'sent a message:', data);
     }
   };
@@ -33,9 +37,13 @@ export class GameRoom extends Room {
     const ball = createBall(this.engine.scene, new Vector3(0, 0, 0), 1);
 
     ball.lifespan = 1000;
+    ball.id = this.id;
     ball.x = 0;
     ball.y = 0;
     ball.z = 0;
+    ball.linearVelocityX = 0;
+    ball.linearVelocityY = 0;
+    ball.linearVelocityZ = 0;
     ball.physicsMesh.aggregate.body.applyForce(
       new Vector3(
         Math.random() * 100,
@@ -44,6 +52,7 @@ export class GameRoom extends Room {
       ),
       ball.physicsMesh.mesh.absolutePosition
     );
+    this.id++;
     console.log('setting ball in state: ');
     this.state.balls.set(client.sessionId, ball);
   }

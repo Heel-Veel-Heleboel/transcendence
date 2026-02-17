@@ -11,9 +11,13 @@ import {
 /* v8 ignore start */
 export class Ball extends Schema implements IBall {
   @type('number') lifespan: number;
+  @type('number') id: number;
   @type('number') x: number;
   @type('number') y: number;
   @type('number') z: number;
+  @type('number') linearVelocityX: number;
+  @type('number') linearVelocityY: number;
+  @type('number') linearVelocityZ: number;
 
   public physicsMesh: PhysicsMesh;
 

@@ -216,15 +216,21 @@ export class GameClient {
       callbacks.onAdd('balls', (entity: any, sessionId: unknown) => {
         const ball = addBall(scene, { x: entity.x, y: entity.y, z: entity.z });
         console.log('ball added: ', entity, 'from sessionId: ', sessionId);
-
+        console.log(this.balls);
         this.balls.set(entity.id, ball);
         callbacks.onChange(entity, () => {
-          console.log('entity received:', entity);
+          // console.log('entity received:', entity);
           const ball = this.balls.get(entity.id);
           if (ball) {
-            console.log('got this ball', ball);
+            // console.log('got this ball', ball);
             const pos = new Vector3(entity.x, entity.y, entity.z);
+            const lv = new Vector3(
+              entity.linearVelocityX,
+              entity.linearVelocityY,
+              entity.linearVelocityZ
+            );
             ball.physicsMesh.mesh.setAbsolutePosition(pos);
+            ball.linearVelocity = lv;
           }
         });
         callbacks.onRemove(entity, () => {
@@ -252,14 +258,9 @@ export class GameClient {
       for (const entity of g.balls) {
         const ball = entity[1];
         g.player.hitIndicator.detectIncomingHits(ball);
-        ball.update();
+        // ball.update();
       }
-      // if (g.balls[0]) {
-      //   g.room.send(
-      //     'set-position',
-      //     g.balls[0].physicsMesh.aggregate.transformNode.position
-      //   );
-      // }
+      g.room.send('set-position');
       if (
         g.keyManager.deltaTime !== 0 &&
         g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames
