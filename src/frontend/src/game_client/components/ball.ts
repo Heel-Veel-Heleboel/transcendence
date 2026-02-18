@@ -38,6 +38,7 @@ export class Ball implements IBall {
   }
 
   dispose(): void {
+    this.lifespan = -1;
     this.physicsMesh.mesh.dispose();
     if (this.lines) {
       this.lines.dispose();

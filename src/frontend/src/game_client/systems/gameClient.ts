@@ -255,7 +255,9 @@ export class GameClient {
       }
       for (const entity of g.balls) {
         const ball = entity[1];
-        g.player.hitIndicator.detectIncomingHits(ball);
+        if (ball) {
+          g.player.hitIndicator.detectIncomingHits(ball);
+        }
         // ball.update();
       }
       // g.room.send('set-position');
