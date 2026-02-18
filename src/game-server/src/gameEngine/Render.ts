@@ -1,7 +1,10 @@
-import { NullEngine, Scene } from '@babylonjs/core';
+import { GameEngine } from './GameEngine.js';
 
-export function renderLoop(engine: NullEngine, scene: Scene) {
-  engine.runRenderLoop(() => {
-    scene.render();
+export function renderLoop(gameEngine: GameEngine) {
+  gameEngine.engine.runRenderLoop(() => {
+    gameEngine.gameRoom.state.balls.forEach((value, _key) => {
+      value.update();
+    });
+    gameEngine.scene.render();
   });
 }

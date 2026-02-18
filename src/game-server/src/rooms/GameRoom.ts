@@ -25,7 +25,7 @@ export class GameRoom extends Room {
   };
 
   async onCreate(options: any) {
-    this.engine = new GameEngine();
+    this.engine = new GameEngine(this);
     await this.engine.initGame();
     /**
      * Called when a new room is created.
@@ -62,7 +62,15 @@ export class GameRoom extends Room {
      * Called when a client leaves the room.
      */
     console.log(client.sessionId, 'left!', code);
-    this.state.balls.delete(client.sessionId);
+
+    const ball = this.state.balls.get(client.sessionId);
+    if (ball) {
+      ball.dispose();
+      const removed = this.state.balls.delete(client.sessionId);
+      console.log(removed);
+      console.log(this.state.balls);
+    }
+    client.leave();
   }
 
   onDispose() {

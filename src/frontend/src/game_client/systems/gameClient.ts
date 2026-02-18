@@ -219,7 +219,6 @@ export class GameClient {
         console.log(this.balls);
         this.balls.set(entity.id, ball);
         callbacks.onChange(entity, () => {
-          // console.log('entity received:', entity);
           const ball = this.balls.get(entity.id);
           if (ball) {
             // console.log('got this ball', ball);
@@ -233,14 +232,13 @@ export class GameClient {
             ball.linearVelocity = lv;
           }
         });
-        callbacks.onRemove(entity, () => {
-          console.log(entity, 'has been removed at', sessionId);
-          const ball = this.balls.get(entity.id);
-          if (ball) {
-            ball.dispose();
-          }
-          // remove your player entity from the game world!
-        });
+      });
+      callbacks.onRemove('balls', (entity: any, sessionId) => {
+        console.log(entity, 'has been removed at', sessionId);
+        const ball = this.balls.get(entity.id);
+        if (ball) {
+          ball.dispose();
+        }
       });
     }
     scene.onBeforeRenderObservable.add(this.draw(this));
@@ -260,7 +258,7 @@ export class GameClient {
         g.player.hitIndicator.detectIncomingHits(ball);
         // ball.update();
       }
-      g.room.send('set-position');
+      // g.room.send('set-position');
       if (
         g.keyManager.deltaTime !== 0 &&
         g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames

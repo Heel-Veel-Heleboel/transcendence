@@ -57,7 +57,14 @@ export class Ball extends Schema implements IBall {
   }
 
   update(): void {
-    this.lifespan = this.lifespan - 1;
+    // this.lifespan = this.lifespan - 1;
+    this.x = this.physicsMesh.mesh.absolutePosition.x;
+    this.y = this.physicsMesh.mesh.absolutePosition.y;
+    this.z = this.physicsMesh.mesh.absolutePosition.z;
+    const lv = this.physicsMesh.aggregate.body.getLinearVelocity();
+    this.linearVelocityX = lv.x;
+    this.linearVelocityY = lv.y;
+    this.linearVelocityZ = lv.z;
   }
 }
 /* v8 ignore stop */

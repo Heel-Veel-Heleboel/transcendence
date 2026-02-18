@@ -5,12 +5,14 @@ import { Arena } from '#entities/Arena.js';
 import { createArena, createCamera, createLight } from '#gameEngine/Create.js';
 import { NullEngine, Scene, Camera, Light } from '@babylonjs/core';
 import XMLHttpRequest from 'xmlhttprequest-ssl';
+import { GameRoom } from '#rooms/GameRoom.js';
 global.XMLHttpRequest = XMLHttpRequest;
 
 export class GameEngine {
   private _scene!: Scene;
   private _defaultScene!: Scene;
   private _engine!: NullEngine;
+  private _gameRoom!: GameRoom;
   //
   private _arena!: Arena;
   // private _player!: Player;
@@ -21,7 +23,9 @@ export class GameEngine {
   //@ts-ignore
   private _light!: Light;
 
-  constructor() {}
+  constructor(gameRoom: GameRoom) {
+    this.gameRoom = gameRoom;
+  }
 
   async initGame() {
     this.engine = new NullEngine();
@@ -30,7 +34,7 @@ export class GameEngine {
     await initializePhysics(scene);
     this.scene = await this.initScene(scene);
 
-    renderLoop(this.engine, this.scene);
+    renderLoop(this);
   }
 
   /* v8 ignore start */
@@ -70,6 +74,9 @@ export class GameEngine {
   set engine(engine: NullEngine) {
     this._engine = engine;
   }
+  set gameRoom(gameRoom: GameRoom) {
+    this._gameRoom = gameRoom;
+  }
   set arena(arena: Arena) {
     this._arena = arena;
   }
@@ -94,6 +101,9 @@ export class GameEngine {
   }
   get engine(): NullEngine {
     return this._engine;
+  }
+  get gameRoom(): GameRoom {
+    return this._gameRoom;
   }
   get arena(): Arena {
     return this._arena;
