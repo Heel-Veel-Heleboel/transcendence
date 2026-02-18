@@ -3,6 +3,7 @@ import { GameRoomState } from '#schema/GameRoomState.js';
 import { createBall } from '#gameEngine/Create.js';
 import { GameEngine } from '#gameEngine/GameEngine.js';
 import { Vector3 } from '@babylonjs/core';
+import { Player } from './entities/Player.js';
 
 export class GameRoom extends Room {
   maxClients = 4;
@@ -34,6 +35,32 @@ export class GameRoom extends Room {
 
   onJoin(client: Client, options: any) {
     console.log(client.sessionId, 'joined!');
+
+    const hostConfig = {
+      keys: {
+        length: 6
+      },
+      goalPosition: this.engine.arena.goal_1.mesh.absolutePosition,
+      goalDimensions: this.engine.arena.goal_1.mesh
+        .getBoundingInfo()
+        .boundingBox.extendSizeWorld.scale(2)
+    };
+    const guestConfig = {
+      keys: {
+        length: 6
+      },
+      goalPosition: this.engine.arena.goal_2.mesh.absolutePosition,
+      goalDimensions: this.engine.arena.goal_2.mesh
+        .getBoundingInfo()
+        .boundingBox.extendSizeWorld.scale(2)
+    };
+    if (this.state.players.size === 0) {
+      const player = new Player(hostConfig, this.engine.scene);
+      this.state.players.set(client.sessionId, player);
+    } else {
+      const player = new Player(guestConfig, this.engine.scene);
+      this.state.players.set(client.sessionId, player);
+    }
     const ball = createBall(this.engine.scene, new Vector3(0, 0, 0), 1);
 
     ball.lifespan = 1000;
@@ -66,9 +93,11 @@ export class GameRoom extends Room {
     const ball = this.state.balls.get(client.sessionId);
     if (ball) {
       ball.dispose();
-      const removed = this.state.balls.delete(client.sessionId);
-      console.log(removed);
-      console.log(this.state.balls);
+      this.state.balls.delete(client.sessionId);
+    }
+    const player = this.state.players.get(client.sessionId);
+    if (player) {
+      player.dispose();
     }
     client.leave();
   }
