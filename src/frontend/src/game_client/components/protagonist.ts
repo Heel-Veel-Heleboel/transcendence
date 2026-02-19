@@ -1,4 +1,4 @@
-import { PlayerConfig, IProtagonist } from '../types/types.ts';
+import { IPlayerConfig, IProtagonist } from '../types/types.ts';
 import { GridMaterial } from '@babylonjs/materials';
 import { Scene, Mesh, MeshBuilder, Vector3 } from '@babylonjs/core';
 import earcut from 'earcut';
@@ -15,7 +15,7 @@ export class Protagonist extends Player implements IProtagonist {
   public hud: Hud;
   public hitIndicator: HitIndicator;
 
-  constructor(config: PlayerConfig, scene: Scene) {
+  constructor(config: IPlayerConfig, scene: Scene) {
     super(config, scene);
     this.hud = config.hud;
     this.hitIndicator = new HitIndicator(

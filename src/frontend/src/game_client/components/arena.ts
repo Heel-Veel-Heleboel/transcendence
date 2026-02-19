@@ -1,4 +1,4 @@
-import { IArena, PhysicsMesh } from '../types/types.ts';
+import { IArena, AbstractMesh } from '../types/types.ts';
 import {
   ImportMeshAsync,
   Scene,
@@ -10,31 +10,31 @@ import Errors from '../utils/error.ts';
 
 /* v8 ignore start */
 export class Arena implements IArena {
-  public _arena!: PhysicsMesh;
-  public _goal_1!: PhysicsMesh;
-  public _goal_2!: PhysicsMesh;
+  public _arena!: AbstractMesh;
+  public _goal_1!: AbstractMesh;
+  public _goal_2!: AbstractMesh;
 
-  public get arena(): PhysicsMesh {
+  public get arena(): AbstractMesh {
     return this._arena;
   }
 
-  public set arena(value: PhysicsMesh) {
+  public set arena(value: AbstractMesh) {
     this._arena = value;
   }
 
-  public get goal_1(): PhysicsMesh {
+  public get goal_1(): AbstractMesh {
     return this._goal_1;
   }
 
-  public set goal_1(value: PhysicsMesh) {
+  public set goal_1(value: AbstractMesh) {
     this._goal_1 = value;
   }
 
-  public get goal_2(): PhysicsMesh {
+  public get goal_2(): AbstractMesh {
     return this._goal_2;
   }
 
-  public set goal_2(value: PhysicsMesh) {
+  public set goal_2(value: AbstractMesh) {
     this._goal_2 = value;
   }
 

@@ -4,14 +4,8 @@ import { KeyManager } from '../systems/keyManager.ts';
 import { Player } from '../components/player.ts';
 import { KeyGrid } from '../systems/keyGrid.ts';
 import { Hud } from '../components/hud.ts';
-import { Hack } from '../components/ball.ts';
 import { AdvancedDynamicTexture, Control } from '@babylonjs/gui';
 import { HitIndicator } from '../components/hitIndicator.ts';
-
-export interface IncomingBall {
-  ball: Hack;
-  line: AbstractMesh;
-}
 
 export interface IHitIndicator {
   goalPosition: Vector3;
@@ -26,7 +20,7 @@ export interface IHud {
   manaMeter: Control;
 }
 
-export interface PlayerConfig {
+export interface IPlayerConfig {
   goalPosition: Vector3;
   goalDimensions: Vector3;
   hud: Hud;
