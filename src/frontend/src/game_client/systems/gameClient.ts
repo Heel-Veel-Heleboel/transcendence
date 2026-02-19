@@ -64,7 +64,7 @@ export class GameClient {
 
     debugLayerListener(this.scene);
     engineResizeListener(this.engine);
-    renderLoop(this.engine, this.scene);
+    // renderLoop(this.engine, this.scene);
     initializeResolution(this.engine);
   }
 
@@ -158,7 +158,7 @@ export class GameClient {
       });
     });
     callbacks.onRemove('balls', (entity: any, sessionId) => {
-      console.log(entity, 'has been removed at', sessionId);
+      console.log(entity, 'ball has been removed at', sessionId);
       const ball = g.balls.get(entity.id);
       if (ball) {
         ball.dispose();
@@ -190,6 +190,7 @@ export class GameClient {
       } else {
         if (g.anta !== undefined) {
           // throw error
+          return;
         }
         const config = {
           goalPosition: new Vector3(entity.posX, entity.posY, entity.posZ),
@@ -211,8 +212,9 @@ export class GameClient {
       });
     });
     callbacks.onRemove('players', (entity: any, sessionId) => {
-      console.log(entity, 'has been removed at', sessionId);
+      console.log(entity, 'player has been removed at', sessionId);
       const player = sessionId === room.sessionId ? g.prota : g.anta;
+
       player.dispose();
     });
   }

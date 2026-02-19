@@ -97,6 +97,7 @@ export class GameRoom extends Room {
     const player = this.state.players.get(client.sessionId);
     if (player) {
       player.dispose();
+      this.state.players.delete(client.sessionId);
     }
     client.leave();
   }
