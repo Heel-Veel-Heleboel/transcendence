@@ -1,4 +1,4 @@
-import { IPlayer, PlayerConfig } from '../types/types.ts';
+import { IPlayer, IPlayerConfig } from '../types/types.ts';
 import {
   Scene,
   MeshBuilder,
@@ -11,11 +11,12 @@ import {
 export class Player implements IPlayer {
   public mesh: AbstractMesh;
   public lifespan: number;
+  public mana: number;
   public goalPosition: Vector3;
   public goalDimensions: Vector3;
   public ratioDiv: number;
 
-  constructor(config: PlayerConfig, scene: Scene) {
+  constructor(config: IPlayerConfig, scene: Scene) {
     this.goalPosition = config.goalPosition;
     this.goalDimensions = config.goalDimensions;
     this.ratioDiv = config.keys.length;
@@ -42,6 +43,7 @@ export class Player implements IPlayer {
     }
     this.mesh = padel;
     this.lifespan = 1000;
+    this.mana = 0;
   }
 
   dispose(): void {

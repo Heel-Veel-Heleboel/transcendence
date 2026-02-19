@@ -6,6 +6,8 @@ import { KeyGrid } from '../systems/keyGrid.ts';
 import { Hud } from '../components/hud.ts';
 import { AdvancedDynamicTexture, Control } from '@babylonjs/gui';
 import { HitIndicator } from '../components/hitIndicator.ts';
+import { Protagonist } from '../components/protagonist.ts';
+import { Room } from '@colyseus/sdk';
 
 export interface IHitIndicator {
   goalPosition: Vector3;
@@ -23,6 +25,14 @@ export interface IHud {
 export interface IPlayerConfig {
   goalPosition: Vector3;
   goalDimensions: Vector3;
+  keys: {
+    length: number;
+  };
+}
+
+export interface IProtagonistConfig {
+  goalPosition: Vector3;
+  goalDimensions: Vector3;
   hud: Hud;
   keys: {
     columns: string;
@@ -30,6 +40,7 @@ export interface IPlayerConfig {
     length: number;
     precisionKeys: string;
   };
+  room: Room;
 }
 
 export interface IKeyGridKeys {
@@ -59,7 +70,7 @@ export interface IKeyManager {
   deltaTime: number;
   actions: Map<string, { x: number; y: number }>;
   precisionKeys: string;
-  player: Player;
+  player: Protagonist;
   precisionMove: number;
 }
 
@@ -76,6 +87,7 @@ export interface IProtagonist {
   keyGridMesh: Mesh;
   hud: Hud;
   hitIndicator: HitIndicator;
+  room: Room;
 }
 
 export interface IAntagonist {}

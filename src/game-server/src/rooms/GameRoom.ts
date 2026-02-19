@@ -12,16 +12,9 @@ export class GameRoom extends Room {
   id = 0;
 
   messages = {
-    'set-position': (client: Client) => {
-      const ball = this.state.balls.get(client.sessionId);
-      ball.x = ball.physicsMesh.mesh.absolutePosition.x;
-      ball.y = ball.physicsMesh.mesh.absolutePosition.y;
-      ball.z = ball.physicsMesh.mesh.absolutePosition.z;
-      const lv = ball.physicsMesh.aggregate.body.getLinearVelocity();
-      ball.linearVelocityX = lv.x;
-      ball.linearVelocityY = lv.y;
-      ball.linearVelocityZ = lv.z;
-      // console.log(client.sessionId, 'sent a message:', data);
+    'set-position': (client: Client, data: any) => {
+      const player = this.state.players.get(client.sessionId);
+      player.move({ x: data.x, y: data.y });
     }
   };
 
@@ -38,7 +31,10 @@ export class GameRoom extends Room {
 
     const hostConfig = {
       keys: {
-        length: 6
+        columns: 'qwaszx',
+        rows: 'erdfcv',
+        length: 6,
+        precisionKeys: 'WASD'
       },
       goalPosition: this.engine.arena.goal_1.mesh.absolutePosition,
       goalDimensions: this.engine.arena.goal_1.mesh
@@ -47,7 +43,10 @@ export class GameRoom extends Room {
     };
     const guestConfig = {
       keys: {
-        length: 6
+        columns: 'qwaszx',
+        rows: 'erdfcv',
+        length: 6,
+        precisionKeys: 'WASD'
       },
       goalPosition: this.engine.arena.goal_2.mesh.absolutePosition,
       goalDimensions: this.engine.arena.goal_2.mesh

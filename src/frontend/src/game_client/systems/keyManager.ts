@@ -8,6 +8,7 @@ import {
   checkUpperY
 } from '../utils/KeyManagerUtils.ts';
 import gameConfig from '../utils/gameConfig.ts';
+import { Protagonist } from '../components/protagonist.ts';
 
 export class KeyManager implements IKeyManager {
   public windowFrames: number;
@@ -15,14 +16,14 @@ export class KeyManager implements IKeyManager {
   public deltaTime: number;
   public actions: Map<string, { x: number; y: number }>;
   public precisionKeys: string;
-  public player: Player;
+  public player: Protagonist;
   private getFrameCount: Function;
   public precisionMove: number;
 
   constructor(
     scene: Scene,
     frameCountCallback: Function,
-    player: Player,
+    player: Protagonist,
     windowFrames = 10
   ) {
     scene.onKeyboardObservable.add(this.onKeyDown.bind(this));
@@ -57,30 +58,30 @@ export class KeyManager implements IKeyManager {
   handlePrecisionKey(key: string) {
     const index = this.precisionKeys.indexOf(key);
     switch (index) {
-    case 0:
-      if (checkUpperY(this.precisionMove, this.player)) {
+      case 0:
+        if (checkUpperY(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: 0, y: this.precisionMove });
         break;
-      }
-      this.player.movePrecise({ x: 0, y: this.precisionMove });
-      break;
-    case 1:
-      if (checkLowerX(this.precisionMove, this.player)) {
+      case 1:
+        if (checkLowerX(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: -this.precisionMove, y: 0 });
         break;
-      }
-      this.player.movePrecise({ x: -this.precisionMove, y: 0 });
-      break;
-    case 2:
-      if (checkLowerY(this.precisionMove, this.player)) {
+      case 2:
+        if (checkLowerY(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: 0, y: -this.precisionMove });
         break;
-      }
-      this.player.movePrecise({ x: 0, y: -this.precisionMove });
-      break;
-    case 3:
-      if (checkUpperX(this.precisionMove, this.player)) {
+      case 3:
+        if (checkUpperX(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: this.precisionMove, y: 0 });
         break;
-      }
-      this.player.movePrecise({ x: this.precisionMove, y: 0 });
-      break;
     }
   }
 

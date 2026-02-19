@@ -4,7 +4,10 @@ export interface IPlayerConfig {
   goalPosition: Vector3;
   goalDimensions: Vector3;
   keys: {
+    columns: string;
+    rows: string;
     length: number;
+    precisionKeys: string;
   };
 }
 

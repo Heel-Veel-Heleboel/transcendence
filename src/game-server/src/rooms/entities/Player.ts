@@ -10,10 +10,18 @@ import {
 
 /* v8 ignore start */
 export class Player extends Schema implements IPlayer {
+  @type('number') posX: number;
+  @type('number') posY: number;
+  @type('number') posZ: number;
+  @type('number') dimX: number;
+  @type('number') dimY: number;
+  @type('number') dimZ: number;
+  @type('string') columns: string;
+  @type('string') rows: string;
+  @type('string') precisionKeys: string;
+  @type('number') keyLength: number;
   @type('number') lifespan: number;
-  @type('number') x: number;
-  @type('number') y: number;
-  @type('number') z: number;
+  @type('number') mana: number;
 
   public physicsMesh: PhysicsMesh;
   public goalPosition: Vector3;
@@ -22,8 +30,15 @@ export class Player extends Schema implements IPlayer {
 
   constructor(config: IPlayerConfig, scene: Scene) {
     super();
+    this.columns = config.keys.columns;
+    this.rows = config.keys.rows;
+    this.keyLength = config.keys.length;
+    this.precisionKeys = config.keys.precisionKeys;
     this.goalPosition = config.goalPosition;
     this.goalDimensions = config.goalDimensions;
+    this.dimX = this.goalDimensions.x;
+    this.dimY = this.goalDimensions.y;
+    this.dimZ = this.goalDimensions.z;
     this.ratioDiv = config.keys.length;
     const padel = MeshBuilder.CreateBox(
       'padel',
@@ -50,11 +65,7 @@ export class Player extends Schema implements IPlayer {
     aggregate.body.setLinearDamping(0.0);
     this.physicsMesh = { mesh: padel, aggregate: aggregate };
     this.lifespan = 1000;
-  }
-
-  movePrecise(coord: { x: number; y: number }) {
-    this.physicsMesh.mesh.position.x += coord.x;
-    this.physicsMesh.mesh.position.y += coord.y;
+    this.mana = 0;
   }
 
   move(coord: { x: number; y: number }) {
@@ -70,9 +81,9 @@ export class Player extends Schema implements IPlayer {
   }
 
   update(): void {
-    this.x = this.physicsMesh.mesh.absolutePosition.x;
-    this.y = this.physicsMesh.mesh.absolutePosition.y;
-    this.z = this.physicsMesh.mesh.absolutePosition.z;
+    this.posX = this.physicsMesh.mesh.absolutePosition.x;
+    this.posY = this.physicsMesh.mesh.absolutePosition.y;
+    this.posZ = this.physicsMesh.mesh.absolutePosition.z;
   }
 
   dispose(): void {

@@ -1,4 +1,8 @@
-import { IPlayerConfig, IProtagonist } from '../types/types.ts';
+import {
+  IPlayerConfig,
+  IProtagonist,
+  IProtagonistConfig
+} from '../types/types.ts';
 import { GridMaterial } from '@babylonjs/materials';
 import { Scene, Mesh, MeshBuilder, Vector3 } from '@babylonjs/core';
 import earcut from 'earcut';
@@ -7,6 +11,7 @@ import { Hud } from './hud.ts';
 import { HitIndicator } from './hitIndicator.ts';
 import gameConfig from '../utils/gameConfig.ts';
 import { Player } from './player.ts';
+import { Room } from '@colyseus/sdk';
 
 /* v8 ignore start */
 export class Protagonist extends Player implements IProtagonist {
@@ -14,10 +19,12 @@ export class Protagonist extends Player implements IProtagonist {
   public keyGridMesh: Mesh;
   public hud: Hud;
   public hitIndicator: HitIndicator;
+  public room: Room;
 
-  constructor(config: IPlayerConfig, scene: Scene) {
+  constructor(config: IProtagonistConfig, scene: Scene) {
     super(config, scene);
     this.hud = config.hud;
+    this.room = config.room;
     this.hitIndicator = new HitIndicator(
       this.goalPosition,
       this.goalDimensions.x * 2,
@@ -133,16 +140,15 @@ export class Protagonist extends Player implements IProtagonist {
   }
 
   movePrecise(coord: { x: number; y: number }) {
-    this.mesh.position.x += coord.x;
-    this.mesh.position.y += coord.y;
+    const pos = {
+      x: (this.mesh.position.x += coord.x),
+      y: (this.mesh.position.y += coord.y)
+    };
+    this.room.send('set-position', pos);
   }
 
   move(coord: { x: number; y: number }) {
-    this.mesh.position = new Vector3(
-      coord.x,
-      coord.y,
-      this.mesh.absolutePosition.z
-    );
+    this.room.send('set-position', coord);
   }
 }
 /* v8 ignore stop */

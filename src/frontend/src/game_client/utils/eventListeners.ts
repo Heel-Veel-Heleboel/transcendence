@@ -1,8 +1,9 @@
 import { AbstractEngine, Scene } from '@babylonjs/core';
-import { engineResize } from './canvas';
 
 export function engineResizeListener(engine: AbstractEngine) {
-  window.addEventListener('resize', engineResize(engine));
+  window.addEventListener('resize', function () {
+    engine.resize();
+  });
 }
 
 /* v8 ignore start */

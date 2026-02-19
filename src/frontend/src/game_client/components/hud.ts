@@ -17,9 +17,12 @@ export class Hud implements IHud {
       true,
       scene
     );
+    this.texture.idealWidth = 600;
+    this.texture.idealWidth = 440;
   }
 
   async init() {
+    console.log(this.filePath);
     await this.texture.parseFromURLAsync(this.filePath);
     const healthMeter = this.texture.getControlByName('healthMeter');
     if (healthMeter) {

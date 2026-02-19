@@ -1,4 +1,4 @@
-import { IPlayerConfig, IAntagonist } from '../types/types.ts';
+import { IAntagonist, IPlayerConfig } from '../types/types.ts';
 import { Scene } from '@babylonjs/core';
 import { Player } from './player.ts';
 

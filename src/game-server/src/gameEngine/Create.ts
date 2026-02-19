@@ -28,9 +28,6 @@ export function createArena() {
 }
 
 export function createBall(scene: Scene, pos: Vector3, diameter: number) {
-  console.log(scene);
-  console.log(pos);
-  console.log(diameter);
   const _ball = MeshBuilder.CreateSphere(
     'ball',
     {

@@ -21,13 +21,13 @@ import {
 } from '../utils/create.ts';
 import '@babylonjs/loaders/glTF';
 import { Hack } from '../components/ball.ts';
-import { Player } from '../components/player.ts';
 import { KeyManager } from './keyManager.ts';
 import { Hud } from '../components/hud.ts';
 import { Arena } from '../components/arena.ts';
 import { renderLoop } from '../utils/render.ts';
 import { Client, Callbacks, Room } from '@colyseus/sdk';
 import { Protagonist } from '../components/protagonist.ts';
+import { Antagonist } from '../components/antagonist.ts';
 
 export class GameClient {
   private _scene!: Scene;
@@ -37,7 +37,8 @@ export class GameClient {
 
   private _frameCount!: number;
   private _arena!: Arena;
-  private _player!: Player;
+  private _protagonist!: Protagonist;
+  private _antagonist!: Antagonist;
   private _hud!: Hud;
   private _keyManager!: KeyManager;
   private _balls!: Map<string, Hack>;
@@ -52,6 +53,168 @@ export class GameClient {
 
   constructor(defaultScene: Scene) {
     this.defaultScene = defaultScene;
+    this.engine = defaultScene.getEngine();
+  }
+
+  async initGame() {
+    // await initializePhysics(this.defaultScene);
+    prepareImportGLTF(this.defaultScene);
+    this.scene = await this.initScene(this.defaultScene);
+    this.frameCount = 0;
+
+    debugLayerListener(this.scene);
+    engineResizeListener(this.engine);
+    renderLoop(this.engine, this.scene);
+    initializeResolution(this.engine);
+  }
+
+  /* v8 ignore start */
+  async initScene(scene: Scene) {
+    this.hud = new Hud('hud.json', scene);
+    await this.hud.init();
+
+    if (process.env.NODE_ENV !== 'production') {
+      new GizmoManager(scene);
+    }
+    this.backgroundMusic = createBgMusic(scene);
+
+    this.camera = createCamera(scene, 40);
+    this.light = createLight(scene);
+    this.arena = createArena();
+    await this.arena.initMesh(scene);
+
+    this.balls = new Map<string, Hack>();
+
+    const client = new Client('ws://localhost:2567');
+    const room = await client
+      .joinOrCreate('game_room')
+      .then(function (room) {
+        console.log('Connected to roomId: ' + room.roomId);
+        return room;
+      })
+      .catch(function (error) {
+        console.log('Could not connect: got following error');
+        console.error(error);
+      });
+
+    if (room instanceof Room) {
+      this.room = room;
+      this.initCallbacks(this.room, this);
+    } else {
+      // throw error
+    }
+    scene.onBeforeRenderObservable.add(this.draw(this));
+    // for hit indicator
+    scene.getBoundingBoxRenderer().frontColor.set(1, 0, 0);
+    scene.getBoundingBoxRenderer().backColor.set(0, 1, 0);
+    return scene;
+  }
+
+  draw(g: GameClient) {
+    return () => {
+      if (!(g.frameCount % 600)) {
+        // console.log(g.balls);
+      }
+      for (const entity of g.balls) {
+        const ball = entity[1];
+        if (ball) {
+          g.prota.hitIndicator.detectIncomingHits(ball);
+        }
+        // ball.update();
+      }
+      // g.room.send('set-position');
+      if (
+        g.keyManager.deltaTime !== 0 &&
+        g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames
+      ) {
+        g.keyManager.resolve();
+      }
+      g.prota.hud.changeMana(0.01);
+      g.frameCount++;
+    };
+  }
+
+  initCallbacks(room: Room, g: GameClient) {
+    const callbacks = Callbacks.get(room);
+    callbacks.onAdd('balls', (entity: any, sessionId: unknown) => {
+      const ball = addHack(this.scene, {
+        x: entity.x,
+        y: entity.y,
+        z: entity.z
+      });
+      g.balls.set(entity.id, ball);
+      callbacks.onChange(entity, () => {
+        const ball = g.balls.get(entity.id);
+        if (ball) {
+          const pos = new Vector3(entity.x, entity.y, entity.z);
+          const lv = new Vector3(
+            entity.linearVelocityX,
+            entity.linearVelocityY,
+            entity.linearVelocityZ
+          );
+          ball.mesh.setAbsolutePosition(pos);
+          ball.linearVelocity = lv;
+        }
+      });
+    });
+    callbacks.onRemove('balls', (entity: any, sessionId) => {
+      console.log(entity, 'has been removed at', sessionId);
+      const ball = g.balls.get(entity.id);
+      if (ball) {
+        ball.dispose();
+      }
+    });
+    callbacks.onAdd('players', (entity: any, sessionId: unknown) => {
+      if (sessionId === room.sessionId) {
+        console.log(entity);
+        const config = {
+          keys: {
+            columns: entity.columns,
+            rows: entity.rows,
+            length: entity.keyLength,
+            precisionKeys: entity.precisionKeys
+          },
+          goalPosition: new Vector3(entity.posX, entity.posY, entity.posZ),
+          goalDimensions: new Vector3(entity.dimX, entity.dimY, entity.dimZ),
+          hud: g.hud,
+          room: room
+        };
+
+        const player = new Protagonist(config, g.scene);
+        g.prota = player;
+        g.prota.initGridColumnsHints(g.scene);
+        g.prota.initGridRowsHints(g.scene);
+
+        const keyManager = new KeyManager(g.scene, () => g.frameCount, g.prota);
+        g.keyManager = keyManager;
+      } else {
+        if (g.anta !== undefined) {
+          // throw error
+        }
+        const config = {
+          goalPosition: new Vector3(entity.posX, entity.posY, entity.posZ),
+          goalDimensions: new Vector3(entity.dimX, entity.dimY, entity.dimZ),
+          keys: {
+            length: entity.keyLength
+          }
+        };
+        const player = new Antagonist(config, g.scene);
+        g.anta = player;
+      }
+      callbacks.onChange(entity, () => {
+        const player = sessionId === room.sessionId ? g.prota : g.anta;
+        player.mesh.position.x = entity.posX;
+        player.mesh.position.y = entity.posY;
+        player.mesh.position.z = entity.posZ;
+        player.lifespan = entity.lifespan;
+        player.mana = entity.mana;
+      });
+    });
+    callbacks.onRemove('players', (entity: any, sessionId) => {
+      console.log(entity, 'has been removed at', sessionId);
+      const player = sessionId === room.sessionId ? g.prota : g.anta;
+      player.dispose();
+    });
   }
 
   /* v8 ignore start */
@@ -73,8 +236,11 @@ export class GameClient {
   set arena(arena: Arena) {
     this._arena = arena;
   }
-  set player(player: Player) {
-    this._player = player;
+  set prota(prota: Protagonist) {
+    this._protagonist = prota;
+  }
+  set anta(anta: Antagonist) {
+    this._antagonist = anta;
   }
   set hud(hud: Hud) {
     this._hud = hud;
@@ -116,8 +282,11 @@ export class GameClient {
   get arena(): Arena {
     return this._arena;
   }
-  get player(): Player {
-    return this._player;
+  get prota(): Protagonist {
+    return this._protagonist;
+  }
+  get anta(): Antagonist {
+    return this._antagonist;
   }
   get hud(): Hud {
     return this._hud;
@@ -141,130 +310,6 @@ export class GameClient {
     return this._backgroundMusic;
   }
   /* v8 ignore stop */
-
-  async initGame() {
-    // await initializePhysics(this.defaultScene);
-    prepareImportGLTF(this.defaultScene);
-    this.scene = await this.initScene(this.defaultScene);
-    this.frameCount = 0;
-
-    engineResizeListener(this.engine);
-    debugLayerListener(this.scene);
-    renderLoop(this.engine, this.scene);
-    initializeResolution(this.engine);
-  }
-
-  /* v8 ignore start */
-  async initScene(scene: Scene) {
-    this.hud = new Hud('hud.json', scene);
-    this.hud.init();
-
-    if (process.env.NODE_ENV !== 'production') {
-      new GizmoManager(scene);
-    }
-    this.backgroundMusic = createBgMusic(scene);
-
-    this.camera = createCamera(scene, 40);
-    this.light = createLight(scene);
-    this.arena = createArena();
-    await this.arena.initMesh(scene);
-    console.log(this.arena);
-
-    const config = {
-      keys: {
-        columns: 'qwaszx',
-        rows: 'erdfcv',
-        length: 6,
-        precisionKeys: 'WASD'
-      },
-      goalPosition: this.arena.goal_1.mesh.absolutePosition,
-      goalDimensions: this.arena.goal_1.mesh
-        .getBoundingInfo()
-        .boundingBox.extendSizeWorld.scale(2),
-      hud: this.hud
-    };
-    console.log(config);
-
-    const player = new Protagonist(config, scene);
-    this.player = player;
-    player.initGridColumnsHints(scene);
-    player.initGridRowsHints(scene);
-
-    const keyManager = new KeyManager(scene, () => this.frameCount, player);
-    this.keyManager = keyManager;
-
-    this.balls = new Map<string, Hack>();
-
-    const client = new Client('ws://localhost:2567');
-    const room = await client
-      .joinOrCreate('game_room')
-      .then(function (room) {
-        console.log('Connected to roomId: ' + room.roomId);
-        return room;
-      })
-      .catch(function (error) {
-        console.log('Could not connect: got following error');
-        console.error(error);
-      });
-
-    if (room instanceof Room) {
-      this.room = room;
-      const callbacks = Callbacks.get(room);
-      callbacks.onAdd('balls', (entity: any, sessionId: unknown) => {
-        const ball = addHack(scene, { x: entity.x, y: entity.y, z: entity.z });
-        this.balls.set(entity.id, ball);
-        callbacks.onChange(entity, () => {
-          const ball = this.balls.get(entity.id);
-          if (ball) {
-            const pos = new Vector3(entity.x, entity.y, entity.z);
-            const lv = new Vector3(
-              entity.linearVelocityX,
-              entity.linearVelocityY,
-              entity.linearVelocityZ
-            );
-            ball.mesh.setAbsolutePosition(pos);
-            ball.linearVelocity = lv;
-          }
-        });
-      });
-      callbacks.onRemove('balls', (entity: any, sessionId) => {
-        console.log(entity, 'has been removed at', sessionId);
-        const ball = this.balls.get(entity.id);
-        if (ball) {
-          ball.dispose();
-        }
-      });
-    }
-    scene.onBeforeRenderObservable.add(this.draw(this));
-    // for hit indicator
-    scene.getBoundingBoxRenderer().frontColor.set(1, 0, 0);
-    scene.getBoundingBoxRenderer().backColor.set(0, 1, 0);
-    return scene;
-  }
-
-  draw(g: GameClient) {
-    return () => {
-      if (!(g.frameCount % 600)) {
-        // console.log(g.balls);
-      }
-      for (const entity of g.balls) {
-        const ball = entity[1];
-        if (ball) {
-          g.player.hitIndicator.detectIncomingHits(ball);
-        }
-        // ball.update();
-      }
-      // g.room.send('set-position');
-      if (
-        g.keyManager.deltaTime !== 0 &&
-        g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames
-      ) {
-        g.keyManager.resolve();
-      }
-      g.player.hud.changeMana(0.01);
-      g.frameCount++;
-    };
-  }
 }
 
 export function addHack(
