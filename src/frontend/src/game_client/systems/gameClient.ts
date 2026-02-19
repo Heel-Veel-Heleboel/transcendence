@@ -14,13 +14,13 @@ import {
 import { initializeResolution, prepareImportGLTF } from '../utils/canvas.ts';
 import {
   createBgMusic,
-  createBall,
+  createHack,
   createArena,
   createCamera,
   createLight
 } from '../utils/create.ts';
 import '@babylonjs/loaders/glTF';
-import { Ball } from '../components/ball.ts';
+import { Hack } from '../components/ball.ts';
 import { Player } from '../components/player.ts';
 import { KeyManager } from './keyManager.ts';
 import { Hud } from '../components/hud.ts';
@@ -39,7 +39,7 @@ export class GameClient {
   private _player!: Player;
   private _hud!: Hud;
   private _keyManager!: KeyManager;
-  private _balls!: Map<string, Ball>;
+  private _balls!: Map<string, Hack>;
   private _room!: Room;
 
   //@ts-ignore
@@ -81,7 +81,7 @@ export class GameClient {
   set keyManager(keyManager: KeyManager) {
     this._keyManager = keyManager;
   }
-  set balls(balls: Map<string, Ball>) {
+  set balls(balls: Map<string, Hack>) {
     this._balls = balls;
   }
   set room(room: Room) {
@@ -124,7 +124,7 @@ export class GameClient {
   get keyManager(): KeyManager {
     return this._keyManager;
   }
-  get balls(): Map<string, Ball> {
+  get balls(): Map<string, Hack> {
     return this._balls;
   }
   get room(): Room {
@@ -192,9 +192,8 @@ export class GameClient {
     const keyManager = new KeyManager(scene, () => this.frameCount, player);
     this.keyManager = keyManager;
 
-    this.balls = new Map<string, Ball>();
+    this.balls = new Map<string, Hack>();
 
-    console.log('here');
     const client = new Client('ws://localhost:2567');
     const room = await client
       .joinOrCreate('game_room')
@@ -206,22 +205,16 @@ export class GameClient {
         console.log('Could not connect: got following error');
         console.error(error);
       });
-    console.log('here as well');
 
     if (room instanceof Room) {
       this.room = room;
-      console.log('here initializing room');
-      console.log(room.state);
       const callbacks = Callbacks.get(room);
       callbacks.onAdd('balls', (entity: any, sessionId: unknown) => {
-        const ball = addBall(scene, { x: entity.x, y: entity.y, z: entity.z });
-        console.log('ball added: ', entity, 'from sessionId: ', sessionId);
-        console.log(this.balls);
+        const ball = addHack(scene, { x: entity.x, y: entity.y, z: entity.z });
         this.balls.set(entity.id, ball);
         callbacks.onChange(entity, () => {
           const ball = this.balls.get(entity.id);
           if (ball) {
-            // console.log('got this ball', ball);
             const pos = new Vector3(entity.x, entity.y, entity.z);
             const lv = new Vector3(
               entity.linearVelocityX,
@@ -273,11 +266,11 @@ export class GameClient {
   }
 }
 
-export function addBall(
+export function addHack(
   scene: Scene,
   pos: { x: number; y: number; z: number }
 ) {
-  const temp = createBall(scene, new Vector3(pos.x, pos.y, pos.z), 1);
+  const temp = createHack(scene, new Vector3(pos.x, pos.y, pos.z), 1);
   return temp;
 }
 /* v8 ignore stop */

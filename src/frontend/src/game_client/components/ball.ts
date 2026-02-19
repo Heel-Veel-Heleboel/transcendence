@@ -1,30 +1,14 @@
-import { IBall, PhysicsMesh } from '../types/types.ts';
-import {
-  AbstractMesh,
-  Mesh,
-  Scene,
-  Vector3,
-  PhysicsAggregate,
-  PhysicsShapeType
-} from '@babylonjs/core';
+import { IHack, PhysicsMesh } from '../types/types.ts';
+import { AbstractMesh, Mesh, Vector3 } from '@babylonjs/core';
 
 /* v8 ignore start */
-export class Ball implements IBall {
+export class Hack implements IHack {
   public physicsMesh: PhysicsMesh;
   public lifespan!: number;
   public linearVelocity!: Vector3;
   public lines: AbstractMesh | null;
-  constructor(ball: Mesh, position: Vector3, scene: Scene) {
-    const mesh = ball;
+  constructor(mesh: Mesh, position: Vector3) {
     mesh.position = position;
-    // const aggregate = new PhysicsAggregate(
-    //   mesh,
-    //   PhysicsShapeType.SPHERE,
-    //   { mass: 0.1, restitution: 1.023, friction: 0.0 },
-    //   scene
-    // );
-    // aggregate.body.setAngularDamping(0.0);
-    // aggregate.body.setLinearDamping(0.0);
     this.physicsMesh = { mesh };
     this.lines = null;
   }

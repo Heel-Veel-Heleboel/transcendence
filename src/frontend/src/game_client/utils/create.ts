@@ -7,7 +7,7 @@ import {
   HemisphericLight,
   Color3
 } from '@babylonjs/core';
-import { Ball } from '../components/ball.ts';
+import { Hack } from '../components/ball.ts';
 import { Arena } from '../components/arena.ts';
 
 export function createCamera(scene: Scene, distance: number) {
@@ -28,17 +28,17 @@ export function createArena() {
   return arena;
 }
 
-export function createBall(scene: Scene, pos: Vector3, diameter: number) {
-  const _ball = MeshBuilder.CreateSphere(
-    'ball',
+export function createHack(scene: Scene, pos: Vector3, diameter: number) {
+  const _hack = MeshBuilder.CreateSphere(
+    'hack',
     {
       diameter: diameter
     },
     scene
   );
 
-  const ball = new Ball(_ball, pos, scene);
-  return ball;
+  const hack = new Hack(_hack, pos);
+  return hack;
 }
 
 export function createLight(scene: Scene) {

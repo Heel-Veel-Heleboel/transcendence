@@ -10,12 +10,12 @@ import { KeyManager } from '../systems/keyManager.ts';
 import { Player } from '../components/player.ts';
 import { KeyGrid } from '../systems/keyGrid.ts';
 import { Hud } from '../components/hud.ts';
-import { Ball } from '../components/ball.ts';
+import { Hack } from '../components/ball.ts';
 import { AdvancedDynamicTexture, Control } from '@babylonjs/gui';
 import { HitIndicator } from '../components/hitIndicator.ts';
 
 export interface IncomingBall {
-  ball: Ball;
+  ball: Hack;
   line: AbstractMesh;
 }
 
@@ -96,7 +96,7 @@ export interface IPlayer {
   hitIndicator: HitIndicator;
 }
 
-export interface IBall {
+export interface IHack {
   physicsMesh: PhysicsMesh | null;
   lifespan: number;
   lines: AbstractMesh | null;
