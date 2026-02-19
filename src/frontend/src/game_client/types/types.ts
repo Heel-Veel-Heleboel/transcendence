@@ -53,15 +53,6 @@ export interface IKeyGrid {
   dimensions: { goalPosition: Vector3; goalDimensions: Vector3 };
 }
 
-export interface IWorld {
-  scene: Scene;
-  frameCount: number;
-  keyManager: KeyManager;
-  arena: Arena;
-  localPlayer: Player;
-  remotePlayer: Player;
-}
-
 export interface IKeyManager {
   windowFrames: number;
   buffer: string[];
