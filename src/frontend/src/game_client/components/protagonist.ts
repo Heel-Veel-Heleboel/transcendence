@@ -20,6 +20,7 @@ export class Protagonist extends Player implements IProtagonist {
   public hud: Hud;
   public hitIndicator: HitIndicator;
   public room: Room;
+  public rotation: number;
 
   constructor(config: IProtagonistConfig, scene: Scene) {
     super(config, scene);
@@ -33,8 +34,10 @@ export class Protagonist extends Player implements IProtagonist {
     let sideOrientation;
     if (this.mesh.position.z > 0) {
       sideOrientation = Mesh.BACKSIDE;
+      this.rotation = Math.PI;
     } else {
       sideOrientation = Mesh.FRONTSIDE;
+      this.rotation = 0;
     }
     this.keyGrid = new KeyGrid(config.keys, {
       goalPosition: config.goalPosition,
@@ -90,6 +93,7 @@ export class Protagonist extends Player implements IProtagonist {
           this.goalPosition.y + this.goalDimensions.y / 2,
           this.goalPosition.z
         );
+        text.rotation.y = this.rotation;
       }
       // NOTE: not sure which material is going to used for hints yet, therefore
       // commented out
@@ -128,6 +132,7 @@ export class Protagonist extends Player implements IProtagonist {
           yPos,
           this.goalPosition.z
         );
+        text.rotation.y = this.rotation;
       }
       // NOTE: not sure which material is going to used for hints yet, therefore
       // commented out

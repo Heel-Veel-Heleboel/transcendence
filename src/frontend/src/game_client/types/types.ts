@@ -88,6 +88,7 @@ export interface IProtagonist {
   hud: Hud;
   hitIndicator: HitIndicator;
   room: Room;
+  rotation: number;
 }
 
 export interface IAntagonist {}
