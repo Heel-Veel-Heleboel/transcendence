@@ -58,14 +58,6 @@ export class Arena implements IArena {
           if (mesh.material) {
             mesh.material.wireframe = true;
           }
-          // const aggregate = new PhysicsAggregate(
-          //   mesh,
-          //   PhysicsShapeType.MESH,
-          //   { mass: 0.0, restitution: 1.0, friction: 0.0 },
-          //   scene
-          // );
-          // aggregate.body.setAngularDamping(0.0);
-          // aggregate.body.setLinearDamping(0.0);
           if (mesh.id === gameConfig.areneId) {
             this._arena = { mesh };
           } else if (mesh.id === gameConfig.goalId1) {
