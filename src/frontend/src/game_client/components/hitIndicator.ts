@@ -6,7 +6,7 @@ import {
   Vector3Distance,
   LinesMesh
 } from '@babylonjs/core';
-import { Ball } from './ball';
+import { Hack } from './ball';
 
 import { IHitIndicator } from '../types/types';
 
@@ -39,16 +39,16 @@ export class HitIndicator implements IHitIndicator {
     sphere.position = this.goalPosition;
   }
 
-  detectIncomingHits(ball: Ball) {
+  detectIncomingHits(ball: Hack) {
     const distance = Vector3Distance(
-      ball.physicsMesh.mesh.absolutePosition,
+      ball.mesh.absolutePosition,
       this.goalPosition
     );
     if (distance > this.radius / 2) {
       if (ball.lines !== null) {
         ball.lines.dispose();
         ball.lines = null;
-        ball.physicsMesh.mesh.showBoundingBox = false;
+        ball.mesh.showBoundingBox = false;
       }
       return;
     }
@@ -58,8 +58,8 @@ export class HitIndicator implements IHitIndicator {
       }
       const options = {
         points: [
-          ball.physicsMesh.mesh.absolutePosition,
-          ball.linearVelocity.addInPlace(ball.physicsMesh.mesh.absolutePosition)
+          ball.mesh.absolutePosition,
+          ball.linearVelocity.addInPlace(ball.mesh.absolutePosition)
         ],
         updatable: true,
         // no scene parameter needed with options.instance, used for updates
@@ -69,15 +69,15 @@ export class HitIndicator implements IHitIndicator {
     } else {
       const options = {
         points: [
-          ball.physicsMesh.mesh.absolutePosition,
-          ball.linearVelocity.addInPlace(ball.physicsMesh.mesh.absolutePosition)
+          ball.mesh.absolutePosition,
+          ball.linearVelocity.addInPlace(ball.mesh.absolutePosition)
         ],
         updatable: true
       };
 
       const lines = MeshBuilder.CreateLines('lines', options, this.scene);
       ball.lines = lines;
-      ball.physicsMesh.mesh.showBoundingBox = true;
+      ball.mesh.showBoundingBox = true;
     }
   }
 }

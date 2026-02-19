@@ -1,15 +1,15 @@
-import { IHack, PhysicsMesh } from '../types/types.ts';
+import { IHack } from '../types/types.ts';
 import { AbstractMesh, Mesh, Vector3 } from '@babylonjs/core';
 
 /* v8 ignore start */
 export class Hack implements IHack {
-  public physicsMesh: PhysicsMesh;
+  public mesh: AbstractMesh;
   public lifespan!: number;
   public linearVelocity!: Vector3;
   public lines: AbstractMesh | null;
   constructor(mesh: Mesh, position: Vector3) {
     mesh.position = position;
-    this.physicsMesh = { mesh };
+    this.mesh = mesh;
     this.lines = null;
   }
 
@@ -23,7 +23,7 @@ export class Hack implements IHack {
 
   dispose(): void {
     this.lifespan = -1;
-    this.physicsMesh.mesh.dispose();
+    this.mesh.dispose();
     if (this.lines) {
       this.lines.dispose();
     }

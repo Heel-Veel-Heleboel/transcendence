@@ -27,6 +27,7 @@ import { Hud } from '../components/hud.ts';
 import { Arena } from '../components/arena.ts';
 import { renderLoop } from '../utils/render.ts';
 import { Client, Callbacks, Room } from '@colyseus/sdk';
+import { Protagonist } from '../components/protagonist.ts';
 
 export class GameClient {
   private _scene!: Scene;
@@ -184,7 +185,7 @@ export class GameClient {
     };
     console.log(config);
 
-    const player = new Player(config, scene);
+    const player = new Protagonist(config, scene);
     this.player = player;
     player.initGridColumnsHints(scene);
     player.initGridRowsHints(scene);
@@ -221,7 +222,7 @@ export class GameClient {
               entity.linearVelocityY,
               entity.linearVelocityZ
             );
-            ball.physicsMesh.mesh.setAbsolutePosition(pos);
+            ball.mesh.setAbsolutePosition(pos);
             ball.linearVelocity = lv;
           }
         });

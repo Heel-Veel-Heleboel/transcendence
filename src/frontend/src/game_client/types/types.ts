@@ -1,10 +1,4 @@
-import {
-  AbstractMesh,
-  Scene,
-  PhysicsAggregate,
-  Vector3,
-  Mesh
-} from '@babylonjs/core';
+import { AbstractMesh, Scene, Vector3, Mesh } from '@babylonjs/core';
 import { Arena } from '../components/arena';
 import { KeyManager } from '../systems/keyManager.ts';
 import { Player } from '../components/player.ts';
@@ -85,30 +79,30 @@ export interface IKeyManager {
 }
 
 export interface IPlayer {
-  physicsMesh: PhysicsMesh;
+  mesh: AbstractMesh;
   lifespan: number;
   goalDimensions: Vector3;
   goalPosition: Vector3;
+  ratioDiv: number;
+}
+
+export interface IProtagonist {
   keyGrid: KeyGrid;
   keyGridMesh: Mesh;
-  ratioDiv: number;
   hud: Hud;
   hitIndicator: HitIndicator;
 }
 
+export interface IAntagonist {}
+
 export interface IHack {
-  physicsMesh: PhysicsMesh | null;
+  mesh: AbstractMesh | null;
   lifespan: number;
   lines: AbstractMesh | null;
 }
 
 export interface IArena {
-  arena: PhysicsMesh;
-  goal_1: PhysicsMesh;
-  goal_2: PhysicsMesh;
-}
-
-export interface PhysicsMesh {
-  mesh: AbstractMesh;
-  // aggregate: PhysicsAggregate;
+  arena: AbstractMesh;
+  goal_1: AbstractMesh;
+  goal_2: AbstractMesh;
 }
