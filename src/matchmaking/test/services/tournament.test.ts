@@ -45,6 +45,7 @@ describe('TournamentService', () => {
       getRankings: vi.fn(),
       count: vi.fn(),
       getParticipantUserIds: vi.fn(),
+      getParticipantsWithUsernames: vi.fn(),
       findTiedParticipants: vi.fn(),
       setAllFinalRanks: vi.fn(),
     } as unknown as TournamentParticipantDao;
@@ -207,20 +208,41 @@ describe('TournamentService', () => {
         id: 1,
         status: 'REGISTRATION',
         registrationEnd: futureDate,
+        maxPlayers: 8,
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(true);
+      vi.mocked(mockParticipantDao.count).mockResolvedValueOnce(3);
 
-      await service.register(1, 100);
+      const result = await service.register(1, 100, 'testuser');
 
-      expect(mockParticipantDao.register).toHaveBeenCalledWith(1, 100);
+      expect(mockParticipantDao.register).toHaveBeenCalledWith(1, 100, 'testuser');
+      expect(result.full).toBe(false);
+    });
+
+    it('should return full=true when tournament reaches max capacity', async () => {
+      const futureDate = new Date(Date.now() + 3600000);
+      const mockTournament = {
+        id: 1,
+        status: 'REGISTRATION',
+        registrationEnd: futureDate,
+        maxPlayers: 4,
+      };
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
+      vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
+      vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(true);
+      vi.mocked(mockParticipantDao.count).mockResolvedValueOnce(4);
+
+      const result = await service.register(1, 100, 'testuser');
+
+      expect(result.full).toBe(true);
     });
 
     it('should throw error if tournament not found', async () => {
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(null);
 
-      await expect(service.register(999, 100)).rejects.toThrow(TournamentError);
+      await expect(service.register(999, 100, 'testuser')).rejects.toThrow(TournamentError);
     });
 
     it('should throw error if tournament is not in registration', async () => {
@@ -230,7 +252,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
 
-      await expect(service.register(1, 100)).rejects.toThrow(TournamentError);
+      await expect(service.register(1, 100, 'testuser')).rejects.toThrow(TournamentError);
     });
 
     it('should throw error if registration has ended', async () => {
@@ -242,7 +264,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
 
-      await expect(service.register(1, 100)).rejects.toThrow(TournamentError);
+      await expect(service.register(1, 100, 'testuser')).rejects.toThrow(TournamentError);
     });
 
     it('should throw error if already registered', async () => {
@@ -255,7 +277,7 @@ describe('TournamentService', () => {
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(true);
 
-      await expect(service.register(1, 100)).rejects.toThrow(TournamentError);
+      await expect(service.register(1, 100, 'testuser')).rejects.toThrow(TournamentError);
     });
 
     it('should throw error if tournament is full', async () => {
@@ -269,7 +291,7 @@ describe('TournamentService', () => {
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(false);
 
-      await expect(service.register(1, 100)).rejects.toThrow(TournamentError);
+      await expect(service.register(1, 100, 'testuser')).rejects.toThrow(TournamentError);
     });
   });
 
@@ -366,18 +388,16 @@ describe('TournamentService', () => {
         matchDeadlineMin: 30,
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
-      vi.mocked(mockParticipantDao.getParticipantUserIds).mockResolvedValueOnce([100, 101, 102]);
+      vi.mocked(mockParticipantDao.getParticipantsWithUsernames).mockResolvedValueOnce([
+        { userId: 100, username: 'user100' },
+        { userId: 101, username: 'user101' },
+        { userId: 102, username: 'user102' },
+      ]);
 
       const mockMatch = { id: 'match-1', tournamentId: 1 };
       vi.mocked(mockMatchDao.create).mockResolvedValue(mockMatch as any);
 
-      const usernameLookup = new Map([
-        [100, 'user100'],
-        [101, 'user101'],
-        [102, 'user102'],
-      ]);
-
-      const matches = await service.startTournament(1, usernameLookup);
+      const matches = await service.startTournament(1);
 
       // 3 players = 3 matches (3 * 2 / 2)
       expect(matches.length).toBe(3);
@@ -392,7 +412,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
 
-      await expect(service.startTournament(1, new Map())).rejects.toThrow(TournamentError);
+      await expect(service.startTournament(1)).rejects.toThrow(TournamentError);
     });
 
     it('should throw error if not enough players', async () => {
@@ -402,9 +422,12 @@ describe('TournamentService', () => {
         minPlayers: 4,
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
-      vi.mocked(mockParticipantDao.getParticipantUserIds).mockResolvedValueOnce([100, 101]);
+      vi.mocked(mockParticipantDao.getParticipantsWithUsernames).mockResolvedValueOnce([
+        { userId: 100, username: 'user100' },
+        { userId: 101, username: 'user101' },
+      ]);
 
-      await expect(service.startTournament(1, new Map())).rejects.toThrow(TournamentError);
+      await expect(service.startTournament(1)).rejects.toThrow(TournamentError);
     });
   });
 

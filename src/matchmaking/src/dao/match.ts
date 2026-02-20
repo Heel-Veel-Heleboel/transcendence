@@ -349,4 +349,40 @@ export class MatchDao {
       orderBy: { scheduledAt: 'desc' }
     });
   }
+
+  /**
+   * Find pending matches with deadlines (for lifecycle recovery)
+   * Returns matches in PENDING_ACKNOWLEDGEMENT or SCHEDULED status that have deadlines
+   */
+  async findPendingWithDeadline(): Promise<Match[]> {
+    return await this.prisma.match.findMany({
+      where: {
+        status: {
+          in: ['PENDING_ACKNOWLEDGEMENT', 'SCHEDULED']
+        },
+        deadline: { not: null }
+      },
+      orderBy: { deadline: 'asc' }
+    });
+  }
+
+  /**
+   * Generic update method for match fields
+   */
+  async update(
+    matchId: string,
+    data: {
+      status?: MatchStatus;
+      winnerId?: number | null;
+      player1Score?: number;
+      player2Score?: number;
+      completedAt?: Date;
+      resultSource?: string;
+    }
+  ): Promise<Match> {
+    return await this.prisma.match.update({
+      where: { id: matchId },
+      data
+    });
+  }
 }

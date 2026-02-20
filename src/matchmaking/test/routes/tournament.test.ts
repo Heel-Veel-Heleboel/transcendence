@@ -46,7 +46,7 @@ describe('Tournament Routes', () => {
       getTournamentSummary: vi.fn().mockResolvedValue(mockTournamentSummary),
       getOpenTournaments: vi.fn().mockResolvedValue([mockTournamentSummary]),
       cancelTournament: vi.fn().mockResolvedValue({ ...mockTournament, status: 'CANCELLED' }),
-      register: vi.fn().mockResolvedValue(undefined),
+      register: vi.fn().mockResolvedValue({ full: false }),
       unregister: vi.fn().mockResolvedValue(undefined),
       getRankings: vi.fn().mockResolvedValue([
         { rank: 1, userId: 101, wins: 2, losses: 0, scoreDiff: 10, matchesPlayed: 2 },
@@ -446,21 +446,36 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { userId: 101 }
+        payload: { userId: 101, username: 'testuser' }
       });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
       expect(body.success).toBe(true);
       expect(body.message).toContain('registered');
-      expect(mockTournamentService.register).toHaveBeenCalledWith(1, 101);
+      expect(body.full).toBe(false);
+      expect(mockTournamentService.register).toHaveBeenCalledWith(1, 101, 'testuser');
+    });
+
+    it('should return full=true when tournament becomes full', async () => {
+      vi.mocked(mockTournamentService.register).mockResolvedValueOnce({ full: true });
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/tournament/1/register',
+        payload: { userId: 101, username: 'testuser' }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.full).toBe(true);
     });
 
     it('should return 400 for invalid tournament ID', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/invalid/register',
-        payload: { userId: 101 }
+        payload: { userId: 101, username: 'testuser' }
       });
 
       expect(response.statusCode).toBe(400);
@@ -473,13 +488,26 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: {}
+        payload: { username: 'testuser' }
       });
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
       expect(body.error).toBe('Bad Request');
       expect(body.message).toContain('userId');
+    });
+
+    it('should return 400 when username is missing', async () => {
+      const response = await server.inject({
+        method: 'POST',
+        url: '/tournament/1/register',
+        payload: { userId: 101 }
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body);
+      expect(body.error).toBe('Bad Request');
+      expect(body.message).toContain('username');
     });
 
     it('should return 404 when tournament not found', async () => {
@@ -490,7 +518,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/999/register',
-        payload: { userId: 101 }
+        payload: { userId: 101, username: 'testuser' }
       });
 
       expect(response.statusCode).toBe(404);
@@ -507,7 +535,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { userId: 101 }
+        payload: { userId: 101, username: 'testuser' }
       });
 
       expect(response.statusCode).toBe(400);
@@ -524,7 +552,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { userId: 101 }
+        payload: { userId: 101, username: 'testuser' }
       });
 
       expect(response.statusCode).toBe(400);
@@ -541,7 +569,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { userId: 101 }
+        payload: { userId: 101, username: 'testuser' }
       });
 
       expect(response.statusCode).toBe(400);
@@ -558,7 +586,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { userId: 101 }
+        payload: { userId: 101, username: 'testuser' }
       });
 
       expect(response.statusCode).toBe(500);

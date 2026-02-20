@@ -11,11 +11,16 @@ export class TournamentParticipantDao {
   /**
    * Register a player for a tournament
    */
-  async register(tournamentId: number, userId: number): Promise<TournamentParticipant> {
+  async register(
+    tournamentId: number,
+    userId: number,
+    username: string
+  ): Promise<TournamentParticipant> {
     return await this.prisma.tournamentParticipant.create({
       data: {
         tournamentId,
-        userId
+        userId,
+        username
       }
     });
   }
@@ -188,6 +193,19 @@ export class TournamentParticipantDao {
       select: { userId: true }
     });
     return participants.map(p => p.userId);
+  }
+
+  /**
+   * Get participants with usernames (for match generation)
+   */
+  async getParticipantsWithUsernames(
+    tournamentId: number
+  ): Promise<Array<{ userId: number; username: string }>> {
+    return await this.prisma.tournamentParticipant.findMany({
+      where: { tournamentId },
+      select: { userId: true, username: true },
+      orderBy: { registeredAt: 'asc' }
+    });
   }
 
   /**
