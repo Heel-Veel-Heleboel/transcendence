@@ -4,7 +4,13 @@ import {
   IProtagonistConfig
 } from '../types/types.ts';
 import { GridMaterial } from '@babylonjs/materials';
-import { Scene, Mesh, MeshBuilder, Vector3 } from '@babylonjs/core';
+import {
+  Scene,
+  Mesh,
+  MeshBuilder,
+  Vector3,
+  StandardMaterial
+} from '@babylonjs/core';
 import earcut from 'earcut';
 import { KeyGrid } from '../systems/keyGrid.ts';
 import { Hud } from './hud.ts';
@@ -17,6 +23,7 @@ import { Room } from '@colyseus/sdk';
 export class Protagonist extends Player implements IProtagonist {
   public keyGrid: KeyGrid;
   public keyGridMesh: Mesh;
+  public keyGridHints: Mesh[];
   public hud: Hud;
   public hitIndicator: HitIndicator;
   public room: Room;
@@ -26,6 +33,7 @@ export class Protagonist extends Player implements IProtagonist {
     super(config, scene);
     this.hud = config.hud;
     this.room = config.room;
+    this.keyGridHints = [];
     this.hitIndicator = new HitIndicator(
       this.goalPosition,
       this.goalDimensions.x * 2,
@@ -66,82 +74,36 @@ export class Protagonist extends Player implements IProtagonist {
     this.keyGridMesh.material = gridMaterial;
   }
 
-  async initGridColumnsHints(scene: Scene) {
+  async initGridHints(scene: Scene) {
     const font = await fetch(gameConfig.hintFontPath);
     const fontData = await font.json();
-    console.log(fontData);
-    for (let i = 0; i < this.keyGrid.length; i++) {
+    this.keyGrid.grid.forEach((values, keys) => {
+      const content = keys.replace('+', '');
       const text = MeshBuilder.CreateText(
         'myText',
-        this.keyGrid.columns.charAt(i),
+        content,
         fontData,
         {
-          size: this.goalDimensions.x / this.ratioDiv,
+          size: this.goalDimensions.x / (this.ratioDiv * 4),
           resolution: 20,
           depth: 0.1
         },
         scene,
         earcut
       );
-      const startPos = this.goalPosition.x - this.goalDimensions.x / 2;
-      const xPosIndex = (this.goalDimensions.x / this.ratioDiv) * i;
-      const xPosOffset = this.goalDimensions.x / this.ratioDiv / 2;
-      const xPos = startPos + xPosIndex + xPosOffset;
       if (text) {
-        text.position = new Vector3(
-          xPos,
-          this.goalPosition.y + this.goalDimensions.y / 2,
-          this.goalPosition.z
-        );
+        text.position = new Vector3(values.x, values.y, this.goalPosition.z);
         text.rotation.y = this.rotation;
+        const material = new StandardMaterial('transparent', scene);
+        text.material = material;
+        if (text.material) {
+          // text.material.wireframe = true;
+          text.material.alpha = 0.15;
+          text.material.backFaceCulling = false;
+        }
+        this.keyGridHints.push(text);
       }
-      // NOTE: not sure which material is going to used for hints yet, therefore
-      // commented out
-      // const material = new BABYLON.StandardMaterial('wireframe', scene);
-      // text.material = material;
-      // if (text.material) {
-      //   text.material.wireframe = true;
-      // }
-    }
-  }
-
-  async initGridRowsHints(scene: Scene) {
-    const fontData = await (await fetch(gameConfig.hintFontPath)).json();
-    for (let i = 0; i < this.keyGrid.length; i++) {
-      const text = MeshBuilder.CreateText(
-        'myText',
-        this.keyGrid.rows.charAt(i),
-        fontData,
-        {
-          size: this.goalDimensions.x / this.ratioDiv,
-          resolution: 20,
-          depth: 0.1
-        },
-        scene,
-        earcut
-      );
-      const startPos = this.goalPosition.y + this.goalDimensions.y / 2;
-      const yPosIndex = (this.goalDimensions.y / this.ratioDiv) * i;
-      const yPosOffset = this.goalDimensions.y / this.ratioDiv;
-      const yPos = startPos - yPosIndex - yPosOffset;
-      if (text) {
-        text.position = new Vector3(
-          this.goalPosition.x -
-            this.goalDimensions.x / 2 -
-            this.goalDimensions.x / this.ratioDiv / 2,
-          yPos,
-          this.goalPosition.z
-        );
-        text.rotation.y = this.rotation;
-      }
-      // NOTE: not sure which material is going to used for hints yet, therefore
-      // commented out
-      // const material = new StandardMaterial('wireframe', scene);
-      // text.material = material;
-      // if (text.material) {
-      //   text.material.wireframe = true;
-      // }
-    }
+    });
   }
 
   movePrecise(coord: { x: number; y: number }) {

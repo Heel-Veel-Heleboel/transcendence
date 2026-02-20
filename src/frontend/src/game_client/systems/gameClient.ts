@@ -182,8 +182,7 @@ export class GameClient {
 
         const player = new Protagonist(config, g.scene);
         g.prota = player;
-        g.prota.initGridColumnsHints(g.scene);
-        g.prota.initGridRowsHints(g.scene);
+        g.prota.initGridHints(g.scene);
 
         const keyManager = new KeyManager(g.scene, () => g.frameCount, g.prota);
         g.keyManager = keyManager;

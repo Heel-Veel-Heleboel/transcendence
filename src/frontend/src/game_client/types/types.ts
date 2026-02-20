@@ -85,6 +85,7 @@ export interface IPlayer {
 export interface IProtagonist {
   keyGrid: KeyGrid;
   keyGridMesh: Mesh;
+  keyGridHints: Mesh[];
   hud: Hud;
   hitIndicator: HitIndicator;
   room: Room;
