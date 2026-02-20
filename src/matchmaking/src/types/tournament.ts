@@ -3,19 +3,6 @@
  */
 
 /**
- * Tournament status enum - mirrors Prisma schema
- * Defined here to avoid import issues in tests
- */
-export enum TournamentStatus {
-  REGISTRATION = 'REGISTRATION',
-  SCHEDULED = 'SCHEDULED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  TIE_BREAKER = 'TIE_BREAKER',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
-}
-
-/**
  * Tournament format types
  */
 export type TournamentFormat = 'round_robin' | 'single_elimination';
