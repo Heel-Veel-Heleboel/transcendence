@@ -34,7 +34,7 @@ export class GameRoom extends Room {
         columns: 'qwaszx',
         rows: 'erdfcv',
         length: 6,
-        precisionKeys: 'WASD'
+        precisionKeys: 'ArrowUp;ArrowDown;ArrowLeft;ArrowRight'
       },
       goalPosition: this.engine.arena.goal_1.mesh.absolutePosition,
       goalDimensions: this.engine.arena.goal_1.mesh
@@ -46,7 +46,7 @@ export class GameRoom extends Room {
         columns: 'qwaszx',
         rows: 'erdfcv',
         length: 6,
-        precisionKeys: 'WASD'
+        precisionKeys: 'ArrowUp;ArrowDown;ArrowLeft;ArrowRight'
       },
       goalPosition: this.engine.arena.goal_2.mesh.absolutePosition,
       goalDimensions: this.engine.arena.goal_2.mesh

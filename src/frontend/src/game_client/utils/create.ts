@@ -20,6 +20,8 @@ export function createCamera(scene: Scene, distance: number) {
     scene
   );
   camera.attachControl(scene.getEngine().getRenderingCanvas(), true);
+  camera.inputs.attached.keyboard.detachControl();
+
   return camera;
 }
 
