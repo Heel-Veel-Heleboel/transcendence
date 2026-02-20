@@ -407,11 +407,19 @@ describe('TournamentDao', () => {
       mockPrismaClient.tournament.findUnique.mockResolvedValueOnce({
         id: 1,
         maxPlayers: 8,
+        _count: { participants: 5 },
       });
-      mockPrismaClient.tournamentParticipant.count.mockResolvedValueOnce(5);
 
       const result = await dao.hasCapacity(1);
 
+      expect(mockPrismaClient.tournament.findUnique).toBeCalledWith({
+        where: { id: 1 },
+        include: {
+          _count: {
+            select: { participants: true },
+          },
+        },
+      });
       expect(result).toBe(true);
     });
 
@@ -419,8 +427,8 @@ describe('TournamentDao', () => {
       mockPrismaClient.tournament.findUnique.mockResolvedValueOnce({
         id: 1,
         maxPlayers: 8,
+        _count: { participants: 8 },
       });
-      mockPrismaClient.tournamentParticipant.count.mockResolvedValueOnce(8);
 
       const result = await dao.hasCapacity(1);
 
@@ -441,11 +449,19 @@ describe('TournamentDao', () => {
       mockPrismaClient.tournament.findUnique.mockResolvedValueOnce({
         id: 1,
         minPlayers: 4,
+        _count: { participants: 5 },
       });
-      mockPrismaClient.tournamentParticipant.count.mockResolvedValueOnce(5);
 
       const result = await dao.hasMinimumPlayers(1);
 
+      expect(mockPrismaClient.tournament.findUnique).toBeCalledWith({
+        where: { id: 1 },
+        include: {
+          _count: {
+            select: { participants: true },
+          },
+        },
+      });
       expect(result).toBe(true);
     });
 
@@ -453,8 +469,8 @@ describe('TournamentDao', () => {
       mockPrismaClient.tournament.findUnique.mockResolvedValueOnce({
         id: 1,
         minPlayers: 4,
+        _count: { participants: 2 },
       });
-      mockPrismaClient.tournamentParticipant.count.mockResolvedValueOnce(2);
 
       const result = await dao.hasMinimumPlayers(1);
 
