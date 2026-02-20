@@ -129,8 +129,9 @@ export class TournamentService {
 
   /**
    * Register a user for a tournament
+   * Returns true if tournament is now full (max players reached)
    */
-  async register(tournamentId: number, userId: number): Promise<void> {
+  async register(tournamentId: number, userId: number, username: string): Promise<{ full: boolean }> {
     const tournament = await this.tournamentDao.findById(tournamentId);
 
     if (!tournament) {
@@ -157,8 +158,12 @@ export class TournamentService {
       throw new TournamentError('Tournament is full', 'TOURNAMENT_FULL');
     }
 
-    await this.participantDao.register(tournamentId, userId);
+    await this.participantDao.register(tournamentId, userId, username);
     this.log('info', `User ${userId} registered for tournament ${tournamentId}`);
+
+    // Check if tournament is now full
+    const count = await this.participantDao.count(tournamentId);
+    return { full: count >= tournament.maxPlayers };
   }
 
   /**
@@ -239,10 +244,7 @@ export class TournamentService {
    * Start the tournament - generate matches and transition to IN_PROGRESS
    * Called by scheduler when start time arrives (or immediately after closeRegistration if no start time)
    */
-  async startTournament(
-    tournamentId: number,
-    usernameLookup: Map<number, string>
-  ): Promise<Match[]> {
+  async startTournament(tournamentId: number): Promise<Match[]> {
     const tournament = await this.tournamentDao.findById(tournamentId);
 
     if (!tournament) {
@@ -253,19 +255,18 @@ export class TournamentService {
       throw new TournamentError('Tournament must be SCHEDULED to start', 'INVALID_STATUS');
     }
 
-    // Get participants
-    const participantIds = await this.participantDao.getParticipantUserIds(tournamentId);
+    // Get participants with usernames
+    const participants = await this.participantDao.getParticipantsWithUsernames(tournamentId);
 
-    if (participantIds.length < tournament.minPlayers) {
+    if (participants.length < tournament.minPlayers) {
       throw new TournamentError('Not enough players to start', 'INSUFFICIENT_PLAYERS');
     }
 
     // Generate round-robin matches
     const matches = await this.generateRoundRobinMatches(
       tournamentId,
-      participantIds,
-      tournament.matchDeadlineMin,
-      usernameLookup
+      participants,
+      tournament.matchDeadlineMin
     );
 
     // Update status to IN_PROGRESS
@@ -281,24 +282,23 @@ export class TournamentService {
    */
   private async generateRoundRobinMatches(
     tournamentId: number,
-    participantIds: number[],
-    matchDeadlineMin: number,
-    usernameLookup: Map<number, string>
+    participants: Array<{ userId: number; username: string }>,
+    matchDeadlineMin: number
   ): Promise<Match[]> {
     const matches: Match[] = [];
     const deadline = new Date(Date.now() + matchDeadlineMin * 60 * 1000);
 
     // Generate all pairings: n*(n-1)/2 matches
-    for (let i = 0; i < participantIds.length; i++) {
-      for (let j = i + 1; j < participantIds.length; j++) {
-        const player1Id = participantIds[i];
-        const player2Id = participantIds[j];
+    for (let i = 0; i < participants.length; i++) {
+      for (let j = i + 1; j < participants.length; j++) {
+        const player1 = participants[i];
+        const player2 = participants[j];
 
         const match = await this.matchDao.create({
-          player1Id,
-          player2Id,
-          player1Username: usernameLookup.get(player1Id) ?? `User${player1Id}`,
-          player2Username: usernameLookup.get(player2Id) ?? `User${player2Id}`,
+          player1Id: player1.userId,
+          player2Id: player2.userId,
+          player1Username: player1.username,
+          player2Username: player2.username,
           tournamentId,
           deadline
         });
