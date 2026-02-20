@@ -55,6 +55,12 @@ export interface IKeyGridDimensions {
   goalDimensions: Vector3;
 }
 
+export interface IKeyGridConfig {
+  dimensions: IKeyGridDimensions;
+  keys: IKeyGridKeys;
+  rotation: boolean;
+}
+
 export interface IKeyGrid {
   grid: Map<string, { x: number; y: number }>;
   columns: string;
@@ -89,7 +95,7 @@ export interface IProtagonist {
   hud: Hud;
   hitIndicator: HitIndicator;
   room: Room;
-  rotation: number;
+  rotation: boolean;
 }
 
 export interface IAntagonist {}

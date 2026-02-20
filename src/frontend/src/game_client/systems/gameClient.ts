@@ -5,7 +5,8 @@ import {
   Vector3,
   Camera,
   Light,
-  Sound
+  Sound,
+  ArcRotateCamera
 } from '@babylonjs/core';
 import {
   debugLayerListener,
@@ -183,6 +184,11 @@ export class GameClient {
         const player = new Protagonist(config, g.scene);
         g.prota = player;
         g.prota.initGridHints(g.scene);
+        if (g.prota.keyGrid.rotation) {
+          const pos = g.camera.position;
+          const camera = g.camera as ArcRotateCamera;
+          camera.setPosition(new Vector3(pos.x, pos.y, pos.z * -1));
+        }
 
         const keyManager = new KeyManager(g.scene, () => g.frameCount, g.prota);
         g.keyManager = keyManager;

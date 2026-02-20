@@ -1,4 +1,9 @@
-import { IKeyGrid, IKeyGridDimensions, IKeyGridKeys } from '../types/types';
+import {
+  IKeyGrid,
+  IKeyGridConfig,
+  IKeyGridDimensions,
+  IKeyGridKeys
+} from '../types/types';
 import {
   checkRowColumnLength,
   checkRowColumnVersusKeyLength,
@@ -14,17 +19,19 @@ export class KeyGrid implements IKeyGrid {
   public precisionKeys: string;
   public length: number;
   public ratioDiv: number;
+  public rotation: boolean;
   public dimensions: IKeyGridDimensions;
 
-  constructor(keys: IKeyGridKeys, dimensions: IKeyGridDimensions) {
-    this.checkParameters(keys, dimensions);
+  constructor(config: IKeyGridConfig) {
+    this.checkParameters(config.keys, config.dimensions);
     this.grid = new Map();
-    this.columns = keys.columns;
-    this.rows = keys.rows;
-    this.precisionKeys = keys.precisionKeys;
-    this.length = keys.length;
+    this.columns = config.keys.columns;
+    this.rows = config.keys.rows;
+    this.precisionKeys = config.keys.precisionKeys;
+    this.length = config.keys.length;
     this.ratioDiv = this.length;
-    this.dimensions = dimensions;
+    this.dimensions = config.dimensions;
+    this.rotation = config.rotation;
 
     for (let y = 0; y < this.length; y++) {
       for (let x = 0; x < this.length; x++) {
@@ -49,11 +56,14 @@ export class KeyGrid implements IKeyGrid {
   }
 
   private calculateX(x: number): number {
-    const startPos =
-      this.dimensions.goalPosition.x - this.dimensions.goalDimensions.x / 2;
+    const startPos = this.rotation
+      ? this.dimensions.goalPosition.x + this.dimensions.goalDimensions.x / 2
+      : this.dimensions.goalPosition.x - this.dimensions.goalDimensions.x / 2;
     const posIndex = (this.dimensions.goalDimensions.x / this.ratioDiv) * x;
     const posOffset = this.dimensions.goalDimensions.x / this.ratioDiv / 2;
-    return startPos + posIndex + posOffset;
+    return this.rotation
+      ? startPos - posIndex - posOffset
+      : startPos + posIndex + posOffset;
   }
   private calculateY(y: number): number {
     const startPos =

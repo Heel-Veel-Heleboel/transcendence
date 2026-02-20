@@ -27,7 +27,7 @@ export class Protagonist extends Player implements IProtagonist {
   public hud: Hud;
   public hitIndicator: HitIndicator;
   public room: Room;
-  public rotation: number;
+  public rotation: boolean;
 
   constructor(config: IProtagonistConfig, scene: Scene) {
     super(config, scene);
@@ -39,24 +39,24 @@ export class Protagonist extends Player implements IProtagonist {
       this.goalDimensions.x * 2,
       scene
     );
-    let sideOrientation;
-    if (this.mesh.position.z > 0) {
-      sideOrientation = Mesh.BACKSIDE;
-      this.rotation = Math.PI;
-    } else {
-      sideOrientation = Mesh.FRONTSIDE;
-      this.rotation = 0;
-    }
-    this.keyGrid = new KeyGrid(config.keys, {
-      goalPosition: config.goalPosition,
-      goalDimensions: config.goalDimensions
+    this.rotation =
+      this.mesh.position.z > 0
+        ? Boolean(Mesh.BACKSIDE)
+        : Boolean(Mesh.FRONTSIDE);
+    this.keyGrid = new KeyGrid({
+      keys: config.keys,
+      dimensions: {
+        goalPosition: config.goalPosition,
+        goalDimensions: config.goalDimensions
+      },
+      rotation: this.rotation
     });
     this.keyGridMesh = MeshBuilder.CreatePlane(
       'keyGridMesh',
       {
         height: config.goalDimensions.y,
         width: config.goalDimensions.x,
-        sideOrientation: sideOrientation
+        sideOrientation: Number(this.rotation)
       },
       scene
     );
@@ -93,7 +93,7 @@ export class Protagonist extends Player implements IProtagonist {
       );
       if (text) {
         text.position = new Vector3(values.x, values.y, this.goalPosition.z);
-        text.rotation.y = this.rotation;
+        text.rotation.y = this.rotation ? Math.PI : 0;
         const material = new StandardMaterial('transparent', scene);
         text.material = material;
         if (text.material) {
@@ -107,10 +107,15 @@ export class Protagonist extends Player implements IProtagonist {
   }
 
   movePrecise(coord: { x: number; y: number }) {
-    const pos = {
-      x: (this.mesh.position.x += coord.x),
-      y: (this.mesh.position.y += coord.y)
-    };
+    const pos = this.rotation
+      ? {
+          x: (this.mesh.position.x -= coord.x),
+          y: (this.mesh.position.y += coord.y)
+        }
+      : {
+          x: (this.mesh.position.x += coord.x),
+          y: (this.mesh.position.y += coord.y)
+        };
     this.room.send('set-position', pos);
   }
 
