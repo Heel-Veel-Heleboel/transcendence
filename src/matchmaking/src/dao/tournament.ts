@@ -208,27 +208,43 @@ export class TournamentDao {
 
   /**
    * Check if tournament has room for more participants
+   * Uses single query to fetch tournament and participant count
    */
   async hasCapacity(tournamentId: number): Promise<boolean> {
-    const tournament = await this.findById(tournamentId);
+    const tournament = await this.prisma.tournament.findUnique({
+      where: { id: tournamentId },
+      include: {
+        _count: {
+          select: { participants: true }
+        }
+      }
+    });
+
     if (!tournament) {
       return false;
     }
 
-    const count = await this.getParticipantCount(tournamentId);
-    return count < tournament.maxPlayers;
+    return tournament._count.participants < tournament.maxPlayers;
   }
 
   /**
    * Check if tournament has minimum players to start
+   * Uses single query to fetch tournament and participant count
    */
   async hasMinimumPlayers(tournamentId: number): Promise<boolean> {
-    const tournament = await this.findById(tournamentId);
+    const tournament = await this.prisma.tournament.findUnique({
+      where: { id: tournamentId },
+      include: {
+        _count: {
+          select: { participants: true }
+        }
+      }
+    });
+
     if (!tournament) {
       return false;
     }
 
-    const count = await this.getParticipantCount(tournamentId);
-    return count >= tournament.minPlayers;
+    return tournament._count.participants >= tournament.minPlayers;
   }
 }

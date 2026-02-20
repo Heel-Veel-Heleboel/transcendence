@@ -1,3 +1,5 @@
+import { TournamentStatus } from '../../generated/prisma/index.js';
+
 /**
  * Type definitions for Tournament operations
  */
