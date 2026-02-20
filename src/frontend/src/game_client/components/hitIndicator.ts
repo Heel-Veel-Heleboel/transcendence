@@ -40,6 +40,9 @@ export class HitIndicator implements IHitIndicator {
   }
 
   detectIncomingHits(ball: Hack) {
+    console.log('ball: ' + ball.mesh.absolutePosition);
+    console.log('velocity: ' + ball.linearVelocity);
+    console.log('goal: ' + this.goalPosition);
     const distance = Vector3Distance(
       ball.mesh.absolutePosition,
       this.goalPosition
@@ -59,7 +62,7 @@ export class HitIndicator implements IHitIndicator {
       const options = {
         points: [
           ball.mesh.absolutePosition,
-          ball.linearVelocity.addInPlace(ball.mesh.absolutePosition)
+          ball.linearVelocity.scale(distance).add(ball.mesh.absolutePosition)
         ],
         updatable: true,
         // no scene parameter needed with options.instance, used for updates
@@ -70,7 +73,7 @@ export class HitIndicator implements IHitIndicator {
       const options = {
         points: [
           ball.mesh.absolutePosition,
-          ball.linearVelocity.addInPlace(ball.mesh.absolutePosition)
+          ball.linearVelocity.scale(distance).add(ball.mesh.absolutePosition)
         ],
         updatable: true
       };

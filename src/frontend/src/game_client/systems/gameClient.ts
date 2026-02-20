@@ -155,6 +155,7 @@ export class GameClient {
           );
           ball.mesh.setAbsolutePosition(pos);
           ball.linearVelocity = lv;
+          lv.normalize();
         }
       });
     });
