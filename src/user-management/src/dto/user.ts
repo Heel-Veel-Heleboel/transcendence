@@ -18,11 +18,16 @@ export interface DeleteUserDto {
 
 
 //update user dtos
-export interface UpdateUserDto {
+export interface UpdateUserEmailDto {
   id: number;
-  email?: string;
-  name?: string;
+  email: string;
 }
+
+export interface UpdateUserNameDto {
+  id: number;
+  name: string;
+}
+
 export interface UpdatedUserStatusDto {
   id: number;
   activity_status: ActivityStatus;
