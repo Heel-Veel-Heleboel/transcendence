@@ -2,7 +2,7 @@ import { IUserRepository } from './interfaces/user.js';
 import { PrismaClient, User } from '../../generated/prisma/client.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import * as UserError from '../error/user.js';
-
+import { UserErrorMessages } from '../constants/error-messages.js';
 import { 
   CreatedUserDto,
   CreateUserDto,
@@ -13,7 +13,7 @@ import {
   FindUniqueUserDto,
   FindManyUserDto
 } from '../dto/user.js';
-import { ta, th } from 'zod/locales';
+
 
 export class UserRepository implements IUserRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
@@ -37,10 +37,10 @@ export class UserRepository implements IUserRepository {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
         const target = error.meta?.target as string[] | undefined;
         if(target?.includes('email')) {
-          throw new UserError.UserAlreadyExistsError('User with this email already exists');
+          throw new UserError.UserAlreadyExistsError(UserErrorMessages.EMAIL_ALREADY_EXISTS);
         }
         if (target?.includes('name')) {
-          throw new UserError.UserAlreadyExistsError('User with this name already exists');
+          throw new UserError.UserAlreadyExistsError(UserErrorMessages.NAME_ALREADY_EXISTS);
         }
       }
       throw error;
@@ -56,7 +56,7 @@ export class UserRepository implements IUserRepository {
       });
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new UserError.UserNotFoundError('User not found');
+        throw new UserError.UserNotFoundError(UserErrorMessages.USER_NOT_FOUND);
       }
       throw error;
     }
@@ -74,8 +74,13 @@ export class UserRepository implements IUserRepository {
         }
       });
     } catch (error) {
-      if ( error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-        throw new UserError.UserAlreadyExistsError('User with this email already exists');
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new UserError.UserAlreadyExistsError(UserErrorMessages.EMAIL_ALREADY_EXISTS);
+        }
+        if (error.code === 'P2025') {
+          throw new UserError.UserNotFoundError(UserErrorMessages.USER_NOT_FOUND);
+        }
       }
       throw error;
     }
@@ -93,8 +98,13 @@ export class UserRepository implements IUserRepository {
         }
       });
     } catch (error) {
-      if ( error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-        throw new UserError.UserAlreadyExistsError('User with this name already exists');
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new UserError.UserAlreadyExistsError(UserErrorMessages.NAME_ALREADY_EXISTS);
+        }
+        if (error.code === 'P2025') {
+          throw new UserError.UserNotFoundError(UserErrorMessages.USER_NOT_FOUND);
+        }
       }
       throw error;
     }
@@ -113,7 +123,7 @@ export class UserRepository implements IUserRepository {
       });
     } catch (error) { 
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new UserError.UserNotFoundError('User not found');
+        throw new UserError.UserNotFoundError(UserErrorMessages.USER_NOT_FOUND);
       }
       throw error;
     }
