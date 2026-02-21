@@ -3,11 +3,16 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import { getPrismaClient, disconnectPrisma } from './db/prisma.client.js';
 import { MatchDao } from './dao/match.js';
+import { TournamentDao } from './dao/tournament.js';
+import { TournamentParticipantDao } from './dao/tournament-participant.js';
 import { MatchmakingService } from './services/casual-matchmaking.js';
 import { PoolRegistry } from './services/pool-registry.js';
 import { MatchReporting } from './services/match-reporting.js';
+import { TournamentService } from './services/tournament.js';
+import { TournamentLifecycleManager } from './services/tournament-lifecycle.js';
 import { registerMatchmakingRoutes } from './routes/matchmaking.js';
 import { registerMatchRoutes } from './routes/match.js';
+import { registerTournamentRoutes } from './routes/tournament.js';
 import { GameMode } from './types/match.js';
 
 const server = fastify({
@@ -71,9 +76,29 @@ const userManagementClient = {
 // Match reporting service for sending results to user management
 const matchReporting = new MatchReporting(matchDao, userManagementClient, server.log);
 
+// Tournament services
+const tournamentDao = new TournamentDao(prisma);
+const participantDao = new TournamentParticipantDao(prisma);
+const tournamentService = new TournamentService(
+  tournamentDao,
+  participantDao,
+  matchDao,
+  server.log
+);
+const lifecycleManager = new TournamentLifecycleManager(
+  tournamentService,
+  tournamentDao,
+  matchDao,
+  undefined, // use default timer provider
+  server.log
+);
+
 // Initialize matchmaking pools
 await classicPool.initialize();
 await powerupPool.initialize();
+
+// Initialize tournament lifecycle (recovers pending events from DB)
+await lifecycleManager.initialize();
 
 // Health check endpoint
 server.get('/health', async () => {
@@ -95,6 +120,8 @@ server.get('/health/detailed', async () => {
     server.log.error({ error }, 'Database health check failed');
   }
 
+  const timerCounts = lifecycleManager.getTimerCounts();
+
   return {
     status: dbHealthy ? 'healthy' : 'degraded',
     service: 'matchmaking-service',
@@ -105,6 +132,10 @@ server.get('/health/detailed', async () => {
       classic: classicPool.getPoolSize(),
       powerup: powerupPool.getPoolSize(),
       total: classicPool.getPoolSize() + powerupPool.getPoolSize()
+    },
+    tournaments: {
+      activeTimers: timerCounts.tournaments,
+      matchTimers: timerCounts.matches
     }
   };
 });
@@ -112,12 +143,14 @@ server.get('/health/detailed', async () => {
 // Register routes
 await registerMatchmakingRoutes(server, pools, poolRegistry);
 await registerMatchRoutes(server, matchDao, matchReporting);
+await registerTournamentRoutes(server, tournamentService);
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {
   server.log.info(`Received ${signal}, shutting down gracefully`);
 
   try {
+    lifecycleManager.shutdown();
     await classicPool.shutdown();
     await powerupPool.shutdown();
     await disconnectPrisma();
