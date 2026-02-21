@@ -236,7 +236,14 @@ function createServiceHealthResponse(
  */
 function extractErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
-  if ((error as any)?.name === 'AbortError') return 'timeout';
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'name' in error &&
+    (error as { name: string }).name === 'AbortError'
+  ) {
+    return 'timeout';
+  }
   return 'Unknown error';
 }
 

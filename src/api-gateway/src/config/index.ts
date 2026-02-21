@@ -12,11 +12,12 @@ const jwtPublicKeyPath = process.env.JWT_PUBLIC_KEY_PATH || resolve('keys/jwt_pu
 let jwtPublicKey: string;
 try {
   jwtPublicKey = readFileSync(jwtPublicKeyPath, 'utf-8');
-} catch (error) {
+} catch (error: unknown) {
   if (nodeEnv === 'production') {
     throw new Error(`Failed to load JWT public key from ${jwtPublicKeyPath}`);
   }
-  logger.warn(`[WARNING] Could not load JWT public key from ${jwtPublicKeyPath}. JWT verification will fail.`);
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  logger.warn({ error: errorMessage }, `[WARNING] Could not load JWT public key from ${jwtPublicKeyPath}. JWT verification will fail.`);
   jwtPublicKey = '';
 }
 

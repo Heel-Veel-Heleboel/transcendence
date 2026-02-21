@@ -1,15 +1,19 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import jwt from 'jsonwebtoken';
+import { generateKeyPairSync } from 'crypto';
+import { config as gatewayConfig } from '../../src/config/index';
 import { authMiddleware, verifyToken, authGuard } from '../../src/middleware/auth';
 import type { JWTPayload } from '../../src/entity/common';
 
-const privateKey = readFileSync(
-  resolve(process.env.JWT_PRIVATE_KEY_PATH || './keys/jwt_private.pem'),
-  'utf-8'
-);
+const { privateKey, publicKey } = generateKeyPairSync('rsa', {
+  modulusLength: 2048,
+  publicKeyEncoding: { type: 'pkcs1', format: 'pem' },
+  privateKeyEncoding: { type: 'pkcs1', format: 'pem' },
+});
+
+// Use an in-memory public key for JWT verification in tests
+gatewayConfig.jwtPublicKey = publicKey;
 
 function signToken(payload: object, options?: jwt.SignOptions): string {
   return jwt.sign(payload, privateKey, { algorithm: 'RS256', ...options });

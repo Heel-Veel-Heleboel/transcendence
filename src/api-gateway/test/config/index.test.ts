@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { mkdtempSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 
 describe("Configuration loading", () => {
   beforeEach(() => {
@@ -60,8 +63,18 @@ describe("Configuration loading", () => {
   });
 
   it("loads JWT public key from file", async () => {
+    const tmpDir = mkdtempSync(join(tmpdir(), 'jwt-key-'));
+    const keyPath = join(tmpDir, 'jwt_public.pem');
+    writeFileSync(
+      keyPath,
+      '-----BEGIN PUBLIC KEY-----\nMOCK PUBLIC KEY\n-----END PUBLIC KEY-----\n',
+      'utf-8'
+    );
+    process.env.JWT_PUBLIC_KEY_PATH = keyPath;
+
     vi.resetModules();
     const { config } = await import('../../src/config/index');
+
     expect(config.jwtPublicKey).toBeDefined();
     expect(config.jwtPublicKey).toContain('PUBLIC KEY');
   });

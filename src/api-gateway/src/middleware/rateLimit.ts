@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { config } from '../config';
+import type { RateLimitEntry } from '../entity/common';
 
 // In-memory rate limiter
 class RateLimiter {
@@ -67,10 +68,15 @@ export async function rateLimitMiddleware(
     // Check endpoint-specific limits. Support both shapes:
     // - map: { '/path': { max, timeWindow }, ... }
     // - array: [ { path, limit }, ... ]
-    let endpointLimit: any;
-    const endpointsCfg = (config.rateLimits as any).endpoints;
+    type EndpointLimitArrayItem = { path: string; limit: RateLimitEntry };
+    type EndpointLimits =
+      | Record<string, RateLimitEntry>
+      | EndpointLimitArrayItem[];
+
+    let endpointLimit: RateLimitEntry | undefined;
+    const endpointsCfg = config.rateLimits.endpoints as EndpointLimits;
     if (Array.isArray(endpointsCfg)) {
-      const found = endpointsCfg.find((e: any) => e.path === endpoint);
+      const found = endpointsCfg.find((e: EndpointLimitArrayItem) => e.path === endpoint);
       endpointLimit = found?.limit;
     } else if (endpointsCfg && typeof endpointsCfg === 'object') {
       endpointLimit = endpointsCfg[endpoint];
