@@ -3,7 +3,8 @@ import {
   CreateUserDto,
   CreatedUserDto,
   DeleteUserDto,
-  UpdateUserDto,
+  UpdateUserEmailDto,
+  UpdateUserNameDto,
   UpdatedUserStatusDto,
   FindUniqueUserDto,
   FindManyUserDto
@@ -12,7 +13,8 @@ import {
 export interface IUserRepository {
   create(data: CreateUserDto): Promise<CreatedUserDto>;
   delete(data: DeleteUserDto): Promise<void>;
-  update(data: UpdateUserDto): Promise<void>;
+  updateName(data: UpdateUserNameDto): Promise<void>;
+  updateEmail(data: UpdateUserEmailDto): Promise<void>;
   updateStatus(data: UpdatedUserStatusDto): Promise<void>;
   findUnique(data: FindUniqueUserDto): Promise<User | null>;
   findByStatus(data: FindManyUserDto): Promise<User[] | null>;
