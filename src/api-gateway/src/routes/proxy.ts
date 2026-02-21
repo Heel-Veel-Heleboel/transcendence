@@ -100,24 +100,17 @@ function setupHeaderForwardingHooks(
     'preHandler',
     async (_request: FastifyRequest, _reply: FastifyReply) => {
       if (_request.user) {
+        _request.headers['x-user-id'] = String(_request.user.sub);
         _request.log.info(
           {
             user_id: _request.user.sub,
-            email: _request.user.email,
-            role: _request.user.role,
             service: service.name
           },
           'Forwarding user context to downstream service'
         );
       }
       if (_request.correlationId) {
-        _request.log.info(
-          {
-            correlationId: _request.correlationId,
-            service: service.name
-          },
-          'Forwarding correlation ID'
-        );
+        _request.headers['x-correlation-id'] = _request.correlationId;
       }
     }
   );

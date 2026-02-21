@@ -44,7 +44,7 @@ export function verifyToken(
   request: FastifyRequest
 ): JWTPayload | null {
   try {
-    return jwt.verify(token, config.jwtSecret) as JWTPayload;
+    return jwt.verify(token, config.jwtPublicKey, { algorithms: ['RS256'] }) as unknown as JWTPayload;
   } catch (error: unknown) {
     // Type guard for error with name property (JWT library errors)
     const jwtError = error as { name?: string };
@@ -59,18 +59,14 @@ export function verifyToken(
   }
 }
 
-// Middleware factory: checks authentication and optionally roles
-export function authGuard(roles?: string[]) {
+// Middleware factory: checks authentication
+export function authGuard() {
   return async function middleware(
     request: FastifyRequest,
     reply: FastifyReply
   ) {
     if (!request.user) {
       return reply.code(401).send({ error: 'Unauthorized' });
-    }
-
-    if (roles && !roles.includes(request.user.role)) {
-      return reply.code(403).send({ error: 'Forbidden' });
     }
   };
 }

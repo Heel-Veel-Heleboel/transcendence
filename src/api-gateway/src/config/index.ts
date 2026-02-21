@@ -1,23 +1,23 @@
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import { GatewayConfig } from '../entity/common';
 import { getServicesConfig } from './service';
 import { getRateLimitConfig } from './rateLimit';
 import { logger } from './logger';
 import { validatePort } from '../utils/validation';
 
-// Determine JWT secret with proper checks
-let jwtSecret: string | undefined = process.env.JWT_SECRET;
+// Load JWT public key for RS256 verification
 const nodeEnv = process.env.NODE_ENV || 'development';
-if (!jwtSecret) {
+const jwtPublicKeyPath = process.env.JWT_PUBLIC_KEY_PATH || resolve('keys/jwt_public.pem');
+let jwtPublicKey: string;
+try {
+  jwtPublicKey = readFileSync(jwtPublicKeyPath, 'utf-8');
+} catch (error) {
   if (nodeEnv === 'production') {
-    throw new Error(
-      'JWT_SECRET environment variable must be set in production.'
-    );
-  } else {
-    jwtSecret = 'secret-key-change-in-production';
-    logger.warn(
-      '[WARNING] Using default JWT secret. Set JWT_SECRET in environment variables for better security.'
-    );
+    throw new Error(`Failed to load JWT public key from ${jwtPublicKeyPath}`);
   }
+  logger.warn(`[WARNING] Could not load JWT public key from ${jwtPublicKeyPath}. JWT verification will fail.`);
+  jwtPublicKey = '';
 }
 
 // Parse and validate port
@@ -36,21 +36,14 @@ export const config: GatewayConfig = {
   port,
   host: process.env.HOST || '0.0.0.0',
   nodeEnv,
-  jwtSecret,
+  jwtPublicKey,
   services: getServicesConfig(),
   rateLimits: getRateLimitConfig()
 };
 
 // Validate required environment variables
 export function validateConfig(): void {
-  const required = ['JWT_SECRET'];
-  const missing = required.filter(
-    key => !process.env[key] && config.nodeEnv === 'production'
-  );
-
-  if (missing.length > 0) {
-    throw new Error(
-      `Missing required environment variables: ${missing.join(', ')}`
-    );
+  if (config.nodeEnv === 'production' && !config.jwtPublicKey) {
+    throw new Error('JWT public key must be available in production');
   }
 }

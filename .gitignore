@@ -62,6 +62,7 @@ pids/
 
 # jwt keys
 src/auth/keys/
+src/api-gateway/keys/
 # prisma client
 src/auth/generated/
 # database file
