@@ -181,11 +181,11 @@ export async function registerTournamentRoutes(
       if (error instanceof TournamentError) {
         const status = error.code === 'NOT_FOUND' ? 404
           : error.code === 'UNAUTHORIZED' ? 403
-          : 400;
+            : 400;
         return reply.status(status).send({
           error: error.code === 'NOT_FOUND' ? 'Not Found'
             : error.code === 'UNAUTHORIZED' ? 'Forbidden'
-            : 'Bad Request',
+              : 'Bad Request',
           message: error.message,
           code: error.code
         });
