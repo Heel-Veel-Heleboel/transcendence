@@ -1,9 +1,27 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import jwt from 'jsonwebtoken';
 import { authMiddleware, verifyToken, authGuard } from '../../src/middleware/auth';
-import { config } from '../../src/config';
 import type { JWTPayload } from '../../src/entity/common';
+
+const privateKey = readFileSync(
+  resolve(process.env.JWT_PRIVATE_KEY_PATH || './keys/jwt_private.pem'),
+  'utf-8'
+);
+
+function signToken(payload: object, options?: jwt.SignOptions): string {
+  return jwt.sign(payload, privateKey, { algorithm: 'RS256', ...options });
+}
+
+function makePayload(overrides?: Partial<JWTPayload>): { sub: number; user_email: string } {
+  return {
+    sub: 123,
+    user_email: 'test@example.com',
+    ...overrides,
+  };
+}
 
 describe('authMiddleware', () => {
   let mockRequest: Partial<FastifyRequest>;
@@ -71,38 +89,22 @@ describe('authMiddleware', () => {
   });
 
   it('should extract and verify valid JWT token', async () => {
-    const payload: JWTPayload = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'user',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    };
-
-    const token = jwt.sign(payload, config.jwtSecret);
+    const token = signToken(makePayload());
     mockRequest.headers = { authorization: `Bearer ${token}` };
 
     await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
 
     expect(mockRequest.user).toBeDefined();
-    expect(mockRequest.user?.sub).toBe('user-123');
-    expect(mockRequest.user?.email).toBe('test@example.com');
+    expect(mockRequest.user?.sub).toBe(123);
+    expect(mockRequest.user?.user_email).toBe('test@example.com');
     expect(mockRequest.log?.info).toHaveBeenCalledWith(
-      { user_id: 'user-123' },
+      { user_id: 123 },
       'Authenticated request'
     );
   });
 
   it('should set user to undefined for expired token', async () => {
-    const payload: JWTPayload = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'user',
-      iat: Math.floor(Date.now() / 1000) - 7200,
-      exp: Math.floor(Date.now() / 1000) - 3600, // Expired 1 hour ago
-    };
-
-    const token = jwt.sign(payload, config.jwtSecret);
+    const token = signToken(makePayload(), { expiresIn: -3600 });
     mockRequest.headers = { authorization: `Bearer ${token}` };
 
     await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
@@ -121,16 +123,8 @@ describe('authMiddleware', () => {
     expect(mockRequest.log?.warn).toHaveBeenCalled();
   });
 
-  it('should set user to undefined for token signed with wrong secret', async () => {
-    const payload: JWTPayload = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'user',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    };
-
-    const token = jwt.sign(payload, 'wrong-secret');
+  it('should set user to undefined for token signed with wrong key', async () => {
+    const token = jwt.sign(makePayload(), 'wrong-secret');
     mockRequest.headers = { authorization: `Bearer ${token}` };
 
     await authMiddleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
@@ -172,33 +166,16 @@ describe('verifyToken', () => {
   });
 
   it('should return payload for valid token', () => {
-    const payload: JWTPayload = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'admin',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    };
-
-    const token = jwt.sign(payload, config.jwtSecret);
+    const token = signToken(makePayload({ sub: 456 }));
     const result = verifyToken(token, mockRequest as FastifyRequest);
 
     expect(result).toBeDefined();
-    expect(result?.sub).toBe('user-123');
-    expect(result?.email).toBe('test@example.com');
-    expect(result?.role).toBe('admin');
+    expect(result?.sub).toBe(456);
+    expect(result?.user_email).toBe('test@example.com');
   });
 
   it('should return null for expired token', () => {
-    const payload: JWTPayload = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'user',
-      iat: Math.floor(Date.now() / 1000) - 7200,
-      exp: Math.floor(Date.now() / 1000) - 3600,
-    };
-
-    const token = jwt.sign(payload, config.jwtSecret);
+    const token = signToken(makePayload(), { expiresIn: -3600 });
     const result = verifyToken(token, mockRequest as FastifyRequest);
 
     expect(result).toBeNull();
@@ -213,16 +190,8 @@ describe('verifyToken', () => {
     expect(mockRequest.log?.warn).toHaveBeenCalled();
   });
 
-  it('should return null for token with wrong secret', () => {
-    const payload: JWTPayload = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'user',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    };
-
-    const token = jwt.sign(payload, 'wrong-secret');
+  it('should return null for token with wrong key', () => {
+    const token = jwt.sign(makePayload(), 'wrong-secret');
     const result = verifyToken(token, mockRequest as FastifyRequest);
 
     expect(result).toBeNull();
@@ -230,7 +199,6 @@ describe('verifyToken', () => {
   });
 
   it('should handle unexpected JWT errors', () => {
-    // Mock jwt.verify to throw an unexpected error
     const originalVerify = jwt.verify;
     vi.spyOn(jwt, 'verify').mockImplementation(() => {
       throw new Error('Unexpected error');
@@ -277,13 +245,14 @@ describe('authGuard', () => {
     expect(mockReply.send).toHaveBeenCalledWith({ error: 'Unauthorized' });
   });
 
-  it('should allow request when user is authenticated and no roles required', async () => {
+  it('should allow request when user is authenticated', async () => {
     mockRequest.user = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'user',
+      sub: 123,
+      user_email: 'test@example.com',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
+      iss: 'test',
+      aud: 'test',
     };
     const middleware = authGuard();
 
@@ -291,102 +260,5 @@ describe('authGuard', () => {
 
     expect(mockReply.code).not.toHaveBeenCalled();
     expect(mockReply.send).not.toHaveBeenCalled();
-  });
-
-  it('should allow request when user has required role', async () => {
-    mockRequest.user = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'admin',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    };
-    const middleware = authGuard(['admin', 'moderator']);
-
-    await middleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
-
-    expect(mockReply.code).not.toHaveBeenCalled();
-    expect(mockReply.send).not.toHaveBeenCalled();
-  });
-
-  it('should return 403 when user does not have required role', async () => {
-    mockRequest.user = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'user',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    };
-    const middleware = authGuard(['admin']);
-
-    await middleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
-
-    expect(mockReply.code).toHaveBeenCalledWith(403);
-    expect(mockReply.send).toHaveBeenCalledWith({ error: 'Forbidden' });
-  });
-
-  it('should return 403 when user role is not in allowed roles list', async () => {
-    mockRequest.user = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'guest',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    };
-    const middleware = authGuard(['admin', 'moderator']);
-
-    await middleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
-
-    expect(mockReply.code).toHaveBeenCalledWith(403);
-    expect(mockReply.send).toHaveBeenCalledWith({ error: 'Forbidden' });
-  });
-
-  it('should allow request when user has one of multiple allowed roles', async () => {
-    mockRequest.user = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'moderator',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    };
-    const middleware = authGuard(['admin', 'moderator', 'user']);
-
-    await middleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
-
-    expect(mockReply.code).not.toHaveBeenCalled();
-    expect(mockReply.send).not.toHaveBeenCalled();
-  });
-
-  it('should return 403 for empty roles array (no role matches empty array)', async () => {
-    mockRequest.user = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'user',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    };
-    const middleware = authGuard([]);
-
-    await middleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
-
-    // Empty array means no roles are allowed (roles is truthy but empty)
-    expect(mockReply.code).toHaveBeenCalledWith(403);
-    expect(mockReply.send).toHaveBeenCalledWith({ error: 'Forbidden' });
-  });
-
-  it('should allow request when roles parameter is undefined', async () => {
-    mockRequest.user = {
-      sub: 'user-123',
-      email: 'test@example.com',
-      role: 'user',
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 3600,
-    };
-    const middleware = authGuard(); // No roles parameter
-
-    await middleware(mockRequest as FastifyRequest, mockReply as FastifyReply);
-
-    // Should allow since no roles are required (just authentication)
-    expect(mockReply.code).not.toHaveBeenCalled();
   });
 });
