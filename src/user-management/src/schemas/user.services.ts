@@ -15,6 +15,15 @@ export type CreateUserSchemaType = Static<typeof CreateUserSchema>;
 
 
 
+export const DeleteUserSchema = Type.Object({
+  user_id: Type.Number()
+});
+//type for delete user schema
+export type DeleteUserSchemaType = Static<typeof DeleteUserSchema>;
+
+
+
+
 export const UpdateUserEmailSchema = Type.Object({
   user_id: Type.Number(),
   user_email: Type.String({
