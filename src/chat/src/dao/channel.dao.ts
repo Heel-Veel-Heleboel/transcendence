@@ -1,4 +1,4 @@
-import { PrismaClient, ChannelType } from '../../generated/prisma/index.js';
+import { PrismaClient, type ChannelType } from '../../generated/prisma/client.js';
 
 export class ChannelDao {
   constructor(private readonly prisma: PrismaClient) {}
@@ -82,7 +82,7 @@ export class ChannelDao {
       where: { channelId },
       select: { userId: true },
     });
-    return members.map(m => m.userId);
+    return members.map((m: { userId: number }) => m.userId);
   }
 
   async delete(channelId: string) {

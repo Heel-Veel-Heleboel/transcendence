@@ -46,7 +46,26 @@ export async function websocketRoutes(server: FastifyInstance): Promise<void> {
         return;
       }
 
-      // Future: handle client-to-server messages here
+      // Route client messages to backend services
+      try {
+        const message = JSON.parse(raw.toString());
+
+        if (message.type === 'CHAT_SEND' && message.channelId && message.content) {
+          const chatServiceUrl = process.env.CHAT_SERVICE_URL || 'http://localhost:3006';
+          fetch(`${chatServiceUrl}/chat/channels/${message.channelId}/messages`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-id': userId,
+            },
+            body: JSON.stringify({ content: message.content }),
+          }).catch(err => {
+            request.log.error({ error: err, userId }, 'Failed to forward chat message');
+          });
+        }
+      } catch {
+        request.log.warn({ userId }, 'Invalid WebSocket message format');
+      }
     });
 
     connection.socket.on('close', () => {

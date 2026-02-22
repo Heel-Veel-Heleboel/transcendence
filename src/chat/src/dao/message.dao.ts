@@ -1,4 +1,4 @@
-import { PrismaClient, MessageType } from '../../generated/prisma/index.js';
+import { PrismaClient, type MessageType } from '../../generated/prisma/client.js';
 
 export class MessageDao {
   constructor(private readonly prisma: PrismaClient) {}

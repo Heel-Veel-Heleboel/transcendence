@@ -40,7 +40,7 @@ export class ChatService {
         id: channel.id,
         type: channel.type,
         name: channel.name,
-        members: channel.members.map(m => m.userId),
+        members: channel.members.map((m: { userId: number }) => m.userId),
       },
     });
 
@@ -81,7 +81,7 @@ export class ChatService {
     const channel = await this.channelDao.findById(channelId);
     if (!channel) throw new ChatError(404, 'Channel not found');
 
-    const isMember = channel.members.some(m => m.userId === userId);
+    const isMember = channel.members.some((m: { userId: number }) => m.userId === userId);
     if (!isMember) throw new ChatError(403, 'Not a member of this channel');
 
     return channel;
@@ -92,10 +92,10 @@ export class ChatService {
     if (!channel) throw new ChatError(404, 'Channel not found');
     if (channel.type === 'DM') throw new ChatError(400, 'Cannot add members to a DM');
 
-    const isRequesterMember = channel.members.some(m => m.userId === requesterId);
+    const isRequesterMember = channel.members.some((m: { userId: number }) => m.userId === requesterId);
     if (!isRequesterMember) throw new ChatError(403, 'Not a member of this channel');
 
-    const isAlreadyMember = channel.members.some(m => m.userId === userId);
+    const isAlreadyMember = channel.members.some((m: { userId: number }) => m.userId === userId);
     if (isAlreadyMember) throw new ChatError(409, 'User is already a member');
 
     await this.channelDao.addMember(channelId, userId);
@@ -106,7 +106,7 @@ export class ChatService {
         id: channel.id,
         type: channel.type,
         name: channel.name,
-        members: [...channel.members.map(m => m.userId), userId],
+        members: [...channel.members.map((m: { userId: number }) => m.userId), userId],
       },
     });
 
@@ -162,7 +162,7 @@ export class ChatService {
 
     if (blockedIds.length > 0) {
       return messages.filter(
-        m => m.type === 'SYSTEM' || !blockedIds.includes(m.senderId)
+        (m: { type: string; senderId: number }) => m.type === 'SYSTEM' || !blockedIds.includes(m.senderId)
       );
     }
 
@@ -266,7 +266,7 @@ export class ChatService {
   async createTournamentChannel(userId: number, tournamentId: number, tournamentName: string) {
     const channels = await this.channelDao.findByUserId(userId);
     const existing = channels.find(
-      c => c.type === 'TOURNAMENT' && c.name === `Tournament: ${tournamentName}`
+      (c: { type: string; name: string | null }) => c.type === 'TOURNAMENT' && c.name === `Tournament: ${tournamentName}`
     );
     if (existing) return existing;
 
