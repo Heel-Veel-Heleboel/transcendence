@@ -1,0 +1,162 @@
+# Prometheus Alert Rules for Transcendence
+
+groups:
+  # API Gateway Alerts
+  - name: api_gateway_alerts
+    interval: 30s
+    rules:
+      # High error rate (>5% of requests returning 5xx)
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(http_requests_total{status=~"5..",job="api-gateway"}[5m])
+            /
+            rate(http_requests_total{job="api-gateway"}[5m])
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          service: api-gateway
+        annotations:
+          summary: "High error rate detected in {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+          dashboard: "http://localhost:3001/d/api-gateway"
+
+      # Circuit breaker opened
+      - alert: CircuitBreakerOpened
+        expr: circuit_breaker_state == 1
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "Circuit breaker OPEN for {{ $labels.service }}"
+          description: "Service {{ $labels.service }} circuit breaker is in OPEN state, rejecting requests"
+          dashboard: "http://localhost:3001/d/circuit-breaker"
+
+      # High response time (p95 > 1 second)
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket{job="api-gateway"}[5m])
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: api-gateway
+        annotations:
+          summary: "High response time in {{ $labels.job }}"
+          description: "95th percentile response time is {{ $value }}s (threshold: 1s)"
+
+      # Very high response time (p95 > 3 seconds)
+      - alert: VeryHighResponseTime
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket{job="api-gateway"}[5m])
+          ) > 3
+        for: 2m
+        labels:
+          severity: critical
+          service: api-gateway
+        annotations:
+          summary: "Very high response time in {{ $labels.job }}"
+          description: "95th percentile response time is {{ $value }}s (threshold: 3s)"
+
+  # Service Health Alerts
+  - name: service_health_alerts
+    interval: 30s
+    rules:
+      # Service is down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been unreachable for 1 minute"
+
+      # Service frequently restarting
+      - alert: ServiceFlapping
+        expr: changes(up[10m]) > 3
+        labels:
+          severity: warning
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Service {{ $labels.job }} is flapping"
+          description: "{{ $labels.job }} has restarted {{ $value }} times in the last 10 minutes"
+
+  # Circuit Breaker Specific Alerts
+  - name: circuit_breaker_alerts
+    interval: 15s
+    rules:
+      # High failure rate (may lead to circuit opening)
+      - alert: HighCircuitBreakerFailureRate
+        expr: |
+          rate(circuit_breaker_failures_total[2m]) > 0.5
+        for: 1m
+        labels:
+          severity: warning
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "High failure rate for {{ $labels.service }}"
+          description: "{{ $labels.service }} is experiencing {{ $value }} failures/sec (may trip circuit breaker)"
+
+      # Circuit breaker in HALF_OPEN state for too long
+      - alert: CircuitBreakerStuckHalfOpen
+        expr: circuit_breaker_state == 2
+        for: 5m
+        labels:
+          severity: warning
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "Circuit breaker stuck in HALF_OPEN for {{ $labels.service }}"
+          description: "{{ $labels.service }} circuit breaker has been in HALF_OPEN state for over 5 minutes"
+
+  # Authentication Alerts
+  - name: auth_alerts
+    interval: 30s
+    rules:
+      # High authentication failure rate
+      - alert: HighAuthFailureRate
+        expr: |
+          (
+            rate(auth_attempts_total{result="failure"}[5m])
+            /
+            rate(auth_attempts_total[5m])
+          ) > 0.3
+        for: 3m
+        labels:
+          severity: warning
+          service: auth
+        annotations:
+          summary: "High authentication failure rate"
+          description: "{{ $value | humanizePercentage }} of auth attempts are failing (threshold: 30%)"
+
+  # Resource Alerts (if metrics available)
+  - name: resource_alerts
+    interval: 1m
+    rules:
+      # Note: These require process metrics to be exposed
+      # Uncomment when process metrics are available
+
+      # - alert: HighMemoryUsage
+      #   expr: |
+      #     process_resident_memory_bytes / 1024 / 1024 > 500
+      #   for: 5m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: "High memory usage in {{ $labels.job }}"
+      #     description: "{{ $labels.job }} is using {{ $value }}MB of memory"
+
+      # - alert: HighCPUUsage
+      #   expr: |
+      #     rate(process_cpu_seconds_total[5m]) > 0.8
+      #   for: 5m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: "High CPU usage in {{ $labels.job }}"
+      #     description: "{{ $labels.job }} CPU usage is {{ $value | humanizePercentage }}"
