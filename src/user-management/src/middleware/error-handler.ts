@@ -2,7 +2,7 @@ import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import  * as UserErrors from '../error/user.js';
 import { UserDomainErrorMessages, CommonErrorMessages } from '../constants/error-messages.js';
 
-export function ErrorHandler(
+export function errorHandler(
   error: FastifyError | Error,
   request: FastifyRequest,
   reply: FastifyReply
