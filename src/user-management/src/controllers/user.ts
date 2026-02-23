@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UserService } from '../services/user.js';
 import * as SchemaTypes from '../schemas/user.services.js';
-import { UserErrorMessages } from '../constants/error-messages.js';
+import { UserDomainErrorMessages } from '../constants/error-messages.js';
 
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -47,7 +47,7 @@ export class UserController {
     if (user) {
       res.status(200).send(user);
     } else {
-      res.status(404).send({ message: UserErrorMessages.USER_NOT_FOUND });
+      res.status(404).send({ message: UserDomainErrorMessages.USER_NOT_FOUND });
     }
   }
 
@@ -57,7 +57,7 @@ export class UserController {
     if (user) {
       res.status(200).send(user);
     } else {
-      res.status(404).send({ message: UserErrorMessages.USER_NOT_FOUND });
+      res.status(404).send({ message: UserDomainErrorMessages.USER_NOT_FOUND });
     }
   }
 
@@ -67,7 +67,7 @@ export class UserController {
     if (user) {
       res.status(200).send(user);
     } else {
-      res.status(404).send({ message: UserErrorMessages.USER_NOT_FOUND });
+      res.status(404).send({ message: UserDomainErrorMessages.USER_NOT_FOUND });
     }
   }
 
