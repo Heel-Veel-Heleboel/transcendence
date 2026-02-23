@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UserRepository } from '../../src/repositories/user.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { PrismaClient } from '../../generated/prisma/client.js';
+import * as UserError from '../../src/error/user.js';
 
 const mockPrisma = {
   user: {
@@ -32,7 +33,13 @@ describe('UserRepository', () => {
         new PrismaClientKnownRequestError('Unique error', { code: 'P2002', clientVersion: '1.0.0', meta: { target: ['email'] } })
       );
       await expect(repo.create({ email: 'a@b.com', name: 'Amy' }))
-        .rejects.toThrow(/email/i);
+        .rejects.toThrow(UserError.UserAlreadyExistsError);
+      try {
+        await repo.create({ email: 'a@b.com', name: 'Amy' });
+      } catch (error) {
+        expect(error).toBeInstanceOf(UserError.UserAlreadyExistsError);
+        expect((error as UserError.UserAlreadyExistsError).unique_field).toBe('email');
+      }
     });
 
     it('should throw on unique name', async () => {
@@ -40,7 +47,13 @@ describe('UserRepository', () => {
         new PrismaClientKnownRequestError('Unique error', { code: 'P2002', clientVersion: '1.0.0', meta: { target: ['name'] } })
       );
       await expect(repo.create({ email: 'a@b.com', name: 'Amy' }))
-        .rejects.toThrow(/name/i);
+        .rejects.toThrow(UserError.UserAlreadyExistsError);
+      try {
+        await repo.create({ email: 'a@b.com', name: 'Amy' });
+      } catch (error) {
+        expect(error).toBeInstanceOf(UserError.UserAlreadyExistsError);
+        expect((error as UserError.UserAlreadyExistsError).unique_field).toBe('name');
+      }
     });
   });
 
@@ -54,7 +67,7 @@ describe('UserRepository', () => {
       mockPrisma.user.delete.mockRejectedValue(
         new PrismaClientKnownRequestError('Not found', { code: 'P2025', clientVersion: '1.0.0' })
       );
-      await expect(repo.delete({ id: 1 })).rejects.toThrow(/not found/i);
+      await expect(repo.delete({ id: 1 })).rejects.toThrow(UserError.UserNotFoundError);
     });
   });
 
@@ -68,14 +81,20 @@ describe('UserRepository', () => {
       mockPrisma.user.update.mockRejectedValue(
         new PrismaClientKnownRequestError('Unique error', { code: 'P2002', clientVersion: '1.0.0', meta: { target: ['email'] } })
       );
-      await expect(repo.updateEmail({ id: 1, email: 'taken@b.com' })).rejects.toThrow(/email/i);
+      await expect(repo.updateEmail({ id: 1, email: 'taken@b.com' })).rejects.toThrow(UserError.UserAlreadyExistsError);
+      try {
+        await repo.updateEmail({ id: 1, email: 'taken@b.com' });
+      } catch (error) {
+        expect(error).toBeInstanceOf(UserError.UserAlreadyExistsError);
+        expect((error as UserError.UserAlreadyExistsError).unique_field).toBe('email');
+      }
     });
 
     it('should throw on user not found', async () => {
       mockPrisma.user.update.mockRejectedValue(
         new PrismaClientKnownRequestError('Not found', { code: 'P2025', clientVersion: '1.0.0' })
       );
-      await expect(repo.updateEmail({ id: 999, email: 'new@b.com' })).rejects.toThrow(/not found/i);
+      await expect(repo.updateEmail({ id: 999, email: 'new@b.com' })).rejects.toThrow(UserError.UserNotFoundError);
     });
   });
 
@@ -89,14 +108,20 @@ describe('UserRepository', () => {
       mockPrisma.user.update.mockRejectedValue(
         new PrismaClientKnownRequestError('Unique error', { code: 'P2002', clientVersion: '1.0.0', meta: { target: ['name'] } })
       );
-      await expect(repo.updateName({ id: 1, name: 'Amy' })).rejects.toThrow(/name/i);
+      await expect(repo.updateName({ id: 1, name: 'Amy' })).rejects.toThrow(UserError.UserAlreadyExistsError);
+      try {
+        await repo.updateName({ id: 1, name: 'Amy' });
+      } catch (error) {
+        expect(error).toBeInstanceOf(UserError.UserAlreadyExistsError);
+        expect((error as UserError.UserAlreadyExistsError).unique_field).toBe('name');
+      }
     });
 
     it('should throw on user not found', async () => {
       mockPrisma.user.update.mockRejectedValue(
         new PrismaClientKnownRequestError('Not found', { code: 'P2025', clientVersion: '1.0.0' })
       );
-      await expect(repo.updateName({ id: 999, name: 'Amy' })).rejects.toThrow(/not found/i);
+      await expect(repo.updateName({ id: 999, name: 'Amy' })).rejects.toThrow(UserError.UserNotFoundError);
     });
   });
 
@@ -110,7 +135,7 @@ describe('UserRepository', () => {
       mockPrisma.user.update.mockRejectedValue(
         new PrismaClientKnownRequestError('Not found', { code: 'P2025', clientVersion: '1.0.0' })
       );
-      await expect(repo.updateStatus({ id: 999, activity_status: 'ONLINE' })).rejects.toThrow(/not found/i);
+      await expect(repo.updateStatus({ id: 999, activity_status: 'ONLINE' })).rejects.toThrow(UserError.UserNotFoundError);
     });
   });
 
