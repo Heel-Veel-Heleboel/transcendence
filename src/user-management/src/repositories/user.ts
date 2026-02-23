@@ -2,7 +2,6 @@ import { IUserRepository } from './interfaces/user.js';
 import { PrismaClient, User } from '../../generated/prisma/client.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import * as UserError from '../error/user.js';
-import { UserErrorMessages } from '../constants/error-messages.js';
 import { 
   CreatedUserDto,
   CreateUserDto,
@@ -36,10 +35,10 @@ export class UserRepository implements IUserRepository {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
         const target = error.meta?.target as string[] | undefined;
         if(target?.includes('email')) {
-          throw new UserError.UserAlreadyExistsError(UserErrorMessages.EMAIL_ALREADY_EXISTS);
+          throw new UserError.UserAlreadyExistsError('email');
         }
         if (target?.includes('name')) {
-          throw new UserError.UserAlreadyExistsError(UserErrorMessages.NAME_ALREADY_EXISTS);
+          throw new UserError.UserAlreadyExistsError('name');
         }
       }
       throw error;
@@ -55,7 +54,7 @@ export class UserRepository implements IUserRepository {
       });
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new UserError.UserNotFoundError(UserErrorMessages.USER_NOT_FOUND);
+        throw new UserError.UserNotFoundError();
       }
       throw error;
     }
@@ -75,10 +74,10 @@ export class UserRepository implements IUserRepository {
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new UserError.UserAlreadyExistsError(UserErrorMessages.EMAIL_ALREADY_EXISTS);
+          throw new UserError.UserAlreadyExistsError('email');
         }
         if (error.code === 'P2025') {
-          throw new UserError.UserNotFoundError(UserErrorMessages.USER_NOT_FOUND);
+          throw new UserError.UserNotFoundError();
         }
       }
       throw error;
@@ -99,10 +98,10 @@ export class UserRepository implements IUserRepository {
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new UserError.UserAlreadyExistsError(UserErrorMessages.NAME_ALREADY_EXISTS);
+          throw new UserError.UserAlreadyExistsError('name');
         }
         if (error.code === 'P2025') {
-          throw new UserError.UserNotFoundError(UserErrorMessages.USER_NOT_FOUND);
+          throw new UserError.UserNotFoundError();
         }
       }
       throw error;
@@ -122,7 +121,7 @@ export class UserRepository implements IUserRepository {
       });
     } catch (error) { 
       if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new UserError.UserNotFoundError(UserErrorMessages.USER_NOT_FOUND);
+        throw new UserError.UserNotFoundError();
       }
       throw error;
     }
@@ -151,7 +150,7 @@ export class UserRepository implements IUserRepository {
       }
     });
   }
-  
+
   async findByStatus(data: FindManyUserDto): Promise<User[] | null> {
     return await this.prismaClient.user.findMany({
       where: {
