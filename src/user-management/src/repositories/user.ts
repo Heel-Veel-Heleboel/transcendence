@@ -32,14 +32,17 @@ export class UserRepository implements IUserRepository {
       });
       return { id: user.id };
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-        const target = error.meta?.target as string[] | undefined;
-        if(target?.includes('email')) {
-          throw new UserError.UserAlreadyExistsError('email');
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          const target = error.meta?.target as string[] | undefined;
+          if(target?.includes('email')) {
+            throw new UserError.UserAlreadyExistsError('email');
+          }
+          if (target?.includes('name')) {
+            throw new UserError.UserAlreadyExistsError('name');
+          }
         }
-        if (target?.includes('name')) {
-          throw new UserError.UserAlreadyExistsError('name');
-        }
+        throw new UserError.DatabaseError();
       }
       throw error;
     }
@@ -53,8 +56,11 @@ export class UserRepository implements IUserRepository {
         }
       });
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new UserError.UserNotFoundError();
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new UserError.UserNotFoundError();
+        }
+        throw new UserError.DatabaseError();
       }
       throw error;
     }
@@ -79,6 +85,7 @@ export class UserRepository implements IUserRepository {
         if (error.code === 'P2025') {
           throw new UserError.UserNotFoundError();
         }
+        throw new UserError.DatabaseError();
       }
       throw error;
     }
@@ -103,6 +110,7 @@ export class UserRepository implements IUserRepository {
         if (error.code === 'P2025') {
           throw new UserError.UserNotFoundError();
         }
+        throw new UserError.DatabaseError();
       }
       throw error;
     }
@@ -120,8 +128,11 @@ export class UserRepository implements IUserRepository {
         }
       });
     } catch (error) { 
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new UserError.UserNotFoundError();
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new UserError.UserNotFoundError();
+        }
+        throw new UserError.DatabaseError();
       }
       throw error;
     }
