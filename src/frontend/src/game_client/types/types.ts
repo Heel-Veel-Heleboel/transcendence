@@ -1,4 +1,4 @@
-import { AbstractMesh, Scene, Vector3, Mesh } from '@babylonjs/core';
+import { AbstractMesh, Scene, Vector3, Mesh, Plane } from '@babylonjs/core';
 import { Arena } from '../components/arena';
 import { KeyManager } from '../systems/keyManager.ts';
 import { Player } from '../components/player.ts';
@@ -11,6 +11,7 @@ import { Room } from '@colyseus/sdk';
 
 export interface IHitIndicator {
   goalPosition: Vector3;
+  goalPlane: Plane;
   radius: number;
   scene: Scene;
 }
@@ -104,6 +105,7 @@ export interface IHack {
   mesh: AbstractMesh | null;
   lifespan: number;
   lines: AbstractMesh | null;
+  hitDisk: AbstractMesh | null;
 }
 
 export interface IArena {

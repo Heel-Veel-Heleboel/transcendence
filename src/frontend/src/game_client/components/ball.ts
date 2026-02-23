@@ -7,10 +7,13 @@ export class Hack implements IHack {
   public lifespan!: number;
   public linearVelocity!: Vector3;
   public lines: AbstractMesh | null;
+  public hitDisk: AbstractMesh | null;
+
   constructor(mesh: Mesh, position: Vector3) {
     mesh.position = position;
     this.mesh = mesh;
     this.lines = null;
+    this.hitDisk = null;
   }
 
   isDead(): boolean {
