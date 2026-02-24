@@ -40,30 +40,30 @@ export async function userRoutes(fastify: FastifyInstance, options: { userContro
     handler: userController.updateStatus.bind(userController)
   });
 
-  fastify.get<{ Body: SchemaTypes.FindUserByIdSchemaType }>('/find-by-id', {
+  fastify.get<{ Params: SchemaTypes.FindUserByIdSchemaType }>('/find-by-id', {
     schema: {
-      body: SchemaTypes.FindUserByIdSchema
+      params: SchemaTypes.FindUserByIdSchema
     },
     handler: userController.findUserById.bind(userController)
   });
 
-  fastify.get<{ Body: SchemaTypes.FindUserByEmailSchemaType }>('/find-by-email', {
+  fastify.get<{ Params: SchemaTypes.FindUserByEmailSchemaType }>('/find-by-email', {
     schema: {
-      body: SchemaTypes.FindUserByEmailSchema
+      params: SchemaTypes.FindUserByEmailSchema
     },
     handler: userController.findUserByEmail.bind(userController)
   });
 
-  fastify.get<{ Body: SchemaTypes.FindUserByNameSchemaType }>('/find-by-name', {
+  fastify.get<{ Params: SchemaTypes.FindUserByNameSchemaType }>('/find-by-name', {
     schema: {
-      body: SchemaTypes.FindUserByNameSchema
+      params: SchemaTypes.FindUserByNameSchema
     },
     handler: userController.findUserByName.bind(userController)
   });
 
-  fastify.get<{ Body: SchemaTypes.FindUsersByStatusSchemaType }>('/find-by-status', {
+  fastify.get<{ Params: SchemaTypes.FindUsersByStatusSchemaType }>('/find-by-status', {
     schema: {
-      body: SchemaTypes.FindUsersByStatusSchema
+      params: SchemaTypes.FindUsersByStatusSchema
     },
     handler: userController.findUsersByStatus.bind(userController)
   });
