@@ -15,17 +15,17 @@ export class ChannelDao {
         name: data.name,
         createdBy: data.createdBy,
         members: {
-          create: data.memberIds.map(userId => ({ userId })),
-        },
+          create: data.memberIds.map(userId => ({ userId }))
+        }
       },
-      include: { members: true },
+      include: { members: true }
     });
   }
 
   async findById(channelId: string) {
     return this.prisma.channel.findUnique({
       where: { id: channelId },
-      include: { members: true },
+      include: { members: true }
     });
   }
 
@@ -35,44 +35,44 @@ export class ChannelDao {
         type: 'DM',
         AND: [
           { members: { some: { userId: userA } } },
-          { members: { some: { userId: userB } } },
-        ],
+          { members: { some: { userId: userB } } }
+        ]
       },
-      include: { members: true },
+      include: { members: true }
     });
   }
 
   async findByUserId(userId: number) {
     return this.prisma.channel.findMany({
       where: {
-        members: { some: { userId } },
+        members: { some: { userId } }
       },
       include: {
         members: true,
         messages: {
           orderBy: { createdAt: 'desc' },
-          take: 1,
-        },
+          take: 1
+        }
       },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { updatedAt: 'desc' }
     });
   }
 
   async addMember(channelId: string, userId: number) {
     return this.prisma.channelMember.create({
-      data: { channelId, userId },
+      data: { channelId, userId }
     });
   }
 
   async removeMember(channelId: string, userId: number) {
     return this.prisma.channelMember.deleteMany({
-      where: { channelId, userId },
+      where: { channelId, userId }
     });
   }
 
   async isMember(channelId: string, userId: number): Promise<boolean> {
     const member = await this.prisma.channelMember.findUnique({
-      where: { channelId_userId: { channelId, userId } },
+      where: { channelId_userId: { channelId, userId } }
     });
     return member !== null;
   }
@@ -80,14 +80,14 @@ export class ChannelDao {
   async getMemberIds(channelId: string): Promise<number[]> {
     const members = await this.prisma.channelMember.findMany({
       where: { channelId },
-      select: { userId: true },
+      select: { userId: true }
     });
     return members.map(m => m.userId);
   }
 
   async delete(channelId: string) {
     return this.prisma.channel.delete({
-      where: { id: channelId },
+      where: { id: channelId }
     });
   }
 }
