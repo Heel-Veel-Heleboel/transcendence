@@ -16,14 +16,14 @@ export class MessageDao {
         senderId: data.senderId,
         content: data.content,
         type: data.type ?? 'TEXT',
-        metadata: data.metadata,
-      },
+        metadata: data.metadata
+      }
     });
 
     // Touch the channel's updatedAt so it sorts to the top
     await this.prisma.channel.update({
       where: { id: data.channelId },
-      data: { updatedAt: new Date() },
+      data: { updatedAt: new Date() }
     });
 
     return message;
@@ -31,7 +31,7 @@ export class MessageDao {
 
   async findById(messageId: string) {
     return this.prisma.message.findUnique({
-      where: { id: messageId },
+      where: { id: messageId }
     });
   }
 
@@ -47,21 +47,21 @@ export class MessageDao {
         take: limit,
         skip: 1,
         cursor: { id: options.cursor },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: 'desc' }
       });
     }
 
     return this.prisma.message.findMany({
       where: { channelId },
       take: limit,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'desc' }
     });
   }
 
   async updateMetadata(messageId: string, metadata: string) {
     return this.prisma.message.update({
       where: { id: messageId },
-      data: { metadata },
+      data: { metadata }
     });
   }
 }
