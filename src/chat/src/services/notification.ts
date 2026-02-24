@@ -18,8 +18,8 @@ export class NotificationService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userIds: userIds.map(String),
-          event,
-        }),
+          event
+        })
       });
 
       if (!response.ok) {

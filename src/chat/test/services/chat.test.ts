@@ -484,6 +484,7 @@ describe('ChatService', () => {
     it('should acknowledge match and notify opponent', async () => {
       mockMessageDao.findById.mockResolvedValueOnce({
         id: 'ack-1',
+        channelId: 'gs-1',
         senderId: 0,
         type: 'SYSTEM',
         metadata: JSON.stringify({
@@ -494,6 +495,7 @@ describe('ChatService', () => {
           status: 'pending',
         }),
       });
+      mockChannelDao.isMember.mockResolvedValueOnce(true);
 
       const result = await service.respondToMatchAck('ack-1', 1, true);
 
@@ -512,6 +514,7 @@ describe('ChatService', () => {
     it('should decline match and set status to expired', async () => {
       mockMessageDao.findById.mockResolvedValueOnce({
         id: 'ack-1',
+        channelId: 'gs-1',
         metadata: JSON.stringify({
           matchId: 'match-1',
           gameMode: 'classic',
@@ -520,6 +523,7 @@ describe('ChatService', () => {
           status: 'pending',
         }),
       });
+      mockChannelDao.isMember.mockResolvedValueOnce(true);
 
       const result = await service.respondToMatchAck('ack-1', 1, false);
 
@@ -528,6 +532,43 @@ describe('ChatService', () => {
         expect.stringContaining('"status":"expired"')
       );
       expect(result.acknowledged).toBe(false);
+    });
+
+    it('should throw 403 if caller is the opponent (not the intended recipient)', async () => {
+      mockMessageDao.findById.mockResolvedValueOnce({
+        id: 'ack-1',
+        channelId: 'gs-1',
+        metadata: JSON.stringify({
+          matchId: 'match-1',
+          gameMode: 'classic',
+          opponentId: 1,
+          expiresAt: futureDate,
+          status: 'pending',
+        }),
+      });
+
+      await expect(service.respondToMatchAck('ack-1', 1, true)).rejects.toThrow(
+        new ChatError(403, 'This acknowledgement is not addressed to you')
+      );
+    });
+
+    it('should throw 403 if caller is not a member of the channel', async () => {
+      mockMessageDao.findById.mockResolvedValueOnce({
+        id: 'ack-1',
+        channelId: 'gs-1',
+        metadata: JSON.stringify({
+          matchId: 'match-1',
+          gameMode: 'classic',
+          opponentId: 2,
+          expiresAt: futureDate,
+          status: 'pending',
+        }),
+      });
+      mockChannelDao.isMember.mockResolvedValueOnce(false);
+
+      await expect(service.respondToMatchAck('ack-1', 99, true)).rejects.toThrow(
+        new ChatError(403, 'Not a member of this channel')
+      );
     });
 
     it('should throw 404 if message not found', async () => {
@@ -539,7 +580,7 @@ describe('ChatService', () => {
     });
 
     it('should throw 400 if message has no metadata', async () => {
-      mockMessageDao.findById.mockResolvedValueOnce({ id: 'msg-1', metadata: null });
+      mockMessageDao.findById.mockResolvedValueOnce({ id: 'msg-1', channelId: 'gs-1', metadata: null });
 
       await expect(service.respondToMatchAck('msg-1', 1, true)).rejects.toThrow(
         new ChatError(400, 'Not a match acknowledgement message')
@@ -549,6 +590,7 @@ describe('ChatService', () => {
     it('should throw 400 if already acknowledged', async () => {
       mockMessageDao.findById.mockResolvedValueOnce({
         id: 'ack-1',
+        channelId: 'gs-1',
         metadata: JSON.stringify({
           matchId: 'match-1',
           gameMode: 'classic',
@@ -557,6 +599,7 @@ describe('ChatService', () => {
           status: 'acknowledged',
         }),
       });
+      mockChannelDao.isMember.mockResolvedValueOnce(true);
 
       await expect(service.respondToMatchAck('ack-1', 1, true)).rejects.toThrow(
         new ChatError(400, 'Acknowledgement already acknowledged')
@@ -567,6 +610,7 @@ describe('ChatService', () => {
       const pastDate = new Date(Date.now() - 60_000).toISOString();
       mockMessageDao.findById.mockResolvedValueOnce({
         id: 'ack-1',
+        channelId: 'gs-1',
         metadata: JSON.stringify({
           matchId: 'match-1',
           gameMode: 'classic',
@@ -575,6 +619,7 @@ describe('ChatService', () => {
           status: 'pending',
         }),
       });
+      mockChannelDao.isMember.mockResolvedValueOnce(true);
 
       await expect(service.respondToMatchAck('ack-1', 1, true)).rejects.toThrow(
         new ChatError(410, 'Match acknowledgement has expired')
@@ -594,7 +639,7 @@ describe('ChatService', () => {
       const mockChannel = {
         id: 'tourn-1',
         type: 'TOURNAMENT',
-        name: 'Tournament: Spring Cup',
+        name: 'Tournament #10: Spring Cup',
         members: [{ userId: 1 }],
       };
       mockChannelDao.create.mockResolvedValueOnce(mockChannel);
@@ -606,7 +651,7 @@ describe('ChatService', () => {
 
       expect(mockChannelDao.create).toBeCalledWith({
         type: 'TOURNAMENT',
-        name: 'Tournament: Spring Cup',
+        name: 'Tournament #10: Spring Cup',
         memberIds: [1],
       });
       expect(result).toEqual(mockChannel);
@@ -616,7 +661,7 @@ describe('ChatService', () => {
       const existing = {
         id: 'tourn-existing',
         type: 'TOURNAMENT',
-        name: 'Tournament: Spring Cup',
+        name: 'Tournament #10: Spring Cup',
         members: [{ userId: 1 }],
       };
       mockChannelDao.findByUserId.mockResolvedValueOnce([existing]);

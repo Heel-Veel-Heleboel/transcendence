@@ -4,6 +4,8 @@ import { NotificationService } from './notification.js';
 import { BlockService } from './block.js';
 import type { MatchAckMetadata } from '../types/chat.js';
 
+type ChannelMember = { userId: number };
+
 export class ChatService {
   constructor(
     private readonly channelDao: ChannelDao,
@@ -31,7 +33,7 @@ export class ChatService {
     const channel = await this.channelDao.create({
       type: 'DM',
       createdBy: userId,
-      memberIds: [userId, targetUserId],
+      memberIds: [userId, targetUserId]
     });
 
     await this.notificationService.notifyUsers([targetUserId], {
@@ -40,8 +42,8 @@ export class ChatService {
         id: channel.id,
         type: channel.type,
         name: channel.name,
-        members: channel.members.map(m => m.userId),
-      },
+        members: channel.members.map((m: ChannelMember) => m.userId)
+      }
     });
 
     return channel;
@@ -54,7 +56,7 @@ export class ChatService {
       type: 'GROUP',
       name,
       createdBy: userId,
-      memberIds: allMembers,
+      memberIds: allMembers
     });
 
     const otherMembers = allMembers.filter(id => id !== userId);
@@ -65,8 +67,8 @@ export class ChatService {
           id: channel.id,
           type: channel.type,
           name: channel.name,
-          members: allMembers,
-        },
+          members: allMembers
+        }
       });
     }
 
@@ -81,7 +83,7 @@ export class ChatService {
     const channel = await this.channelDao.findById(channelId);
     if (!channel) throw new ChatError(404, 'Channel not found');
 
-    const isMember = channel.members.some(m => m.userId === userId);
+    const isMember = channel.members.some((m: ChannelMember) => m.userId === userId);
     if (!isMember) throw new ChatError(403, 'Not a member of this channel');
 
     return channel;
@@ -92,10 +94,10 @@ export class ChatService {
     if (!channel) throw new ChatError(404, 'Channel not found');
     if (channel.type === 'DM') throw new ChatError(400, 'Cannot add members to a DM');
 
-    const isRequesterMember = channel.members.some(m => m.userId === requesterId);
+    const isRequesterMember = channel.members.some((m: ChannelMember) => m.userId === requesterId);
     if (!isRequesterMember) throw new ChatError(403, 'Not a member of this channel');
 
-    const isAlreadyMember = channel.members.some(m => m.userId === userId);
+    const isAlreadyMember = channel.members.some((m: ChannelMember) => m.userId === userId);
     if (isAlreadyMember) throw new ChatError(409, 'User is already a member');
 
     await this.channelDao.addMember(channelId, userId);
@@ -106,8 +108,8 @@ export class ChatService {
         id: channel.id,
         type: channel.type,
         name: channel.name,
-        members: [...channel.members.map(m => m.userId), userId],
-      },
+        members: [...channel.members.map((m: ChannelMember) => m.userId), userId]
+      }
     });
 
     await this.sendSystemMessage(channelId, `User ${userId} joined the channel`);
@@ -135,7 +137,7 @@ export class ChatService {
     const message = await this.messageDao.create({
       channelId,
       senderId,
-      content,
+      content
     });
 
     await this.notificationService.notifyChannelMembers(channelId, {
@@ -146,8 +148,8 @@ export class ChatService {
         senderId: message.senderId,
         content: message.content,
         type: message.type,
-        createdAt: message.createdAt.toISOString(),
-      },
+        createdAt: message.createdAt.toISOString()
+      }
     }, senderId);
 
     return message;
@@ -162,7 +164,7 @@ export class ChatService {
 
     if (blockedIds.length > 0) {
       return messages.filter(
-        m => m.type === 'SYSTEM' || !blockedIds.includes(m.senderId)
+        (m: { type: string; senderId: number }) => m.type === 'SYSTEM' || !blockedIds.includes(m.senderId)
       );
     }
 
@@ -180,23 +182,28 @@ export class ChatService {
     gameMode: string,
     expiresAt: string
   ) {
+    const uniqueIds = Array.from(new Set(playerIds));
+    if (uniqueIds.length !== 2) {
+      throw new ChatError(400, 'sendMatchAck requires exactly 2 unique player IDs');
+    }
+
     // Create the game session channel for the matched pair
     const channel = await this.channelDao.create({
       type: 'GAME_SESSION',
       name: `Match ${matchId}`,
-      memberIds: playerIds,
+      memberIds: uniqueIds
     });
 
     // Post a MATCH_ACK message for each player
     const messages = [];
-    for (const playerId of playerIds) {
-      const opponentId = playerIds.find(id => id !== playerId)!;
+    for (const playerId of uniqueIds) {
+      const opponentId = uniqueIds.find(id => id !== playerId) as number;
       const metadata: MatchAckMetadata = {
         matchId,
         gameMode,
         opponentId,
         expiresAt,
-        status: 'pending',
+        status: 'pending'
       };
 
       const message = await this.messageDao.create({
@@ -204,18 +211,18 @@ export class ChatService {
         senderId: 0,
         content: `Match found! Game mode: ${gameMode}. Please acknowledge to start.`,
         type: 'SYSTEM',
-        metadata: JSON.stringify(metadata),
+        metadata: JSON.stringify(metadata)
       });
       messages.push(message);
     }
 
     // Notify both players
-    await this.notificationService.notifyUsers(playerIds, {
+    await this.notificationService.notifyUsers(uniqueIds, {
       type: 'chat:match_ack_required',
       channelId: channel.id,
       matchId,
       gameMode,
-      expiresAt,
+      expiresAt
     });
 
     return { channel, messages };
@@ -228,6 +235,15 @@ export class ChatService {
 
     const metadata: MatchAckMetadata = JSON.parse(message.metadata);
     if (!metadata.matchId) throw new ChatError(400, 'Not a match acknowledgement message');
+
+    // The ack message is addressed to the opponent of the sender — verify the caller is authorized
+    if (metadata.opponentId === playerId) {
+      throw new ChatError(403, 'This acknowledgement is not addressed to you');
+    }
+
+    // Verify caller is a member of the channel
+    const isMember = await this.channelDao.isMember(message.channelId, playerId);
+    if (!isMember) throw new ChatError(403, 'Not a member of this channel');
 
     if (metadata.status !== 'pending') {
       throw new ChatError(400, `Acknowledgement already ${metadata.status}`);
@@ -247,7 +263,7 @@ export class ChatService {
       type: 'chat:match_ack_response',
       matchId: metadata.matchId,
       playerId,
-      acknowledged: acknowledge,
+      acknowledged: acknowledge
     });
 
     return { acknowledged: acknowledge, matchId: metadata.matchId, gameMode: metadata.gameMode };
@@ -259,21 +275,28 @@ export class ChatService {
     return this.channelDao.create({
       type: 'GAME_SESSION',
       name: `Game ${gameSessionId}`,
-      memberIds: playerIds,
+      memberIds: playerIds
     });
   }
 
   async createTournamentChannel(userId: number, tournamentId: number, tournamentName: string) {
+    const channelName = `Tournament #${tournamentId}: ${tournamentName}`;
+
     const channels = await this.channelDao.findByUserId(userId);
     const existing = channels.find(
-      c => c.type === 'TOURNAMENT' && c.name === `Tournament: ${tournamentName}`
+      (c: { type: string; name: string | null }) => c.type === 'TOURNAMENT' && c.name === channelName
     );
-    if (existing) return existing;
+    if (existing) {
+      this.logger?.info({ userId, tournamentId }, 'Tournament channel already exists');
+      return existing;
+    }
+
+    this.logger?.info({ userId, tournamentId, tournamentName }, 'Creating tournament channel');
 
     const channel = await this.channelDao.create({
       type: 'TOURNAMENT',
-      name: `Tournament: ${tournamentName}`,
-      memberIds: [userId],
+      name: channelName,
+      memberIds: [userId]
     });
 
     await this.sendSystemMessage(
@@ -289,7 +312,7 @@ export class ChatService {
       channelId,
       senderId: 0,
       content,
-      type: 'SYSTEM',
+      type: 'SYSTEM'
     });
 
     await this.notificationService.notifyChannelMembers(channelId, {
@@ -300,8 +323,8 @@ export class ChatService {
         senderId: 0,
         content: message.content,
         type: message.type,
-        createdAt: message.createdAt.toISOString(),
-      },
+        createdAt: message.createdAt.toISOString()
+      }
     });
 
     return message;
