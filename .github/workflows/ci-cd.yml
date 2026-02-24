@@ -26,10 +26,15 @@ jobs:
             - 'src/api-gateway/**'
           auth:
             - 'src/auth/**'
+          chat:
+            - 'src/chat/**'
           frontend:
             - 'src/frontend/**'
           matchmaking:
             - 'src/matchmaking/**'
+          user-management:
+            - 'src/user-management/**'
+          
           common:
             - 'package.json'
             - 'package-lock.json'
