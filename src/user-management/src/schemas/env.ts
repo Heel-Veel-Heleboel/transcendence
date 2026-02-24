@@ -14,5 +14,7 @@ export const  EnvSchema = z.object({
       return false;
     },
     { message: ConfigurationErrors.INVALID_DB_NAME }
-  )
+  ),
+  PORT: z.string().default('3001').transform((port: string) => parseInt(port, 10)),
+  IP: z.string().regex(/^(\d{1,3}\.){3}\d{1,3}$/, ConfigurationErrors.INVALID_IP_ADDRESS).default('0.0.0.0')
 });
