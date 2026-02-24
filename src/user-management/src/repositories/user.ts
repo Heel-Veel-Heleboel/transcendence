@@ -34,11 +34,11 @@ export class UserRepository implements IUserRepository {
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          const target = error.meta?.target as string[] | undefined;
-          if(target?.includes('email')) {
+          const field = error.message.includes('email') ? 'email' : error.message.includes('name') ? 'name' : 'unknown';
+          if(field === 'email') {
             throw new UserError.UserAlreadyExistsError('email');
           }
-          if (target?.includes('name')) {
+          if (field === 'name') {
             throw new UserError.UserAlreadyExistsError('name');
           }
         }
