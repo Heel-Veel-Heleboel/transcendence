@@ -56,9 +56,9 @@ export async function websocketRoutes(server: FastifyInstance): Promise<void> {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-user-id': userId,
+              'x-user-id': userId
             },
-            body: JSON.stringify({ content: message.content }),
+            body: JSON.stringify({ content: message.content })
           }).catch(err => {
             request.log.error({ error: err, userId }, 'Failed to forward chat message');
           });
