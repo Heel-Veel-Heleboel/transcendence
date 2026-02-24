@@ -40,28 +40,28 @@ export async function userRoutes(fastify: FastifyInstance, options: { userContro
     handler: userController.updateStatus.bind(userController)
   });
 
-  fastify.get<{ Params: SchemaTypes.FindUserByIdSchemaType }>('/find-by-id', {
+  fastify.get<{ Params: SchemaTypes.FindUserByIdSchemaType }>('/find-by-id/:user_id', {
     schema: {
       params: SchemaTypes.FindUserByIdSchema
     },
     handler: userController.findUserById.bind(userController)
   });
 
-  fastify.get<{ Params: SchemaTypes.FindUserByEmailSchemaType }>('/find-by-email', {
+  fastify.get<{ Params: SchemaTypes.FindUserByEmailSchemaType }>('/find-by-email/:user_email', {
     schema: {
       params: SchemaTypes.FindUserByEmailSchema
     },
     handler: userController.findUserByEmail.bind(userController)
   });
 
-  fastify.get<{ Params: SchemaTypes.FindUserByNameSchemaType }>('/find-by-name', {
+  fastify.get<{ Params: SchemaTypes.FindUserByNameSchemaType }>('/find-by-name/:user_name', {
     schema: {
       params: SchemaTypes.FindUserByNameSchema
     },
     handler: userController.findUserByName.bind(userController)
   });
 
-  fastify.get<{ Params: SchemaTypes.FindUsersByStatusSchemaType }>('/find-by-status', {
+  fastify.get<{ Params: SchemaTypes.FindUsersByStatusSchemaType }>('/find-by-status/:activity_status', {
     schema: {
       params: SchemaTypes.FindUsersByStatusSchema
     },
