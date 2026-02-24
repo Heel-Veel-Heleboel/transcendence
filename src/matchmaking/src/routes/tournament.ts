@@ -209,7 +209,7 @@ export async function registerTournamentRoutes(
   server.post('/tournament/:id/register', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
-    const { userId } = request.body as { userId: number };
+    const { userId, username } = request.body as { userId: number; username: string };
 
     if (isNaN(tournamentId)) {
       return reply.status(400).send({
@@ -225,14 +225,22 @@ export async function registerTournamentRoutes(
       });
     }
 
-    try {
-      await tournamentService.register(tournamentId, userId);
+    if (!username || typeof username !== 'string') {
+      return reply.status(400).send({
+        error: 'Bad Request',
+        message: 'username is required and must be a string'
+      });
+    }
 
-      request.log.info({ tournamentId, userId }, 'User registered for tournament');
+    try {
+      const { full } = await tournamentService.register(tournamentId, userId, username);
+
+      request.log.info({ tournamentId, userId, full }, 'User registered for tournament');
 
       return reply.status(200).send({
         success: true,
-        message: 'Successfully registered for tournament'
+        message: 'Successfully registered for tournament',
+        full
       });
     } catch (error) {
       if (error instanceof TournamentError) {
