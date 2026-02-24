@@ -23,7 +23,11 @@ export class Hud implements IHud {
 
   async init() {
     console.log(this.filePath);
-    await this.texture.parseFromURLAsync(this.filePath);
+    try {
+      await this.texture.parseFromURLAsync(this.filePath);
+    } catch (e: any) {
+      console.error('failed to import hud');
+    }
     const healthMeter = this.texture.getControlByName('healthMeter');
     if (healthMeter) {
       this.healthMeter = healthMeter;

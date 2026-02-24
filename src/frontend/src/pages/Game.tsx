@@ -1,4 +1,4 @@
-import { JSX } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import { Scene } from '@babylonjs/core';
 import SceneComponent from 'babylonjs-hook';
 import { GameClient } from '../game_client/systems/gameClient';
@@ -8,6 +8,7 @@ import { GameClient } from '../game_client/systems/gameClient';
 // NOTE: potential implementation of tests https://humblesoftware.github.io/js-imagediff/test.html
 
 export const Game = (): JSX.Element | null => {
+
     return (
         <div id="Game" className="h-full w-full">
             <SceneComponent id='game-canvas' antialias onSceneReady={onSceneReady} onRender={onRender} adaptToDeviceRatio className="h-full w-full" />

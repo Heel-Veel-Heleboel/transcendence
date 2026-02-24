@@ -28,8 +28,6 @@ export class HitIndicator implements IHitIndicator {
       goalPosition.z,
       Vector3Distance(this.goalPosition, Vector3.Zero())
     );
-    console.log('norma');
-    console.log(this.goalPlane.normal);
     this.radius = radius;
     this.scene = scene;
   }
