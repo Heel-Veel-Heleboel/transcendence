@@ -92,7 +92,7 @@ describe('TournamentLifecycleManager', () => {
     mockMatchDao = {
       findPendingWithDeadline: vi.fn().mockResolvedValue([]),
       findById: vi.fn(),
-      update: vi.fn()
+      recordTimeout: vi.fn()
     } as unknown as MatchDao;
 
     manager = new TournamentLifecycleManager(
@@ -191,7 +191,7 @@ describe('TournamentLifecycleManager', () => {
       ]);
 
       vi.mocked(mockMatchDao.findById).mockResolvedValue(pastMatch);
-      vi.mocked(mockMatchDao.update).mockResolvedValue({
+      vi.mocked(mockMatchDao.recordTimeout).mockResolvedValue({
         ...pastMatch,
         status: 'TIMEOUT'
       });
@@ -200,8 +200,9 @@ describe('TournamentLifecycleManager', () => {
 
       // Future match should have timer scheduled
       // Past match should be processed immediately
-      expect(mockMatchDao.update).toHaveBeenCalledWith('match-2', expect.objectContaining({
-        status: 'TIMEOUT'
+      expect(mockMatchDao.recordTimeout).toHaveBeenCalledWith('match-2', expect.objectContaining({
+        winnerId: null,
+        resultSource: 'timeout'
       }));
     });
   });
@@ -399,7 +400,7 @@ describe('TournamentLifecycleManager', () => {
       });
 
       vi.mocked(mockMatchDao.findById).mockResolvedValue(match);
-      vi.mocked(mockMatchDao.update).mockResolvedValue({
+      vi.mocked(mockMatchDao.recordTimeout).mockResolvedValue({
         ...match,
         status: 'TIMEOUT',
         winnerId: null
@@ -414,9 +415,10 @@ describe('TournamentLifecycleManager', () => {
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, 50));
 
-      expect(mockMatchDao.update).toHaveBeenCalledWith('match-1', expect.objectContaining({
-        status: 'TIMEOUT',
+      expect(mockMatchDao.recordTimeout).toHaveBeenCalledWith('match-1', expect.objectContaining({
         winnerId: null,
+        player1Score: 0,
+        player2Score: 0,
         resultSource: 'timeout'
       }));
       expect(mockTournamentService.processMatchResult).toHaveBeenCalled();
@@ -430,7 +432,7 @@ describe('TournamentLifecycleManager', () => {
       });
 
       vi.mocked(mockMatchDao.findById).mockResolvedValue(match);
-      vi.mocked(mockMatchDao.update).mockResolvedValue({
+      vi.mocked(mockMatchDao.recordTimeout).mockResolvedValue({
         ...match,
         status: 'TIMEOUT',
         winnerId: 100
@@ -445,9 +447,11 @@ describe('TournamentLifecycleManager', () => {
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, 50));
 
-      expect(mockMatchDao.update).toHaveBeenCalledWith('match-1', expect.objectContaining({
-        status: 'TIMEOUT',
-        winnerId: 100
+      expect(mockMatchDao.recordTimeout).toHaveBeenCalledWith('match-1', expect.objectContaining({
+        winnerId: 100,
+        player1Score: 7,
+        player2Score: 0,
+        resultSource: 'timeout'
       }));
     });
 
@@ -468,7 +472,7 @@ describe('TournamentLifecycleManager', () => {
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, 50));
 
-      expect(mockMatchDao.update).not.toHaveBeenCalled();
+      expect(mockMatchDao.recordTimeout).not.toHaveBeenCalled();
     });
 
     it('should not process tournament result for casual match', async () => {
@@ -478,7 +482,7 @@ describe('TournamentLifecycleManager', () => {
       });
 
       vi.mocked(mockMatchDao.findById).mockResolvedValue(match);
-      vi.mocked(mockMatchDao.update).mockResolvedValue({
+      vi.mocked(mockMatchDao.recordTimeout).mockResolvedValue({
         ...match,
         status: 'TIMEOUT'
       });
@@ -492,7 +496,7 @@ describe('TournamentLifecycleManager', () => {
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, 50));
 
-      expect(mockMatchDao.update).toHaveBeenCalled();
+      expect(mockMatchDao.recordTimeout).toHaveBeenCalled();
       expect(mockTournamentService.processMatchResult).not.toHaveBeenCalled();
     });
   });

@@ -444,6 +444,12 @@ describe('TournamentService', () => {
         status: 'COMPLETED',
       };
 
+      // Guard check: tournament is IN_PROGRESS
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce({
+        id: 1,
+        status: 'IN_PROGRESS',
+      } as any);
+
       vi.mocked(mockMatchDao.findByTournamentId).mockResolvedValueOnce([
         { ...mockMatch, status: 'COMPLETED' },
       ] as any);
@@ -488,6 +494,12 @@ describe('TournamentService', () => {
         player2Score: 0,
         status: 'FORFEITED',
       };
+
+      // Guard check: tournament is IN_PROGRESS
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce({
+        id: 1,
+        status: 'IN_PROGRESS',
+      } as any);
 
       vi.mocked(mockMatchDao.findByTournamentId).mockResolvedValueOnce([mockMatch] as any);
 
@@ -554,10 +566,16 @@ describe('TournamentService', () => {
         status: 'COMPLETED',
       };
 
+      // Guard check: tournament is IN_PROGRESS
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce({
+        id: 1,
+        status: 'IN_PROGRESS',
+      } as any);
+
       // All matches complete
       vi.mocked(mockMatchDao.findByTournamentId).mockResolvedValueOnce([mockMatch] as any);
 
-      // Clear ranking difference - called twice in flow
+      // Clear ranking difference - called twice in flow (checkForTies + finalizeTournament)
       const mockRankings = [
         { rank: 1, userId: 100, wins: 1, losses: 0, scoreDiff: 4, matchesPlayed: 1 },
         { rank: 2, userId: 101, wins: 0, losses: 1, scoreDiff: -4, matchesPlayed: 1 },
@@ -583,6 +601,12 @@ describe('TournamentService', () => {
         player2Score: 7,
         status: 'COMPLETED',
       };
+
+      // Guard check: tournament is IN_PROGRESS
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce({
+        id: 1,
+        status: 'IN_PROGRESS',
+      } as any);
 
       // All matches complete
       vi.mocked(mockMatchDao.findByTournamentId).mockResolvedValueOnce([mockMatch] as any);

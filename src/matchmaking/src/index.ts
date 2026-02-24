@@ -143,7 +143,7 @@ server.get('/health/detailed', async () => {
 // Register routes
 await registerMatchmakingRoutes(server, pools, poolRegistry);
 await registerMatchRoutes(server, matchDao, matchReporting);
-await registerTournamentRoutes(server, tournamentService);
+await registerTournamentRoutes(server, tournamentService, lifecycleManager);
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {
