@@ -27,6 +27,7 @@ export class Player extends Schema implements IPlayer {
   public goalPosition: Vector3;
   public goalDimensions: Vector3;
   public ratioDiv: number;
+  public isHost: boolean;
 
   constructor(config: IPlayerConfig, scene: Scene) {
     super();
@@ -40,6 +41,7 @@ export class Player extends Schema implements IPlayer {
     this.dimY = this.goalDimensions.y;
     this.dimZ = this.goalDimensions.z;
     this.ratioDiv = config.keys.length;
+    this.isHost = config.isHost;
     const padel = MeshBuilder.CreateBox(
       'padel',
       {

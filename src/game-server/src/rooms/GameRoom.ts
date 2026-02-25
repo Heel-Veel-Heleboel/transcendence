@@ -39,7 +39,8 @@ export class GameRoom extends Room {
       goalPosition: this.engine.arena.goal_1.mesh.absolutePosition,
       goalDimensions: this.engine.arena.goal_1.mesh
         .getBoundingInfo()
-        .boundingBox.extendSizeWorld.scale(2)
+        .boundingBox.extendSizeWorld.scale(2),
+      isHost: true
     };
     const guestConfig = {
       keys: {
@@ -51,14 +52,22 @@ export class GameRoom extends Room {
       goalPosition: this.engine.arena.goal_2.mesh.absolutePosition,
       goalDimensions: this.engine.arena.goal_2.mesh
         .getBoundingInfo()
-        .boundingBox.extendSizeWorld.scale(2)
+        .boundingBox.extendSizeWorld.scale(2),
+      isHost: false
     };
     if (this.state.players.size === 0) {
       const player = new Player(hostConfig, this.engine.scene);
       this.state.players.set(client.sessionId, player);
     } else {
-      const player = new Player(guestConfig, this.engine.scene);
-      this.state.players.set(client.sessionId, player);
+      const otherPlayer = [...this.state.players][0];
+
+      if (otherPlayer[1].isHost) {
+        const player = new Player(guestConfig, this.engine.scene);
+        this.state.players.set(client.sessionId, player);
+      } else {
+        const player = new Player(hostConfig, this.engine.scene);
+        this.state.players.set(client.sessionId, player);
+      }
     }
     const ball = createBall(this.engine.scene, new Vector3(0, 0, 0), 1);
 

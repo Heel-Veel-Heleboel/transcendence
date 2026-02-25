@@ -9,6 +9,7 @@ export interface IPlayerConfig {
     length: number;
     precisionKeys: string;
   };
+  isHost: boolean;
 }
 
 export interface IPlayer {
