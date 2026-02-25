@@ -11,24 +11,23 @@ import {
 import {
   debugLayerListener,
   engineResizeListener
-} from '../utils/eventListeners.ts';
-import { initializeResolution, prepareImportGLTF } from '../utils/canvas.ts';
+} from '../utils/EventListeners.ts';
+import { prepareImportGLTF } from '../utils/Loaders';
 import {
   createBgMusic,
   createHack,
   createArena,
   createCamera,
   createLight
-} from '../utils/create.ts';
+} from '../utils/Create';
 import '@babylonjs/loaders/glTF';
-import { Hack } from '../components/ball.ts';
-import { KeyManager } from './keyManager.ts';
-import { Hud } from '../components/hud.ts';
-import { Arena } from '../components/arena.ts';
-import { renderLoop } from '../utils/render.ts';
-import { Client, Callbacks, Room } from '@colyseus/sdk';
-import { Protagonist } from '../components/protagonist.ts';
-import { Antagonist } from '../components/antagonist.ts';
+import { Hack } from '../components/Hack';
+import { KeyManager } from './KeyManager';
+import { Hud } from '../components/Hud';
+import { Arena } from '../components/Arena';
+import { Callbacks, Room } from '@colyseus/sdk';
+import { Protagonist } from '../components/Protagonist';
+import { Antagonist } from '../components/Antagonist';
 
 export class GameClient {
   private _scene!: Scene;
@@ -58,15 +57,12 @@ export class GameClient {
   }
 
   async initGame() {
-    // await initializePhysics(this.defaultScene);
     prepareImportGLTF(this.defaultScene);
     this.scene = await this.initScene(this.defaultScene);
     this.frameCount = 0;
 
     debugLayerListener(this.scene);
     engineResizeListener(this.engine);
-    // renderLoop(this.engine, this.scene);
-    initializeResolution(this.engine);
   }
 
   /* v8 ignore start */
@@ -78,7 +74,6 @@ export class GameClient {
       new GizmoManager(scene);
     }
     this.backgroundMusic = createBgMusic(scene);
-
     this.camera = createCamera(scene, 40);
     this.light = createLight(scene);
     this.arena = createArena();
@@ -87,9 +82,6 @@ export class GameClient {
     this.balls = new Map<string, Hack>();
 
     scene.onBeforeRenderObservable.add(this.draw(this));
-    // for hit indicator
-    scene.getBoundingBoxRenderer().frontColor.set(1, 0, 0);
-    scene.getBoundingBoxRenderer().backColor.set(0, 1, 0);
     return scene;
   }
 
@@ -104,9 +96,8 @@ export class GameClient {
         if (ball) {
           g.prota.hitIndicator.detectIncomingHits(ball);
         }
-        // ball.update();
+        ball.update();
       }
-      // g.room.send('set-position');
       if (
         g.keyManager.deltaTime !== 0 &&
         g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames
@@ -120,8 +111,6 @@ export class GameClient {
 
   initRoom(room: Room) {
     this.room = room;
-    console.log('game:');
-    console.log(this);
     this.initCallbacks(this.room, this);
   }
 

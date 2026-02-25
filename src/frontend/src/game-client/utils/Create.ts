@@ -7,8 +7,8 @@ import {
   HemisphericLight,
   Color3
 } from '@babylonjs/core';
-import { Hack } from '../components/ball.ts';
-import { Arena } from '../components/arena.ts';
+import { Hack } from '../components/Hack.ts';
+import { Arena } from '../components/Arena.ts';
 
 export function createCamera(scene: Scene, distance: number) {
   const camera = new ArcRotateCamera(

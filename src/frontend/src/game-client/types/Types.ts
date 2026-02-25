@@ -1,9 +1,9 @@
 import { AbstractMesh, Scene, Vector3, Mesh, Plane } from '@babylonjs/core';
-import { KeyGrid } from '../systems/keyGrid.ts';
-import { Hud } from '../components/hud.ts';
+import { KeyGrid } from '../systems/KeyGrid';
+import { Hud } from '../components/Hud';
 import { AdvancedDynamicTexture, Control } from '@babylonjs/gui';
-import { HitIndicator } from '../components/hitIndicator.ts';
-import { Protagonist } from '../components/protagonist.ts';
+import { HitIndicator } from '../components/HitIndicator';
+import { Protagonist } from '../components/Protagonist';
 import { Room } from '@colyseus/sdk';
 
 export interface IHitIndicator {

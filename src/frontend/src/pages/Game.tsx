@@ -1,7 +1,7 @@
 import { JSX, useEffect, useState } from 'react';
 import { Scene } from '@babylonjs/core';
 import SceneComponent from 'babylonjs-hook';
-import { GameClient } from '../game_client/systems/gameClient';
+import { GameClient } from '../game-client/systems/GameClient';
 import { useRoom } from '../components/RoomProvider';
 import { Room } from '@colyseus/sdk';
 

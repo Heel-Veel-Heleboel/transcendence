@@ -1,5 +1,5 @@
 import { AdvancedDynamicTexture, Control } from '@babylonjs/gui';
-import { IHud } from '../types/types';
+import { IHud } from '../types/Types';
 import { Scene } from '@babylonjs/core';
 
 /* v8 ignore start */

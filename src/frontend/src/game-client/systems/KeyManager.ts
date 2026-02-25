@@ -1,14 +1,13 @@
 import { Scene, KeyboardInfo, KeyboardEventTypes } from '@babylonjs/core';
-import { IKeyManager } from '../types/types';
-import { Player } from '../components/player.ts';
+import { IKeyManager } from '../types/Types.ts';
 import {
   checkLeft,
   checkRight,
   checkDown,
   checkUp
 } from '../utils/KeyManagerUtils.ts';
-import gameConfig from '../utils/gameConfig.ts';
-import { Protagonist } from '../components/protagonist.ts';
+import gameConfig from '../utils/GameConfig.ts';
+import { Protagonist } from '../components/Protagonist.ts';
 
 export class KeyManager implements IKeyManager {
   public windowFrames: number;

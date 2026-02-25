@@ -1,8 +1,4 @@
-import {
-  IPlayerConfig,
-  IProtagonist,
-  IProtagonistConfig
-} from '../types/types.ts';
+import { IProtagonist, IProtagonistConfig } from '../types/Types';
 import { GridMaterial } from '@babylonjs/materials';
 import {
   Scene,
@@ -12,11 +8,11 @@ import {
   StandardMaterial
 } from '@babylonjs/core';
 import earcut from 'earcut';
-import { KeyGrid } from '../systems/keyGrid.ts';
-import { Hud } from './hud.ts';
-import { HitIndicator } from './hitIndicator.ts';
-import gameConfig from '../utils/gameConfig.ts';
-import { Player } from './player.ts';
+import { KeyGrid } from '../systems/KeyGrid';
+import { Hud } from './Hud';
+import { HitIndicator } from './HitIndicator';
+import gameConfig from '../utils/GameConfig';
+import { Player } from './Player';
 import { Room } from '@colyseus/sdk';
 
 /* v8 ignore start */

@@ -1,4 +1,4 @@
-import { IHack } from '../types/types.ts';
+import { IHack } from '../types/Types';
 import { AbstractMesh, Mesh, Vector3 } from '@babylonjs/core';
 
 /* v8 ignore start */
@@ -18,9 +18,6 @@ export class Hack implements IHack {
 
   isDead(): boolean {
     const dead = this.lifespan < 0.0;
-    if (dead) {
-      this.dispose();
-    }
     return dead;
   }
 
@@ -29,6 +26,9 @@ export class Hack implements IHack {
     this.mesh.dispose();
     if (this.lines) {
       this.lines.dispose();
+    }
+    if (this.hitDisk) {
+      this.hitDisk.dispose();
     }
   }
 

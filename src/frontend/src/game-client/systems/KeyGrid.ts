@@ -3,14 +3,14 @@ import {
   IKeyGridConfig,
   IKeyGridDimensions,
   IKeyGridKeys
-} from '../types/types';
+} from '../types/Types';
 import {
   checkRowColumnLength,
   checkRowColumnVersusKeyLength,
   checkDuplicateInString,
   checkLength,
   checkNull
-} from '../utils/keyGridUtils';
+} from '../utils/KeyGridUtils';
 
 export class KeyGrid implements IKeyGrid {
   public grid: Map<string, { x: number; y: number }>;

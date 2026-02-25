@@ -1,4 +1,4 @@
-import { IPlayer, IPlayerConfig } from '../types/types.ts';
+import { IPlayer, IPlayerConfig } from '../types/Types';
 import {
   Scene,
   MeshBuilder,

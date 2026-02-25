@@ -1,12 +1,13 @@
-import { IArena, AbstractMesh } from '../types/types.ts';
+import { IArena } from '../types/Types';
 import {
   ImportMeshAsync,
+  AbstractMesh,
   Scene,
   Mesh,
   StandardMaterial
 } from '@babylonjs/core';
-import gameConfig from '../utils/gameConfig.ts';
-import Errors from '../utils/error.ts';
+import gameConfig from '../utils/GameConfig';
+import Errors from '../utils/Error';
 
 /* v8 ignore start */
 export class Arena implements IArena {
@@ -59,11 +60,11 @@ export class Arena implements IArena {
             mesh.material.wireframe = true;
           }
           if (mesh.id === gameConfig.areneId) {
-            this._arena = { mesh };
+            this._arena = mesh;
           } else if (mesh.id === gameConfig.goalId1) {
-            this.goal_1 = { mesh };
+            this.goal_1 = mesh;
           } else if (mesh.id === gameConfig.goalId2) {
-            this.goal_2 = { mesh };
+            this.goal_2 = mesh;
           }
         }
       })

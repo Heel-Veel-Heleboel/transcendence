@@ -1,5 +1,4 @@
-import { Player } from '../components/player';
-import { Protagonist } from '../components/protagonist';
+import { Protagonist } from '../components/Protagonist';
 
 export function checkUp(yMove: number, player: Protagonist) {
   return (

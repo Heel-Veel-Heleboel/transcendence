@@ -9,9 +9,9 @@ import {
   Vector3Dot,
   Color3
 } from '@babylonjs/core';
-import { Hack } from './ball';
+import { Hack } from './Hack';
 
-import { IHitIndicator } from '../types/types';
+import { IHitIndicator } from '../types/Types';
 
 /* v8 ignore start */
 export class HitIndicator implements IHitIndicator {
@@ -37,6 +37,9 @@ export class HitIndicator implements IHitIndicator {
     this.radius = radius;
     this.rotation = rotation;
     this.scene = scene;
+    // to color Hack indicator boundingbox
+    scene.getBoundingBoxRenderer().frontColor.set(1, 0, 0);
+    scene.getBoundingBoxRenderer().backColor.set(0, 1, 0);
   }
 
   debugSphere() {

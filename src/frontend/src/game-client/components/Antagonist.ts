@@ -1,6 +1,6 @@
-import { IAntagonist, IPlayerConfig } from '../types/types.ts';
+import { IAntagonist, IPlayerConfig } from '../types/Types';
 import { Scene } from '@babylonjs/core';
-import { Player } from './player.ts';
+import { Player } from './Player';
 
 /* v8 ignore start */
 export class Antagonist extends Player implements IAntagonist {

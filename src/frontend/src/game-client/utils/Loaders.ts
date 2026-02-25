@@ -1,21 +1,6 @@
-import { AbstractEngine, Scene, TransformNode } from '@babylonjs/core';
+import { Scene, TransformNode } from '@babylonjs/core';
 
-export function getCanvas() {
-  const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
-  return canvas;
-}
-
-export function engineResize(engine: AbstractEngine) {
-  return () => engine.resize();
-}
-
-export function initializeResolution(engine: AbstractEngine) {
-  // initial resolution is blurry, no clue why, hacky fix in order to make resolution sharp
-  setTimeout(() => {
-    engine.resize();
-  }, 10);
-}
-
+/* v8 ignore start */
 export function prepareImportGLTF(scene: Scene) {
   // An extra step is needed in order to be able to physicalize meshes coming from gltf.
   // Insert an extra node transform just before the __root__
@@ -28,3 +13,5 @@ export function prepareImportGLTF(scene: Scene) {
     root.setParent(trParent);
   }
 }
+
+/* v8 ignore stop */
