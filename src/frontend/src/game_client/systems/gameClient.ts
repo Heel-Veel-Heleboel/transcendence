@@ -102,7 +102,7 @@ export class GameClient {
       for (const entity of g.balls) {
         const ball = entity[1];
         if (ball) {
-          // g.prota.hitIndicator.detectIncomingHits(ball);
+          g.prota.hitIndicator.detectIncomingHits(ball);
         }
         // ball.update();
       }

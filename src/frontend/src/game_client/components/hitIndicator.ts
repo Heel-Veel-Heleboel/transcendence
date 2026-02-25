@@ -64,6 +64,9 @@ export class HitIndicator implements IHitIndicator {
     if (ball.isDead()) {
       return;
     }
+    if (ball.linearVelocity === undefined) {
+      return;
+    }
     const distance = this.goalPlaneIntersection(ball);
     if (Math.abs(distance) > this.radius / 2 || distance < 0) {
       if (ball.lines !== null) {
