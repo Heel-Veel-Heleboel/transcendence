@@ -114,27 +114,47 @@ describe('UserRepository', () => {
     });
   });
 
-  describe('findUnique', () => {
+  describe('findById', () => {
     it('should return user by id', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'a@b.com', name: 'Amy' });
-      const result = await repo.findUnique({ id: 1 });
+      const result = await repo.findById(1);
       expect(result).toEqual({ id: 1, email: 'a@b.com', name: 'Amy' });
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
     });
 
+    it('should return null when user not found', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      const result = await repo.findById(999);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('findByEmail', () => {
     it('should return user by email', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'test@example.com', name: 'Test' });
-      const result = await repo.findUnique({ email: 'test@example.com' });
+      const result = await repo.findByEmail('test@example.com');
       expect(result).toEqual({ id: 1, email: 'test@example.com', name: 'Test' });
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { email: 'test@example.com' } });
     });
 
+    it('should return null when user not found', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      const result = await repo.findByEmail('notfound@example.com');
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('findByName', () => {
     it('should return user by name', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: 1, email: 'a@b.com', name: 'UniqueUser' });
-      const result = await repo.findUnique({ name: 'UniqueUser' });
+      const result = await repo.findByName('UniqueUser');
       expect(result).toEqual({ id: 1, email: 'a@b.com', name: 'UniqueUser' });
+      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({ where: { name: 'UniqueUser' } });
     });
 
-    it('should return null when no criteria provided', async () => {
-      const result = await repo.findUnique({});
+    it('should return null when user not found', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      const result = await repo.findByName('NotFound');
       expect(result).toBeNull();
     });
   });

@@ -109,7 +109,7 @@ export class FriendshipRepository implements IFriendshipRepository {
   }
 
   async isBlocked(data: IsBlockedDto): Promise<boolean> {
-    const friendship = await this.prisma.friendship.findFirst({
+    const friendship = await this.prisma.friendship.findUnique({
       where: {
         requester_id_addressee_id: {
           requester_id: data.userId1,

@@ -60,7 +60,7 @@ export class UserRepository implements IUserRepository {
       throw error;
     }
   }
-
+  
 
   async updateEmail(data: UpdateUserEmailDto): Promise<void> {
     try {
@@ -84,7 +84,7 @@ export class UserRepository implements IUserRepository {
       throw error;
     }
   }
-
+  
 
   async updateName(data: UpdateUserNameDto): Promise<void> {
     try {
@@ -108,8 +108,8 @@ export class UserRepository implements IUserRepository {
       throw error;
     }
   }
-
-
+  
+  
   async updateStatus(data: UpdatedUserStatusDto): Promise<void> {
     try {
       await this.prismaClient.user.update({
@@ -127,15 +127,7 @@ export class UserRepository implements IUserRepository {
       throw error;
     }
   }
-
-  async findById(id: number): Promise<User | null> {
-    return await this.prismaClient.user.findUnique({
-      where: {
-        id: id
-      }
-    });
-  }
-
+  
   async findByEmail(email: string): Promise<User | null> {
     return await this.prismaClient.user.findUnique({
       where: {
@@ -143,7 +135,7 @@ export class UserRepository implements IUserRepository {
       }
     });
   }
-
+  
   async findByName(name: string): Promise<User | null> {
     return await this.prismaClient.user.findUnique({
       where: {
@@ -151,8 +143,15 @@ export class UserRepository implements IUserRepository {
       }
     });
   }
-
-
+  
+  async findById(id: number): Promise<User | null> {
+    return await this.prismaClient.user.findUnique({
+      where: {
+        id: id
+      }
+    });
+  }
+  
   async findByStatus(data: FindManyUserDto): Promise<User[] | null> {
     return await this.prismaClient.user.findMany({
       where: {
