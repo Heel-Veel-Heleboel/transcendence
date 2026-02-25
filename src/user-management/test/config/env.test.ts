@@ -22,6 +22,11 @@ describe('Environment DATABASE_URL validation', () => {
     expect(result.success).toBe(false);
   });
 
+  it('Should accept file with one character name', () => {
+    const result = EnvSchema.safeParse({ DATABASE_URL: 'file:a.db' });
+    expect(result.success).toBe(true);
+  });
+
   it('Should reject file path that is too short', () => {
     const result = EnvSchema.safeParse({ DATABASE_URL: 'file:.db' });
     expect(result.success).toBe(false);
