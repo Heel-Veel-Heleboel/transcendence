@@ -153,7 +153,7 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async findByStatus(data: FindManyUserDto): Promise<User[] | null> {
+  async findByStatus(data: FindManyUserDto): Promise<User[]> {
     return await this.prismaClient.user.findMany({
       where: {
         activity_status: data.activity_status
