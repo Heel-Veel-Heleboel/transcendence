@@ -1,7 +1,4 @@
 import { AbstractMesh, Scene, Vector3, Mesh, Plane } from '@babylonjs/core';
-import { Arena } from '../components/arena';
-import { KeyManager } from '../systems/keyManager.ts';
-import { Player } from '../components/player.ts';
 import { KeyGrid } from '../systems/keyGrid.ts';
 import { Hud } from '../components/hud.ts';
 import { AdvancedDynamicTexture, Control } from '@babylonjs/gui';
@@ -13,6 +10,7 @@ export interface IHitIndicator {
   goalPosition: Vector3;
   goalPlane: Plane;
   radius: number;
+  rotation: boolean;
   scene: Scene;
 }
 

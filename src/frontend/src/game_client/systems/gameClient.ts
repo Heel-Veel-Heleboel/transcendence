@@ -25,8 +25,7 @@ import { Hack } from '../components/ball.ts';
 import { KeyManager } from './keyManager.ts';
 import { Hud } from '../components/hud.ts';
 import { Arena } from '../components/arena.ts';
-import { renderLoop } from '../utils/render.ts';
-import { Client, Callbacks, Room } from '@colyseus/sdk';
+import { Callbacks, Room } from '@colyseus/sdk';
 import { Protagonist } from '../components/protagonist.ts';
 import { Antagonist } from '../components/antagonist.ts';
 
@@ -39,7 +38,7 @@ export class GameClient {
   private _frameCount!: number;
   private _arena!: Arena;
   private _protagonist!: Protagonist;
-  private _antagonist!: Antagonist;
+  private _antagonist!: Antagonist | null;
   private _hud!: Hud;
   private _keyManager!: KeyManager;
   private _balls!: Map<string, Hack>;
@@ -209,9 +208,13 @@ export class GameClient {
     });
     callbacks.onRemove('players', (entity: any, sessionId) => {
       console.log(entity, 'player has been removed at', sessionId);
-      const player = sessionId === room.sessionId ? g.prota : g.anta;
-
-      player.dispose();
+      if (sessionId === room.sessionId) {
+        g.prota.dispose();
+        g.prota = undefined;
+      } else {
+        g.anta.dispose();
+        g.anta = undefined;
+      }
     });
   }
 

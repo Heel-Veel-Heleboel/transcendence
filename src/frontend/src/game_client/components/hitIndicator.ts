@@ -18,9 +18,15 @@ export class HitIndicator implements IHitIndicator {
   public goalPosition: Vector3;
   public goalPlane: Plane;
   public radius: number;
+  public rotation: boolean;
   public scene: Scene;
 
-  constructor(goalPosition: Vector3, radius: number, scene: Scene) {
+  constructor(
+    goalPosition: Vector3,
+    radius: number,
+    rotation: boolean,
+    scene: Scene
+  ) {
     this.goalPosition = goalPosition;
     this.goalPlane = new Plane(
       goalPosition.x,
@@ -29,6 +35,7 @@ export class HitIndicator implements IHitIndicator {
       Vector3Distance(this.goalPosition, Vector3.Zero())
     );
     this.radius = radius;
+    this.rotation = rotation;
     this.scene = scene;
   }
 
@@ -104,7 +111,8 @@ export class HitIndicator implements IHitIndicator {
       const disc = MeshBuilder.CreateDisc(
         'disc',
         {
-          radius: ball.mesh.getBoundingInfo().diagonalLength / 2
+          radius: ball.mesh.getBoundingInfo().diagonalLength / 2,
+          sideOrientation: Number(this.rotation)
         },
         this.scene
       );
