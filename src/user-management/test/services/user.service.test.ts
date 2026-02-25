@@ -10,7 +10,8 @@ describe('UserService', () => {
   beforeEach(() => {
     mockRepo = {
       create: vi.fn(),
-      update: vi.fn(),
+      updateEmail: vi.fn(),
+      updateName: vi.fn(),
       updateStatus: vi.fn(),
       findById: vi.fn(),
       findByEmail: vi.fn(),
@@ -41,31 +42,35 @@ describe('UserService', () => {
     
   });
 
-  describe('updateUser', () => {
-    it('should update user with provided fields', async () => {
-      const input: SchemaTypes.UpdateUserSchemaType = {
+  describe('updateEmail', () => {
+    it('should update user email', async () => {
+      const input: SchemaTypes.UpdateUserEmailSchemaType = {
         user_id: 1,
-        user_email: 'new@example.com',
+        user_email: 'new@example.com'
+      };
+
+      await service.updateUserEmail(input);
+
+      expect(mockRepo.updateEmail).toHaveBeenCalledWith({
+        id: 1,
+        email: 'new@example.com'
+      });
+    });
+  });
+
+  describe('updateName', () => {
+    it('should update user name', async () => {
+      const input: SchemaTypes.UpdateUserNameSchemaType = {
+        user_id: 1,
         user_name: 'newname'
       };
 
-      await service.updateUser(input);
+      await service.updateUserName(input);
 
-      expect(mockRepo.update).toHaveBeenCalledWith({
+      expect(mockRepo.updateName).toHaveBeenCalledWith({
         id: 1,
-        email: 'new@example.com',
         name: 'newname'
       });
-    });
-
-    it('should throw if no fields provided', async () => {
-      const input: SchemaTypes.UpdateUserSchemaType = {
-        user_id: 1
-      };
-
-      await expect(service.updateUser(input)).rejects.toThrow(
-        'At least one field (email or name) must be provided for update.'
-      );
     });
   });
 

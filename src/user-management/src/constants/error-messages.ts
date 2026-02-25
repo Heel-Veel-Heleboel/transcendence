@@ -6,8 +6,13 @@ export const ConfigurationErrors = {
   INVALID_DB_NAME: 'DATABASE_URL must be "file::memory:" or "file:<name>.db" (e.g., "file:dev.db")'
 };
 
-export const UserErrorMessages = {
+export const UserDomainErrorMessages = {
   EMAIL_ALREADY_EXISTS: 'User with this email already exists',
   NAME_ALREADY_EXISTS: 'User with this name already exists',
   USER_NOT_FOUND: 'User not found'
+};
+
+export const CommonErrorMessages = {
+  DATABASE_ERROR: 'Database error occurred',
+  INTERNAL_SERVER_ERROR: 'An unexpected error occurred'
 };
