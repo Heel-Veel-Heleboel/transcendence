@@ -2,10 +2,10 @@ import { Scene, KeyboardInfo, KeyboardEventTypes } from '@babylonjs/core';
 import { IKeyManager } from '../types/types';
 import { Player } from '../components/player.ts';
 import {
-  checkLowerX,
-  checkUpperX,
-  checkLowerY,
-  checkUpperY
+  checkLeft,
+  checkRight,
+  checkDown,
+  checkUp
 } from '../utils/KeyManagerUtils.ts';
 import gameConfig from '../utils/gameConfig.ts';
 import { Protagonist } from '../components/protagonist.ts';
@@ -60,25 +60,25 @@ export class KeyManager implements IKeyManager {
     const index = keys.indexOf(key);
     switch (index) {
       case 0:
-        if (checkUpperY(this.precisionMove, this.player)) {
+        if (checkUp(this.precisionMove, this.player)) {
           break;
         }
         this.player.movePrecise({ x: 0, y: this.precisionMove });
         break;
       case 1:
-        if (checkLowerY(this.precisionMove, this.player)) {
+        if (checkDown(this.precisionMove, this.player)) {
           break;
         }
         this.player.movePrecise({ x: 0, y: -this.precisionMove });
         break;
       case 2:
-        if (checkLowerX(this.precisionMove, this.player)) {
+        if (checkLeft(this.precisionMove, this.player)) {
           break;
         }
         this.player.movePrecise({ x: -this.precisionMove, y: 0 });
         break;
       case 3:
-        if (checkUpperX(this.precisionMove, this.player)) {
+        if (checkRight(this.precisionMove, this.player)) {
           break;
         }
         this.player.movePrecise({ x: this.precisionMove, y: 0 });

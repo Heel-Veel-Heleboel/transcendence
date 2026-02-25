@@ -1,6 +1,7 @@
 import { Player } from '../components/player';
+import { Protagonist } from '../components/protagonist';
 
-export function checkUpperY(yMove: number, player: Player) {
+export function checkUp(yMove: number, player: Protagonist) {
   return (
     player.mesh.absolutePosition.y + yMove >=
     player.goalPosition.y +
@@ -8,17 +9,18 @@ export function checkUpperY(yMove: number, player: Player) {
       player.goalDimensions.y / player.ratioDiv / 2
   );
 }
-
-export function checkUpperX(xMove: number, player: Player) {
-  return (
-    player.mesh.absolutePosition.x + xMove >=
-    player.goalPosition.x +
-      player.goalDimensions.x / 2 -
-      player.goalDimensions.x / player.ratioDiv / 2
-  );
+export function checkRight(xMove: number, player: Protagonist) {
+  const leftOp = player.mesh.absolutePosition.x + xMove;
+  const op =
+    player.goalDimensions.x / 2 - player.goalDimensions.x / player.ratioDiv / 2;
+  const rightOp = player.rotation
+    ? player.goalPosition.x - op
+    : player.goalPosition.x + op;
+  const condition = player.rotation ? leftOp <= rightOp : leftOp >= rightOp;
+  return condition;
 }
 
-export function checkLowerY(yMove: number, player: Player) {
+export function checkDown(yMove: number, player: Protagonist) {
   return (
     player.mesh.absolutePosition.y + yMove <=
     player.goalPosition.y -
@@ -27,11 +29,13 @@ export function checkLowerY(yMove: number, player: Player) {
   );
 }
 
-export function checkLowerX(xMove: number, player: Player) {
-  return (
-    player.mesh.absolutePosition.x + xMove <=
-    player.goalPosition.x -
-      player.goalDimensions.x / 2 +
-      player.goalDimensions.x / player.ratioDiv / 2
-  );
+export function checkLeft(xMove: number, player: Protagonist) {
+  const leftOp = player.mesh.absolutePosition.x + xMove;
+  const op =
+    player.goalDimensions.x / 2 - player.goalDimensions.x / player.ratioDiv / 2;
+  const rightOp = player.rotation
+    ? player.goalPosition.x + op
+    : player.goalPosition.x - op;
+  const condition = player.rotation ? leftOp >= rightOp : leftOp <= rightOp;
+  return condition;
 }
