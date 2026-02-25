@@ -14,10 +14,12 @@ import {
   IsBlockedDto
 } from '../dto/friendship.js';
 
+
 export class FriendshipRepository implements IFriendshipRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(data: CreateFriendshipDto): Promise<Friendship> {
+  
     return await this.prisma.friendship.create({
       data: {
         requester_id: data.requester_id,
@@ -48,18 +50,12 @@ export class FriendshipRepository implements IFriendshipRepository {
 
 
   async findByUsers(data: FindByUsersDto): Promise<Friendship | null> {
-    return await this.prisma.friendship.findFirst({
+    return await this.prisma.friendship.findUnique({
       where: {
-        OR: [
-          {
-            requester_id: data.userId1,
-            addressee_id: data.userId2
-          },
-          {
-            requester_id: data.userId2,
-            addressee_id: data.userId1
-          }
-        ]
+        requester_id_addressee_id: {
+          requester_id: data.userId1,
+          addressee_id: data.userId2
+        }
       }
     });
   }
@@ -115,18 +111,11 @@ export class FriendshipRepository implements IFriendshipRepository {
   async isBlocked(data: IsBlockedDto): Promise<boolean> {
     const friendship = await this.prisma.friendship.findFirst({
       where: {
-        OR: [
-          {
-            requester_id: data.userId1,
-            addressee_id: data.userId2,
-            status: 'BLOCKED'
-          },
-          {
-            requester_id: data.userId2,
-            addressee_id: data.userId1,
-            status: 'BLOCKED'
-          }
-        ]
+        requester_id_addressee_id: {
+          requester_id: data.userId1,
+          addressee_id: data.userId2
+        },
+        status: 'BLOCKED'
       }
     });
     return !!friendship;
