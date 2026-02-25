@@ -4,6 +4,7 @@ import { Game } from '../pages/Game.tsx'
 import { Menu } from '../pages/Menu.tsx'
 import { StartMenu } from '../pages/StartMenu.tsx'
 import { AuthProvider } from '../components/Auth.tsx';
+import { RoomProvider } from '../components/RoomProvider.tsx';
 
 /* v8 ignore start */
 export const Router = () => {
@@ -26,13 +27,13 @@ export const Router = () => {
     }
     return (
         <AuthProvider>
-            <Routes>
-
-                <Route path="/" element={<StartMenu />} />
-                <Route path="/game" element={<Game />} />
-                <Route path="/menu" element={<Menu />} />
-
-            </Routes>
+            <RoomProvider>
+                <Routes>
+                    <Route path="/" element={<StartMenu />} />
+                    <Route path="/game" element={<Game />} />
+                    <Route path="/menu" element={<Menu />} />
+                </Routes>
+            </RoomProvider>
         </AuthProvider>
     )
 }

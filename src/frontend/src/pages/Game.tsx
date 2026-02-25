@@ -2,12 +2,51 @@ import { JSX, useEffect, useState } from 'react';
 import { Scene } from '@babylonjs/core';
 import SceneComponent from 'babylonjs-hook';
 import { GameClient } from '../game_client/systems/gameClient';
+import { useRoom } from '../components/RoomProvider';
+import { Room } from '@colyseus/sdk';
 
 
 /* v8 ignore start */
 // NOTE: potential implementation of tests https://humblesoftware.github.io/js-imagediff/test.html
 
 export const Game = (): JSX.Element | null => {
+    const [room, setRoom] = useState<Room | null>(null);
+    const [game, setGame] = useState<GameClient | null>(null);
+    const roomProv = useRoom();
+
+    const onSceneReady = async (scene: Scene) => {
+        setGame(new GameClient(scene))
+    }
+
+    const onRender = (_scene: Scene) => { }
+
+    useEffect(() => {
+        const initializeGame = async () => {
+            if (room) {
+                console.log('game:');
+                console.log(game);
+                await game?.initGame();
+                game?.initRoom(room);
+            }
+        };
+        if (room) {
+            console.log('room:');
+            console.log(room);
+
+            initializeGame();
+        }
+
+    }, [room]);
+
+    useEffect(() => {
+        if (roomProv) {
+            roomProv.join();
+            const room = roomProv.room;
+            setRoom(room);
+            console.log('roomProvider:');
+            console.log(roomProv);
+        }
+    }, [roomProv]);
 
     return (
         <div id="Game" className="h-full w-full">
@@ -16,21 +55,5 @@ export const Game = (): JSX.Element | null => {
     );
 }
 
-const onSceneReady = async (scene: Scene) => {
-    const game = new GameClient(scene);
-    await game.initGame();
-}
-
-/**
- * Will run on every frame render.  We are spinning the box on y-axis.
- */
-const onRender = (_scene: Scene) => {
-    // if (box !== undefined) {
-    //     var deltaTimeInMillis = scene.getEngine().getDeltaTime();
-    //
-    //     const rpm = 10;
-    //     box.rotation.y += ((rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000));
-    // }
-}
 
 /* v8 ignore stop */

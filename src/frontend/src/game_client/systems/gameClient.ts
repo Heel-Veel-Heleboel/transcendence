@@ -86,24 +86,6 @@ export class GameClient {
 
     this.balls = new Map<string, Hack>();
 
-    const client = new Client('ws://localhost:2567');
-    const room = await client
-      .joinOrCreate('game_room')
-      .then(function (room) {
-        console.log('Connected to roomId: ' + room.roomId);
-        return room;
-      })
-      .catch(function (error) {
-        console.log('Could not connect: got following error');
-        console.error(error);
-      });
-
-    if (room instanceof Room) {
-      this.room = room;
-      this.initCallbacks(this.room, this);
-    } else {
-      // throw error
-    }
     scene.onBeforeRenderObservable.add(this.draw(this));
     // for hit indicator
     scene.getBoundingBoxRenderer().frontColor.set(1, 0, 0);
@@ -120,7 +102,7 @@ export class GameClient {
       for (const entity of g.balls) {
         const ball = entity[1];
         if (ball) {
-          g.prota.hitIndicator.detectIncomingHits(ball);
+          // g.prota.hitIndicator.detectIncomingHits(ball);
         }
         // ball.update();
       }
@@ -134,6 +116,13 @@ export class GameClient {
       g.prota.hud.changeMana(0.01);
       g.frameCount++;
     };
+  }
+
+  initRoom(room: Room) {
+    this.room = room;
+    console.log('game:');
+    console.log(this);
+    this.initCallbacks(this.room, this);
   }
 
   initCallbacks(room: Room, g: GameClient) {

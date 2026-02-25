@@ -6,7 +6,7 @@ import { Vector3 } from '@babylonjs/core';
 import { Player } from './entities/Player.js';
 
 export class GameRoom extends Room {
-  maxClients = 4;
+  maxClients = 2;
   state = new GameRoomState();
   engine: GameEngine;
   id = 0;
