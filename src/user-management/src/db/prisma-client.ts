@@ -8,9 +8,7 @@ export function getPrismaClient(): PrismaClient {
     return prismaClient;
   }
   const adapter = new PrismaBetterSqlite3({ url: env.DATABASE_URL });
-  prismaClient = new PrismaClient({ adapter });
-  console.log('Prisma client initialized');
-  return prismaClient;
+  return new PrismaClient({ adapter });
 }
 export async function disconnectPrismaClient(): Promise<void> {
   if (prismaClient) {
