@@ -1,5 +1,6 @@
 import { IProfileRepository } from './interfaces/profile.js';
 import { PrismaClient, Profile } from '../../generated/prisma/client.js';
+
 import { 
   FindProfileDto,
   UpdateBioDto,
@@ -25,7 +26,6 @@ export class ProfileRepository implements IProfileRepository {
         }
       }
     });
-
   }
 
   async updateBio(data: UpdateBioDto): Promise<void> {

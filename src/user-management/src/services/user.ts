@@ -8,8 +8,6 @@ export class UserService {
     return await this.userRepository.create( { email: input.user_email, name: input.user_name });
   }
 
-
-
   async deleteUser(schema: SchemaTypes.FindUserByIdSchemaType): Promise<void> {
     await this.userRepository.delete({ id: schema.user_id });
   }

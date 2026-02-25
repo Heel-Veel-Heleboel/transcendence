@@ -70,6 +70,7 @@ model TournamentParticipant {
   id            Int        @id @default(autoincrement())
   tournamentId  Int
   userId        Int
+  username      String                  // Snapshot at registration (for match creation)
   registeredAt  DateTime   @default(now())
   wins          Int        @default(0)
   losses        Int        @default(0)

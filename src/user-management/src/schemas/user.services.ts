@@ -54,9 +54,6 @@ export const UpdateUserStatusSchema = Type.Object({
 export type UpdateUserStatusSchemaType = Static<typeof UpdateUserStatusSchema>;
 
 
-
-
-
 export const FindUserByIdSchema = Type.Object({
   user_id: Type.Number()
 });
