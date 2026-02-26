@@ -1,13 +1,12 @@
 import { Type, Static } from '@fastify/type-provider-typebox';
 import { ActivityStatus } from '../../generated/prisma/enums.js';
 
+
 //user schema
 
 export const CreateUserSchema = Type.Object({
-  user_name: Type.String({ minLength: 3, maxLength: 20, pattern: '^[a-zA-Z0-9_]+$' }),
-  user_email: Type.String({
-    format: 'email'
-  })
+  user_name: Type.String(),
+  user_email: Type.String()
 });
 //type for create user schema
 export type CreateUserSchemaType = Static<typeof CreateUserSchema>;

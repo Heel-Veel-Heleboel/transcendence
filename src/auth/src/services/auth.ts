@@ -23,7 +23,6 @@ import {
 } from '../error/auth.js';
 import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
 import * as SchemaTypes from '../schemas/auth.js';
-import { UserCredentialsScalarFieldEnum } from '../../generated/prisma/internal/prismaNamespace.js';
 
 /**
  * Authentication Service
@@ -41,26 +40,21 @@ export class AuthService {
     private readonly refreshTokenDao: IRefreshTokenDao
   ) {}
 
-  async register(
-    registerDto: SchemaTypes.RegistrationSchemaType
-  ): Promise<SafeUserDto> {
-    const uId = await this.userService.createUser(
-      registerDto.email,
-      registerDto.user_name
-    );
 
+  async register(registerDto: SchemaTypes.RegistrationSchemaType): Promise<SafeUserDto> {
+    const user_id = await this.userService.createUser(registerDto.email, registerDto.user_name);
     try {
       const hashed_password = await passwordHasher(
         registerDto.password,
         SaltLimits
       );
       await this.credentialsDao.create({
-        user_id: uId,
+        user_id: user_id,
         password: hashed_password
       });
     } catch (error) {
       try {
-        await this.userService.deleteUser(uId);
+        await this.userService.deleteUser(user_id);
       } catch (cleanupError) {
         console.error(
           AUTH_ERROR_MESSAGES.REGISTRATION_CLEANUP_FAILED,
@@ -69,7 +63,7 @@ export class AuthService {
       }
       throw error;
     }
-    return { id: uId, name: registerDto.user_name, email: registerDto.email };
+    return { id: user_id, name: registerDto.user_name, email: registerDto.email };
   }
 
   async login(login: SchemaTypes.LoginSchemaType): Promise<LoggedInUserDto> {

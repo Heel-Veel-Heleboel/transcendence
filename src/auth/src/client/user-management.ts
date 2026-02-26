@@ -6,16 +6,16 @@ interface CreateUserResponse {
 }
 
 interface UserResponse {
-  user_id: number;
-  user_email: string;
-  user_name: string;
+  id: number;
+  email: string;
+  name: string;
 }
 
 interface ErrorResponse {
   statusCode: number;
   error: string;
   message: string;
-  details?: unknown;
+  details?: Array<{ path: string; message: string }>;
 }
 
 export class UserManagementClient implements UserManagementService {
@@ -62,9 +62,9 @@ export class UserManagementClient implements UserManagementService {
 
     const user = await response.json() as UserResponse;
     return {
-      id: user.user_id,
-      email: user.user_email,
-      username: user.user_name
+      id: user.id,
+      email: user.email,
+      username: user.name
     };
   }
 
@@ -84,9 +84,9 @@ export class UserManagementClient implements UserManagementService {
 
     const user = await response.json() as UserResponse;
     return {
-      id: user.user_id,
-      email: user.user_email,
-      username: user.user_name
+      id: user.id,
+      email: user.email,
+      username: user.name
     };
   }
 
