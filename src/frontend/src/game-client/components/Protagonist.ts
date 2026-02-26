@@ -34,12 +34,12 @@ export class Protagonist extends Player implements IProtagonist {
       this.mesh.position.z > 0
         ? Boolean(Mesh.BACKSIDE)
         : Boolean(Mesh.FRONTSIDE);
-    this.hitIndicator = new HitIndicator(
-      this.goalPosition,
-      this.goalDimensions.x * 2,
-      this.rotation,
-      scene
-    );
+    this.hitIndicator = new HitIndicator({
+      goalPosition: this.goalPosition,
+      radius: this.goalDimensions.x * 2,
+      rotation: this.rotation,
+      scene: scene
+    });
     this.keyGrid = new KeyGrid({
       keys: config.keys,
       dimensions: {

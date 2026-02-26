@@ -6,9 +6,8 @@ import { HitIndicator } from '../components/HitIndicator';
 import { Protagonist } from '../components/Protagonist';
 import { Room } from '@colyseus/sdk';
 
-export interface IHitIndicator {
+export interface HitIndicatorConfig {
   goalPosition: Vector3;
-  goalPlane: Plane;
   radius: number;
   rotation: boolean;
   scene: Scene;

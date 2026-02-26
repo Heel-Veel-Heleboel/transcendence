@@ -11,75 +11,39 @@ import {
 } from '@babylonjs/core';
 import { Hack } from './Hack';
 
-import { IHitIndicator } from '../types/Types';
+import { HitIndicatorConfig } from '../types/Types';
 import gameConfig from '../utils/GameConfig';
 
 /* v8 ignore start */
-export class HitIndicator implements IHitIndicator {
-  public goalPosition: Vector3;
-  public goalPlane: Plane;
-  public radius: number;
-  public rotation: boolean;
-  public scene: Scene;
-  private hitDiskMaterial: StandardMaterial;
+export class HitIndicator {
+  private _goalPosition!: Vector3;
+  private _goalPlane!: Plane;
+  private _radius!: number;
+  private _rotation!: boolean;
+  private _scene!: Scene;
+  private _hitDiskMaterial!: StandardMaterial;
 
-  constructor(
-    goalPosition: Vector3,
-    radius: number,
-    rotation: boolean,
-    scene: Scene
-  ) {
-    this.goalPosition = goalPosition;
+  constructor(config: HitIndicatorConfig) {
+    this.goalPosition = config.goalPosition;
     this.goalPlane = new Plane(
-      goalPosition.x,
-      goalPosition.y,
-      goalPosition.z,
+      config.goalPosition.x,
+      config.goalPosition.y,
+      config.goalPosition.z,
       Vector3Distance(this.goalPosition, Vector3.Zero())
     );
-    this.radius = radius;
-    this.rotation = rotation;
-    this.scene = scene;
+    this.radius = config.radius;
+    this.rotation = config.rotation;
+    this.scene = config.scene;
     this.hitDiskMaterial = new StandardMaterial(
       gameConfig.hitDiskMaterialName,
       this.scene
     );
     this.hitDiskMaterial.alpha = gameConfig.hitDiskAlpha;
-    // to color Hack indicator boundingbox
+    //Note to color Hack indicator boundingbox
     const fc = gameConfig.hitIndicatorFrontColor;
     const bc = gameConfig.hitIndicatorBackColor;
-    scene.getBoundingBoxRenderer().frontColor.set(fc.r, fc.g, fc.b);
-    scene.getBoundingBoxRenderer().backColor.set(bc.r, bc.g, bc.b);
-  }
-
-  debugSphere() {
-    const sphere = MeshBuilder.CreateSphere(
-      gameConfig.hitIndicatorDebugMeshName,
-      {
-        diameter: this.radius
-      },
-      this.scene
-    );
-    const material = new StandardMaterial(
-      gameConfig.hitIndicatorDebugMaterialName,
-      this.scene
-    );
-    material.wireframe = true;
-    sphere.material = material;
-    if (sphere.material) {
-      sphere.material.wireframe = true;
-    }
-    sphere.position = this.goalPosition;
-  }
-
-  // NOTE: acknowledgement: https://github.com/rvan-mee/miniRT/blob/master/src/render/intersect/intersect_plane.c
-  goalPlaneIntersection(hack: Hack) {
-    const perpendicularity = Vector3Dot(
-      hack.linearVelocity,
-      this.goalPlane.normal
-    );
-    const diff = this.goalPosition.subtract(hack.mesh.absolutePosition);
-    const distance = this.goalPlane.dotCoordinate(diff) / perpendicularity;
-    return distance;
+    this.scene.getBoundingBoxRenderer().frontColor.set(fc.r, fc.g, fc.b);
+    this.scene.getBoundingBoxRenderer().backColor.set(bc.r, bc.g, bc.b);
   }
 
   detectIncomingHits(hack: Hack) {
@@ -98,7 +62,18 @@ export class HitIndicator implements IHitIndicator {
     this.createHitIndicatorDisk(hack, intersectionPoint, distance);
   }
 
-  disposeHitIndicators(hack: Hack) {
+  // NOTE: acknowledgement: https://github.com/rvan-mee/miniRT/blob/master/src/render/intersect/intersect_plane.c
+  private goalPlaneIntersection(hack: Hack) {
+    const perpendicularity = Vector3Dot(
+      hack.linearVelocity,
+      this.goalPlane.normal
+    );
+    const diff = this.goalPosition.subtract(hack.mesh.absolutePosition);
+    const distance = this.goalPlane.dotCoordinate(diff) / perpendicularity;
+    return distance;
+  }
+
+  private disposeHitIndicators(hack: Hack) {
     hack.lines?.dispose();
     hack.lines = null;
     hack.mesh.showBoundingBox = false;
@@ -106,7 +81,7 @@ export class HitIndicator implements IHitIndicator {
     hack.hitDisk = null;
   }
 
-  createHitIndicatorLines(hack: Hack, intersectionPoint: Vector3) {
+  private createHitIndicatorLines(hack: Hack, intersectionPoint: Vector3) {
     if (hack.lines !== null) {
       const options = {
         points: [hack.mesh.absolutePosition, intersectionPoint],
@@ -134,7 +109,7 @@ export class HitIndicator implements IHitIndicator {
     }
   }
 
-  createHitIndicatorDisk(
+  private createHitIndicatorDisk(
     hack: Hack,
     intersectionPoint: Vector3,
     distance: number
@@ -165,6 +140,63 @@ export class HitIndicator implements IHitIndicator {
         distanceRatio
       );
     }
+  }
+
+  debugSphere() {
+    const sphere = MeshBuilder.CreateSphere(
+      gameConfig.hitIndicatorDebugMeshName,
+      {
+        diameter: this.radius
+      },
+      this.scene
+    );
+    const material = new StandardMaterial(
+      gameConfig.hitIndicatorDebugMaterialName,
+      this.scene
+    );
+    material.wireframe = true;
+    sphere.material = material;
+    if (sphere.material) {
+      sphere.material.wireframe = true;
+    }
+    sphere.position = this.goalPosition;
+  }
+
+  private set goalPosition(goalPosition: Vector3) {
+    this._goalPosition = goalPosition;
+  }
+  private get goalPosition() {
+    return this._goalPosition;
+  }
+  private set goalPlane(goalPlane: Plane) {
+    this._goalPlane = goalPlane;
+  }
+  private get goalPlane() {
+    return this._goalPlane;
+  }
+  private set radius(radius: number) {
+    this._radius = radius;
+  }
+  private get radius() {
+    return this._radius;
+  }
+  private set rotation(rotation: boolean) {
+    this._rotation = rotation;
+  }
+  private get rotation() {
+    return this._rotation;
+  }
+  private set scene(scene: Scene) {
+    this._scene = scene;
+  }
+  private get scene() {
+    return this._scene;
+  }
+  private set hitDiskMaterial(hitDiskMaterial: StandardMaterial) {
+    this._hitDiskMaterial = hitDiskMaterial;
+  }
+  private get hitDiskMaterial() {
+    return this._hitDiskMaterial;
   }
 }
 /* v8 ignore stop */
