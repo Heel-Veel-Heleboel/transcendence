@@ -3,6 +3,7 @@ const gameConfig = {
   handlePrecisionRatio: 25,
   arenaMeshesCount: 4,
   arenaImportpath: '/arena.gltf',
+  arenaMaterialName: 'arenaWireframe',
   areneId: 'arena',
   goalId1: 'goal_1',
   goalId2: 'goal_2',

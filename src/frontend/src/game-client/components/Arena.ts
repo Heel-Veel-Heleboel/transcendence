@@ -43,35 +43,42 @@ export class Arena implements IArena {
 
   async initMesh(scene: Scene) {
     const model = ImportMeshAsync(gameConfig.arenaImportpath, scene);
+
     await model
       .then(result => {
         if (result.meshes.length !== gameConfig.arenaMeshesCount)
           throw Error(Errors.INVALID_ARENA_FORMAT);
+        const material = new StandardMaterial(
+          gameConfig.arenaMaterialName,
+          scene
+        );
+        material.wireframe = true;
         for (const index of result.meshes) {
-          const mesh = index as Mesh;
-          if (mesh.id === gameConfig.rootMesh) continue;
-          if (mesh.id === gameConfig.areneId) {
-            mesh.flipFaces(true);
-          }
-          const material = new StandardMaterial('wireframe', scene);
-          material.wireframe = true;
-          mesh.material = material;
-          if (mesh.material) {
-            mesh.material.wireframe = true;
-          }
-          if (mesh.id === gameConfig.areneId) {
-            this._arena = mesh;
-          } else if (mesh.id === gameConfig.goalId1) {
-            this.goal_1 = mesh;
-          } else if (mesh.id === gameConfig.goalId2) {
-            this.goal_2 = mesh;
-          }
+          this.configureMesh(index as Mesh, material);
         }
       })
       .catch(error => {
         console.error('failed to import arena mesh');
         console.error(error);
       });
+  }
+
+  configureMesh(mesh: Mesh, material: StandardMaterial) {
+    if (mesh.id === gameConfig.rootMesh) return; // we don't need to change root
+    if (mesh.id === gameConfig.areneId) {
+      mesh.flipFaces(true);
+    }
+    mesh.material = material;
+    if (mesh.material) {
+      mesh.material.wireframe = true;
+    }
+    if (mesh.id === gameConfig.areneId) {
+      this._arena = mesh;
+    } else if (mesh.id === gameConfig.goalId1) {
+      this.goal_1 = mesh;
+    } else if (mesh.id === gameConfig.goalId2) {
+      this.goal_2 = mesh;
+    }
   }
 }
 /* v8 ignore stop */
