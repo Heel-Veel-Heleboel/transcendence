@@ -1,5 +1,6 @@
 import { IHack } from '../types/Types';
 import { AbstractMesh, Mesh, Vector3 } from '@babylonjs/core';
+import gameConfig from '../utils/GameConfig';
 
 /* v8 ignore start */
 export class Hack implements IHack {
@@ -17,12 +18,12 @@ export class Hack implements IHack {
   }
 
   isDead(): boolean {
-    const dead = this.lifespan < 0.0;
+    const dead = this.lifespan < gameConfig.gameDead;
     return dead;
   }
 
   dispose(): void {
-    this.lifespan = -1;
+    this.lifespan = gameConfig.gameDead - 1;
     this.mesh.dispose();
     if (this.lines) {
       this.lines.dispose();

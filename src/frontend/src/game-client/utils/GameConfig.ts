@@ -5,6 +5,7 @@ const gameConfig = {
   arenaImportpath: '/arena.gltf',
   arenaMaterialName: 'arenaWireframe',
   areneId: 'arena',
+  gameDead: 0,
   goalId1: 'goal_1',
   goalId2: 'goal_2',
   rootMesh: '__root__',
