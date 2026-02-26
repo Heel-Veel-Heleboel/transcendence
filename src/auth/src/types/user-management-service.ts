@@ -11,4 +11,5 @@ export interface UserManagementService {
   createUser(email: string, username: string): Promise<number>;
   findByUserId(user_id: number): Promise<{ id: number; email: string; username: string } | null>;
   findUserByEmail(email: string): Promise<{ id: number; email: string; username: string } | null>;
+  deleteUser(user_id: number): Promise<void>;
 }
