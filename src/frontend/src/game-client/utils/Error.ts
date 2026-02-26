@@ -6,7 +6,9 @@ const Errors = {
   DUPLICATE_KEY_VALUES: 'duplicate keys in rows and columns not allowed',
   SURPASSING_KEY_LIMIT: 'surpassing the maximum amount of keys',
   //Arena
-  INVALID_ARENA_FORMAT: 'arena wrongly formatted'
+  INVALID_ARENA_FORMAT: 'arena wrongly formatted',
+  //Hud
+  FAILED_HUD_IMPORT: 'failed to import hud'
 };
 
 export default Errors;

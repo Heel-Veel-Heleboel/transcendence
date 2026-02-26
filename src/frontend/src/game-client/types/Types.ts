@@ -1,7 +1,7 @@
-import { AbstractMesh, Scene, Vector3, Mesh, Plane } from '@babylonjs/core';
+import { AbstractMesh, Scene, Vector3, Mesh } from '@babylonjs/core';
 import { KeyGrid } from '../systems/KeyGrid';
 import { Hud } from '../components/Hud';
-import { AdvancedDynamicTexture, Control } from '@babylonjs/gui';
+import { Control } from '@babylonjs/gui';
 import { HitIndicator } from '../components/HitIndicator';
 import { Protagonist } from '../components/Protagonist';
 import { Room } from '@colyseus/sdk';
@@ -14,8 +14,6 @@ export interface HitIndicatorConfig {
 }
 
 export interface IHud {
-  texture: AdvancedDynamicTexture;
-  filePath: string;
   healthMeter: Control;
   manaMeter: Control;
 }
