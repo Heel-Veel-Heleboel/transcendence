@@ -85,5 +85,11 @@ src/matchmaking/prisma/dev.db
 src/matchmaking/prisma/dev.db-journal
 src/matchmaking/prisma/migrations/
 
+# live chat service
+src/chat/generated/
+src/chat/prisma/dev.db
+src/chat/prisma/dev.db-journal
+src/chat/prisma/migrations/
+
 # frontend docker-compose
 .docker_compose_started

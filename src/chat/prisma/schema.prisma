@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Channel {
+  id        String      @id @default(uuid())
+  type      ChannelType
+  name      String?
+  createdBy Int?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  members  ChannelMember[]
+  messages Message[]
+
+  @@index([type])
+}
+
+model ChannelMember {
+  id        String   @id @default(uuid())
+  channelId String
+  userId    Int
+  joinedAt  DateTime @default(now())
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id        String      @id @default(uuid())
+  channelId String
+  senderId  Int
+  content   String
+  type      MessageType @default(TEXT)
+  metadata  String?
+  createdAt DateTime    @default(now())
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@index([channelId, createdAt])
+  @@index([senderId])
+}
+
+enum ChannelType {
+  DM
+  GAME_SESSION
+  TOURNAMENT
+  GROUP
+}
+
+enum MessageType {
+  TEXT
+  GAME_INVITE
+  SYSTEM
+}
