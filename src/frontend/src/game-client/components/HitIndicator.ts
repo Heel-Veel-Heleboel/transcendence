@@ -12,6 +12,7 @@ import {
 import { Hack } from './Hack';
 
 import { IHitIndicator } from '../types/Types';
+import gameConfig from '../utils/GameConfig';
 
 /* v8 ignore start */
 export class HitIndicator implements IHitIndicator {
@@ -20,6 +21,7 @@ export class HitIndicator implements IHitIndicator {
   public radius: number;
   public rotation: boolean;
   public scene: Scene;
+  private hitDiskMaterial: StandardMaterial;
 
   constructor(
     goalPosition: Vector3,
@@ -37,20 +39,30 @@ export class HitIndicator implements IHitIndicator {
     this.radius = radius;
     this.rotation = rotation;
     this.scene = scene;
+    this.hitDiskMaterial = new StandardMaterial(
+      gameConfig.hitDiskMaterialName,
+      this.scene
+    );
+    this.hitDiskMaterial.alpha = gameConfig.hitDiskAlpha;
     // to color Hack indicator boundingbox
-    scene.getBoundingBoxRenderer().frontColor.set(1, 0, 0);
-    scene.getBoundingBoxRenderer().backColor.set(0, 1, 0);
+    const fc = gameConfig.hitIndicatorFrontColor;
+    const bc = gameConfig.hitIndicatorBackColor;
+    scene.getBoundingBoxRenderer().frontColor.set(fc.r, fc.g, fc.b);
+    scene.getBoundingBoxRenderer().backColor.set(bc.r, bc.g, bc.b);
   }
 
   debugSphere() {
     const sphere = MeshBuilder.CreateSphere(
-      'sphere',
+      gameConfig.hitIndicatorDebugMeshName,
       {
         diameter: this.radius
       },
       this.scene
     );
-    const material = new StandardMaterial('wireframe', this.scene);
+    const material = new StandardMaterial(
+      gameConfig.hitIndicatorDebugMaterialName,
+      this.scene
+    );
     material.wireframe = true;
     sphere.material = material;
     if (sphere.material) {
@@ -59,81 +71,99 @@ export class HitIndicator implements IHitIndicator {
     sphere.position = this.goalPosition;
   }
 
-  // acknowledgement: https://github.com/rvan-mee/miniRT/blob/master/src/render/intersect/intersect_plane.c
-  goalPlaneIntersection(ball: Hack) {
+  // NOTE: acknowledgement: https://github.com/rvan-mee/miniRT/blob/master/src/render/intersect/intersect_plane.c
+  goalPlaneIntersection(hack: Hack) {
     const perpendicularity = Vector3Dot(
-      ball.linearVelocity,
+      hack.linearVelocity,
       this.goalPlane.normal
     );
-    const diff = this.goalPosition.subtract(ball.mesh.absolutePosition);
+    const diff = this.goalPosition.subtract(hack.mesh.absolutePosition);
     const distance = this.goalPlane.dotCoordinate(diff) / perpendicularity;
     return distance;
   }
 
-  detectIncomingHits(ball: Hack) {
-    if (ball.isDead()) {
+  detectIncomingHits(hack: Hack) {
+    if (hack.isDead() || hack.linearVelocity === undefined) {
       return;
     }
-    if (ball.linearVelocity === undefined) {
-      return;
-    }
-    const distance = this.goalPlaneIntersection(ball);
+    const distance = this.goalPlaneIntersection(hack);
     if (Math.abs(distance) > this.radius / 2 || distance < 0) {
-      if (ball.lines !== null) {
-        ball.lines.dispose();
-        ball.lines = null;
-        ball.mesh.showBoundingBox = false;
-        ball.hitDisk?.dispose();
-        ball.hitDisk = null;
-      }
+      this.disposeHitIndicators(hack);
       return;
     }
-    const intersectionPoint = ball.linearVelocity
+    const intersectionPoint = hack.linearVelocity
       .scale(distance)
-      .add(ball.mesh.absolutePosition);
-    if (ball.lines !== null) {
+      .add(hack.mesh.absolutePosition);
+    this.createHitIndicatorLines(hack, intersectionPoint);
+    this.createHitIndicatorDisk(hack, intersectionPoint, distance);
+  }
+
+  disposeHitIndicators(hack: Hack) {
+    hack.lines?.dispose();
+    hack.lines = null;
+    hack.mesh.showBoundingBox = false;
+    hack.hitDisk?.dispose();
+    hack.hitDisk = null;
+  }
+
+  createHitIndicatorLines(hack: Hack, intersectionPoint: Vector3) {
+    if (hack.lines !== null) {
       const options = {
-        points: [ball.mesh.absolutePosition, intersectionPoint],
+        points: [hack.mesh.absolutePosition, intersectionPoint],
         updatable: true,
-        // no scene parameter needed with options.instance, used for updates
-        instance: ball.lines as LinesMesh
+        // NOTE: no scene parameter needed with options.instance, used for updates
+        instance: hack.lines as LinesMesh
       };
-      ball.lines = MeshBuilder.CreateLines('lines', options);
+      hack.lines = MeshBuilder.CreateLines(
+        gameConfig.hitLinesMeshName,
+        options
+      );
     } else {
       const options = {
-        points: [ball.mesh.absolutePosition, intersectionPoint],
+        points: [hack.mesh.absolutePosition, intersectionPoint],
         updatable: true
       };
 
-      const lines = MeshBuilder.CreateLines('lines', options, this.scene);
-      ball.lines = lines;
-      ball.mesh.showBoundingBox = true;
+      const lines = MeshBuilder.CreateLines(
+        gameConfig.hitLinesMeshName,
+        options,
+        this.scene
+      );
+      hack.lines = lines;
+      hack.mesh.showBoundingBox = true;
     }
-    const ratio = Math.max(0, 1 / distance);
-    if (ball.hitDisk === null) {
+  }
+
+  createHitIndicatorDisk(
+    hack: Hack,
+    intersectionPoint: Vector3,
+    distance: number
+  ) {
+    const distanceRatio = Math.max(0, 1 / distance) + 0.1;
+    if (hack.hitDisk === null) {
       const disc = MeshBuilder.CreateDisc(
-        'disc',
+        gameConfig.hitDiskMeshName,
         {
-          radius: ball.mesh.getBoundingInfo().diagonalLength / 2,
+          radius: hack.mesh.getBoundingInfo().diagonalLength / 2,
           sideOrientation: Number(this.rotation)
         },
         this.scene
       );
-      const material = new StandardMaterial('hitDisk', this.scene);
-      material.alpha = 0.1;
-      material.diffuseColor = Color3.Lerp(
-        new Color3(1.0, 1.0, 0),
-        new Color3(1.0, 0, 0),
-        1
-      );
-      disc.material = material;
+      disc.material = this.hitDiskMaterial;
       disc.position = intersectionPoint;
-      ball.hitDisk = disc;
+      hack.hitDisk = disc;
     } else {
-      ball.hitDisk.position = intersectionPoint;
-      if (ball.hitDisk.material) {
-        ball.hitDisk.material.alpha = ratio;
+      hack.hitDisk.position = intersectionPoint;
+      if (hack.hitDisk.material) {
+        hack.hitDisk.material.alpha = distanceRatio;
       }
+      const sc = gameConfig.hitDiskStartColor;
+      const ec = gameConfig.hitDiskEndColor;
+      this.hitDiskMaterial.diffuseColor = Color3.Lerp(
+        new Color3(sc.r, sc.g, sc.b),
+        new Color3(ec.r, ec.g, ec.b),
+        distanceRatio
+      );
     }
   }
 }
