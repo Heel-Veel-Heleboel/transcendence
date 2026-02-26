@@ -4,8 +4,22 @@ import { errorHandler } from './middleware/error-handler.js';
 import prismaDisconnectHook from './middleware/prisma-disconnect-hook.js';
 import { getUserController } from './config/user.controllers.js';
 
+const isDevelopment = process.env.NODE_ENV !== 'production';
 const app = fastify({
-  logger: true
+  logger: {
+    level: process.env.LOG_LEVEL || 'info',
+    transport: isDevelopment
+      ? {
+        target: 'pino-pretty',
+        options: {
+          translateTime: 'HH:MM:ss Z',
+          ignore: 'pid,hostname',
+          colorize: true,
+          singleLine: false
+        }
+      }
+      : undefined
+  }
 });
 
 const userController = getUserController();
