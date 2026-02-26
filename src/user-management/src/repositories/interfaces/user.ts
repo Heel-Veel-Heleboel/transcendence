@@ -6,7 +6,6 @@ import {
   UpdateUserEmailDto,
   UpdateUserNameDto,
   UpdatedUserStatusDto,
-  FindUniqueUserDto,
   FindManyUserDto
 } from '../../dto/user.js';
 
@@ -16,6 +15,8 @@ export interface IUserRepository {
   updateName(data: UpdateUserNameDto): Promise<void>;
   updateEmail(data: UpdateUserEmailDto): Promise<void>;
   updateStatus(data: UpdatedUserStatusDto): Promise<void>;
-  findUnique(data: FindUniqueUserDto): Promise<User | null>;
+  findById(id: number): Promise<User | null>;
+  findByEmail(email: string): Promise<User | null>;
+  findByName(name: string): Promise<User | null>;
   findByStatus(data: FindManyUserDto): Promise<User[] | null>;
 }

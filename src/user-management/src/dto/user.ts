@@ -33,13 +33,7 @@ export interface UpdatedUserStatusDto {
   activity_status: ActivityStatus;
 }
 
-
 //find user dtos
-export interface FindUniqueUserDto {
-  id?: number;
-  email?: string;
-  name?: string;
-}
 export interface FindManyUserDto {
   activity_status?: ActivityStatus;
 }

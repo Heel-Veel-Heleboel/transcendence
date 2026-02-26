@@ -2,10 +2,12 @@ import { PrismaClient } from '../../generated/prisma/client.js';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { env } from '../config/env.js';
 
-function getPrismaClient() : PrismaClient {
+let prismaClient: PrismaClient | null = null;
+export function getPrismaClient(): PrismaClient {
+  if (prismaClient) {
+    return prismaClient;
+  }
   const adapter = new PrismaBetterSqlite3({ url: env.DATABASE_URL });
-  console.log('Prisma client initialized');
-  return new PrismaClient({ adapter });
+  prismaClient = new PrismaClient({ adapter });
+  return prismaClient;
 }
-
-export const prisma = getPrismaClient();

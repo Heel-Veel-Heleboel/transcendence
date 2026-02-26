@@ -2,7 +2,6 @@ import { IUserRepository } from './interfaces/user.js';
 import { PrismaClient, User } from '../../generated/prisma/client.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import * as UserError from '../error/user.js';
-import { UserErrorMessages } from '../constants/error-messages.js';
 import { 
   CreatedUserDto,
   CreateUserDto,
@@ -10,7 +9,6 @@ import {
   UpdateUserEmailDto,
   UpdateUserNameDto,
   UpdatedUserStatusDto,
-  FindUniqueUserDto,
   FindManyUserDto
 } from '../dto/user.js';
 
@@ -34,14 +32,17 @@ export class UserRepository implements IUserRepository {
       });
       return { id: user.id };
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-        const target = error.meta?.target as string[] | undefined;
-        if(target?.includes('email')) {
-          throw new UserError.UserAlreadyExistsError(UserErrorMessages.EMAIL_ALREADY_EXISTS);
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          const field = error.message.includes('email') ? 'email' : error.message.includes('name') ? 'name' : 'unknown';
+          if(field === 'email') {
+            throw new UserError.UserAlreadyExistsError('email');
+          }
+          if (field === 'name') {
+            throw new UserError.UserAlreadyExistsError('name');
+          }
         }
-        if (target?.includes('name')) {
-          throw new UserError.UserAlreadyExistsError(UserErrorMessages.NAME_ALREADY_EXISTS);
-        }
+        throw new UserError.DatabaseError();
       }
       throw error;
     }
@@ -55,13 +56,16 @@ export class UserRepository implements IUserRepository {
         }
       });
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new UserError.UserNotFoundError(UserErrorMessages.USER_NOT_FOUND);
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new UserError.UserNotFoundError();
+        }
+        throw new UserError.DatabaseError();
       }
       throw error;
     }
   }
-
+  
 
   async updateEmail(data: UpdateUserEmailDto): Promise<void> {
     try {
@@ -76,16 +80,17 @@ export class UserRepository implements IUserRepository {
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new UserError.UserAlreadyExistsError(UserErrorMessages.EMAIL_ALREADY_EXISTS);
+          throw new UserError.UserAlreadyExistsError('email');
         }
         if (error.code === 'P2025') {
-          throw new UserError.UserNotFoundError(UserErrorMessages.USER_NOT_FOUND);
+          throw new UserError.UserNotFoundError();
         }
+        throw new UserError.DatabaseError();
       }
       throw error;
     }
   }
-
+  
 
   async updateName(data: UpdateUserNameDto): Promise<void> {
     try {
@@ -100,17 +105,18 @@ export class UserRepository implements IUserRepository {
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new UserError.UserAlreadyExistsError(UserErrorMessages.NAME_ALREADY_EXISTS);
+          throw new UserError.UserAlreadyExistsError('name');
         }
         if (error.code === 'P2025') {
-          throw new UserError.UserNotFoundError(UserErrorMessages.USER_NOT_FOUND);
+          throw new UserError.UserNotFoundError();
         }
+        throw new UserError.DatabaseError();
       }
       throw error;
     }
   }
-
-
+  
+  
   async updateStatus(data: UpdatedUserStatusDto): Promise<void> {
     try {
       await this.prismaClient.user.update({
@@ -122,35 +128,38 @@ export class UserRepository implements IUserRepository {
         }
       });
     } catch (error) { 
-      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
-        throw new UserError.UserNotFoundError(UserErrorMessages.USER_NOT_FOUND);
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new UserError.UserNotFoundError();
+        }
+        throw new UserError.DatabaseError();
       }
       throw error;
     }
   }
-
-  async findUnique(data: FindUniqueUserDto): Promise<User | null> {
-    if (data.id) {
-      return await this.prismaClient.user.findUnique({
-        where: {
-          id: data.id
-        }
-      });
-    } else if (data.email) {
-      return await this.prismaClient.user.findUnique({
-        where: {
-          email: data.email
-        }
-      });
-    } else if (data.name) {
-      return await this.prismaClient.user.findUnique({
-        where: {
-          name: data.name
-        }
-      });
-    } else {
-      return null;
-    }
+  
+  async findByEmail(email: string): Promise<User | null> {
+    return await this.prismaClient.user.findUnique({
+      where: {
+        email: email
+      }
+    });
+  }
+  
+  async findByName(name: string): Promise<User | null> {
+    return await this.prismaClient.user.findUnique({
+      where: {
+        name: name
+      }
+    });
+  }
+  
+  async findById(id: number): Promise<User | null> {
+    return await this.prismaClient.user.findUnique({
+      where: {
+        id: id
+      }
+    });
   }
 
   async findByStatus(data: FindManyUserDto): Promise<User[] | null> {
