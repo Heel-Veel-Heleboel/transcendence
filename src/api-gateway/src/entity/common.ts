@@ -37,7 +37,7 @@ export interface GatewayConfig {
   port: number;
   host: string;
   nodeEnv: string;
-  jwtSecret: string;
+  jwtPublicKey: string;
   services: ServiceConfig[];
   rateLimits: RateLimitConfig;
 }
@@ -49,11 +49,12 @@ export interface RateLimitConfig {
 }
 
 export interface JWTPayload {
-  sub: string;
-  email: string;
-  role: string;
+  sub: number;
+  user_email: string;
   iat: number;
   exp: number;
+  iss: string;
+  aud: string;
 }
 
 export interface AuthenticatedRequest {

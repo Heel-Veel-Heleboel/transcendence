@@ -268,10 +268,10 @@ describe('Proxy Routes', () => {
   describe('Header Forwarding', () => {
     it('should forward user context headers to downstream services', async () => {
       addFakeUpstream('http://localhost:9001', '/users/headers', (req: any, reply: any) => {
-        reply.send({ headers: { 'x-user-id': req.headers['x-user-id'], 'x-user-email': req.headers['x-user-email'], 'x-user-role': req.headers['x-user-role'], 'x-correlation-id': req.headers['x-correlation-id'] } });
+        reply.send({ headers: { 'x-user-id': req.headers['x-user-id'], 'x-correlation-id': req.headers['x-correlation-id'] } });
       });
 
-      const mockRequest = { method: 'GET' as const, url: '/api/users/headers', headers: { 'x-user-id': '42', 'x-user-email': 'test@example.com', 'x-user-role': 'user', 'x-correlation-id': 'corr-123' } };
+      const mockRequest = { method: 'GET' as const, url: '/api/users/headers', headers: { 'x-user-id': '42', 'x-correlation-id': 'corr-123' } };
       const response = await app.inject(mockRequest as any);
       expect(response.statusCode).toBe(200);
       const body = response.json();
@@ -466,7 +466,7 @@ describe('Proxy Routes', () => {
       const svc = { name: 'svc', upstream: 'http://u', prefix: '/p', rewritePrefix: '/r' };
       const infoSpy = vi.fn();
 
-      const fakeReq: any = { user: { sub: '42', email: 'a@b', role: 'user' }, correlationId: 'corr-1', log: { info: infoSpy } };
+      const fakeReq: any = { user: { sub: 42, user_email: 'a@b' }, correlationId: 'corr-1', headers: {}, log: { info: infoSpy } };
       const fakeReply: any = {};
 
       setupHeaderForwardingHooks(fakeFastify as any, svc as any);

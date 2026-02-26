@@ -34,7 +34,7 @@ export async function websocketRoutes(server: FastifyInstance): Promise<void> {
           }
 
           authenticated = true;
-          userId = payload.sub;
+          userId = String(payload.sub);
           clearTimeout(timeout);
           addConnection(userId, connection);
           request.log.info({ userId }, 'WebSocket authenticated');

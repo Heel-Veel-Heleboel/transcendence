@@ -4,8 +4,8 @@ export default defineConfig({
   test: {
     env: {
       DATABASE_URL: 'file::memory:',
-      JWT_PRIVATE_KEY_PATH: './test/auth/keys/test_jwt_private.pem',
-      JWT_PUBLIC_KEY_PATH: './test/auth/keys/test_jwt_public.pem'
+      JWT_PRIVATE_KEY_PATH: './keys/jwt_private.pem',
+      JWT_PUBLIC_KEY_PATH: './keys/jwt_public.pem'
     },
     // Coverage configuration
     coverage: {
