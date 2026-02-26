@@ -18,20 +18,16 @@ export interface SendMessageRequest {
   content: string;
 }
 
-export interface SendGameInviteRequest {
-  targetUserId: number;
+export interface MatchAckMetadata {
+  matchId: string;
   gameMode: string;
-}
-
-export interface RespondToInviteRequest {
-  accept: boolean;
-}
-
-export interface GameInviteMetadata {
-  gameMode: string;
-  targetUserId: number;
+  opponentId: number;
   expiresAt: string;
-  status: 'pending' | 'accepted' | 'declined' | 'expired';
+  status: 'pending' | 'acknowledged' | 'expired';
+}
+
+export interface RespondToMatchAckRequest {
+  acknowledge: boolean;
 }
 
 export interface PaginationQuery {
@@ -48,6 +44,13 @@ export interface CreateTournamentChannelRequest {
   userId: number;
   tournamentId: number;
   tournamentName: string;
+}
+
+export interface SendMatchAckRequest {
+  matchId: string;
+  playerIds: number[];
+  gameMode: string;
+  expiresAt: string;
 }
 
 export interface SystemMessageRequest {
