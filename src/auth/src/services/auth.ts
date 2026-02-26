@@ -1,4 +1,5 @@
-import { UserManagementService } from '../types/user-management-service.js';
+// import { UserManagementService } from '../types/user-management-service.js';
+import { UserManagementClient } from '../client/user-management.js';
 import { ICredentialsDao } from '../types/daos/credentials.js';
 import { IRefreshTokenDao } from '../types/daos/refresh-token.js';
 import {
@@ -22,19 +23,20 @@ import {
 } from '../error/auth.js';
 import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
 import * as SchemaTypes from '../schemas/auth.js';
+import { UserCredentialsScalarFieldEnum } from '../../generated/prisma/internal/prismaNamespace.js';
 
 /**
  * Authentication Service
  *
  * Provides methods for user registration and authentication.
- * Utilizes UserManagementService for user operations,
+ * Utilizes UserManagementClient for user operations,
  * ICredentialsDao for managing user credentials,
  * and IRefreshTokenDao for handling refresh tokens.
  */
 
 export class AuthService {
   constructor(
-    private readonly userService: UserManagementService,
+    private readonly userService: UserManagementClient,
     private readonly credentialsDao: ICredentialsDao,
     private readonly refreshTokenDao: IRefreshTokenDao
   ) {}
