@@ -1,11 +1,19 @@
-import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyError, FastifyReply, FastifyRequest, FastifyInstance } from 'fastify';
 import  * as UserErrors from '../error/user.js';
 import { UserDomainErrorMessages, CommonErrorMessages } from '../constants/error-messages.js';
 
+interface ValidationError {
+  instancePath: string;
+  message?: string;
+  params?: {
+    limit?: number;
+    [key: string]: unknown;
+  };
+}
 
 function isFastifyValidationError(
   error: unknown
-): error is { validation: Array<{ instancePath: string; message: string }> }{
+): error is { validation: ValidationError[] }{
   return (
     typeof error === 'object' && error !== null && 'validation' in error
   );
@@ -15,7 +23,7 @@ export function errorHandler(
   error: FastifyError | Error,
   request: FastifyRequest,
   reply: FastifyReply
-): FastifyReply
+): FastifyReply | Promise<FastifyReply>
 {
   request.log.error({ error: error }, 'User-management error occurred');
 
@@ -45,15 +53,29 @@ export function errorHandler(
   }
 
   if (isFastifyValidationError(error)) {
-    const details = ( error as FastifyError).validation?.map(item => ({
-      path: item.instancePath.replace(/^\//, ''),
-      message: item.message
-    }));
+    const details = error.validation.map(item => {
+      const path = item.instancePath.replace(/^\//, '');
+      let message = item.message || '';
+      
+      if (item.message?.includes('minLength')) {
+        message = `${path || 'Field'} must be at least ${item.params?.limit || 3} characters long`;
+      } else if (item.message?.includes('maxLength')) {
+        message = `${path || 'Field'} must not exceed ${item.params?.limit || 20} characters`;
+      } else if (item.message?.includes('pattern')) {
+        message = path === 'user_name' 
+          ? 'Username can only contain letters, numbers, and underscores'
+          : message;
+      } else if (item.message?.includes('format') && path === 'user_email') {
+        message = 'Must be a valid email address';
+      }
+      return { path, message };
+    });
+    
     return reply.code(400).send({
       statusCode: 400,
       error: 'Bad Request',
       message: CommonErrorMessages.VALIDATION_ERROR,
-      details: details
+      details
     });
   }
 
