@@ -10,7 +10,7 @@ export class BlockService {
   async isBlocked(userId: number, targetUserId: number): Promise<boolean> {
     try {
       const response = await fetch(
-        `${this.userServiceUrl}/user/friendships/${userId}/${targetUserId}`,
+        `${this.userServiceUrl}/user/friendships/${userId}/${targetUserId}`
       );
 
       if (!response.ok) {
@@ -30,7 +30,7 @@ export class BlockService {
   async getBlockedUserIds(userId: number): Promise<number[]> {
     try {
       const response = await fetch(
-        `${this.userServiceUrl}/user/friendships/${userId}/blocked`,
+        `${this.userServiceUrl}/user/friendships/${userId}/blocked`
       );
 
       if (!response.ok) return [];
