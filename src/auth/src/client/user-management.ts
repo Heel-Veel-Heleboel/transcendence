@@ -90,20 +90,5 @@ export class UserManagementClient implements UserManagementService {
     };
   }
 
-  async deleteUser(user_id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/users/delete`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        user_id
-      })
-    });
 
-    if (!response.ok) {
-      const error = await response.json() as ErrorResponse;
-      throw new Error(error.message || 'Failed to delete user');
-    }
-  }
 }
