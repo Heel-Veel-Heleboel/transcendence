@@ -3,6 +3,14 @@ import  * as UserErrors from '../error/user.js';
 import { UserDomainErrorMessages, CommonErrorMessages } from '../constants/error-messages.js';
 
 
+function isFastifyValidationError(
+  error: unknown
+): error is { validation: Array<{ instancePath: string; message: string }> }{
+  return (
+    typeof error === 'object' && error !== null && 'validation' in error
+  );
+}
+
 export function errorHandler(
   error: FastifyError | Error,
   request: FastifyRequest,
@@ -36,12 +44,16 @@ export function errorHandler(
     });
   }
 
-  if ('validation' in error && error.validation) {
+  if (isFastifyValidationError(error)) {
+    const details = ( error as FastifyError).validation?.map(item => ({
+      path: item.instancePath.replace(/^\//, ''),
+      message: item.message
+    }));
     return reply.code(400).send({
       statusCode: 400,
       error: 'Bad Request',
       message: CommonErrorMessages.VALIDATION_ERROR,
-      details: error.validation
+      details: details
     });
   }
 
