@@ -11,33 +11,9 @@ import Errors from '../utils/Error';
 
 /* v8 ignore start */
 export class Arena implements IArena {
-  public _arena!: AbstractMesh;
-  public _goal_1!: AbstractMesh;
-  public _goal_2!: AbstractMesh;
-
-  public get arena(): AbstractMesh {
-    return this._arena;
-  }
-
-  public set arena(value: AbstractMesh) {
-    this._arena = value;
-  }
-
-  public get goal_1(): AbstractMesh {
-    return this._goal_1;
-  }
-
-  public set goal_1(value: AbstractMesh) {
-    this._goal_1 = value;
-  }
-
-  public get goal_2(): AbstractMesh {
-    return this._goal_2;
-  }
-
-  public set goal_2(value: AbstractMesh) {
-    this._goal_2 = value;
-  }
+  private _arena!: AbstractMesh;
+  private _goal_1!: AbstractMesh;
+  private _goal_2!: AbstractMesh;
 
   constructor() {}
 
@@ -63,7 +39,7 @@ export class Arena implements IArena {
       });
   }
 
-  configureMesh(mesh: Mesh, material: StandardMaterial) {
+  private configureMesh(mesh: Mesh, material: StandardMaterial) {
     if (mesh.id === gameConfig.rootMesh) return; // we don't need to change root
     if (mesh.id === gameConfig.areneId) {
       mesh.flipFaces(true);
@@ -79,6 +55,30 @@ export class Arena implements IArena {
     } else if (mesh.id === gameConfig.goalId2) {
       this.goal_2 = mesh;
     }
+  }
+
+  public get arena(): AbstractMesh {
+    return this._arena;
+  }
+
+  private set arena(value: AbstractMesh) {
+    this._arena = value;
+  }
+
+  public get goal_1(): AbstractMesh {
+    return this._goal_1;
+  }
+
+  private set goal_1(value: AbstractMesh) {
+    this._goal_1 = value;
+  }
+
+  public get goal_2(): AbstractMesh {
+    return this._goal_2;
+  }
+
+  private set goal_2(value: AbstractMesh) {
+    this._goal_2 = value;
   }
 }
 /* v8 ignore stop */
