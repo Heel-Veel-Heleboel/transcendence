@@ -30,7 +30,7 @@ describe('UserRepository', () => {
 
     it('should throw on unique email', async () => {
       mockPrisma.user.create.mockRejectedValue(
-        new PrismaClientKnownRequestError('Unique error', { code: 'P2002', clientVersion: '1.0.0', meta: { target: ['email'] } })
+        new PrismaClientKnownRequestError('Unique constraint failed on the fields: (`email`)', { code: 'P2002', clientVersion: '1.0.0', meta: { target: ['email'] } })
       );
       await expect(repo.create({ email: 'a@b.com', name: 'Amy' }))
         .rejects.toThrow(UserError.UserAlreadyExistsError);
@@ -44,7 +44,7 @@ describe('UserRepository', () => {
 
     it('should throw on unique name', async () => {
       mockPrisma.user.create.mockRejectedValue(
-        new PrismaClientKnownRequestError('Unique error', { code: 'P2002', clientVersion: '1.0.0', meta: { target: ['name'] } })
+        new PrismaClientKnownRequestError('Unique constraint failed on the fields: (`name`)', { code: 'P2002', clientVersion: '1.0.0', meta: { target: ['name'] } })
       );
       await expect(repo.create({ email: 'a@b.com', name: 'Amy' }))
         .rejects.toThrow(UserError.UserAlreadyExistsError);
@@ -79,7 +79,7 @@ describe('UserRepository', () => {
 
     it('should throw on unique email', async () => {
       mockPrisma.user.update.mockRejectedValue(
-        new PrismaClientKnownRequestError('Unique error', { code: 'P2002', clientVersion: '1.0.0', meta: { target: ['email'] } })
+        new PrismaClientKnownRequestError('Unique constraint failed on the fields: (`email`)', { code: 'P2002', clientVersion: '1.0.0', meta: { target: ['email'] } })
       );
       await expect(repo.updateEmail({ id: 1, email: 'taken@b.com' })).rejects.toThrow(UserError.UserAlreadyExistsError);
       try {
@@ -106,7 +106,7 @@ describe('UserRepository', () => {
 
     it('should throw on unique name', async () => {
       mockPrisma.user.update.mockRejectedValue(
-        new PrismaClientKnownRequestError('Unique error', { code: 'P2002', clientVersion: '1.0.0', meta: { target: ['name'] } })
+        new PrismaClientKnownRequestError('Unique constraint failed on the fields: (`name`)', { code: 'P2002', clientVersion: '1.0.0', meta: { target: ['name'] } })
       );
       await expect(repo.updateName({ id: 1, name: 'Amy' })).rejects.toThrow(UserError.UserAlreadyExistsError);
       try {
