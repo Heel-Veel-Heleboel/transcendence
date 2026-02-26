@@ -4,6 +4,8 @@ import helmet from '@fastify/helmet';
 import websocket from '@fastify/websocket';
 import { proxyRoutes } from './routes/proxy';
 import { healthRoutes } from './routes/health';
+import { internalRoutes } from './routes/internal';
+import { websocketRoutes } from './websocket/handler';
 import { helmetConfig, corsConfig, getBodyLimit, logSecurityConfig } from './config/security';
 import { config } from './config';
 import { loggerOptions } from './config/logger';
@@ -32,6 +34,12 @@ export const createServer = async () => {
 
   // Register health check routes (/health and /health/detailed)
   await healthRoutes(server);
+
+  // Register WebSocket routes (/ws)
+  await websocketRoutes(server);
+
+  // Register internal routes (/internal/ws/notify)
+  await internalRoutes(server);
 
   // Register all service proxy routes from configuration
   await proxyRoutes(server);
