@@ -1,27 +1,27 @@
 export class UserNotFoundError extends Error {
-  constructor(message: string) {
-    super(message);
+  constructor() {
+    super();
     this.name = 'UserNotFoundError';
   }
 }
 
 export class InvalidUpdateError extends Error {
-  constructor(message: string) {
-    super(message);
+  constructor() {
+    super();
     this.name = 'InvalidUpdateError';
   }
 }
 
 export class UserAlreadyExistsError extends Error {
-  constructor(message: string) {
-    super(message);
+  constructor(public unique_field: 'email' | 'name') {
+    super();
     this.name = 'UserAlreadyExistsError';
   }
 }
 
 export class DatabaseError extends Error {
-  constructor(message: string) {
-    super(message);
+  constructor() {
+    super();
     this.name = 'DatabaseError';
   }
 }

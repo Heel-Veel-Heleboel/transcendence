@@ -26,8 +26,11 @@
     "vitest": "^2.1.8"
   },
   "dependencies": {
+    "@fastify/type-provider-typebox": "^6.1.0",
     "@prisma/adapter-better-sqlite3": "^7.3.0",
     "@prisma/client": "^7.3.0",
+    "@sinclair/typebox": "^0.34.48",
+    "fastify": "^5.7.4",
     "zod": "^4.3.6"
   }
 }
