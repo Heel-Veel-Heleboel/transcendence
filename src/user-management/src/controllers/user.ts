@@ -41,9 +41,9 @@ export class UserController {
     res.status(200).send();
   }
 
-  async findUserById(req: FastifyRequest<{ Body: SchemaTypes.FindUserByIdSchemaType }>, res: FastifyReply) {
-    req.log.info({ user_id: req.body.user_id }, 'Find user by ID attempt');
-    const user = await this.userService.findUserById(req.body);
+  async findUserById(req: FastifyRequest<{ Params: SchemaTypes.FindUserByIdSchemaType }>, res: FastifyReply) {
+    req.log.info({ user_id: req.params.user_id }, 'Find user by ID attempt');
+    const user = await this.userService.findUserById(req.params);
     if (user) {
       res.status(200).send(user);
     } else {
@@ -51,9 +51,9 @@ export class UserController {
     }
   }
 
-  async findUserByEmail(req: FastifyRequest<{ Body: SchemaTypes.FindUserByEmailSchemaType }>, res: FastifyReply) {
-    req.log.info({ email: req.body.user_email }, 'Find user by email attempt');
-    const user = await this.userService.findUserByEmail(req.body);
+  async findUserByEmail(req: FastifyRequest<{ Params: SchemaTypes.FindUserByEmailSchemaType }>, res: FastifyReply) {
+    req.log.info({ email: req.params.user_email }, 'Find user by email attempt');
+    const user = await this.userService.findUserByEmail(req.params);
     if (user) {
       res.status(200).send(user);
     } else {
@@ -61,9 +61,9 @@ export class UserController {
     }
   }
 
-  async findUserByName(req: FastifyRequest<{ Body: SchemaTypes.FindUserByNameSchemaType }>, res: FastifyReply) {
-    req.log.info({ name: req.body.user_name }, 'Find user by name attempt');
-    const user = await this.userService.findUserByName(req.body);
+  async findUserByName(req: FastifyRequest<{ Params: SchemaTypes.FindUserByNameSchemaType }>, res: FastifyReply) {
+    req.log.info({ name: req.params.user_name }, 'Find user by name attempt');
+    const user = await this.userService.findUserByName(req.params);
     if (user) {
       res.status(200).send(user);
     } else {
@@ -71,9 +71,9 @@ export class UserController {
     }
   }
 
-  async findUsersByStatus(req: FastifyRequest<{ Body: SchemaTypes.FindUsersByStatusSchemaType }>, res: FastifyReply) {
-    req.log.info({ activity_status: req.body.activity_status }, 'Find users by status attempt');
-    const users = await this.userService.findUsersByStatus(req.body);
+  async findUsersByStatus(req: FastifyRequest<{ Params: SchemaTypes.FindUsersByStatusSchemaType }>, res: FastifyReply) {
+    req.log.info({ activity_status: req.params.activity_status }, 'Find users by status attempt');
+    const users = await this.userService.findUsersByStatus(req.params);
     res.status(200).send(users);
   }
 }
