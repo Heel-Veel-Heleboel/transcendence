@@ -90,6 +90,11 @@ src/chat/generated/
 src/chat/prisma/dev.db
 src/chat/prisma/dev.db-journal
 src/chat/prisma/migrations/
+# user-management service
+src/user-management/generated/
+src/user-management/prisma/dev.db
+src/user-management/prisma/dev.db-journal
+src/user-management/prisma/migrations/
 
 # frontend docker-compose
 .docker_compose_started
