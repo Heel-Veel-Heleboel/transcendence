@@ -15,6 +15,7 @@ export const UserDomainErrorMessages = {
 
 export const CommonErrorMessages = {
   DATABASE_ERROR: 'Database error occurred',
-  INTERNAL_SERVER_ERROR: 'An unexpected error occurred'
+  INTERNAL_SERVER_ERROR: 'An unexpected error occurred',
+  VALIDATION_ERROR: 'Validation error occurred'
 };
 

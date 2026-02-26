@@ -2,6 +2,7 @@ import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import  * as UserErrors from '../error/user.js';
 import { UserDomainErrorMessages, CommonErrorMessages } from '../constants/error-messages.js';
 
+
 export function errorHandler(
   error: FastifyError | Error,
   request: FastifyRequest,
@@ -34,7 +35,16 @@ export function errorHandler(
       message: CommonErrorMessages.DATABASE_ERROR
     });
   }
-  
+
+  if ('validation' in error && error.validation) {
+    return reply.code(400).send({
+      statusCode: 400,
+      error: 'Bad Request',
+      message: CommonErrorMessages.VALIDATION_ERROR,
+      details: error.validation
+    });
+  }
+
   return reply.code(500).send({
     statusCode: 500,
     error: 'Internal Server Error',
