@@ -4,8 +4,6 @@ import { NotificationService } from './notification.js';
 import { BlockService } from './block.js';
 import type { MatchAckMetadata } from '../types/chat.js';
 
-type ChannelMember = { userId: number };
-
 export class ChatService {
   constructor(
     private readonly channelDao: ChannelDao,
@@ -42,8 +40,8 @@ export class ChatService {
         id: channel.id,
         type: channel.type,
         name: channel.name,
-        members: channel.members.map((m: { userId: number }) => m.userId),
-      },
+        members: channel.members.map((m: { userId: number }) => m.userId)
+      }
     });
 
     return channel;
@@ -108,8 +106,8 @@ export class ChatService {
         id: channel.id,
         type: channel.type,
         name: channel.name,
-        members: [...channel.members.map((m: { userId: number }) => m.userId), userId],
-      },
+        members: [...channel.members.map((m: { userId: number }) => m.userId), userId]
+      }
     });
 
     await this.sendSystemMessage(channelId, `User ${userId} joined the channel`);
@@ -284,7 +282,7 @@ export class ChatService {
 
     const channels = await this.channelDao.findByUserId(userId);
     const existing = channels.find(
-      (c: { type: string; name: string | null }) => c.type === 'TOURNAMENT' && c.name === `Tournament: ${tournamentName}`
+      (c: { type: string; name: string | null }) => c.type === 'TOURNAMENT' && c.name === channelName
     );
     if (existing) {
       this.logger?.info({ userId, tournamentId }, 'Tournament channel already exists');

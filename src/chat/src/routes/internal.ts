@@ -4,7 +4,7 @@ import type {
   SendMatchAckRequest,
   CreateGameSessionChannelRequest,
   CreateTournamentChannelRequest,
-  SystemMessageRequest,
+  SystemMessageRequest
 } from '../types/chat.js';
 
 export async function registerInternalRoutes(
