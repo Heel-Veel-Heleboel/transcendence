@@ -39,7 +39,8 @@ export class HitIndicator {
       this.scene
     );
     this.hitDiskMaterial.alpha = gameConfig.hitDiskAlpha;
-    //Note to color Hack indicator boundingbox
+
+    // NOTE: to color Hack indicator boundingbox
     const fc = gameConfig.hitIndicatorFrontColor;
     const bc = gameConfig.hitIndicatorBackColor;
     this.scene.getBoundingBoxRenderer().frontColor.set(fc.r, fc.g, fc.b);
@@ -86,8 +87,7 @@ export class HitIndicator {
       const options = {
         points: [hack.mesh.absolutePosition, intersectionPoint],
         updatable: true,
-        // NOTE: no scene parameter needed with options.instance, used for updates
-        instance: hack.lines as LinesMesh
+        instance: hack.lines as LinesMesh // NOTE: no scene parameter needed with options.instance, used for updates
       };
       hack.lines = MeshBuilder.CreateLines(
         gameConfig.hitLinesMeshName,
