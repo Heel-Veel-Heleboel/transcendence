@@ -94,11 +94,8 @@ export class AuthService {
     });
     const refresh_token = generateRefreshToken(REFRESH_TOKEN_SIZE);
 
-    await this.refreshTokenDao.store({
-      id: refresh_token.id,
-      user_id: user.id,
-      hashed_refresh_token: refresh_token.hashed_refresh_token
-    });
+    await this.refreshTokenDao.store( { id: refresh_token.id, user_id: user.id, hashed_refresh_token: refresh_token.hashed_refresh_token } );
+    await this.userService.updateActivityStatus(user.id, 'ONLINE');
     return {
       access_token: access_token,
       refresh_token: refresh_token.refresh_token,
@@ -117,6 +114,7 @@ export class AuthService {
       refresh_token: refresh_token
     });
     await this.refreshTokenDao.revoke({ id: tokenId });
+    await this.userService.updateActivityStatus(logout.user_id, 'OFFLINE');
   }
 
   async refresh(

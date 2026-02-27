@@ -1,5 +1,5 @@
-import axios, { AxiosError } from 'axios';
-import { UserManagementService } from '../types/user-management-service.js';
+import axios from 'axios';
+import { UserManagementService, ActivityStatus } from '../types/user-management-service.js';
 
 interface CreateUserResponse {
   user_id: number;
@@ -124,4 +124,29 @@ export class UserManagementClient implements UserManagementService {
       throw new Error('Failed to delete user');
     }
   }
+
+  async updateActivityStatus(user_id: number, activity_status: ActivityStatus): Promise<void> {
+    try {
+      await axios.patch(
+        `${this.baseUrl}/users/update-status`,
+        {
+          user_id,
+          activity_status
+        },
+        {
+          timeout: this.timeout,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        const errorData = error.response.data as ErrorResponse;
+        throw new Error(errorData.message || 'Failed to update user activity status');
+      }
+      throw new Error('Failed to update user activity status');
+    }
+  }
+
 }
