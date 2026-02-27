@@ -14,7 +14,10 @@ vi.mock('../../src/utils/jwt.js', async importOriginal => {
 import { compareRefreshToken } from '../../src/utils/jwt.js';
 import { AuthService } from '../../src/services/auth.js';
 
-const mockUserService = { findUserByEmail: vi.fn() };
+const mockUserService = { 
+  findUserByEmail: vi.fn(),
+  updateActivityStatus: vi.fn()
+};
 const mockCredentialsDao = { findByUserId: vi.fn() };
 const mockRefreshTokenDao = {
   store: vi.fn(),
@@ -51,11 +54,13 @@ describe('AuthService - logout', () => {
       hashed_token: 'a'.repeat(64),
       expired_at: new Date(Date.now() + 86400000)
     });
+    mockUserService.updateActivityStatus.mockResolvedValue(undefined);
 
     await expect(
       authService.logout({ user_id: 1 }, refreshToken)
     ).resolves.toBeUndefined();
     expect(mockRefreshTokenDao.revoke).toHaveBeenCalledWith({ id: tokenId });
+    expect(mockUserService.updateActivityStatus).toHaveBeenCalledWith(1, 'OFFLINE');
   });
 
   it('Should throw error when token jti is not found in database', async () => {
@@ -119,9 +124,11 @@ describe('AuthService - logout', () => {
       hashed_token: 'd'.repeat(64),
       expired_at: new Date(Date.now() + 86400000)
     });
+    mockUserService.updateActivityStatus.mockResolvedValue(undefined);
 
     await authService.logout({ user_id: 1 }, refreshToken);
     expect(mockRefreshTokenDao.revoke).toHaveBeenCalledWith({ id: tokenId });
+    expect(mockUserService.updateActivityStatus).toHaveBeenCalledWith(1, 'OFFLINE');
   });
 
   it('Should throw error when refresh token does not match stored hash', async () => {
