@@ -32,6 +32,11 @@ export class Arena implements IArena {
         for (const index of result.meshes) {
           this.configureMesh(index as Mesh, material);
         }
+        for (const key in this) {
+          if (typeof this[key] === 'undefined') {
+            throw new Error(Errors.MISSING_ARENA_MESH);
+          }
+        }
       })
       .catch(error => {
         console.error(error);
