@@ -66,6 +66,9 @@ export function createBgMusic(scene: Scene) {
     loop: true,
     autoplay: true
   });
+  if (unitializedCheck(bg)) {
+    throw new Error(Errors.FAILED_ENTITY_INIT);
+  }
   return bg;
 }
 

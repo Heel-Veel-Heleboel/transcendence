@@ -53,7 +53,10 @@ const gameConfig = {
   keyGridTextMaterialAlpha: 0.15,
 
   // NOTE: EXTRA
-  rootTransformNodeName: 'tr'
+  rootTransformNodeName: 'tr',
+
+  // NOTE: CAMERA
+  mainCameraName: 'mainCamera'
 };
 
 export default gameConfig;
