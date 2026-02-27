@@ -28,8 +28,6 @@ jobs:
             - 'src/auth/**'
           chat:
             - 'src/chat/**'
-          frontend:
-            - 'src/frontend/**'
           matchmaking:
             - 'src/matchmaking/**'
           user-management:
