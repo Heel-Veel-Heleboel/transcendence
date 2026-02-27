@@ -1,4 +1,14 @@
 const gameConfig = {
+  // NOTE: SCENE
+  mainCameraName: 'mainCamera',
+  lightName: 'hemiLight',
+  bgSoundName: 'backgroundMusic',
+  bgSoundPath: '/public/loop.mp3',
+
+  // NOTE: COLYSEUS
+  playersState: 'players',
+  hacksState: 'balls',
+
   // NOTE: PLAYER
   playerMeshName: 'playerMesh',
   playerMaterialName: 'playerWireframe',
@@ -16,6 +26,7 @@ const gameConfig = {
 
   // NOTE: HACK
   hackDeath: 0,
+  hackSize: 1,
   hackName: 'hack_',
 
   // NOTE: HITINDICATOR
@@ -54,13 +65,7 @@ const gameConfig = {
   keyGridTextMaterialAlpha: 0.15,
 
   // NOTE: EXTRA
-  rootTransformNodeName: 'tr',
-
-  // NOTE: SCENE
-  mainCameraName: 'mainCamera',
-  lightName: 'hemiLight',
-  bgSoundName: 'backgroundMusic',
-  bgSoundPath: '/public/loop.mp3'
+  rootTransformNodeName: 'tr'
 };
 
 export default gameConfig;
