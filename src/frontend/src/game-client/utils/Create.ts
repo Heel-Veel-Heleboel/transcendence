@@ -136,6 +136,58 @@ export function createBox(
   return box;
 }
 
+export function createSphere(
+  name: string,
+  options: { diameter: number },
+  scene: Scene
+) {
+  const sphere = MeshBuilder.CreateSphere(name, options, scene);
+  if (unitializedCheck(sphere)) {
+    throw new Error(Errors.FAILED_MESH_INIT);
+  }
+  return sphere;
+}
+
+export function createDisc(
+  name: string,
+  options: { radius: number; sideOrientation: number },
+  scene: Scene
+) {
+  const disc = MeshBuilder.CreateDisc(name, options, scene);
+  if (unitializedCheck(disc)) {
+    throw new Error(Errors.FAILED_MESH_INIT);
+  }
+  return disc;
+}
+
+export function createColorLerp(
+  startColor: Color3,
+  EndColor: Color3,
+  amount: number
+) {
+  const color = Color3.Lerp(startColor, EndColor, amount);
+  if (unitializedCheck(color)) {
+    throw new Error(Errors.FAILED_ENTITY_INIT);
+  }
+  return color;
+}
+
+export function createColor3(r: number, g: number, b: number) {
+  const color = new Color3(r, g, b);
+  if (unitializedCheck(color)) {
+    throw new Error(Errors.FAILED_ENTITY_INIT);
+  }
+  return color;
+}
+
+export function createVector3Zero() {
+  const v = Vector3.Zero();
+  if (unitializedCheck(v)) {
+    throw new Error(Errors.FAILED_ENTITY_INIT);
+  }
+  return v;
+}
+
 function unitializedCheck(entity: any) {
   if (!entity || typeof entity === 'undefined') {
     return true;

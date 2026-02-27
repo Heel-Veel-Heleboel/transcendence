@@ -1,19 +1,26 @@
 import {
   Scene,
-  MeshBuilder,
   Vector3,
   StandardMaterial,
   Vector3Distance,
   LinesMesh,
   Plane,
-  Vector3Dot,
-  Color3
+  Vector3Dot
 } from '@babylonjs/core';
 import { Hack } from './Hack';
 
 import { HitIndicatorConfig } from '../types/Types';
 import gameConfig from '../utils/GameConfig';
-import { createNewLines, createUpdatedLines } from '../utils/Create';
+import {
+  createColor3,
+  createColorLerp,
+  createDisc,
+  createNewLines,
+  createSphere,
+  createStandardMaterial,
+  createUpdatedLines,
+  createVector3Zero
+} from '../utils/Create';
 
 /* v8 ignore start */
 export class HitIndicator {
@@ -30,12 +37,12 @@ export class HitIndicator {
       config.goalPosition.x,
       config.goalPosition.y,
       config.goalPosition.z,
-      Vector3Distance(this.goalPosition, Vector3.Zero())
+      Vector3Distance(this.goalPosition, createVector3Zero())
     );
     this.radius = config.radius;
     this.rotation = config.rotation;
     this.scene = config.scene;
-    this.hitDiskMaterial = new StandardMaterial(
+    this.hitDiskMaterial = createStandardMaterial(
       gameConfig.hitDiskMaterialName,
       this.scene
     );
@@ -114,7 +121,7 @@ export class HitIndicator {
   ) {
     const distanceRatio = Math.max(0, 1 / distance) + 0.1;
     if (hack.hitDisk === null) {
-      const disc = MeshBuilder.CreateDisc(
+      const disc = createDisc(
         gameConfig.hitDiskMeshName,
         {
           radius: hack.mesh.getBoundingInfo().diagonalLength / 2,
@@ -132,23 +139,23 @@ export class HitIndicator {
       }
       const sc = gameConfig.hitDiskStartColor;
       const ec = gameConfig.hitDiskEndColor;
-      this.hitDiskMaterial.diffuseColor = Color3.Lerp(
-        new Color3(sc.r, sc.g, sc.b),
-        new Color3(ec.r, ec.g, ec.b),
+      this.hitDiskMaterial.diffuseColor = createColorLerp(
+        createColor3(sc.r, sc.g, sc.b),
+        createColor3(ec.r, ec.g, ec.b),
         distanceRatio
       );
     }
   }
 
   debugSphere() {
-    const sphere = MeshBuilder.CreateSphere(
+    const sphere = createSphere(
       gameConfig.hitIndicatorDebugMeshName,
       {
         diameter: this.radius
       },
       this.scene
     );
-    const material = new StandardMaterial(
+    const material = createStandardMaterial(
       gameConfig.hitIndicatorDebugMaterialName,
       this.scene
     );
