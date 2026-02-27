@@ -48,7 +48,7 @@ export class HitIndicator {
   }
 
   detectIncomingHits(hack: Hack) {
-    if (hack.isDead() || hack.linearVelocity === undefined) {
+    if (hack.isDead() || typeof hack.linearVelocity === 'undefined') {
       return;
     }
     const distance = this.goalPlaneIntersection(hack);

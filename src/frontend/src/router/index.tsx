@@ -14,7 +14,7 @@ export const Router = () => {
     useLayoutEffect(() => {
         setHydrated(true);
         let name;
-        if (currentLocation[0] === undefined) {
+        if (typeof currentLocation[0] === 'undefined') {
             name = 'Start Menu';
         } else {
             name = `${currentLocation[0].toUpperCase()}${currentLocation.slice(1,)}`

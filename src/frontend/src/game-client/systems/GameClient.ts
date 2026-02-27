@@ -87,7 +87,7 @@ export class GameClient {
 
   draw(g: GameClient) {
     return () => {
-      if (g.prota === undefined) return;
+      if (typeof g.prota === 'undefined') return;
       if (!(g.frameCount % 600)) {
         // console.log(g.balls);
       }

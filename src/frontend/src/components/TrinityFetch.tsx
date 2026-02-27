@@ -13,7 +13,7 @@ export function TrinityFetch(): JSX.Element {
     const product = (platform.product === null) ? '?' : platform.product;
     const manufacturer = (platform.manufacturer === null) ? '?' : platform.manufacturer;
     // TODO update with p5 version
-    const logo = (platform.name === undefined) ? '?' : (browsers.get(platform.name)?.logo);
+    const logo = (typeof platform.name === 'undefined') ? '?' : (browsers.get(platform.name)?.logo);
     return (
         <div className="flex min-h-full">
             <div className='min-h-full w-1/2'>
