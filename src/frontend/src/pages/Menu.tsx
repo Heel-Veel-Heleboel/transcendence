@@ -1,4 +1,4 @@
-import { JSX, useState } from "react"
+import { JSX, useEffect, useState } from "react"
 import { Toolbar } from "../components/Toolbar.tsx";
 import { MENU_PAGE } from '../constants/Constants.ts'
 import { CONFIG } from '../constants/AppConfig.ts'
@@ -10,10 +10,18 @@ import { Gymkhana } from "../components/Gymkhana.tsx";
 import { Speedmatching } from "../components/Speedmatching.tsx";
 import { Mtvx } from "../components/Mtvx.tsx";
 import { TrinityFetch } from "../components/TrinityFetch.tsx";
+import { useAuth } from "../components/Auth.tsx";
 
 /* v8 ignore start */
 export const Menu = (): JSX.Element => {
     const [page, setPage] = useState<number>(MENU_PAGE.MENU);
+    const auth = useAuth();
+
+    useEffect(() => {
+        if (auth.token === null) {
+            auth.gotoLogin();
+        }
+    }, [])
 
     function redirect(page: number) {
         setPage(page);

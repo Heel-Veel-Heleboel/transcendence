@@ -26,25 +26,26 @@ describe('AuthController - logout', () => {
   });
 
   it('Should logout the user successfully', async () => {
-
     const mockRequest = {
       body: {
-        user_id: 1,
-        refresh_token: 'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv'
+        user_id: 1
       },
       log: {
         info: vi.fn(),
         warn: vi.fn(),
         error: vi.fn()
-      }
+      },
+      cookies: { refresh_token: 'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv' }
     } as any;
 
     await authController.logout(mockRequest, MockReply as any);
 
-    expect(MockAuthService.logout).toHaveBeenCalledWith({
-      user_id: 1,
-      refresh_token: 'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv'
-    });
+    expect(MockAuthService.logout).toHaveBeenCalledWith(
+      {
+        user_id: 1
+      },
+      'gkhdghfsfhsfjbshjbsjhbhsbsbjdhbdbv'
+    );
     expect(MockReply.code).toHaveBeenCalledWith(204);
     expect(MockReply.send).toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
@@ -60,25 +61,29 @@ describe('AuthController - logout', () => {
   it('Should handle errors during logout', async () => {
     const mockRequest = {
       body: {
-        user_id: 2,
-        refresh_token: 'invalidtokenvalue'
+        user_id: 2
       },
       log: {
         info: vi.fn(),
         warn: vi.fn(),
         error: vi.fn()
-      }
+      },
+      cookies: { refresh_token: 'invalidtokenvalue' }
     } as any;
 
     const mockError = new Error('Logout failed');
     MockAuthService.logout.mockRejectedValueOnce(mockError);
 
-    await expect(authController.logout(mockRequest, MockReply as any)).rejects.toThrow('Logout failed');
+    await expect(
+      authController.logout(mockRequest, MockReply as any)
+    ).rejects.toThrow('Logout failed');
 
-    expect(MockAuthService.logout).toHaveBeenCalledWith({
-      user_id: 2,
-      refresh_token: 'invalidtokenvalue'
-    });
+    expect(MockAuthService.logout).toHaveBeenCalledWith(
+      {
+        user_id: 2
+      },
+      'invalidtokenvalue'
+    );
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
@@ -94,14 +99,14 @@ describe('AuthController - logout', () => {
   it('Should clear refresh_token cookie on successful logout', async () => {
     const mockRequest = {
       body: {
-        user_id: 3,
-        refresh_token: 'valid-token'
+        user_id: 3
       },
       log: {
         info: vi.fn(),
         warn: vi.fn(),
         error: vi.fn()
-      }
+      },
+      cookies: { refresh_token: 'valid-token' }
     } as any;
 
     await authController.logout(mockRequest, MockReply as any);
@@ -123,20 +128,23 @@ describe('AuthController - logout', () => {
   it('Should NOT clear cookie when logout fails', async () => {
     const mockRequest = {
       body: {
-        user_id: 4,
-        refresh_token: 'bad-token'
+        user_id: 4
       },
       log: {
         info: vi.fn(),
         warn: vi.fn(),
         error: vi.fn()
-      }
+      },
+      cookies: { refresh_token: 'bad-token' }
     } as any;
 
     MockAuthService.logout.mockRejectedValueOnce(new Error('Logout error'));
 
-    await expect(authController.logout(mockRequest, MockReply as any)).rejects.toThrow('Logout error');
+    await expect(
+      authController.logout(mockRequest, MockReply as any)
+    ).rejects.toThrow('Logout error');
 
     expect(MockReply.setCookie).not.toHaveBeenCalled();
   });
 });
+

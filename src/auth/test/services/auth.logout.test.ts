@@ -2,8 +2,9 @@ import { expect, it, describe, beforeEach, afterEach, vi } from 'vitest';
 import { REFRESH_TOKEN_SIZE } from '../../src/constants/jwt.js';
 
 // Mock the crypto comparator to avoid length issues
-vi.mock('../../src/utils/jwt.js', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../src/utils/jwt.js')>();
+vi.mock('../../src/utils/jwt.js', async importOriginal => {
+  const actual =
+    await importOriginal<typeof import('../../src/utils/jwt.js')>();
   return {
     ...actual,
     compareRefreshToken: vi.fn()
@@ -43,7 +44,7 @@ describe('AuthService - logout', () => {
     const tokenId = '550e8400-e29b-41d4-a716-446655440000';
     const tokenPart = 'a'.repeat(REFRESH_TOKEN_SIZE * 2);
     const refreshToken = `${tokenId}.${tokenPart}`;
-    
+
     mockRefreshTokenDao.findById.mockResolvedValueOnce({
       id: tokenId,
       user_id: 1,
@@ -51,7 +52,9 @@ describe('AuthService - logout', () => {
       expired_at: new Date(Date.now() + 86400000)
     });
 
-    await expect(authService.logout({ user_id: 1, refresh_token: refreshToken })).resolves.toBeUndefined();
+    await expect(
+      authService.logout({ user_id: 1 }, refreshToken)
+    ).resolves.toBeUndefined();
     expect(mockRefreshTokenDao.revoke).toHaveBeenCalledWith({ id: tokenId });
   });
 
@@ -61,8 +64,9 @@ describe('AuthService - logout', () => {
     const refreshToken = `${tokenId}.${tokenPart}`;
     mockRefreshTokenDao.findById.mockResolvedValueOnce(null);
 
-    await expect(authService.logout({ user_id: 1, refresh_token: refreshToken }))
-      .rejects.toThrow('Invalid refresh token.');
+    await expect(
+      authService.logout({ user_id: 1 }, refreshToken)
+    ).rejects.toThrow('Invalid refresh token.');
     expect(compareRefreshToken).not.toHaveBeenCalled();
   });
 
@@ -78,25 +82,29 @@ describe('AuthService - logout', () => {
       expired_at: new Date(Date.now() + 86400000)
     });
 
-    await expect(authService.logout({ user_id: 1, refresh_token: refreshToken }))
-      .rejects.toThrow('User ID does not match token owner.');
+    await expect(
+      authService.logout({ user_id: 1 }, refreshToken)
+    ).rejects.toThrow('User ID does not match token owner.');
     expect(mockRefreshTokenDao.revoke).not.toHaveBeenCalled();
   });
 
   it('Should throw error for invalid refresh token format', async () => {
-    await expect(authService.logout({ user_id: 1, refresh_token: 'invalidtoken' }))
-      .rejects.toThrow('Invalid refresh token format.');
+    await expect(
+      authService.logout({ user_id: 1 }, 'invalidtoken')
+    ).rejects.toThrow('Invalid refresh token format.');
     expect(mockRefreshTokenDao.findById).not.toHaveBeenCalled();
   });
 
   it('Should throw error when refresh token is empty', async () => {
-    await expect(authService.logout({ user_id: 1, refresh_token: '' }))
-      .rejects.toThrow('Invalid refresh token format.');
+    await expect(authService.logout({ user_id: 1 }, '')).rejects.toThrow(
+      'Invalid refresh token format.'
+    );
   });
 
   it('Should throw error when refresh token is malformed', async () => {
-    await expect(authService.logout({ user_id: 1, refresh_token: '.' }))
-      .rejects.toThrow('Invalid refresh token format.');
+    await expect(authService.logout({ user_id: 1 }, '.')).rejects.toThrow(
+      'Invalid refresh token format.'
+    );
   });
 
   it('Should call revoke method after successful logout', async () => {
@@ -104,7 +112,7 @@ describe('AuthService - logout', () => {
     const tokenId = '7a8b9c0d-1e2f-4a4b-9c6d-7e8f9a0b1c2d';
     const tokenPart = 'd'.repeat(REFRESH_TOKEN_SIZE * 2);
     const refreshToken = `${tokenId}.${tokenPart}`;
-    
+
     mockRefreshTokenDao.findById.mockResolvedValueOnce({
       id: tokenId,
       user_id: 1,
@@ -112,7 +120,7 @@ describe('AuthService - logout', () => {
       expired_at: new Date(Date.now() + 86400000)
     });
 
-    await authService.logout({ user_id: 1, refresh_token: refreshToken });
+    await authService.logout({ user_id: 1 }, refreshToken);
     expect(mockRefreshTokenDao.revoke).toHaveBeenCalledWith({ id: tokenId });
   });
 
@@ -121,7 +129,7 @@ describe('AuthService - logout', () => {
     const tokenId = '3c4d5e6f-7a8b-4c0d-9e2f-3a4b5c6d7e8f';
     const tokenPart = 'e'.repeat(REFRESH_TOKEN_SIZE * 2);
     const refreshToken = `${tokenId}.${tokenPart}`;
-    
+
     mockRefreshTokenDao.findById.mockResolvedValueOnce({
       id: tokenId,
       user_id: 1,
@@ -129,8 +137,10 @@ describe('AuthService - logout', () => {
       expired_at: new Date(Date.now() + 86400000)
     });
 
-    await expect(authService.logout({ user_id: 1, refresh_token: refreshToken }))
-      .rejects.toThrow('Invalid refresh token.');
+    await expect(
+      authService.logout({ user_id: 1 }, refreshToken)
+    ).rejects.toThrow('Invalid refresh token.');
     expect(mockRefreshTokenDao.revoke).not.toHaveBeenCalled();
   });
 });
+

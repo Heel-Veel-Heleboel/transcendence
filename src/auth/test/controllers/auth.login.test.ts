@@ -63,13 +63,17 @@ describe('AuthController - login', () => {
       email: mockLoggedInUser.email,
       access_token: mockLoggedInUser.access_token
     });
-    expect(MockReply.setCookie).toHaveBeenCalledWith('refresh_token', mockLoggedInUser.refresh_token, expect.objectContaining({
-      httpOnly: true,
-      secure: false,
-      sameSite: 'strict',
-      maxAge: expect.any(Number),
-      path: '/auth'
-    }));
+    expect(MockReply.setCookie).toHaveBeenCalledWith(
+      'refresh_token',
+      mockLoggedInUser.refresh_token,
+      expect.objectContaining({
+        httpOnly: true,
+        secure: false,
+        sameSite: 'strict',
+        maxAge: expect.any(Number),
+        path: '/'
+      })
+    );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
       { email: mockRequest.body.email },
       'Login attempt'
@@ -89,7 +93,9 @@ describe('AuthController - login', () => {
     const mockError = new Error('Login failed');
     MockAuthService.login.mockRejectedValueOnce(mockError);
 
-    await expect(authController.login(mockRequest, MockReply as any)).rejects.toThrow('Login failed');
+    await expect(
+      authController.login(mockRequest, MockReply as any)
+    ).rejects.toThrow('Login failed');
     expect(MockAuthService.login).toHaveBeenCalledWith({
       email: 'john.doe@example.com',
       password: 'securepassword'
@@ -130,7 +136,7 @@ describe('AuthController - login', () => {
       'refresh-token-value',
       expect.objectContaining({
         httpOnly: true,
-        path: '/auth',
+        path: '/',
         sameSite: 'strict',
         secure: false, // process.env.NODE_ENV !== 'production'
         maxAge: expect.any(Number)
@@ -159,7 +165,7 @@ describe('AuthController - login', () => {
     expect(MockReply.send).toHaveBeenCalledWith(
       expect.not.objectContaining({ refresh_token: expect.anything() })
     );
-    
+
     // Verify response contains other fields
     expect(MockReply.send).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -171,3 +177,4 @@ describe('AuthController - login', () => {
     );
   });
 });
+
