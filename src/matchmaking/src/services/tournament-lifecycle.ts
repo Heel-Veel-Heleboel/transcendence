@@ -328,21 +328,26 @@ export class TournamentLifecycleManager {
 
       // Determine forfeit based on acknowledgement status
       let winnerId: number | null = null;
+      let player1Score = 0;
+      let player2Score = 0;
+
       if (match.player1Acknowledged && !match.player2Acknowledged) {
         winnerId = match.player1Id;
+        player1Score = 7;
       } else if (!match.player1Acknowledged && match.player2Acknowledged) {
         winnerId = match.player2Id;
+        player2Score = 7;
       }
-      // If neither or both acknowledged but match didn't complete, both forfeit (winnerId = null)
+      // If neither or both acknowledged but match didn't complete, both forfeit (scores stay 0)
 
-      const updatedMatch = await this.matchDao.update(matchId, {
-        status: 'TIMEOUT',
+      const updatedMatch = await this.matchDao.recordTimeout(matchId, {
         winnerId,
-        completedAt: new Date(),
+        player1Score,
+        player2Score,
         resultSource: 'timeout'
       });
 
-      this.log('info', `Match ${matchId} timed out`, { winnerId });
+      this.log('info', `Match ${matchId} timed out`, { winnerId, player1Score, player2Score });
 
       // If this is a tournament match, process the result
       if (updatedMatch.tournamentId) {

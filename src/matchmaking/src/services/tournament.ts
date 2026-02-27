@@ -50,6 +50,14 @@ export class TournamentService {
       );
     }
 
+    // Validate player limits
+    if (data.minPlayers != null && data.maxPlayers != null && data.minPlayers > data.maxPlayers) {
+      throw new TournamentError(
+        'minPlayers must be less than or equal to maxPlayers',
+        'INVALID_PLAYER_LIMITS'
+      );
+    }
+
     // Validate start time if provided
     if (data.startTime && data.startTime <= data.registrationEnd) {
       throw new TournamentError(
@@ -159,10 +167,15 @@ export class TournamentService {
     }
 
     await this.participantDao.register(tournamentId, userId, username);
-    this.log('info', `User ${userId} registered for tournament ${tournamentId}`);
 
-    // Check if tournament is now full
+    // Guard against race condition: if we exceeded capacity, roll back
     const count = await this.participantDao.count(tournamentId);
+    if (count > tournament.maxPlayers) {
+      await this.participantDao.unregister(tournamentId, userId);
+      throw new TournamentError('Tournament is full', 'TOURNAMENT_FULL');
+    }
+
+    this.log('info', `User ${userId} registered for tournament ${tournamentId}`);
     return { full: count >= tournament.maxPlayers };
   }
 
@@ -262,18 +275,25 @@ export class TournamentService {
       throw new TournamentError('Not enough players to start', 'INSUFFICIENT_PLAYERS');
     }
 
-    // Generate round-robin matches
-    const matches = await this.generateRoundRobinMatches(
-      tournamentId,
-      participants,
-      tournament.matchDeadlineMin
-    );
-
-    // Update status to IN_PROGRESS
+    // Update status to IN_PROGRESS before generating matches
+    // This prevents duplicate startTournament calls if generation takes time
     await this.tournamentDao.updateStatus(tournamentId, 'IN_PROGRESS');
-    this.log('info', `Tournament ${tournamentId} started with ${matches.length} matches`);
 
-    return matches;
+    try {
+      const matches = await this.generateRoundRobinMatches(
+        tournamentId,
+        participants,
+        tournament.matchDeadlineMin
+      );
+
+      this.log('info', `Tournament ${tournamentId} started with ${matches.length} matches`);
+      return matches;
+    } catch (error) {
+      // Revert status if match generation fails
+      await this.tournamentDao.updateStatus(tournamentId, 'SCHEDULED');
+      this.log('error', `Failed to generate matches for tournament ${tournamentId}, reverted to SCHEDULED`);
+      throw error;
+    }
   }
 
   /**
@@ -346,8 +366,15 @@ export class TournamentService {
 
   /**
    * Check if all tournament matches are complete and finalize if so
+   * Guards against concurrent calls by checking tournament status first
    */
   private async checkTournamentCompletion(tournamentId: number): Promise<void> {
+    // Guard: check current tournament status to prevent duplicate finalization
+    const tournament = await this.tournamentDao.findById(tournamentId);
+    if (!tournament || tournament.status === 'COMPLETED' || tournament.status === 'CANCELLED') {
+      return;
+    }
+
     const matches = await this.matchDao.findByTournamentId(tournamentId);
 
     const allComplete = matches.every(
@@ -358,15 +385,18 @@ export class TournamentService {
       return;
     }
 
-    // Check for ties that need golden game
-    const needsGoldenGame = await this.checkForTies(tournamentId);
+    // Check for ties that need golden game (only if not already in TIE_BREAKER)
+    if (tournament.status !== 'TIE_BREAKER') {
+      const needsGoldenGame = await this.checkForTies(tournamentId);
 
-    if (needsGoldenGame) {
-      await this.tournamentDao.updateStatus(tournamentId, 'TIE_BREAKER');
-      this.log('info', `Tournament ${tournamentId} entering TIE_BREAKER`);
-    } else {
-      await this.finalizeTournament(tournamentId);
+      if (needsGoldenGame) {
+        await this.tournamentDao.updateStatus(tournamentId, 'TIE_BREAKER');
+        this.log('info', `Tournament ${tournamentId} entering TIE_BREAKER`);
+        return;
+      }
     }
+
+    await this.finalizeTournament(tournamentId);
   }
 
   /**
@@ -477,15 +507,19 @@ export class TournamentService {
 
   /**
    * Finalize tournament - set final ranks and update status
+   * If we reach here, all ties are resolvable (golden games resolved remaining ones)
+   * Rankings are sorted by: wins → scoreDiff → head-to-head
    */
   private async finalizeTournament(tournamentId: number): Promise<void> {
     const rankings = await this.participantDao.getRankings(tournamentId);
 
-    // Set final ranks for all participants
-    const rankData = rankings.map(r => ({
+    // Resolve any remaining ties using head-to-head
+    const resolved = await this.resolveRankingTies(tournamentId, rankings);
+
+    const rankData = resolved.map((r, index) => ({
       tournamentId,
       userId: r.userId,
-      rank: r.rank
+      rank: index + 1
     }));
 
     await this.participantDao.setAllFinalRanks(rankData);
@@ -493,8 +527,48 @@ export class TournamentService {
 
     this.log('info', `Tournament ${tournamentId} completed`, {
       tournamentId,
-      winner: rankings[0]?.userId
+      winner: resolved[0]?.userId
     });
+  }
+
+  /**
+   * Resolve ties in rankings using head-to-head results
+   * Groups players with same wins and scoreDiff, then sorts within group by h2h
+   */
+  private async resolveRankingTies(
+    tournamentId: number,
+    rankings: TournamentRanking[]
+  ): Promise<TournamentRanking[]> {
+    const resolved: TournamentRanking[] = [];
+    let i = 0;
+
+    while (i < rankings.length) {
+      const current = rankings[i];
+      let j = i + 1;
+      while (
+        j < rankings.length &&
+        rankings[j].wins === current.wins &&
+        rankings[j].scoreDiff === current.scoreDiff
+      ) {
+        j++;
+      }
+
+      if (j - i === 1) {
+        resolved.push(current);
+      } else {
+        // Tied group — sort by head-to-head
+        const tiedGroup = rankings.slice(i, j);
+        const playerIds = tiedGroup.map(r => r.userId);
+        const h2h = await this.calculateHeadToHead(tournamentId, playerIds);
+
+        tiedGroup.sort((a, b) => (h2h.get(b.userId) ?? 0) - (h2h.get(a.userId) ?? 0));
+        resolved.push(...tiedGroup);
+      }
+
+      i = j;
+    }
+
+    return resolved;
   }
 
   // ============================================================================

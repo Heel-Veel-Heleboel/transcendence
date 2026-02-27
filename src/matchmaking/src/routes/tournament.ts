@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { TournamentService, TournamentError } from '../services/tournament.js';
+import { TournamentLifecycleManager } from '../services/tournament-lifecycle.js';
 
 /**
  * Register tournament routes
@@ -14,7 +15,8 @@ import { TournamentService, TournamentError } from '../services/tournament.js';
  */
 export async function registerTournamentRoutes(
   server: FastifyInstance,
-  tournamentService: TournamentService
+  tournamentService: TournamentService,
+  lifecycleManager?: TournamentLifecycleManager
 ): Promise<void> {
 
   // ============================================================================
@@ -44,10 +46,18 @@ export async function registerTournamentRoutes(
       });
     }
 
+    // TODO: Switch createdBy to username from API gateway header (x-user-name)
     if (!body.createdBy || typeof body.createdBy !== 'number') {
       return reply.status(400).send({
         error: 'Bad Request',
         message: 'createdBy is required and must be a number'
+      });
+    }
+
+    if (body.name.length > 100) {
+      return reply.status(400).send({
+        error: 'Bad Request',
+        message: 'name must be 100 characters or less'
       });
     }
 
@@ -58,19 +68,64 @@ export async function registerTournamentRoutes(
       });
     }
 
+    // Validate optional numeric fields
+    if (body.minPlayers != null && (!Number.isInteger(body.minPlayers) || body.minPlayers < 2)) {
+      return reply.status(400).send({
+        error: 'Bad Request',
+        message: 'minPlayers must be an integer >= 2'
+      });
+    }
+
+    if (body.maxPlayers != null && (!Number.isInteger(body.maxPlayers) || body.maxPlayers < 2)) {
+      return reply.status(400).send({
+        error: 'Bad Request',
+        message: 'maxPlayers must be an integer >= 2'
+      });
+    }
+
+    if (body.matchDeadlineMin != null && (typeof body.matchDeadlineMin !== 'number' || body.matchDeadlineMin <= 0)) {
+      return reply.status(400).send({
+        error: 'Bad Request',
+        message: 'matchDeadlineMin must be a positive number'
+      });
+    }
+
+    // Validate date parsing
+    const registrationEnd = new Date(body.registrationEnd);
+    if (isNaN(registrationEnd.getTime())) {
+      return reply.status(400).send({
+        error: 'Bad Request',
+        message: 'registrationEnd is not a valid date'
+      });
+    }
+
+    let startTime: Date | null = null;
+    if (body.startTime) {
+      startTime = new Date(body.startTime);
+      if (isNaN(startTime.getTime())) {
+        return reply.status(400).send({
+          error: 'Bad Request',
+          message: 'startTime is not a valid date'
+        });
+      }
+    }
+
     try {
       const tournament = await tournamentService.createTournament({
-        name: body.name,
+        name: body.name.trim(),
         format: body.format as 'round_robin' | 'single_elimination' | undefined,
         minPlayers: body.minPlayers,
         maxPlayers: body.maxPlayers,
         matchDeadlineMin: body.matchDeadlineMin,
         createdBy: body.createdBy,
-        registrationEnd: new Date(body.registrationEnd),
-        startTime: body.startTime ? new Date(body.startTime) : null
+        registrationEnd,
+        startTime
       });
 
       request.log.info({ tournamentId: tournament.id, createdBy: body.createdBy }, 'Tournament created');
+
+      // Schedule registration end timer
+      lifecycleManager?.onTournamentCreated(tournament);
 
       return reply.status(201).send({
         success: true,
@@ -171,6 +226,9 @@ export async function registerTournamentRoutes(
     try {
       const tournament = await tournamentService.cancelTournament(tournamentId, userId);
 
+      // Cancel any pending lifecycle timers
+      lifecycleManager?.onTournamentCancelled(tournamentId);
+
       request.log.info({ tournamentId, userId }, 'Tournament cancelled');
 
       return reply.status(200).send({
@@ -236,6 +294,13 @@ export async function registerTournamentRoutes(
       const { full } = await tournamentService.register(tournamentId, userId, username);
 
       request.log.info({ tournamentId, userId, full }, 'User registered for tournament');
+
+      // If tournament is now full, trigger early registration close
+      if (full) {
+        lifecycleManager?.onRegistrationFull(tournamentId).catch(err => {
+          request.log.error({ error: err, tournamentId }, 'Error handling registration full');
+        });
+      }
 
       return reply.status(200).send({
         success: true,

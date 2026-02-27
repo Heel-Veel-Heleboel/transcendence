@@ -367,22 +367,25 @@ export class MatchDao {
   }
 
   /**
-   * Generic update method for match fields
+   * Record a match timeout (deadline expired)
+   * Sets status to TIMEOUT, records winner (if any) and scores
    */
-  async update(
+  async recordTimeout(
     matchId: string,
     data: {
-      status?: MatchStatus;
-      winnerId?: number | null;
-      player1Score?: number;
-      player2Score?: number;
-      completedAt?: Date;
-      resultSource?: string;
+      winnerId: number | null;
+      player1Score: number;
+      player2Score: number;
+      resultSource: string;
     }
   ): Promise<Match> {
     return await this.prisma.match.update({
       where: { id: matchId },
-      data
+      data: {
+        ...data,
+        status: 'TIMEOUT',
+        completedAt: new Date()
+      }
     });
   }
 }
