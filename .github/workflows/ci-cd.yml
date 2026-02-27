@@ -54,9 +54,9 @@ jobs:
           if [ "${{ steps.filter.outputs.auth }}" == "true" ]; then
             services+=("auth")
           fi
-          if [ "${{ steps.filter.outputs.frontend }}" == "true" ]; then
-            services+=("frontend")
-          fi
+          # if [ "${{ steps.filter.outputs.frontend }}" == "true" ]; then
+          #   services+=("frontend")
+          # fi
           if [ "${{ steps.filter.outputs.matchmaking }}" == "true" ]; then
             services+=("matchmaking")
           fi
