@@ -49,7 +49,7 @@ export class Protagonist extends Player implements IProtagonist {
       rotation: this.rotation
     });
     this.keyGridMesh = MeshBuilder.CreatePlane(
-      'keyGridMesh',
+      gameConfig.keyGridMeshName,
       {
         height: config.goalDimensions.y,
         width: config.goalDimensions.x,
@@ -58,9 +58,12 @@ export class Protagonist extends Player implements IProtagonist {
       scene
     );
     this.keyGridMesh.position = config.goalPosition;
-    const gridMaterial = new GridMaterial('grid', scene);
-    gridMaterial.opacity = 0.99;
-    gridMaterial.majorUnitFrequency = 0.99;
+    const gridMaterial = new GridMaterial(
+      gameConfig.keyGridMaterialName,
+      scene
+    );
+    gridMaterial.opacity = gameConfig.KeyGridMaterialOpacity;
+    gridMaterial.majorUnitFrequency = gameConfig.KeyGridMaterialMUF;
     if (this.keyGrid.length % 2) {
       gridMaterial.gridRatio = this.goalDimensions.x / this.ratioDiv;
       const offset = gridMaterial.gridRatio / 2;
@@ -77,13 +80,15 @@ export class Protagonist extends Player implements IProtagonist {
     this.keyGrid.grid.forEach((values, keys) => {
       const content = keys.replace('+', '');
       const text = MeshBuilder.CreateText(
-        'myText',
+        keys + 'Mesh',
         content,
         fontData,
         {
-          size: this.goalDimensions.x / (this.ratioDiv * 4),
-          resolution: 20,
-          depth: 0.1
+          size:
+            this.goalDimensions.x /
+            (this.ratioDiv * gameConfig.keyGridRatioMultipler),
+          resolution: gameConfig.keyGridTextResolution,
+          depth: gameConfig.keyGridTextDepth
         },
         scene,
         earcut
@@ -91,11 +96,13 @@ export class Protagonist extends Player implements IProtagonist {
       if (text) {
         text.position = new Vector3(values.x, values.y, this.goalPosition.z);
         text.rotation.y = this.rotation ? Math.PI : 0;
-        const material = new StandardMaterial('transparent', scene);
+        const material = new StandardMaterial(
+          gameConfig.keyGridMaterialName,
+          scene
+        );
         text.material = material;
         if (text.material) {
-          // text.material.wireframe = true;
-          text.material.alpha = 0.15;
+          text.material.alpha = gameConfig.keyGridTextMaterialAlpha;
           text.material.backFaceCulling = false;
         }
         this.keyGridHints.push(text);

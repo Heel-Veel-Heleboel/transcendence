@@ -39,7 +39,18 @@ const gameConfig = {
 
   // NOTE: KEYMANAGER
   keyLimit: 13,
-  handlePrecisionRatio: 25
+  handlePrecisionRatio: 25,
+
+  // NOTE: KEYGRID
+  keyGridMeshName: 'keyGridMesh',
+  keyGridMaterialName: 'keyGridMaterial',
+  KeyGridMaterialOpacity: 0.99,
+  KeyGridMaterialMUF: 0.99,
+  keyGridRatioMultipler: 4,
+  keyGridTextResolution: 20,
+  keyGridTextDepth: 0.1,
+  keyGridTextMaterialName: 'transparentText',
+  keyGridTextMaterialAlpha: 0.15
 };
 
 export default gameConfig;
