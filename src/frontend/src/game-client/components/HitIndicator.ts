@@ -13,6 +13,7 @@ import { Hack } from './Hack';
 
 import { HitIndicatorConfig } from '../types/Types';
 import gameConfig from '../utils/GameConfig';
+import { createNewLines, createUpdatedLines } from '../utils/Create';
 
 /* v8 ignore start */
 export class HitIndicator {
@@ -89,17 +90,14 @@ export class HitIndicator {
         updatable: true,
         instance: hack.lines as LinesMesh // NOTE: no scene parameter needed with options.instance, used for updates
       };
-      hack.lines = MeshBuilder.CreateLines(
-        gameConfig.hitLinesMeshName,
-        options
-      );
+      hack.lines = createUpdatedLines(gameConfig.hitLinesMeshName, options);
     } else {
       const options = {
         points: [hack.mesh.absolutePosition, intersectionPoint],
         updatable: true
       };
 
-      const lines = MeshBuilder.CreateLines(
+      const lines = createNewLines(
         gameConfig.hitLinesMeshName,
         options,
         this.scene

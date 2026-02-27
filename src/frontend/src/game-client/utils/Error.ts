@@ -13,7 +13,13 @@ const Errors = {
 
   // NOTE: HUD
   FAILED_HUD_IMPORT: 'Failed to import hud',
-  MISSING_HUD_CONTROL: 'Missing necessary hud control'
+  MISSING_HUD_CONTROL: 'Missing necessary hud control',
+
+  // NOTE: HITINDICATOR
+  FAILED_LINES_INIT: 'Failed to initialize lines',
+
+  // NOTE: CREATE
+  FAILED_MATERIAL_INIT: 'Failed to initialization material'
 };
 
 export default Errors;

@@ -5,10 +5,14 @@ import {
   MeshBuilder,
   Vector3,
   HemisphericLight,
-  Color3
+  Color3,
+  StandardMaterial,
+  LinesMesh
 } from '@babylonjs/core';
 import { Hack } from '../components/Hack.ts';
 import { Arena } from '../components/Arena.ts';
+import gameConfig from './GameConfig.ts';
+import Errors from './Error.ts';
 
 /* v8 ignore start */
 export function createCamera(scene: Scene, distance: number) {
@@ -58,5 +62,47 @@ export function createBgMusic(scene: Scene) {
     autoplay: true
   });
   return bg;
+}
+
+export function createStandardMaterial(name: string, scene: Scene) {
+  const material = new StandardMaterial(gameConfig.arenaMaterialName, scene);
+  if (unitializedCheck(material)) {
+    throw new Error(Errors.FAILED_MATERIAL_INIT);
+  }
+  return material;
+}
+
+export function createNewLines(
+  name: string,
+  options: { points: Vector3[]; updatable: boolean },
+  scene: Scene
+) {
+  const lines = MeshBuilder.CreateLines(name, options, scene);
+  if (unitializedCheck(lines)) {
+    throw new Error(Errors.FAILED_LINES_INIT);
+  }
+  return lines;
+}
+
+export function createUpdatedLines(
+  name: string,
+  options: {
+    points: Vector3[];
+    updatable: boolean;
+    instance: LinesMesh;
+  }
+) {
+  const lines = MeshBuilder.CreateLines(name, options);
+  if (unitializedCheck(lines)) {
+    throw new Error(Errors.FAILED_LINES_INIT);
+  }
+  return lines;
+}
+
+function unitializedCheck(entity: any) {
+  if (!entity || typeof entity === 'undefined') {
+    return true;
+  }
+  return false;
 }
 /* v8 ignore stop */

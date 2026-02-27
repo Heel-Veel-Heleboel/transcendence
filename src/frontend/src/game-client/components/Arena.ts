@@ -8,6 +8,7 @@ import {
 } from '@babylonjs/core';
 import gameConfig from '../utils/GameConfig';
 import Errors from '../utils/Error';
+import { createStandardMaterial } from '../utils/Create';
 
 /* v8 ignore start */
 export class Arena implements IArena {
@@ -24,7 +25,7 @@ export class Arena implements IArena {
       .then(result => {
         if (result.meshes.length !== gameConfig.arenaMeshesCount)
           throw Error(Errors.INVALID_ARENA_FORMAT);
-        const material = new StandardMaterial(
+        const material = createStandardMaterial(
           gameConfig.arenaMaterialName,
           scene
         );
