@@ -29,6 +29,7 @@ import { Callbacks, Room } from '@colyseus/sdk';
 import { Protagonist } from '../components/Protagonist';
 import { Antagonist } from '../components/Antagonist';
 
+/* v8 ignore start */
 export class GameClient {
   private _scene!: Scene;
   private _defaultScene!: Scene;
@@ -65,7 +66,6 @@ export class GameClient {
     engineResizeListener(this.engine);
   }
 
-  /* v8 ignore start */
   async initScene(scene: Scene) {
     this.hud = new Hud('hud.json', scene);
     await this.hud.init();

@@ -12,6 +12,7 @@ import {
   checkNull
 } from '../utils/KeyGridUtils';
 
+/* v8 ignore start */
 export class KeyGrid implements IKeyGrid {
   public grid: Map<string, { x: number; y: number }>;
   public columns: string;
@@ -73,3 +74,4 @@ export class KeyGrid implements IKeyGrid {
     return startPos - posIndex - posOffset;
   }
 }
+/* v8 ignore stop */

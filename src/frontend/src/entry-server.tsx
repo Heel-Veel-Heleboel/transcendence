@@ -14,4 +14,4 @@ export function render({ path }: { path: string }) {
     )
     return { html }
 }
-/* v8 ignore start */
+/* v8 ignore stop */

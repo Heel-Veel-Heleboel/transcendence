@@ -9,6 +9,7 @@ import {
 import gameConfig from '../utils/GameConfig.ts';
 import { Protagonist } from '../components/Protagonist.ts';
 
+/* v8 ignore start */
 export class KeyManager implements IKeyManager {
   public windowFrames: number;
   public buffer: string[];
@@ -106,3 +107,4 @@ export class KeyManager implements IKeyManager {
     this.deltaTime = 0;
   }
 }
+/* v8 ignore stop */

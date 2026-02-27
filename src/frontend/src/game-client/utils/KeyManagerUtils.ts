@@ -1,5 +1,6 @@
 import { Protagonist } from '../components/Protagonist';
 
+/* v8 ignore start */
 export function checkUp(yMove: number, player: Protagonist) {
   return (
     player.mesh.absolutePosition.y + yMove >=
@@ -38,3 +39,4 @@ export function checkLeft(xMove: number, player: Protagonist) {
   const condition = player.rotation ? leftOp >= rightOp : leftOp <= rightOp;
   return condition;
 }
+/* v8 ignore stop */

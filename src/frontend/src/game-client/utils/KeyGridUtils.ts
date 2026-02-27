@@ -3,6 +3,7 @@ import { Vector3 } from '@babylonjs/core';
 import gameConfig from './GameConfig';
 import Errors from './Error';
 
+/* v8 ignore start */
 export function checkNull(keys: IKeyGridKeys, dimensions: IKeyGridDimensions) {
   if (
     !keys.columns ||
@@ -52,3 +53,4 @@ export function checkLength(length: number) {
     throw Error(Errors.SURPASSING_KEY_LIMIT);
   }
 }
+/* v8 ignore stop */

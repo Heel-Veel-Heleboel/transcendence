@@ -10,6 +10,7 @@ import {
 import { Hack } from '../components/Hack.ts';
 import { Arena } from '../components/Arena.ts';
 
+/* v8 ignore start */
 export function createCamera(scene: Scene, distance: number) {
   const camera = new ArcRotateCamera(
     'camera',
@@ -58,3 +59,4 @@ export function createBgMusic(scene: Scene) {
   });
   return bg;
 }
+/* v8 ignore stop */

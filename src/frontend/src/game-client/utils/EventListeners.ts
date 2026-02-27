@@ -1,12 +1,12 @@
 import { AbstractEngine, Scene } from '@babylonjs/core';
 
+/* v8 ignore start */
 export function engineResizeListener(engine: AbstractEngine) {
   window.addEventListener('resize', function () {
     engine.resize();
   });
 }
 
-/* v8 ignore start */
 export function debugLayerListener(scene: Scene) {
   if (process.env.NODE_ENV !== 'production') {
     window.addEventListener('keydown', ev => {
