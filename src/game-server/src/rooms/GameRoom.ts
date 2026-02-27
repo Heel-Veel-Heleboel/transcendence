@@ -18,7 +18,7 @@ export class GameRoom extends Room {
     }
   };
 
-  async onCreate(options: any) {
+  async onCreate(_options: any) {
     this.engine = new GameEngine(this);
     await this.engine.initGame();
     /**
@@ -26,7 +26,7 @@ export class GameRoom extends Room {
      */
   }
 
-  onJoin(client: Client, options: any) {
+  onJoin(client: Client, _options: any) {
     console.log(client.sessionId, 'joined!');
 
     const hostConfig = {

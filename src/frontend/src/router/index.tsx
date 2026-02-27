@@ -29,6 +29,7 @@ export const Router = () => {
         <AuthProvider>
             <RoomProvider>
                 <Routes>
+
                     <Route path="/" element={<StartMenu />} />
                     <Route path="/game" element={<Game />} />
                     <Route path="/menu" element={<Menu />} />

@@ -113,13 +113,13 @@ export class Protagonist extends Player implements IProtagonist {
   movePrecise(coord: { x: number; y: number }) {
     const pos = this.rotation
       ? {
-          x: (this.mesh.position.x -= coord.x),
-          y: (this.mesh.position.y += coord.y)
-        }
+        x: (this.mesh.position.x -= coord.x),
+        y: (this.mesh.position.y += coord.y)
+      }
       : {
-          x: (this.mesh.position.x += coord.x),
-          y: (this.mesh.position.y += coord.y)
-        };
+        x: (this.mesh.position.x += coord.x),
+        y: (this.mesh.position.y += coord.y)
+      };
     this.room.send('set-position', pos);
   }
 

@@ -63,6 +63,8 @@ const gameConfig = {
   keyGridTextDepth: 0.1,
   keyGridTextMaterialName: 'transparentText',
   keyGridTextMaterialAlpha: 0.15,
+  keyGridSeperator: '+',
+  keyGridPrecisionSeperator: ';',
 
   // NOTE: EXTRA
   rootTransformNodeName: 'tr'

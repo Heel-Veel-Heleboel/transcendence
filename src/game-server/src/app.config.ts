@@ -30,7 +30,7 @@ const server = defineServer({
    *
    */
   routes: createRouter({
-    api_hello: createEndpoint('/api/hello', { method: 'GET' }, async ctx => {
+    api_hello: createEndpoint('/api/hello', { method: 'GET' }, async _ctx => {
       return { message: 'Hello World' };
     })
   }),
