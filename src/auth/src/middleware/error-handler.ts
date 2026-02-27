@@ -2,9 +2,23 @@ import { FastifyReply, FastifyRequest, FastifyError } from 'fastify';
 import { AuthenticationError, AuthorizationError, ResourceNotFoundError } from '../error/auth.js';
 
 
-function isValidationError(error: unknown): error is { validation: unknown } {
-  return typeof error === 'object' && error !== null && 'validation' in error;
+interface ValidationError {
+  instancePath: string;
+  message?: string;
+  params?: {
+    limit?: number;
+    [key: string]: unknown;
+  };
 }
+
+function isFastifyValidationError(
+  error: unknown
+): error is { validation: ValidationError[] }{
+  return (
+    typeof error === 'object' && error !== null && 'validation' in error
+  );
+}
+
 
 export function authErrorHandler(
   error: FastifyError | Error,
@@ -37,12 +51,31 @@ export function authErrorHandler(
     });
   }
 
-  if (isValidationError(error)) {
-    return reply.status(400).send({
+
+  if (isFastifyValidationError(error)) {
+    const details = error.validation.map(item => {
+      const path = item.instancePath.replace(/^\//, '');
+      let message = item.message || '';
+      
+      if (item.message?.includes('minLength')) {
+        message = `${path || 'Field'} must be at least ${item.params?.limit || 3} characters long`;
+      } else if (item.message?.includes('maxLength')) {
+        message = `${path || 'Field'} must not exceed ${item.params?.limit || 20} characters`;
+      } else if (item.message?.includes('pattern')) {
+        message = path === 'user_name' 
+          ? 'Username can only contain letters, numbers, and underscores'
+          : message;
+      } else if (item.message?.includes('format') && path === 'email') {
+        message = 'Must be a valid email address';
+      }
+      return { path, message };
+    });
+    
+    return reply.code(400).send({
       statusCode: 400,
       error: 'Bad Request',
-      message: 'Validation failed',
-      details: error.validation
+      message: 'Validation error occurred',
+      details
     });
   }
 

@@ -1,4 +1,4 @@
-import { UserManagementService } from '../types/user-management-service.js';
+import { UserManagementClient } from '../client/user-management.js';
 import { ICredentialsDao } from '../types/daos/credentials.js';
 import { IRefreshTokenDao } from '../types/daos/refresh-token.js';
 import {
@@ -27,38 +27,33 @@ import * as SchemaTypes from '../schemas/auth.js';
  * Authentication Service
  *
  * Provides methods for user registration and authentication.
- * Utilizes UserManagementService for user operations,
+ * Utilizes UserManagementClient for user operations,
  * ICredentialsDao for managing user credentials,
  * and IRefreshTokenDao for handling refresh tokens.
  */
 
 export class AuthService {
   constructor(
-    private readonly userService: UserManagementService,
+    private readonly userService: UserManagementClient,
     private readonly credentialsDao: ICredentialsDao,
     private readonly refreshTokenDao: IRefreshTokenDao
   ) {}
 
-  async register(
-    registerDto: SchemaTypes.RegistrationSchemaType
-  ): Promise<SafeUserDto> {
-    const uId = await this.userService.createUser(
-      registerDto.email,
-      registerDto.user_name
-    );
 
+  async register(registerDto: SchemaTypes.RegistrationSchemaType): Promise<SafeUserDto> {
+    const user_id = await this.userService.createUser(registerDto.email, registerDto.user_name);
     try {
       const hashed_password = await passwordHasher(
         registerDto.password,
         SaltLimits
       );
       await this.credentialsDao.create({
-        user_id: uId,
+        user_id: user_id,
         password: hashed_password
       });
     } catch (error) {
       try {
-        await this.userService.deleteUser(uId);
+        await this.userService.deleteUser(user_id);
       } catch (cleanupError) {
         console.error(
           AUTH_ERROR_MESSAGES.REGISTRATION_CLEANUP_FAILED,
@@ -67,7 +62,7 @@ export class AuthService {
       }
       throw error;
     }
-    return { id: uId, name: registerDto.user_name, email: registerDto.email };
+    return { id: user_id, name: registerDto.user_name, email: registerDto.email };
   }
 
   async login(login: SchemaTypes.LoginSchemaType): Promise<LoggedInUserDto> {
@@ -99,11 +94,8 @@ export class AuthService {
     });
     const refresh_token = generateRefreshToken(REFRESH_TOKEN_SIZE);
 
-    await this.refreshTokenDao.store({
-      id: refresh_token.id,
-      user_id: user.id,
-      hashed_refresh_token: refresh_token.hashed_refresh_token
-    });
+    await this.refreshTokenDao.store( { id: refresh_token.id, user_id: user.id, hashed_refresh_token: refresh_token.hashed_refresh_token } );
+    await this.userService.updateActivityStatus(user.id, 'ONLINE');
     return {
       access_token: access_token,
       refresh_token: refresh_token.refresh_token,
@@ -122,6 +114,7 @@ export class AuthService {
       refresh_token: refresh_token
     });
     await this.refreshTokenDao.revoke({ id: tokenId });
+    await this.userService.updateActivityStatus(logout.user_id, 'OFFLINE');
   }
 
   async refresh(

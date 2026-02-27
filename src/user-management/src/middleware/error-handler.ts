@@ -3,9 +3,18 @@ import  * as UserErrors from '../error/user.js';
 import { UserDomainErrorMessages, CommonErrorMessages } from '../constants/error-messages.js';
 
 
+interface ValidationError {
+  instancePath: string;
+  message?: string;
+  params?: {
+    limit?: number;
+    [key: string]: unknown;
+  };
+}
+
 function isFastifyValidationError(
   error: unknown
-): error is { validation: Array<{ instancePath: string; message: string }> }{
+): error is { validation: ValidationError[] }{
   return (
     typeof error === 'object' && error !== null && 'validation' in error
   );
@@ -15,7 +24,7 @@ export function errorHandler(
   error: FastifyError | Error,
   request: FastifyRequest,
   reply: FastifyReply
-): FastifyReply
+): FastifyReply | Promise<FastifyReply>
 {
   request.log.error({ error: error }, 'User-management error occurred');
 
@@ -24,7 +33,9 @@ export function errorHandler(
     return reply.code(409).send({
       statusCode: 409,
       error: 'Conflict',
-      message: error.unique_field === 'email' ? UserDomainErrorMessages.EMAIL_ALREADY_EXISTS : UserDomainErrorMessages.NAME_ALREADY_EXISTS
+      message: error.unique_field === 'email' 
+        ? UserDomainErrorMessages.EMAIL_ALREADY_EXISTS 
+        : UserDomainErrorMessages.NAME_ALREADY_EXISTS
     });
   }
 
@@ -45,17 +56,18 @@ export function errorHandler(
   }
 
   if (isFastifyValidationError(error)) {
-    const details = ( error as FastifyError).validation?.map(item => ({
+    const details = error.validation.map(item => ({
       path: item.instancePath.replace(/^\//, ''),
-      message: item.message
+      message: item.message || ''
     }));
     return reply.code(400).send({
       statusCode: 400,
       error: 'Bad Request',
       message: CommonErrorMessages.VALIDATION_ERROR,
-      details: details
+      details
     });
   }
+
 
   return reply.code(500).send({
     statusCode: 500,

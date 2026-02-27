@@ -69,6 +69,4 @@ enum FriendshipStatus {
 enum ActivityStatus {
   ONLINE
   OFFLINE
-  AWAY
-  BUSY
 }

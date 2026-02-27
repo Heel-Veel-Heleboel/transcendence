@@ -10,7 +10,8 @@ vi.mock('../../src/utils/password-hash.js');
 vi.mock('../../src/utils/jwt.js');
 
 const mockUserService = {
-  findUserByEmail: vi.fn()
+  findUserByEmail: vi.fn(),
+  updateActivityStatus: vi.fn()
 };
 const mockCredentialDao = {
   create: vi.fn(),
@@ -90,6 +91,9 @@ describe('AuthService - Login', () => {
       hashed_refresh_token: mockRefreshTokenResult.hashed_refresh_token
     });
     expect(mockRefreshTokenDao.store).toBeCalledTimes(1);
+
+    expect(mockUserService.updateActivityStatus).toHaveBeenCalledWith(mockUser.id, 'ONLINE');
+    expect(mockUserService.updateActivityStatus).toBeCalledTimes(1);
 
     expect(result).toEqual({
       access_token: mockAccessToken,
@@ -377,6 +381,7 @@ describe('AuthService - Login', () => {
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
     mockRefreshTokenDao.store.mockResolvedValue(undefined);
+    mockUserService.updateActivityStatus.mockResolvedValue(undefined);
 
     const result = await authService.login(loginDto);
 
@@ -448,6 +453,7 @@ describe('AuthService - Login', () => {
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
     mockRefreshTokenDao.store.mockResolvedValue(undefined);
+    mockUserService.updateActivityStatus.mockResolvedValue(undefined);
 
     const result = await authService.login(loginDto);
 

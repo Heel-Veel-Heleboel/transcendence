@@ -10,7 +10,11 @@ describe('authErrorHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRequest = { log: { error: vi.fn() } };
-    mockReply = { status: vi.fn().mockReturnThis(), send: vi.fn() };
+    mockReply = { 
+      status: vi.fn().mockReturnThis(), 
+      code: vi.fn().mockReturnThis(), 
+      send: vi.fn() 
+    };
   });
 
   afterEach(() => {
@@ -62,12 +66,12 @@ describe('authErrorHandler', () => {
     authErrorHandler(error as any, mockRequest as any, mockReply as any);
 
     expect(mockRequest.log.error).toHaveBeenCalledWith({ err: error }, 'Authentication/Authorization error occurred');
-    expect(mockReply.status).toHaveBeenCalledWith(400);
+    expect(mockReply.code).toHaveBeenCalledWith(400);
     expect(mockReply.send).toHaveBeenCalledWith({
       statusCode: 400,
       error: 'Bad Request',
-      message: 'Validation failed',
-      details: validation
+      message: 'Validation error occurred',
+      details: [{ path: 'email', message: 'must be email' }]
     });
   });
 

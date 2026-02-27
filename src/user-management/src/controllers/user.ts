@@ -8,9 +8,9 @@ export class UserController {
 
   async createUser(req: FastifyRequest<{ Body: SchemaTypes.CreateUserSchemaType }>, res: FastifyReply) {
     req.log.info({ email: req.body.user_email }, 'Create user attempt');
-    const user_id = await this.userService.createUser(req.body);
-    req.log.info({ user_id }, 'User created successfully');
-    res.status(201).send({ user_id });
+    const user = await this.userService.createUser(req.body);
+    req.log.info({ user_id: user.id }, 'User created successfully');
+    res.status(201).send({ user_id: user.id });
   }
 
   async deleteUser(req: FastifyRequest<{ Body: SchemaTypes.DeleteUserSchemaType }>, res: FastifyReply) {
