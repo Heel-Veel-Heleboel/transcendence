@@ -99,6 +99,26 @@ export function createUpdatedLines(
   return lines;
 }
 
+export function createVector3(x: number, y: number, z: number) {
+  const v = new Vector3(x, y, z);
+  if (unitializedCheck(v)) {
+    throw new Error(Errors.FAILED_ENTITY_INIT);
+  }
+  return v;
+}
+
+export function createBox(
+  name: string,
+  options: { height: number; width: number; depth: number },
+  scene: Scene
+) {
+  const box = MeshBuilder.CreateBox(name, options, scene);
+  if (unitializedCheck(box)) {
+    throw new Error(Errors.FAILED_MESH_INIT);
+  }
+  return box;
+}
+
 function unitializedCheck(entity: any) {
   if (!entity || typeof entity === 'undefined') {
     return true;

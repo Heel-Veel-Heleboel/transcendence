@@ -19,7 +19,9 @@ const Errors = {
   FAILED_LINES_INIT: 'Failed to initialize lines',
 
   // NOTE: CREATE
-  FAILED_MATERIAL_INIT: 'Failed to initialization material'
+  FAILED_MATERIAL_INIT: 'Failed to initialization material',
+  FAILED_MESH_INIT: 'Failed to initialization mesh',
+  FAILED_ENTITY_INIT: 'Failed to initialization babylon entity'
 };
 
 export default Errors;
