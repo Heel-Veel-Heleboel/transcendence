@@ -8,7 +8,8 @@ import {
   Color3,
   StandardMaterial,
   LinesMesh,
-  TransformNode
+  TransformNode,
+  HavokPlugin
 } from '@babylonjs/core';
 import { Hack } from '../components/Hack.ts';
 import { Arena } from '../components/Arena.ts';
@@ -195,6 +196,14 @@ export function createTransformNode(name: string, scene: Scene) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
   return node;
+}
+
+export function createHavokPlugin(useDeltaWorldStep: boolean, hkInstance: any) {
+  const havokPlugin = new HavokPlugin(useDeltaWorldStep, hkInstance);
+  if (unitializedCheck(havokPlugin)) {
+    throw new Error(Errors.FAILED_ENTITY_INIT);
+  }
+  return havokPlugin;
 }
 
 function unitializedCheck(entity: any) {

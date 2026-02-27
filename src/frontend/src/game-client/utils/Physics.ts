@@ -1,10 +1,11 @@
 import HavokPhysics from '@babylonjs/havok';
-import { HavokPlugin, Vector3, Scene } from '@babylonjs/core';
+import { Scene } from '@babylonjs/core';
+import { createHavokPlugin, createVector3Zero } from './Create';
 
 /* v8 ignore start */
 export async function initializePhysics(scene: Scene) {
   const havokInstance = await HavokPhysics();
-  const havokPlugin = new HavokPlugin(true, havokInstance);
-  scene.enablePhysics(new Vector3(0, 0, 0), havokPlugin);
+  const havokPlugin = createHavokPlugin(true, havokInstance);
+  scene.enablePhysics(createVector3Zero(), havokPlugin);
 }
 /* v8 ignore stop */
