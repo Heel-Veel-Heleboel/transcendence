@@ -19,6 +19,7 @@ export class Hud implements IHud {
       true,
       scene
     );
+
     // NOTE: ideal width/height is set to insure good initialization
     this.texture.idealWidth = gameConfig.guiTextureWidth;
     this.texture.idealHeight = gameConfig.guiTextureHeight;
@@ -28,8 +29,8 @@ export class Hud implements IHud {
     try {
       await this.texture.parseFromURLAsync(this.filePath);
     } catch (e: any) {
-      console.error(Errors.FAILED_HUD_IMPORT);
       console.error(e);
+      throw new Error(Errors.FAILED_HUD_IMPORT);
     }
     this.initializeControls();
   }
@@ -38,15 +39,14 @@ export class Hud implements IHud {
     const healthMeter = this.texture.getControlByName(
       gameConfig.guiHealtControlName
     );
-    if (healthMeter) {
-      this.healthMeter = healthMeter;
-    }
     const manaMeter = this.texture.getControlByName(
       gameConfig.guiManaControlName
     );
-    if (manaMeter) {
-      this.manaMeter = manaMeter;
+    if (!healthMeter || !manaMeter) {
+      throw new Error(Errors.MISSING_HUD_CONTROL);
     }
+    this.healthMeter = healthMeter;
+    this.manaMeter = manaMeter;
   }
 
   changeHealth(n: number) {
@@ -57,7 +57,7 @@ export class Hud implements IHud {
     this.changeControl(this.manaMeter, n);
   }
 
-  changeControl(control: Control, n: number) {
+  private changeControl(control: Control, n: number) {
     if (typeof control.width === 'string') {
       const value = parseFloat(control.width);
       const newValue = this.checkEdges(value + n);
@@ -74,16 +74,16 @@ export class Hud implements IHud {
     return newValue;
   }
 
-  set texture(texture: AdvancedDynamicTexture) {
+  private set texture(texture: AdvancedDynamicTexture) {
     this._texture = texture;
   }
-  get texture() {
+  private get texture() {
     return this._texture;
   }
-  set filePath(filePath: string) {
+  private set filePath(filePath: string) {
     this._filePath = filePath;
   }
-  get filePath() {
+  private get filePath() {
     return this._filePath;
   }
 }
