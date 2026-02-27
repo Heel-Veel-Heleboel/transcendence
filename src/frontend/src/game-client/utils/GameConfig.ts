@@ -16,6 +16,7 @@ const gameConfig = {
 
   // NOTE: HACK
   hackDeath: 0,
+  hackName: 'hack_',
 
   // NOTE: HITINDICATOR
   hitIndicatorFrontColor: { r: 1, g: 0, b: 0 },
@@ -55,8 +56,11 @@ const gameConfig = {
   // NOTE: EXTRA
   rootTransformNodeName: 'tr',
 
-  // NOTE: CAMERA
-  mainCameraName: 'mainCamera'
+  // NOTE: SCENE
+  mainCameraName: 'mainCamera',
+  lightName: 'hemiLight',
+  bgSoundName: 'backgroundMusic',
+  bgSoundPath: '/public/loop.mp3'
 };
 
 export default gameConfig;

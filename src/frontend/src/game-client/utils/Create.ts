@@ -36,8 +36,9 @@ export function createCamera(scene: Scene, distance: number) {
 }
 
 export function createHack(scene: Scene, pos: Vector3, diameter: number) {
+  const time = Math.floor(Date.now() / 1000);
   const _hack = MeshBuilder.CreateSphere(
-    'hack',
+    gameConfig.hackName + time,
     {
       diameter: diameter
     },
@@ -51,21 +52,31 @@ export function createHack(scene: Scene, pos: Vector3, diameter: number) {
 }
 
 export function createLight(scene: Scene) {
-  const light = new HemisphericLight('hemiLight', new Vector3(-1, 1, 0), scene);
+  const light = new HemisphericLight(
+    gameConfig.lightName,
+    createVector3(-1, 1, 0),
+    scene
+  );
   if (unitializedCheck(light)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
-  light.diffuse = new Color3(1, 0, 0);
-  light.specular = new Color3(0, 1, 0);
-  light.groundColor = new Color3(0, 1, 0);
+  light.diffuse = createColor3(1, 0, 0);
+  light.specular = createColor3(0, 1, 0);
+  light.groundColor = createColor3(0, 1, 0);
   return light;
 }
 
 export function createBgMusic(scene: Scene) {
-  const bg = new Sound('mySong', '/public/loop.mp3', scene, null, {
-    loop: true,
-    autoplay: true
-  });
+  const bg = new Sound(
+    gameConfig.bgSoundName,
+    gameConfig.bgSoundPath,
+    scene,
+    null,
+    {
+      loop: true,
+      autoplay: true
+    }
+  );
   if (unitializedCheck(bg)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
@@ -73,7 +84,7 @@ export function createBgMusic(scene: Scene) {
 }
 
 export function createStandardMaterial(name: string, scene: Scene) {
-  const material = new StandardMaterial(gameConfig.arenaMaterialName, scene);
+  const material = new StandardMaterial(name, scene);
   if (unitializedCheck(material)) {
     throw new Error(Errors.FAILED_MATERIAL_INIT);
   }
