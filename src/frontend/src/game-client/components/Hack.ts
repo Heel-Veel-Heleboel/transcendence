@@ -18,12 +18,12 @@ export class Hack implements IHack {
   }
 
   isDead(): boolean {
-    const dead = this.lifespan < gameConfig.gameDead;
+    const dead = this.lifespan < gameConfig.hackDeath;
     return dead;
   }
 
   dispose(): void {
-    this.lifespan = gameConfig.gameDead - 1;
+    this.lifespan = gameConfig.hackDeath - 1;
     this.mesh.dispose();
     if (this.lines) {
       this.lines.dispose();
