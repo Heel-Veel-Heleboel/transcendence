@@ -1,43 +1,43 @@
 {
-  "name": "auth",
-  "version": "1.0.0",
-  "description": "",
-  "license": "ISC",
-  "author": "Artem Mysiv",
-  "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "start": "NODE_ENV=production node --env-file-if-exists=.env dist/src/index.js",
-    "dev": "NODE_ENV=development node --env-file-if-exists=.env tsx src/index.ts",
-    "build": "tsc -p tsconfig.json",
-    "clean": "rm -rf ../../dist/auth",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest --watch"
-  },
-  "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^20.19.25",
-    "@vitest/coverage-v8": "^3.2.4",
-    "dotenv": "^16.6.1",
-    "prisma": "^7.2.0",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
-  },
-  "dependencies": {
-    "fastify": "^5.4.0",
-    "@fastify/cookie": "^11.0.2",
-    "@fastify/type-provider-typebox": "^6.1.0",
-    "@prisma/adapter-better-sqlite3": "^7.2.0",
-    "@prisma/client": "^7.2.0",
-    "@sinclair/typebox": "^0.34.47",
-    "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.5.0",
-    "jsonwebtoken": "^9.0.3",
-    "typebox": "^1.0.13",
-    "zod": "^4.1.13"
-  }
+    "name": "auth",
+    "version": "1.0.0",
+    "description": "",
+    "license": "ISC",
+    "author": "Artem Mysiv",
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+        "start": "NODE_ENV=production node --env-file-if-exists=.env dist/src/index.js",
+        "dev": "npx prisma migrate deploy && npx prisma generate && npm run build && npm run start",
+        "build": "tsc -p tsconfig.json",
+        "clean": "rm -rf ../../dist/auth",
+        "test": "vitest",
+        "test:run": "vitest run",
+        "test:coverage": "vitest run --coverage",
+        "test:watch": "vitest --watch"
+    },
+    "devDependencies": {
+        "@types/bcryptjs": "^2.4.6",
+        "@types/jsonwebtoken": "^9.0.10",
+        "@types/node": "^20.19.25",
+        "@vitest/coverage-v8": "^3.2.4",
+        "dotenv": "^16.6.1",
+        "prisma": "^7.2.0",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3",
+        "vitest": "^3.2.4"
+    },
+    "dependencies": {
+        "fastify": "^5.4.0",
+        "@fastify/cookie": "^11.0.2",
+        "@fastify/type-provider-typebox": "^6.1.0",
+        "@prisma/adapter-better-sqlite3": "^7.2.0",
+        "@prisma/client": "^7.2.0",
+        "@sinclair/typebox": "^0.34.47",
+        "bcryptjs": "^3.0.3",
+        "better-sqlite3": "^12.5.0",
+        "jsonwebtoken": "^9.0.3",
+        "typebox": "^1.0.13",
+        "zod": "^4.1.13"
+    }
 }

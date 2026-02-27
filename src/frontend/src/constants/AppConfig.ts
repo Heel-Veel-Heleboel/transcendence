@@ -44,5 +44,31 @@ export const CONFIG = Object.create({
   NEOFETCH_TITLE: 'trinityfetch',
   NEOFETCH_LOGO: 'trinityfetch.png', // <a href="https://www.flaticon.com/free-icons/crocodile" title="crocodile icons">Crocodile icons created by Freepik - Flaticon</a>
   MUSICPLAYER_TITLE: 'mtvx',
-  MUSICPLAYER_LOGO: 'mtvx.png' // <a href="https://www.flaticon.com/free-icons/vinyl" title="vinyl icons">Vinyl icons created by Roundicons - Flaticon</a>
+  MUSICPLAYER_LOGO: 'mtvx.png', // <a href="https://www.flaticon.com/free-icons/vinyl" title="vinyl icons">Vinyl icons created by Roundicons - Flaticon</a>
+
+  // AXIOS
+  REQUEST_BASE_URL: 'http://localhost:3000/',
+  REQUEST_REGISTER: 'api/auth/register',
+  REQUEST_REGISTER_METHOD: 'POST',
+  REQUEST_REGISTER_HEADERS: {
+    'Content-Type': 'application/json'
+  },
+  REQUEST_REGISTER_CREDENTIALS_TAKEN: 500,
+  REQUEST_SIGNIN: 'api/auth/login',
+  REQUEST_SIGNIN_METHOD: 'POST',
+  REQUEST_SIGNIN_HEADERS: {
+    'Content-Type': 'application/json'
+  },
+  REQUEST_LOGOUT: 'api/auth/logout',
+  REQUEST_LOGOUT_METHOD: 'POST',
+  REQUEST_LOGOUT_HEADERS: {
+    'Content-Type': 'application/json'
+  },
+  REQUEST_LOGOUT_SUCCESFULL: 204,
+  REQUEST_REFRESH: 'api/auth/refresh',
+  REQUEST_REFRESH_METHOD: 'POST',
+  REQUEST_REFRESH_HEADERS: {
+    'Content-Type': 'application/json'
+  },
+  REQUEST_REFRESH_UNAUTHORIZED: 401
 });

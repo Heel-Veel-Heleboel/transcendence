@@ -3,7 +3,11 @@ import { PasswordPolicyConfig } from '../config/password.js';
 
 //registration schema
 export const RegistrationSchemaBody = Type.Object({
-  user_name: Type.String({ minLength: 3, maxLength: 20, pattern: '^[a-zA-Z0-9_]+$' }),
+  user_name: Type.String({
+    minLength: 3,
+    maxLength: 20,
+    pattern: '^[a-zA-Z0-9_]+$'
+  }),
   email: Type.String({
     format: 'email'
   }),
@@ -15,8 +19,6 @@ export type RegistrationSchemaType = Static<typeof RegistrationSchemaBody>;
 export const RegistrationSchema = {
   body: RegistrationSchemaBody
 };
-
-
 
 //login schema
 export const LoginSchemaBody = Type.Object({
@@ -30,11 +32,9 @@ export const LoginSchema = {
   body: LoginSchemaBody
 };
 
-
 //logout schema
 export const LogoutSchemaBody = Type.Object({
-  user_id: Type.Number(),
-  refresh_token: Type.String()
+  user_id: Type.Number()
 });
 //type for logout schema
 export type LogoutSchemaType = Static<typeof LogoutSchemaBody>;
@@ -66,5 +66,3 @@ export type ChangePasswordSchemaType = Static<typeof ChangePasswordSchemaBody>;
 export const ChangePasswordSchema = {
   body: ChangePasswordSchemaBody
 };
-
-
