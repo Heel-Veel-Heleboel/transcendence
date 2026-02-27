@@ -7,6 +7,7 @@ const Errors = {
   SURPASSING_KEY_LIMIT: 'surpassing the maximum amount of keys',
   //Arena
   INVALID_ARENA_FORMAT: 'arena wrongly formatted',
+  FAILED_ARENA_IMPORT: 'failed to import arena mesh',
   //Hud
   FAILED_HUD_IMPORT: 'failed to import hud'
 };

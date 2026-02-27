@@ -18,7 +18,7 @@ export class Arena implements IArena {
   constructor() {}
 
   async initMesh(scene: Scene) {
-    const model = ImportMeshAsync(gameConfig.arenaImportpath, scene);
+    const model = this.importMesh(scene);
 
     await model
       .then(result => {
@@ -34,9 +34,19 @@ export class Arena implements IArena {
         }
       })
       .catch(error => {
-        console.error('failed to import arena mesh');
         console.error(error);
+        throw new Error(Errors.FAILED_ARENA_IMPORT);
       });
+  }
+
+  private importMesh(scene: Scene) {
+    try {
+      const model = ImportMeshAsync(gameConfig.arenaImportpath, scene);
+      return model;
+    } catch (e: any) {
+      console.error(e);
+      throw new Error(Errors.FAILED_ARENA_IMPORT);
+    }
   }
 
   private configureMesh(mesh: Mesh, material: StandardMaterial) {
