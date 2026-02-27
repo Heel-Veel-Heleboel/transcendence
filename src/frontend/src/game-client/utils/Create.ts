@@ -13,6 +13,7 @@ import { Hack } from '../components/Hack.ts';
 import { Arena } from '../components/Arena.ts';
 import gameConfig from './GameConfig.ts';
 import Errors from './Error.ts';
+import { AdvancedDynamicTexture } from '@babylonjs/gui';
 
 /* v8 ignore start */
 export function createCamera(scene: Scene, distance: number) {
@@ -105,6 +106,22 @@ export function createVector3(x: number, y: number, z: number) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
   return v;
+}
+
+export function createAdvancedDynamicTexture(
+  name: string,
+  foreground: boolean,
+  scene: Scene
+) {
+  const texture = AdvancedDynamicTexture.CreateFullscreenUI(
+    name,
+    foreground,
+    scene
+  );
+  if (unitializedCheck(texture)) {
+    throw new Error(Errors.FAILED_TEXTURE_INIT);
+  }
+  return texture;
 }
 
 export function createBox(

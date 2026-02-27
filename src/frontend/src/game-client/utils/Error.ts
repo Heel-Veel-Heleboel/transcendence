@@ -21,7 +21,8 @@ const Errors = {
   // NOTE: CREATE
   FAILED_MATERIAL_INIT: 'Failed to initialization material',
   FAILED_MESH_INIT: 'Failed to initialization mesh',
-  FAILED_ENTITY_INIT: 'Failed to initialization babylon entity'
+  FAILED_ENTITY_INIT: 'Failed to initialization babylon entity',
+  FAILED_TEXTURE_INIT: 'Failed to initialization texture'
 };
 
 export default Errors;

@@ -3,6 +3,7 @@ import { IHud } from '../types/Types';
 import { Scene } from '@babylonjs/core';
 import gameConfig from '../utils/GameConfig';
 import Errors from '../utils/Error';
+import { createAdvancedDynamicTexture } from '../utils/Create';
 
 /* v8 ignore start */
 export class Hud implements IHud {
@@ -14,7 +15,7 @@ export class Hud implements IHud {
   constructor(filePath: string, scene: Scene) {
     this.filePath = filePath;
 
-    this.texture = AdvancedDynamicTexture.CreateFullscreenUI(
+    this.texture = createAdvancedDynamicTexture(
       gameConfig.guiTextureName,
       true,
       scene
