@@ -1,7 +1,7 @@
 import { IKeyGridDimensions, IKeyGridKeys } from '../types/Types';
-import { Vector3 } from '@babylonjs/core';
 import gameConfig from './GameConfig';
 import Errors from './Error';
+import { createVector3Zero } from './Create';
 
 /* v8 ignore start */
 export function checkNull(keys: IKeyGridKeys, dimensions: IKeyGridDimensions) {
@@ -10,7 +10,7 @@ export function checkNull(keys: IKeyGridKeys, dimensions: IKeyGridDimensions) {
     !keys.rows ||
     !keys.precisionKeys ||
     !keys.length ||
-    dimensions.goalDimensions.equals(Vector3.Zero())
+    dimensions.goalDimensions.equals(createVector3Zero())
   ) {
     throw Error(Errors.INVALID_KEYGRID_CONFIG);
   }
