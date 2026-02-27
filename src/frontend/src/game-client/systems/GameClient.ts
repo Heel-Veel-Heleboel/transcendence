@@ -220,7 +220,7 @@ export class GameClient {
     );
     callbacks.onRemove(
       gameConfig.playersState,
-      (entity: any, sessionId: unknown) => {
+      (_entity: any, sessionId: unknown) => {
         const player = sessionId === g.room.sessionId ? g.prota : g.anta;
         player.dispose();
       }
