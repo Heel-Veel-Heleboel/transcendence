@@ -12,7 +12,6 @@ import {
   HavokPlugin
 } from '@babylonjs/core';
 import { Hack } from '../components/Hack.ts';
-import { Arena } from '../components/Arena.ts';
 import gameConfig from './GameConfig.ts';
 import Errors from './Error.ts';
 import { AdvancedDynamicTexture } from '@babylonjs/gui';
@@ -20,22 +19,20 @@ import { AdvancedDynamicTexture } from '@babylonjs/gui';
 /* v8 ignore start */
 export function createCamera(scene: Scene, distance: number) {
   const camera = new ArcRotateCamera(
-    'camera',
+    gameConfig.mainCameraName,
     -Math.PI / 2,
     Math.PI / 2,
     distance,
     Vector3.Zero(),
     scene
   );
+  if (unitializedCheck(camera)) {
+    throw new Error(Errors.FAILED_ENTITY_INIT);
+  }
   camera.attachControl(scene.getEngine().getRenderingCanvas(), true);
   camera.inputs.attached.keyboard.detachControl();
 
   return camera;
-}
-
-export function createArena() {
-  const arena = new Arena();
-  return arena;
 }
 
 export function createHack(scene: Scene, pos: Vector3, diameter: number) {
@@ -46,13 +43,18 @@ export function createHack(scene: Scene, pos: Vector3, diameter: number) {
     },
     scene
   );
-
+  if (unitializedCheck(_hack)) {
+    throw new Error(Errors.FAILED_MESH_INIT);
+  }
   const hack = new Hack(_hack, pos);
   return hack;
 }
 
 export function createLight(scene: Scene) {
   const light = new HemisphericLight('hemiLight', new Vector3(-1, 1, 0), scene);
+  if (unitializedCheck(light)) {
+    throw new Error(Errors.FAILED_ENTITY_INIT);
+  }
   light.diffuse = new Color3(1, 0, 0);
   light.specular = new Color3(0, 1, 0);
   light.groundColor = new Color3(0, 1, 0);

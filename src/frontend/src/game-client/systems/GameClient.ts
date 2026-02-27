@@ -18,7 +18,8 @@ import {
   createHack,
   createArena,
   createCamera,
-  createLight
+  createLight,
+  createVector3
 } from '../utils/Create';
 import '@babylonjs/loaders/glTF';
 import { Hack } from '../components/Hack';
@@ -28,6 +29,7 @@ import { Arena } from '../components/Arena';
 import { Callbacks, Room } from '@colyseus/sdk';
 import { Protagonist } from '../components/Protagonist';
 import { Antagonist } from '../components/Antagonist';
+import gameConfig from '../utils/GameConfig.ts';
 
 /* v8 ignore start */
 export class GameClient {
@@ -76,7 +78,7 @@ export class GameClient {
     this.backgroundMusic = createBgMusic(scene);
     this.camera = createCamera(scene, 40);
     this.light = createLight(scene);
-    this.arena = createArena();
+    this.arena = new Arena();
     await this.arena.initMesh(scene);
 
     this.balls = new Map<string, Hack>();
@@ -117,17 +119,17 @@ export class GameClient {
   initCallbacks(room: Room, g: GameClient) {
     const callbacks = Callbacks.get(room);
     callbacks.onAdd('balls', (entity: any, sessionId: unknown) => {
-      const ball = addHack(this.scene, {
-        x: entity.x,
-        y: entity.y,
-        z: entity.z
-      });
+      const ball = createHack(
+        this.scene,
+        createVector3(entity.x, entity.y, entity.z),
+        gameConfig.hackSize
+      );
       g.balls.set(entity.id, ball);
       callbacks.onChange(entity, () => {
         const ball = g.balls.get(entity.id);
         if (ball) {
-          const pos = new Vector3(entity.x, entity.y, entity.z);
-          const lv = new Vector3(
+          const pos = createVector3(entity.x, entity.y, entity.z);
+          const lv = createVector3(
             entity.linearVelocityX,
             entity.linearVelocityY,
             entity.linearVelocityZ
@@ -155,8 +157,8 @@ export class GameClient {
             length: entity.keyLength,
             precisionKeys: entity.precisionKeys
           },
-          goalPosition: new Vector3(entity.posX, entity.posY, entity.posZ),
-          goalDimensions: new Vector3(entity.dimX, entity.dimY, entity.dimZ),
+          goalPosition: createVector3(entity.posX, entity.posY, entity.posZ),
+          goalDimensions: createVector3(entity.dimX, entity.dimY, entity.dimZ),
           hud: g.hud,
           room: room
         };
@@ -167,15 +169,15 @@ export class GameClient {
         if (g.prota.keyGrid.rotation) {
           const pos = g.camera.position;
           const camera = g.camera as ArcRotateCamera;
-          camera.setPosition(new Vector3(pos.x, pos.y, pos.z * -1));
+          camera.setPosition(createVector3(pos.x, pos.y, pos.z * -1));
         }
 
         const keyManager = new KeyManager(g.scene, () => g.frameCount, g.prota);
         g.keyManager = keyManager;
       } else {
         const config = {
-          goalPosition: new Vector3(entity.posX, entity.posY, entity.posZ),
-          goalDimensions: new Vector3(entity.dimX, entity.dimY, entity.dimZ),
+          goalPosition: createVector3(entity.posX, entity.posY, entity.posZ),
+          goalDimensions: createVector3(entity.dimX, entity.dimY, entity.dimZ),
           keys: {
             length: entity.keyLength
           }

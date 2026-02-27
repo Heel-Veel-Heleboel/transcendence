@@ -78,7 +78,7 @@ export class Protagonist extends Player implements IProtagonist {
     const font = await fetch(gameConfig.hintFontPath);
     const fontData = await font.json();
     this.keyGrid.grid.forEach((values, keys) => {
-      const content = keys.replace('+', '');
+      const content = keys.replace(gameConfig.keyGridSeperator, '');
       const text = MeshBuilder.CreateText(
         keys + 'Mesh',
         content,

@@ -4,6 +4,7 @@ import {
   IKeyGridDimensions,
   IKeyGridKeys
 } from '../types/Types';
+import gameConfig from '../utils/GameConfig';
 import {
   checkRowColumnLength,
   checkRowColumnVersusKeyLength,
@@ -36,10 +37,15 @@ export class KeyGrid implements IKeyGrid {
 
     for (let y = 0; y < this.length; y++) {
       for (let x = 0; x < this.length; x++) {
-        this.grid.set(this.columns.charAt(x) + '+' + this.rows.charAt(y), {
-          x: this.calculateX(x),
-          y: this.calculateY(y)
-        });
+        this.grid.set(
+          this.columns.charAt(x) +
+            gameConfig.keyGridSeperator +
+            this.rows.charAt(y),
+          {
+            x: this.calculateX(x),
+            y: this.calculateY(y)
+          }
+        );
       }
     }
   }
