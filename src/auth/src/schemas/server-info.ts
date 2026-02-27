@@ -6,7 +6,7 @@ export const ServerConfigSchema = z.object({
     .transform(Number)
     .refine((port) => port > 0 && port <= 65535, {
       message: 'PORT must be between 1 and 65535'
-    }),
+    }).default(3000),
   
   HOST: z.string()
     .min(1, 'HOST cannot be empty')
@@ -14,7 +14,7 @@ export const ServerConfigSchema = z.object({
       return /^(localhost|[\w.-]+|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/.test(host);
     }, {
       message: 'HOST must be a valid hostname or IP address'
-    }),
+    }).default('localhost'),
   
   USER_MANAGEMENT_URL: z.string()
     .url('USER_MANAGEMENT_URL must be a valid URL')
