@@ -4,7 +4,7 @@ function getServerInfo(): ServerConfig {
   const config = {
     PORT: process.env.PORT,
     HOST: process.env.HOST,
-    USER_MANAGEMENT_URL: process.env.USER_MANAGEMENT_URL,
+    USER_MANAGEMENT_URL: process.env.USER_MANAGEMENT_URL
   };
 
   const result = ServerConfigSchema.safeParse(config);

@@ -1,4 +1,3 @@
-// import { UserManagementService } from '../types/user-management-service.js';
 import { UserManagementClient } from '../client/user-management.js';
 import { ICredentialsDao } from '../types/daos/credentials.js';
 import { IRefreshTokenDao } from '../types/daos/refresh-token.js';
