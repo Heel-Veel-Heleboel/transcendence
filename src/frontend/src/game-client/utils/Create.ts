@@ -7,7 +7,8 @@ import {
   HemisphericLight,
   Color3,
   StandardMaterial,
-  LinesMesh
+  LinesMesh,
+  TransformNode
 } from '@babylonjs/core';
 import { Hack } from '../components/Hack.ts';
 import { Arena } from '../components/Arena.ts';
@@ -186,6 +187,14 @@ export function createVector3Zero() {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
   return v;
+}
+
+export function createTransformNode(name: string, scene: Scene) {
+  const node = new TransformNode(name, scene);
+  if (unitializedCheck(node)) {
+    throw new Error(Errors.FAILED_ENTITY_INIT);
+  }
+  return node;
 }
 
 function unitializedCheck(entity: any) {

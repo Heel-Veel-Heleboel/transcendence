@@ -50,7 +50,10 @@ const gameConfig = {
   keyGridTextResolution: 20,
   keyGridTextDepth: 0.1,
   keyGridTextMaterialName: 'transparentText',
-  keyGridTextMaterialAlpha: 0.15
+  keyGridTextMaterialAlpha: 0.15,
+
+  // NOTE: EXTRA
+  rootTransformNodeName: 'tr'
 };
 
 export default gameConfig;
