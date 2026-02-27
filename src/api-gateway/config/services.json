@@ -28,5 +28,25 @@
     "retries": 1,
     "requiresAuth": false,
     "websocket": true
+  },
+  {
+    "name": "matchmaking-service",
+    "upstream": "http://localhost:3005",
+    "prefix": "/api/matchmaking",
+    "rewritePrefix": "matchmaking",
+    "timeout": 10000,
+    "retries": 3,
+    "requiresAuth": true,
+    "websocket": true
+  },
+  {
+    "name": "chat-service",
+    "upstream": "http://localhost:3006",
+    "prefix": "/api/chat",
+    "rewritePrefix": "chat",
+    "timeout": 5000,
+    "retries": 2,
+    "requiresAuth": true,
+    "websocket": false
   }
 ]

@@ -4,8 +4,6 @@ import { NotificationService } from './notification.js';
 import { BlockService } from './block.js';
 import type { MatchAckMetadata } from '../types/chat.js';
 
-type ChannelMember = { userId: number };
-
 export class ChatService {
   constructor(
     private readonly channelDao: ChannelDao,
@@ -42,7 +40,7 @@ export class ChatService {
         id: channel.id,
         type: channel.type,
         name: channel.name,
-        members: channel.members.map((m: ChannelMember) => m.userId)
+        members: channel.members.map((m: { userId: number }) => m.userId)
       }
     });
 
@@ -83,7 +81,7 @@ export class ChatService {
     const channel = await this.channelDao.findById(channelId);
     if (!channel) throw new ChatError(404, 'Channel not found');
 
-    const isMember = channel.members.some((m: ChannelMember) => m.userId === userId);
+    const isMember = channel.members.some((m: { userId: number }) => m.userId === userId);
     if (!isMember) throw new ChatError(403, 'Not a member of this channel');
 
     return channel;
@@ -94,10 +92,10 @@ export class ChatService {
     if (!channel) throw new ChatError(404, 'Channel not found');
     if (channel.type === 'DM') throw new ChatError(400, 'Cannot add members to a DM');
 
-    const isRequesterMember = channel.members.some((m: ChannelMember) => m.userId === requesterId);
+    const isRequesterMember = channel.members.some((m: { userId: number }) => m.userId === requesterId);
     if (!isRequesterMember) throw new ChatError(403, 'Not a member of this channel');
 
-    const isAlreadyMember = channel.members.some((m: ChannelMember) => m.userId === userId);
+    const isAlreadyMember = channel.members.some((m: { userId: number }) => m.userId === userId);
     if (isAlreadyMember) throw new ChatError(409, 'User is already a member');
 
     await this.channelDao.addMember(channelId, userId);
@@ -108,7 +106,7 @@ export class ChatService {
         id: channel.id,
         type: channel.type,
         name: channel.name,
-        members: [...channel.members.map((m: ChannelMember) => m.userId), userId]
+        members: [...channel.members.map((m: { userId: number }) => m.userId), userId]
       }
     });
 
