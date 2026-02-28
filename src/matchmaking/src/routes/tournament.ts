@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { TournamentService, TournamentError } from '../services/tournament.js';
 import { TournamentLifecycleManager } from '../services/tournament-lifecycle.js';
+import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
 
 /**
  * Register tournament routes
@@ -10,8 +11,6 @@ import { TournamentLifecycleManager } from '../services/tournament-lifecycle.js'
  * - Register/unregister for tournaments
  * - Get tournament info, matches, rankings
  *
- * TODO: Update API Gateway to forward user headers (x-user-id, x-user-name)
- * Then remove userId from request body and read from headers instead
  */
 export async function registerTournamentRoutes(
   server: FastifyInstance,
@@ -34,23 +33,22 @@ export async function registerTournamentRoutes(
       minPlayers?: number;
       maxPlayers?: number;
       matchDeadlineMin?: number;
-      createdBy: number;
       registrationEnd: string;
       startTime?: string | null;
     };
+
+    const createdBy = getUserIdFromHeader(request);
+    if (!createdBy) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-id header'
+      });
+    }
 
     if (!body.name || typeof body.name !== 'string') {
       return reply.status(400).send({
         error: 'Bad Request',
         message: 'name is required and must be a string'
-      });
-    }
-
-    // TODO: Switch createdBy to username from API gateway header (x-user-name)
-    if (!body.createdBy || typeof body.createdBy !== 'number') {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'createdBy is required and must be a number'
       });
     }
 
@@ -117,12 +115,12 @@ export async function registerTournamentRoutes(
         minPlayers: body.minPlayers,
         maxPlayers: body.maxPlayers,
         matchDeadlineMin: body.matchDeadlineMin,
-        createdBy: body.createdBy,
+        createdBy,
         registrationEnd,
         startTime
       });
 
-      request.log.info({ tournamentId: tournament.id, createdBy: body.createdBy }, 'Tournament created');
+      request.log.info({ tournamentId: tournament.id, createdBy }, 'Tournament created');
 
       // Schedule registration end timer
       lifecycleManager?.onTournamentCreated(tournament);
@@ -207,7 +205,7 @@ export async function registerTournamentRoutes(
   server.post('/tournament/:id/cancel', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
-    const { userId } = request.body as { userId: number };
+    const userId = getUserIdFromHeader(request);
 
     if (isNaN(tournamentId)) {
       return reply.status(400).send({
@@ -216,10 +214,10 @@ export async function registerTournamentRoutes(
       });
     }
 
-    if (!userId || typeof userId !== 'number') {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'userId is required and must be a number'
+    if (!userId) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-id header'
       });
     }
 
@@ -267,7 +265,8 @@ export async function registerTournamentRoutes(
   server.post('/tournament/:id/register', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
-    const { userId, username } = request.body as { userId: number; username: string };
+    const userId = getUserIdFromHeader(request);
+    const username = getUserNameFromHeader(request);
 
     if (isNaN(tournamentId)) {
       return reply.status(400).send({
@@ -276,17 +275,17 @@ export async function registerTournamentRoutes(
       });
     }
 
-    if (!userId || typeof userId !== 'number') {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'userId is required and must be a number'
+    if (!userId) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-id header'
       });
     }
 
-    if (!username || typeof username !== 'string') {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'username is required and must be a string'
+    if (!username) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-name header'
       });
     }
 
@@ -331,7 +330,7 @@ export async function registerTournamentRoutes(
   server.post('/tournament/:id/unregister', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
-    const { userId } = request.body as { userId: number };
+    const userId = getUserIdFromHeader(request);
 
     if (isNaN(tournamentId)) {
       return reply.status(400).send({
@@ -340,10 +339,10 @@ export async function registerTournamentRoutes(
       });
     }
 
-    if (!userId || typeof userId !== 'number') {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'userId is required and must be a number'
+    if (!userId) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-id header'
       });
     }
 

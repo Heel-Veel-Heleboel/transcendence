@@ -47,7 +47,7 @@ describe('Matchmaking Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -62,7 +62,7 @@ describe('Matchmaking Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/powerup/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -76,7 +76,7 @@ describe('Matchmaking Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/invalid/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -85,28 +85,28 @@ describe('Matchmaking Routes', () => {
       expect(body.message).toContain('Invalid gameMode');
     });
 
-    it('should return 400 when userId is missing', async () => {
+    it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { username: 'player1' },
+        headers: { 'x-user-name': 'player1' },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(401);
       const body = JSON.parse(response.body);
-      expect(body.message).toContain('userId');
+      expect(body.message).toContain('x-user-id');
     });
 
-    it('should return 400 when username is missing', async () => {
+    it('should return 401 when x-user-name header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100 },
+        headers: { 'x-user-id': '100' },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(401);
       const body = JSON.parse(response.body);
-      expect(body.message).toContain('username');
+      expect(body.message).toContain('x-user-name');
     });
 
     it('should return 409 when user tries to join different pool', async () => {
@@ -114,14 +114,14 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       // Try to join powerup
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/powerup/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       expect(response.statusCode).toBe(409);
@@ -136,7 +136,7 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       // Mock that user is already in pool
@@ -146,7 +146,7 @@ describe('Matchmaking Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -159,7 +159,7 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       expect(poolRegistry.getCurrentPool(100)).toBe('classic');
@@ -171,7 +171,7 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       expect(poolRegistry.getCurrentPool(100)).toBeUndefined();
@@ -183,7 +183,7 @@ describe('Matchmaking Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       expect(response.statusCode).toBe(500);
@@ -198,14 +198,14 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       // Then leave
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/leave',
-        payload: { userId: 100 },
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -221,14 +221,14 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/powerup/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       // Then leave
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/powerup/leave',
-        payload: { userId: 100 },
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -242,7 +242,7 @@ describe('Matchmaking Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/invalid/leave',
-        payload: { userId: 100 },
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -251,16 +251,15 @@ describe('Matchmaking Routes', () => {
       expect(body.message).toContain('Invalid gameMode');
     });
 
-    it('should return 400 when userId is missing', async () => {
+    it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/leave',
-        payload: {},
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(401);
       const body = JSON.parse(response.body);
-      expect(body.message).toContain('userId');
+      expect(body.message).toContain('x-user-id');
     });
 
     it('should return 400 when trying to leave wrong pool', async () => {
@@ -268,14 +267,14 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       // Try to leave powerup
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/powerup/leave',
-        payload: { userId: 100 },
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -290,7 +289,7 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       expect(poolRegistry.getCurrentPool(100)).toBe('classic');
@@ -299,7 +298,7 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/leave',
-        payload: { userId: 100 },
+        headers: { 'x-user-id': '100' },
       });
 
       expect(poolRegistry.getCurrentPool(100)).toBeUndefined();
@@ -310,7 +309,7 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       (mockClassicPool.leavePool as any).mockResolvedValue({ success: false });
@@ -319,7 +318,7 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/leave',
-        payload: { userId: 100 },
+        headers: { 'x-user-id': '100' },
       });
 
       expect(poolRegistry.getCurrentPool(100)).toBe('classic');
@@ -330,7 +329,7 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       (mockClassicPool.leavePool as any).mockRejectedValue(new Error('DB error'));
@@ -338,7 +337,7 @@ describe('Matchmaking Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/leave',
-        payload: { userId: 100 },
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(500);
@@ -351,21 +350,21 @@ describe('Matchmaking Routes', () => {
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       // Leave classic
       await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/leave',
-        payload: { userId: 100 },
+        headers: { 'x-user-id': '100' },
       });
 
       // Join powerup
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/powerup/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -382,14 +381,14 @@ describe('Matchmaking Routes', () => {
       const response1 = await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       // User 101 joins powerup
       const response2 = await server.inject({
         method: 'POST',
         url: '/matchmaking/powerup/join',
-        payload: { userId: 101, username: 'player2' },
+        headers: { 'x-user-id': '101', 'x-user-name': 'player2' },
       });
 
       expect(response1.statusCode).toBe(200);
@@ -403,14 +402,14 @@ describe('Matchmaking Routes', () => {
       const response1 = await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 100, username: 'player1' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
       // User 101 joins classic
       const response2 = await server.inject({
         method: 'POST',
         url: '/matchmaking/classic/join',
-        payload: { userId: 101, username: 'player2' },
+        headers: { 'x-user-id': '101', 'x-user-name': 'player2' },
       });
 
       expect(response1.statusCode).toBe(200);

@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { MatchDao } from '../dao/match.js';
 import { MatchReporting } from '../services/match-reporting.js';
 import { MatchStatus } from '../../generated/prisma/index.js';
+import { getUserIdFromHeader } from './request-context.js';
 
 /**
  * Register match-related routes
@@ -18,12 +19,12 @@ export async function registerMatchRoutes(
    */
   server.post('/match/:matchId/acknowledge', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
-    const { userId } = request.body as { userId: number };
+    const userId = getUserIdFromHeader(request);
 
-    if (!userId || typeof userId !== 'number') {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'userId is required and must be a number'
+    if (!userId) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-id header'
       });
     }
 

@@ -36,8 +36,8 @@ describe('History Routes', () => {
     await server.close();
   });
 
-  describe('GET /players/:userId/history', () => {
-    it('should return match history for a user', async () => {
+  describe('GET /players/history', () => {
+    it('should return match history for the authenticated user', async () => {
       const history: MatchHistoryEntry[] = [
         createMockHistoryEntry({ matchId: 'match-1', result: 'W' }),
         createMockHistoryEntry({ matchId: 'match-2', result: 'L', opponentId: 102 }),
@@ -46,7 +46,8 @@ describe('History Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/players/100/history',
+        url: '/players/history',
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -62,7 +63,8 @@ describe('History Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/players/100/history',
+        url: '/players/history',
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -79,29 +81,31 @@ describe('History Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/players/100/history?limit=5',
+        url: '/players/history?limit=5',
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(200);
       expect(mockMatchReporting.getMatchHistory).toHaveBeenCalledWith(100, 5);
     });
 
-    it('should return 400 for invalid userId', async () => {
+    it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/players/invalid/history',
+        url: '/players/history',
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(401);
       const body = JSON.parse(response.body);
-      expect(body.error).toBe('Bad Request');
-      expect(body.message).toContain('Invalid userId');
+      expect(body.error).toBe('Unauthorized');
+      expect(body.message).toContain('x-user-id');
     });
 
     it('should return 400 for invalid limit parameter', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/players/100/history?limit=abc',
+        url: '/players/history?limit=abc',
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -113,7 +117,8 @@ describe('History Routes', () => {
     it('should return 400 for negative limit parameter', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/players/100/history?limit=-1',
+        url: '/players/history?limit=-1',
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -125,7 +130,8 @@ describe('History Routes', () => {
     it('should return 400 for zero limit parameter', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/players/100/history?limit=0',
+        url: '/players/history?limit=0',
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -139,7 +145,8 @@ describe('History Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/players/100/history',
+        url: '/players/history',
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(500);
@@ -156,7 +163,8 @@ describe('History Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/players/100/history',
+        url: '/players/history',
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -174,7 +182,8 @@ describe('History Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/players/100/history',
+        url: '/players/history',
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(200);

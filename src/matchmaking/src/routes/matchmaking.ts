@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { MatchmakingService } from '../services/casual-matchmaking.js';
 import { PoolRegistry } from '../services/pool-registry.js';
 import { isValidGameMode, GameMode } from '../types/match.js';
+import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
 
 /**
  * Pool lookup map - maps gameMode to MatchmakingService instance
@@ -14,8 +15,6 @@ type PoolMap = Record<GameMode, MatchmakingService>;
  * Routes use :gameMode param to support multiple pools (classic, powerup)
  * PoolRegistry ensures users can only be in one pool at a time
  *
- * TODO (separate PR): Update API Gateway to forward user headers (x-user-id, x-user-name)
- * Then remove userId/username from request body and read from headers instead
  */
 export async function registerMatchmakingRoutes(
   server: FastifyInstance,
@@ -37,19 +36,20 @@ export async function registerMatchmakingRoutes(
       });
     }
 
-    const { userId, username } = request.body as { userId: number; username: string };
+    const userId = getUserIdFromHeader(request);
+    const username = getUserNameFromHeader(request);
 
-    if (!userId || typeof userId !== 'number') {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'userId is required and must be a number'
+    if (!userId) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-id header'
       });
     }
 
-    if (!username || typeof username !== 'string') {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'username is required and must be a string'
+    if (!username) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-name header'
       });
     }
 
@@ -102,12 +102,12 @@ export async function registerMatchmakingRoutes(
       });
     }
 
-    const { userId } = request.body as { userId: number };
+    const userId = getUserIdFromHeader(request);
 
-    if (!userId || typeof userId !== 'number') {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'userId is required and must be a number'
+    if (!userId) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-id header'
       });
     }
 
