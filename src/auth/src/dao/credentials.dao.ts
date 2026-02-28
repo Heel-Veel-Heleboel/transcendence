@@ -1,7 +1,8 @@
 import { ICredentialsDao } from '../types/daos/credentials.js';
 import { PrismaClient, UserCredentials } from '../../generated/prisma/client.js';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
 import { CreatePasswordDto, UpdatePasswordDto, DeletePasswordDto, FindPasswordDto } from '../types/dtos/credentials.js';
-
+import { ResourceNotFoundError, ResourceConflictError } from '../error/auth.js';
 
 
 /**
@@ -19,19 +20,33 @@ export class CredentialsDao implements ICredentialsDao {
   constructor(private readonly prismaClient: PrismaClient) {}
 
   async create(data: CreatePasswordDto): Promise<void> {
-    await this.prismaClient.userCredentials.create({
-      data: {
-        user_id: data.user_id,
-        hashed_password: data.password
+    try {
+      await this.prismaClient.userCredentials.create({
+        data: {
+          user_id: data.user_id,
+          hashed_password: data.password
+        }
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ResourceConflictError(`Credentials already exist for user_id: ${data.user_id}`);
       }
-    });
+      throw error;  
+    }
   }
 
   async updatePassword(data: UpdatePasswordDto): Promise<void> {
-    await this.prismaClient.userCredentials.update({
-      where: { user_id: data.user_id },
-      data: { hashed_password: data.new_password }
-    });
+    try {
+      await this.prismaClient.userCredentials.update({
+        where: { user_id: data.user_id },
+        data: { hashed_password: data.new_password }
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new ResourceNotFoundError(`Credentials not found for user_id: ${data.user_id}`);
+      }
+      throw error;  
+    }
   }
 
   async findByUserId(data: FindPasswordDto): Promise<UserCredentials | null> {
@@ -42,8 +57,15 @@ export class CredentialsDao implements ICredentialsDao {
   }
 
   async deleteByUserId(data: DeletePasswordDto): Promise<void> {
-    await this.prismaClient.userCredentials.delete({
-      where: { user_id: data.user_id }
-    });
+    try {
+      await this.prismaClient.userCredentials.delete({
+        where: { user_id: data.user_id }
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new ResourceNotFoundError(`Credentials not found for user_id: ${data.user_id}`);
+      }
+      throw error;  
+    }
   }
 };
