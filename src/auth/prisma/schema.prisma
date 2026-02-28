@@ -17,6 +17,8 @@ datasource db {
 model UserCredentials {
   user_id          Int @id
   hashed_password  String
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
 }
 
 model RefreshToken {
