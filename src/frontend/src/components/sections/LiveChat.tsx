@@ -1,11 +1,11 @@
 import { JSX } from "react"
-import { TitleBar, Terminal } from "./MenuUtils"
-import { CONFIG } from "../constants/AppConfig"
+import { TitleBar, Terminal } from "../utils/MenuUtils"
+import { CONFIG } from "../../constants/AppConfig"
 
 /* v8 ignore start */
 export function LiveChat(): JSX.Element {
     return (
-        <div id="liveChat" className="min-h-1/2 min-w-full flex flex-col bg-zinc-800/50 bg-clip-content">
+        <div className="min-h-1/2 min-w-full flex flex-col bg-zinc-800/50 bg-clip-content">
             <TitleBar logoPath={CONFIG.LIVE_CHAT_LOGO} title={CONFIG.LIVE_CHAT_TITLE} />
             <div className="flex grow">
                 <LiveChatRooms />

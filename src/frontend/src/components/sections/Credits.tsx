@@ -1,6 +1,7 @@
 import { JSX } from "react";
-import { START_MENU_PAGE } from "../constants/Constants";
-import { MenuOption } from "./StartMenuUtils";
+import { START_MENU_PAGE } from "../../constants/Constants";
+import { CONFIG } from "../../constants/AppConfig.ts";
+import { MenuOption } from "../utils/StartMenuUtils";
 
 /* v8 ignore start */
 export function Credits({ redirect }: { redirect: (page: number) => void }): JSX.Element {
@@ -9,7 +10,7 @@ export function Credits({ redirect }: { redirect: (page: number) => void }): JSX
             <div />
             <CreditsSectionMembers />
             <CreditsSectionServices />
-            <MenuOption text="BACK TO MENU" margin={0} callback={() => redirect(START_MENU_PAGE.MENU)} />
+            <MenuOption text={CONFIG.CREDITS_MENU_RETURN_TEXT} margin={0} callback={() => redirect(START_MENU_PAGE.MENU)} />
             <div />
         </div>
     )

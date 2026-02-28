@@ -2,7 +2,7 @@ import { JSX, useEffect, useState } from 'react';
 import { Scene } from '@babylonjs/core';
 import SceneComponent from 'babylonjs-hook';
 import { GameClient } from '../game-client/systems/GameClient';
-import { useRoom } from '../components/RoomProvider';
+import { useRoom } from '../components/providers/Room';
 import { Room } from '@colyseus/sdk';
 
 
@@ -23,16 +23,11 @@ export const Game = (): JSX.Element | null => {
     useEffect(() => {
         const initializeGame = async () => {
             if (room) {
-                console.log('game:');
-                console.log(game);
                 await game?.initGame();
                 game?.initRoom(room);
             }
         };
         if (room) {
-            console.log('room:');
-            console.log(room);
-
             initializeGame();
         }
 
@@ -43,13 +38,11 @@ export const Game = (): JSX.Element | null => {
             roomProv.join();
             const room = roomProv.room;
             setRoom(room);
-            console.log('roomProvider:');
-            console.log(roomProv);
         }
     }, [roomProv]);
 
     return (
-        <div id="Game" className="h-full w-full">
+        <div className="h-full w-full">
             <SceneComponent id='game-canvas' antialias onSceneReady={onSceneReady} onRender={onRender} adaptToDeviceRatio className="h-full w-full" />
         </div>
     );
