@@ -90,7 +90,8 @@ export class AuthService {
 
     const access_token = generateAccessToken({
       sub: user.id,
-      user_email: user.email
+      user_email: user.email,
+      user_name: user.username
     });
     const refresh_token = generateRefreshToken(REFRESH_TOKEN_SIZE);
 
@@ -135,7 +136,8 @@ export class AuthService {
 
     const new_access_token = generateAccessToken({
       sub: user.id,
-      user_email: user.email
+      user_email: user.email,
+      user_name: user.username
     });
     const new_refresh_token = generateRefreshToken(REFRESH_TOKEN_SIZE);
 

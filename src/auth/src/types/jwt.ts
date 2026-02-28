@@ -16,11 +16,13 @@ export interface JwtConfigShape {
  * 
  * @property {number} sub - Subject claim. The unique identifier (user ID) of the authenticated user.
  * @property {string} user_email - The email address of the authenticated user. Used for user identification and notifications.
- *                         
+ * @property {string} user_name - The username of the authenticated user. Used for display purposes in downstream services.
+ *
  */
 export interface IJwtPayLoad {
   sub: number;
   user_email: string;
+  user_name: string;
 };
 
 /**
