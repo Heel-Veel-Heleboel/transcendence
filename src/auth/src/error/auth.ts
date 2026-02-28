@@ -32,3 +32,15 @@ export class ResourceNotFoundError extends Error {
     this.name = 'ResourceNotFoundError';
   }
 }
+
+
+/**
+ * Thown when an attempt is made to create a resource that already exists.
+ * Example: Attempting to register with an email that is already in use.
+ */
+export class ResourceConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ResourceConflictError';
+  }
+}

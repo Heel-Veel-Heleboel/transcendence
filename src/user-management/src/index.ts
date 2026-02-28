@@ -2,7 +2,7 @@ import app from './app.js';
 import { env } from './config/env.js';
 const start = async () => {
   try {
-    await app.listen({ port: env.PORT, host: env.IP });
+    await app.listen({ port: env.PORT, host: env.HOST });
     console.log(`User management service is running on port ${env.PORT}`);
   } catch (err) {
     console.error('Error starting User management service:', err);

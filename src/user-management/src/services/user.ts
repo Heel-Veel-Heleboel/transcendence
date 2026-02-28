@@ -1,14 +1,16 @@
 import { UserRepository } from '../repositories/user.js';
 import * as SchemaTypes  from '../schemas/user.services.js';
+import { AuthClient } from '../client/auth.js';
 
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(private readonly userRepository: UserRepository, private readonly authClient: AuthClient) {}
 
   async createUser(input: SchemaTypes.CreateUserSchemaType): Promise<{ id: number }> {
     return await this.userRepository.create( { email: input.user_email, name: input.user_name });
   }
 
   async deleteUser(schema: SchemaTypes.FindUserByIdSchemaType): Promise<void> {
+    await this.authClient.deleteAuthDataForUser(schema.user_id);
     await this.userRepository.delete({ id: schema.user_id });
   }
 

@@ -66,3 +66,16 @@ export type ChangePasswordSchemaType = Static<typeof ChangePasswordSchemaBody>;
 export const ChangePasswordSchema = {
   body: ChangePasswordSchemaBody
 };
+
+
+//delete auth data schema
+export const DeleteAuthDataSchemaBody = Type.Object({
+  user_id: Type.Number()
+});
+//type for delete auth data schema
+export type DeleteAuthDataSchemaType = Static<typeof DeleteAuthDataSchemaBody>;
+//wrap and export delete auth data schema for routes
+export const DeleteAuthDataSchema = {
+  body: DeleteAuthDataSchemaBody
+};
+

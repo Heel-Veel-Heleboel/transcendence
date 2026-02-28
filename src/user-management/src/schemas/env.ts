@@ -15,6 +15,22 @@ export const  EnvSchema = z.object({
     },
     { message: ConfigurationErrors.INVALID_DB_NAME }
   ),
-  PORT: z.string().default('3001').transform((port: string) => parseInt(port, 10)),
-  IP: z.string().regex(/^(\d{1,3}\.){3}\d{1,3}$/, ConfigurationErrors.INVALID_IP_ADDRESS).default('0.0.0.0')
+  PORT: z.string()
+    .regex(/^\d+$/, 'PORT must be a number')
+    .transform(Number)
+    .refine((port) => port > 0 && port <= 65535, {
+      message: 'PORT must be between 1 and 65535'
+    }),
+  
+  HOST: z.string()
+    .min(1, 'HOST cannot be empty')
+    .refine((host) => {
+      return /^(localhost|[\w.-]+)$/.test(host);
+    }, {
+      message: 'HOST must be a valid hostname or IP address'
+    }),
+  
+  AUTH_SERVICE_URL: z.string()
+    .url('AUTH_SERVICE_URL must be a valid URL')
+    .startsWith('http', 'AUTH_SERVICE_URL must start with http:// or https://')
 });

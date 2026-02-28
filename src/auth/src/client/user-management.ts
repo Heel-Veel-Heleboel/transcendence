@@ -22,7 +22,7 @@ export class UserManagementClient implements UserManagementService {
   private baseUrl: string;
   private timeout: number;
 
-  constructor(baseUrl: string, timeout: number = 5000) {
+  constructor(baseUrl: string, timeout: number) {
     this.baseUrl = baseUrl;
     this.timeout = timeout;
   }

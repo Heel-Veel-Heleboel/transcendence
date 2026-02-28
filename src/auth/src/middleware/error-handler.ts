@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest, FastifyError } from 'fastify';
-import { AuthenticationError, AuthorizationError, ResourceNotFoundError } from '../error/auth.js';
+import { AuthenticationError, AuthorizationError,  ResourceConflictError, ResourceNotFoundError } from '../error/auth.js';
 
 
 interface ValidationError {
@@ -51,6 +51,14 @@ export function authErrorHandler(
     });
   }
 
+  if (error instanceof ResourceConflictError) {
+    return reply.status(409).send({
+      statusCode: 409,
+      error: 'Conflict',
+      message: error.message
+    });
+  }
+
 
   if (isFastifyValidationError(error)) {
     const details = error.validation.map(item => {
@@ -74,7 +82,7 @@ export function authErrorHandler(
     return reply.code(400).send({
       statusCode: 400,
       error: 'Bad Request',
-      message: 'Validation error occurred',
+      message: 'Validation failed for the request body',
       details
     });
   }
