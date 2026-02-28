@@ -7,8 +7,10 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=production node --env-file-if-exists=.env dist/src/index.js",
-    "dev": "NODE_ENV=development node --env-file-if-exists=.env dist/src/index.js",
+    "start": "npm run prisma:migrate && npm run prisma:generate && NODE_ENV=production node --env-file-if-exists=.env dist/src/index.js",
+    "dev": "npm run prisma:migrate && npm run prisma:generate && NODE_ENV=development node --env-file-if-exists=.env dist/src/index.js",
+    "prisma:generate": "prisma generate --schema=./prisma/schema.prisma", 
+    "prisma:migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf ../../dist/auth",
     "test": "vitest",
