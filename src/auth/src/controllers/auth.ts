@@ -9,6 +9,7 @@ import * as SchemaTypes from '../schemas/auth.js';
 import { getJwtConfig } from '../config/jwt.js';
 import { AuthenticationError } from '../error/auth.js';
 import { AUTH_PREFIX } from '../constants/auth.js';
+
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -124,6 +125,13 @@ export class AuthController {
       { user_id: request.body.user_id },
       'Password changed successfully'
     );
+    return reply.code(204).send();
+  }
+
+  async deleteAuthDataForUser(request: FastifyRequest<{ Body: SchemaTypes.DeleteAuthDataSchemaType }>, reply: FastifyReply): Promise<FastifyReply> {
+    request.log.info({ user_id: request.body.user_id }, 'Delete auth data for user attempt');
+    await this.authService.deleteAuthDataForUser(request.body.user_id);
+    request.log.info({ user_id: request.body.user_id }, 'Auth data for user deleted successfully');
     return reply.code(204).send();
   }
 }

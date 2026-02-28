@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 interface ErrorResponse {
   statusCode: number;
   error: string;
@@ -7,22 +9,32 @@ interface ErrorResponse {
 
 export class AuthClient {
   private baseUrl: string;
+  private timeout: number;
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, timeout: number) {
     this.baseUrl = baseUrl;
+    this.timeout = timeout;
   }
   async deleteAuthDataForUser(user_id: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/auth/delete`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ user_id })
-    });
-
-    if (!response.ok) {
-      const error = await response.json() as ErrorResponse;
-      throw new Error(error.message || 'Failed to delete auth data for user');
+    try {
+      await axios.delete(`${this.baseUrl}/auth/delete-auth-data`, {
+        timeout: this.timeout,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: {
+          user_id
+        }
+      });
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        const errorData = error.response.data as ErrorResponse;
+        throw new Error(
+          `Error ${errorData.statusCode}: ${errorData.error} - ${errorData.message}`
+        );
+      } else {
+        throw new Error(`Network or unexpected error: ${error}`);
+      }
     }
   }
 }

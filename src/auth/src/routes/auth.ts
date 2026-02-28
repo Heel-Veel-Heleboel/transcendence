@@ -28,9 +28,14 @@ export async function authRoutes(fastify: FastifyInstance, options: {authControl
     handler: authController.refresh.bind(authController)
   });
 
-  fastify.post<{ Body: SchemaTypes.ChangePasswordSchemaType }>('/change-password', {
+  fastify.put<{ Body: SchemaTypes.ChangePasswordSchemaType }>('/change-password', {
     schema: SchemaTypes.ChangePasswordSchema,
     preValidation: validatePasswordHook,
     handler: authController.changePassword.bind(authController)
+  });
+
+  fastify.delete<{ Body: SchemaTypes.DeleteAuthDataSchemaType }>('/delete-auth-data', {
+    schema: SchemaTypes.DeleteAuthDataSchema,
+    handler: authController.deleteAuthDataForUser.bind(authController)
   });
 }

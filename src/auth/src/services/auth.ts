@@ -232,5 +232,11 @@ export class AuthService {
 
     return tokenId;
   }
-}
 
+
+  async deleteAuthDataForUser(user_id: number): Promise<void> {
+    await this.credentialsDao.deleteByUserId({ user_id });
+    await this.refreshTokenDao.revokeAllByUserId({ user_id });
+    await this.refreshTokenDao.purgeRevokedExpired();
+  }
+}
