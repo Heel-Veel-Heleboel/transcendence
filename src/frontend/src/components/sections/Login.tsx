@@ -1,7 +1,7 @@
 import { JSX, useState } from "react"
 import { START_MENU_PAGE, LOGIN_OPTION } from '../../constants/Constants.ts'
 import { ErrorBoundary } from "react-error-boundary";
-import { ErrorFallback } from "../errors/ErrorFallBack.tsx";
+import { GeneralErrorFallback } from "../errors/GeneralErrorFallBack.tsx";
 import { MenuOption } from '../utils/StartMenuUtils.tsx'
 import { useAuth } from "../providers/Auth.tsx";
 import { useNavigate } from "react-router-dom";
@@ -71,11 +71,11 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
         } catch (e: any) {
             throw e;
         }
-        navigate(CONFIG.MENU_NAVIGATTION);
+        navigate(CONFIG.MENU_NAVIGATION);
     };
     return (
         <div>
-            <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <ErrorBoundary FallbackComponent={GeneralErrorFallback}>
                 <form action={submit}>
                     <label htmlFor="email">email</label><br />
                     <input type="text" name="email" className="border" /> <br />
@@ -115,7 +115,7 @@ export function RegisterForm({ callback }: { callback: (page: number) => void })
 
     };
     return (
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <ErrorBoundary FallbackComponent={GeneralErrorFallback}>
             <form action={submit}>
                 <label htmlFor="email">email</label><br />
                 <input type="text" name="email" className="border" /> <br />

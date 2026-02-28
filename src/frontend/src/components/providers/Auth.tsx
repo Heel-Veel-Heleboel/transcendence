@@ -59,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             config.headers.Authorization = token ? `Bearer ${token}` : config.headers.Authorization;
             return (config);
         })
+        console.log(api.interceptors.request)
 
         return function cleanup() {
             api.interceptors.request.eject(authInterceptor);
@@ -102,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
     async function logIn(credentials: ICredentials) {
         try {
+            console.log(api.interceptors);
             const response = await api({
                 url: CONFIG.REQUEST_SIGNIN,
                 method: CONFIG.REQUEST_SIGNIN_METHOD,
