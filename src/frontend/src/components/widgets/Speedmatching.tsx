@@ -1,8 +1,9 @@
 import { JSX } from "react"
-import { GamesAvailable } from "./MenuUtils"
+import { GamesAvailable } from "../utils/MenuUtils"
 
-/* v8 ignore start */
-export function Gymkhana(): JSX.Element {
+
+/* v8 ignore start*/
+export function Speedmatching(): JSX.Element {
     const quickPlayContent = (): JSX.Element => {
         return (
             <div>content</div>
@@ -22,4 +23,4 @@ export function Gymkhana(): JSX.Element {
         <GamesAvailable quickPlayContent={quickPlayContent()} defaultContent={defaultContent()} customizedContent={customizedContent()} />
     )
 }
-/* v8 ignore stop */
+/* v8 ignore stop*/

@@ -1,10 +1,11 @@
 import { Route, Routes, useLocation } from 'react-router-dom'
-import { useState, useEffect, useLayoutEffect } from 'react';
+import { useState, useLayoutEffect } from 'react';
 import { Game } from '../pages/Game.tsx'
 import { Menu } from '../pages/Menu.tsx'
 import { StartMenu } from '../pages/StartMenu.tsx'
-import { AuthProvider } from '../components/Auth.tsx';
-import { RoomProvider } from '../components/RoomProvider.tsx';
+import { AuthProvider } from '../components/providers/Auth.tsx';
+import { RoomProvider } from '../components/providers/Room.tsx';
+import { CONFIG } from '../constants/AppConfig.ts';
 
 /* v8 ignore start */
 export const Router = () => {
@@ -30,9 +31,9 @@ export const Router = () => {
             <RoomProvider>
                 <Routes>
 
-                    <Route path="/" element={<StartMenu />} />
-                    <Route path="/game" element={<Game />} />
-                    <Route path="/menu" element={<Menu />} />
+                    <Route path={CONFIG.START_MENU_NAVIGATION} element={<StartMenu />} />
+                    <Route path={CONFIG.MENU_NAVIGATION} element={<Menu />} />
+                    <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />
                 </Routes>
             </RoomProvider>
         </AuthProvider>
