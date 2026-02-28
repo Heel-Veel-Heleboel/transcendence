@@ -59,28 +59,29 @@ export const CONFIG = {
   USERID_COOKIE_NAME: 'user_id',
 
   // NOTE: AXIOS
-  REQUEST_BASE_URL: 'http://localhost:3000/',
-  REQUEST_REGISTER: 'api/auth/register',
+  REQUEST_BASE_URL: 'http://localhost:3000/api/',
+  REQUEST_REGISTER: 'auth/register',
   REQUEST_REGISTER_METHOD: 'POST',
   REQUEST_REGISTER_HEADERS: {
     'Content-Type': 'application/json'
   },
   REQUEST_REGISTER_CREDENTIALS_TAKEN: 500,
-  REQUEST_SIGNIN: 'api/auth/login',
+  REQUEST_SIGNIN: 'auth/login',
   REQUEST_SIGNIN_METHOD: 'POST',
   REQUEST_SIGNIN_HEADERS: {
     'Content-Type': 'application/json'
   },
-  REQUEST_LOGOUT: 'api/auth/logout',
+  REQUEST_LOGOUT: 'auth/logout',
   REQUEST_LOGOUT_METHOD: 'POST',
   REQUEST_LOGOUT_HEADERS: {
     'Content-Type': 'application/json'
   },
   REQUEST_LOGOUT_SUCCESFULL: 204,
-  REQUEST_REFRESH: 'api/auth/refresh',
+  REQUEST_REFRESH: 'auth/refresh',
   REQUEST_REFRESH_METHOD: 'POST',
   REQUEST_REFRESH_HEADERS: {
     'Content-Type': 'application/json'
   },
-  REQUEST_REFRESH_UNAUTHORIZED: 401
+  REQUEST_REFRESH_UNAUTHORIZED: 401,
+  REQUEST_USER: 'users/find-by-id/'
 };

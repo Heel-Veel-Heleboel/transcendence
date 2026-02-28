@@ -5,7 +5,7 @@ type FallbackErrorProps = Omit<FallbackProps, 'error'> & {
     error: any;
 }
 
-export function ErrorFallback({ error, resetErrorBoundary }: FallbackErrorProps): JSX.Element {
+export function GeneralErrorFallback({ error, resetErrorBoundary }: FallbackErrorProps): JSX.Element {
     return (
         <div role="alert">
             <p>Oops! Something went wrong:</p>
