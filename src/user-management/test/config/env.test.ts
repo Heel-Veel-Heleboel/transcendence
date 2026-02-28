@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { EnvSchema } from '../../src/schemas/env.js';
 
 describe('Environment DATABASE_URL validation', () => {
-  const validEnv = { DATABASE_URL: 'file:./test.db', PORT: '3000', HOST: 'localhost', AUTH_URL: 'http://localhost:3000' };
+  const validEnv = { DATABASE_URL: 'file:./test.db', PORT: '3000', HOST: 'localhost', AUTH_SERVICE_URL: 'http://localhost:3000' };
 
   it('Should accept valid file path', () => {
     const result = EnvSchema.safeParse(validEnv);
@@ -47,7 +47,7 @@ describe('Environment DATABASE_URL validation', () => {
 });
 
 describe('Environment PORT validation', () => {
-  const validEnv = { DATABASE_URL: 'file:./test.db', PORT: '3000', HOST: 'localhost', AUTH_URL: 'http://localhost:3000' };
+  const validEnv = { DATABASE_URL: 'file:./test.db', PORT: '3000', HOST: 'localhost', AUTH_SERVICE_URL: 'http://localhost:3000' };
 
   it('Should accept valid port number', () => {
     const result = EnvSchema.safeParse(validEnv);
@@ -72,7 +72,7 @@ describe('Environment PORT validation', () => {
 });
 
 describe('Environment HOST validation', () => {
-  const validEnv = { DATABASE_URL: 'file:./test.db', PORT: '3000', HOST: 'localhost', AUTH_URL: 'http://localhost:3000' };
+  const validEnv = { DATABASE_URL: 'file:./test.db', PORT: '3000', HOST: 'localhost', AUTH_SERVICE_URL: 'http://localhost:3000' };
 
   it('Should accept valid hostname', () => {
     const result = EnvSchema.safeParse(validEnv);
@@ -101,8 +101,8 @@ describe('Environment HOST validation', () => {
   });
 });
 
-describe('Environment AUTH_URL validation', () => {
-  const validEnv = { DATABASE_URL: 'file:./test.db', PORT: '3000', HOST: 'localhost', AUTH_URL: 'http://localhost:3000' };
+describe('Environment AUTH_SERVICE_URL validation', () => {
+  const validEnv = { DATABASE_URL: 'file:./test.db', PORT: '3000', HOST: 'localhost', AUTH_SERVICE_URL: 'http://localhost:3000' };
 
   it('Should accept valid URL', () => {
     const result = EnvSchema.safeParse(validEnv);
@@ -110,23 +110,23 @@ describe('Environment AUTH_URL validation', () => {
   });
 
   it('Should reject invalid URL', () => {
-    const result = EnvSchema.safeParse({ ...validEnv, AUTH_URL: 'not-a-url' });
+    const result = EnvSchema.safeParse({ ...validEnv, AUTH_SERVICE_URL: 'not-a-url' });
     expect(result.success).toBe(false);
   });
 
-  it('Should reject missing AUTH_URL', () => {
-    const { AUTH_URL, ...rest } = validEnv;
+  it('Should reject missing AUTH_SERVICE_URL', () => {
+    const { AUTH_SERVICE_URL, ...rest } = validEnv;
     const result = EnvSchema.safeParse(rest);
     expect(result.success).toBe(false);
   });
 
   it('Should reject URL that does not start with http', () => {
-    const result = EnvSchema.safeParse({ ...validEnv, AUTH_URL: 'ftp://localhost:3000' });
+    const result = EnvSchema.safeParse({ ...validEnv, AUTH_SERVICE_URL: 'ftp://localhost:3000' });
     expect(result.success).toBe(false);
   });
 
-  it('Should reject empty AUTH_URL', () => {
-    const result = EnvSchema.safeParse({ ...validEnv, AUTH_URL: '' });
+  it('Should reject empty AUTH_SERVICE_URL', () => {
+    const result = EnvSchema.safeParse({ ...validEnv, AUTH_SERVICE_URL: '' });
     expect(result.success).toBe(false);
   });
 });

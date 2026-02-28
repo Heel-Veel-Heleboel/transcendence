@@ -70,7 +70,7 @@ describe('authErrorHandler', () => {
     expect(mockReply.send).toHaveBeenCalledWith({
       statusCode: 400,
       error: 'Bad Request',
-      message: 'Validation error occurred',
+      message: 'Validation failed for the request body',
       details: [{ path: 'email', message: 'must be email' }]
     });
   });

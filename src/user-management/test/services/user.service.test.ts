@@ -6,7 +6,7 @@ import * as SchemaTypes from '../../src/schemas/user.services.js';
 describe('UserService', () => {
   let service: UserService;
   let mockRepo: any;
-
+  let mockAuthClient: any;
   beforeEach(() => {
     mockRepo = {
       create: vi.fn(),
@@ -19,7 +19,12 @@ describe('UserService', () => {
       findByStatus: vi.fn(),
       delete: vi.fn()
     };
-    service = new UserService(mockRepo);
+
+    mockAuthClient = {
+      deleteAuthDataForUser: vi.fn()
+    };
+
+    service = new UserService(mockRepo, mockAuthClient);
   });
 
   describe('createUser', () => {
@@ -122,6 +127,7 @@ describe('UserService', () => {
       
       await service.deleteUser(input);
 
+      expect(mockAuthClient.deleteAuthDataForUser).toHaveBeenCalledWith(1);
       expect(mockRepo.delete).toHaveBeenCalledWith({ id: 1 });
     });
   });
