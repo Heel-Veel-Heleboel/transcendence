@@ -1,52 +1,52 @@
 [
-  {
-    "name": "user-service",
-    "upstream": "http://localhost:3001",
-    "prefix": "/api/user",
-    "rewritePrefix": "user",
-    "timeout": 5000,
-    "retries": 2,
-    "requiresAuth": false,
-    "websocket": false
-  },
-  {
-    "name": "auth-service",
-    "upstream": "http://localhost:3003",
-    "prefix": "/api/auth",
-    "rewritePrefix": "auth",
-    "timeout": 5000,
-    "retries": 2,
-    "requiresAuth": false,
-    "websocket": false
-  },
-  {
-    "name": "game-service",
-    "upstream": "http://localhost:3004",
-    "prefix": "/api/game",
-    "rewritePrefix": "game",
-    "timeout": 10000,
-    "retries": 1,
-    "requiresAuth": false,
-    "websocket": true
-  },
-  {
-    "name": "matchmaking-service",
-    "upstream": "http://localhost:3005",
-    "prefix": "/api/matchmaking",
-    "rewritePrefix": "matchmaking",
-    "timeout": 10000,
-    "retries": 3,
-    "requiresAuth": true,
-    "websocket": true
-  },
-  {
-    "name": "chat-service",
-    "upstream": "http://localhost:3006",
-    "prefix": "/api/chat",
-    "rewritePrefix": "chat",
-    "timeout": 5000,
-    "retries": 2,
-    "requiresAuth": true,
-    "websocket": false
-  }
+    {
+        "name": "user-service",
+        "upstream": "http://localhost:3001",
+        "prefix": "/api/users",
+        "rewritePrefix": "users",
+        "timeout": 5000,
+        "retries": 2,
+        "requiresAuth": false,
+        "websocket": false
+    },
+    {
+        "name": "auth-service",
+        "upstream": "http://localhost:3003",
+        "prefix": "/api/auth",
+        "rewritePrefix": "auth",
+        "timeout": 5000,
+        "retries": 2,
+        "requiresAuth": false,
+        "websocket": false
+    },
+    {
+        "name": "game-service",
+        "upstream": "http://localhost:3004",
+        "prefix": "/api/game",
+        "rewritePrefix": "game",
+        "timeout": 10000,
+        "retries": 1,
+        "requiresAuth": false,
+        "websocket": true
+    },
+    {
+        "name": "matchmaking-service",
+        "upstream": "http://localhost:3005",
+        "prefix": "/api/matchmaking",
+        "rewritePrefix": "matchmaking",
+        "timeout": 10000,
+        "retries": 3,
+        "requiresAuth": true,
+        "websocket": true
+    },
+    {
+        "name": "chat-service",
+        "upstream": "http://localhost:3006",
+        "prefix": "/api/chat",
+        "rewritePrefix": "chat",
+        "timeout": 5000,
+        "retries": 2,
+        "requiresAuth": true,
+        "websocket": false
+    }
 ]
