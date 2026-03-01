@@ -4,7 +4,6 @@ import {
   PlayerMatchResultMessage,
   MatchHistoryEntry,
   MatchHistory,
-  MatchResult,
   GameMode
 } from '../types/match.js';
 import { Logger } from '../types/logger.js';
@@ -59,19 +58,19 @@ export class MatchReporting {
     const player2Id = match.player2Id;
 
     // Determine results
-    let player1Result: MatchResult;
-    let player2Result: MatchResult;
+    let player1Result: boolean;
+    let player2Result: boolean;
 
     if (match.winnerId === player1Id) {
-      player1Result = 'W';
-      player2Result = 'L';
+      player1Result = true;
+      player2Result = false;
     } else if (match.winnerId === player2Id) {
-      player1Result = 'L';
-      player2Result = 'W';
+      player1Result = false;
+      player2Result = true;
     } else {
       // Double forfeit in tournament - both lose
-      player1Result = 'L';
-      player2Result = 'L';
+      player1Result = false;
+      player2Result = false;
     }
 
     // Send results to User Management
@@ -79,17 +78,17 @@ export class MatchReporting {
       await Promise.all([
         this.userManagementClient.reportMatchResult({
           playerId: player1Id,
-          result: player1Result
+          isWinner: player1Result
         }),
         this.userManagementClient.reportMatchResult({
           playerId: player2Id,
-          result: player2Result
+          isWinner: player2Result
         })
       ]);
 
       this.log('info', `Reported match ${match.id} results to User Management`, {
-        player1: { id: player1Id, result: player1Result },
-        player2: { id: player2Id, result: player2Result }
+        player1: { id: player1Id, isWinner: player1Result },
+        player2: { id: player2Id, isWinner: player2Result }
       });
     } catch (error) {
       this.log('error', `Failed to report match ${match.id} results`, { error });
@@ -139,18 +138,18 @@ export class MatchReporting {
       const opponentScore = isPlayer1 ? (match.player2Score ?? 0) : (match.player1Score ?? 0);
 
       // Determine result
-      let result: MatchResult;
+      let isWinner: boolean;
       if (match.winnerId === playerId) {
-        result = 'W';
+        isWinner = true;
       } else {
-        result = 'L';
+        isWinner = false;
       }
 
       historyEntries.push({
         matchId: match.id,
         opponentId,
         opponentUsername,
-        result,
+        isWinner,
         userScore,
         opponentScore,
         gameMode: match.gameMode as GameMode,

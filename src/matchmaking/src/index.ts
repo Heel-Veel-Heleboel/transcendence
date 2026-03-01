@@ -9,6 +9,7 @@ import { MatchmakingService } from './services/casual-matchmaking.js';
 import { PoolRegistry } from './services/pool-registry.js';
 import { MatchReporting } from './services/match-reporting.js';
 import { GameServerClient } from './services/game-server-client.js';
+import { ChatServiceClient } from './services/chat-service-client.js';
 import { TournamentService } from './services/tournament.js';
 import { TournamentLifecycleManager } from './services/tournament-lifecycle.js';
 import { registerMatchmakingRoutes } from './routes/matchmaking.js';
@@ -49,6 +50,11 @@ const powerupPool = new MatchmakingService(matchDao, 'powerup', server.log);
 
 const gameServerClient = new GameServerClient(
   process.env.GAME_SERVER_URL || 'http://localhost:2567',
+  server.log
+);
+
+const chatServiceClient = new ChatServiceClient(
+  process.env.CHAT_SERVICE_URL || 'http://localhost:3003',
   server.log
 );
 
@@ -147,8 +153,8 @@ server.get('/health/detailed', async () => {
 });
 
 // Register routes
-await registerMatchmakingRoutes(server, pools, poolRegistry);
-await registerMatchRoutes(server, matchDao, matchReporting, gameServerClient);
+await registerMatchmakingRoutes(server, pools, poolRegistry, chatServiceClient);
+await registerMatchRoutes(server, matchDao, matchReporting, gameServerClient, chatServiceClient);
 await registerTournamentRoutes(server, tournamentService, lifecycleManager);
 
 // Graceful shutdown

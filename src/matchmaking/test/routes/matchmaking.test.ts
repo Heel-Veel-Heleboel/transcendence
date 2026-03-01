@@ -3,6 +3,7 @@ import Fastify, { FastifyInstance } from 'fastify';
 import { registerMatchmakingRoutes } from '../../src/routes/matchmaking.js';
 import { MatchmakingService } from '../../src/services/casual-matchmaking.js';
 import { PoolRegistry } from '../../src/services/pool-registry.js';
+import { ChatServiceClient } from '../../src/services/chat-service-client.js';
 import { GameMode } from '../../src/types/match.js';
 
 describe('Matchmaking Routes', () => {
@@ -11,6 +12,7 @@ describe('Matchmaking Routes', () => {
   let mockPowerupPool: MatchmakingService;
   let poolRegistry: PoolRegistry;
   let pools: Record<GameMode, MatchmakingService>;
+  let mockChatServiceClient: ChatServiceClient;
 
   beforeEach(async () => {
     server = Fastify();
@@ -38,7 +40,12 @@ describe('Matchmaking Routes', () => {
       powerup: mockPowerupPool,
     };
 
-    await registerMatchmakingRoutes(server, pools, poolRegistry);
+    mockChatServiceClient = {
+      sendMatchAck: vi.fn().mockResolvedValue(undefined),
+      createGameSessionChannel: vi.fn().mockResolvedValue(undefined),
+    } as any;
+
+    await registerMatchmakingRoutes(server, pools, poolRegistry, mockChatServiceClient);
     await server.ready();
   });
 

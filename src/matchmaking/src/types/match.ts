@@ -82,18 +82,12 @@ export interface CompleteMatchData {
 // ============================================================================
 
 /**
- * Match result for a single player
- * Sent to User Management service after match completes
- */
-export type MatchResult = 'W' | 'L';
-
-/**
  * Message sent to User Management service to update player stats
  * One message per player (2 messages per match)
  */
 export interface PlayerMatchResultMessage {
   playerId: number;
-  result: MatchResult;
+  isWinner: boolean;
 }
 
 /**
@@ -107,7 +101,7 @@ export interface MatchHistoryEntry {
   matchId: string;
   opponentId: number;           // For linking to opponent's profile
   opponentUsername: string;     // Snapshot at time of match (for display)
-  result: MatchResult;
+  isWinner: boolean;
   userScore: number;
   opponentScore: number;
   gameMode: GameMode;
