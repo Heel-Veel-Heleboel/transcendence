@@ -79,7 +79,7 @@ describe('AuthService - Login', () => {
     expect(passwordHasherModule.comparePasswordHash).toHaveBeenCalledWith(loginDto.password, mockhashed_password);
     expect(passwordHasherModule.comparePasswordHash).toBeCalledTimes(1);
 
-    expect(jwtModule.generateAccessToken).toHaveBeenCalledWith({ sub: mockUser.id, user_email: mockUser.email });
+    expect(jwtModule.generateAccessToken).toHaveBeenCalledWith({ sub: mockUser.id, user_email: mockUser.email, user_name: mockUser.username });
     expect(jwtModule.generateAccessToken).toBeCalledTimes(1);
 
     expect(jwtModule.generateRefreshToken).toHaveBeenCalledWith(REFRESH_TOKEN_SIZE);

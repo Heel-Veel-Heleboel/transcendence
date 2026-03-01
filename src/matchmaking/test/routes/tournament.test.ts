@@ -75,9 +75,9 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament',
+        headers: { 'x-user-id': '100' },
         payload: {
           name: 'Test Tournament',
-          createdBy: 100,
           registrationEnd: '2099-12-31T00:00:00Z'
         }
       });
@@ -103,13 +103,13 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament',
+        headers: { 'x-user-id': '100' },
         payload: {
           name: 'Full Tournament',
           format: 'single_elimination',
           minPlayers: 8,
           maxPlayers: 16,
           matchDeadlineMin: 60,
-          createdBy: 100,
           registrationEnd: '2099-12-31T00:00:00Z',
           startTime: '2100-01-01T00:00:00Z'
         }
@@ -132,8 +132,8 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament',
+        headers: { 'x-user-id': '100' },
         payload: {
-          createdBy: 100,
           registrationEnd: '2099-12-31T00:00:00Z'
         }
       });
@@ -144,7 +144,7 @@ describe('Tournament Routes', () => {
       expect(body.message).toContain('name');
     });
 
-    it('should return 400 when createdBy is missing', async () => {
+    it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament',
@@ -154,19 +154,19 @@ describe('Tournament Routes', () => {
         }
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(401);
       const body = JSON.parse(response.body);
-      expect(body.error).toBe('Bad Request');
-      expect(body.message).toContain('createdBy');
+      expect(body.error).toBe('Unauthorized');
+      expect(body.message).toContain('x-user-id');
     });
 
     it('should return 400 when registrationEnd is missing', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament',
+        headers: { 'x-user-id': '100' },
         payload: {
-          name: 'Test Tournament',
-          createdBy: 100
+          name: 'Test Tournament'
         }
       });
 
@@ -184,9 +184,9 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament',
+        headers: { 'x-user-id': '100' },
         payload: {
           name: 'Test Tournament',
-          createdBy: 100,
           registrationEnd: '2099-12-31T00:00:00Z'
         }
       });
@@ -205,9 +205,9 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament',
+        headers: { 'x-user-id': '100' },
         payload: {
           name: 'Test Tournament',
-          createdBy: 100,
           registrationEnd: '2099-12-31T00:00:00Z'
         }
       });
@@ -333,7 +333,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/cancel',
-        payload: { userId: 100 }
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -347,7 +347,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/invalid/cancel',
-        payload: { userId: 100 }
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -356,17 +356,16 @@ describe('Tournament Routes', () => {
       expect(body.message).toContain('Invalid tournament ID');
     });
 
-    it('should return 400 when userId is missing', async () => {
+    it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/cancel',
-        payload: {}
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(401);
       const body = JSON.parse(response.body);
-      expect(body.error).toBe('Bad Request');
-      expect(body.message).toContain('userId');
+      expect(body.error).toBe('Unauthorized');
+      expect(body.message).toContain('x-user-id');
     });
 
     it('should return 404 when tournament not found', async () => {
@@ -377,7 +376,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/999/cancel',
-        payload: { userId: 100 }
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(404);
@@ -394,7 +393,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/cancel',
-        payload: { userId: 999 }
+        headers: { 'x-user-id': '999' },
       });
 
       expect(response.statusCode).toBe(403);
@@ -411,7 +410,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/cancel',
-        payload: { userId: 100 }
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -428,7 +427,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/cancel',
-        payload: { userId: 100 }
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(500);
@@ -446,7 +445,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { userId: 101, username: 'testuser' }
+        headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -463,7 +462,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { userId: 101, username: 'testuser' }
+        headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -475,7 +474,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/invalid/register',
-        payload: { userId: 101, username: 'testuser' }
+        headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -484,30 +483,30 @@ describe('Tournament Routes', () => {
       expect(body.message).toContain('Invalid tournament ID');
     });
 
-    it('should return 400 when userId is missing', async () => {
+    it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { username: 'testuser' }
+        headers: { 'x-user-name': 'testuser' },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(401);
       const body = JSON.parse(response.body);
-      expect(body.error).toBe('Bad Request');
-      expect(body.message).toContain('userId');
+      expect(body.error).toBe('Unauthorized');
+      expect(body.message).toContain('x-user-id');
     });
 
-    it('should return 400 when username is missing', async () => {
+    it('should return 401 when x-user-name header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { userId: 101 }
+        headers: { 'x-user-id': '101' },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(401);
       const body = JSON.parse(response.body);
-      expect(body.error).toBe('Bad Request');
-      expect(body.message).toContain('username');
+      expect(body.error).toBe('Unauthorized');
+      expect(body.message).toContain('x-user-name');
     });
 
     it('should return 404 when tournament not found', async () => {
@@ -518,7 +517,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/999/register',
-        payload: { userId: 101, username: 'testuser' }
+        headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
       expect(response.statusCode).toBe(404);
@@ -535,7 +534,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { userId: 101, username: 'testuser' }
+        headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -552,7 +551,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { userId: 101, username: 'testuser' }
+        headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -569,7 +568,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { userId: 101, username: 'testuser' }
+        headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -586,7 +585,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/register',
-        payload: { userId: 101, username: 'testuser' }
+        headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
       expect(response.statusCode).toBe(500);
@@ -604,7 +603,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/unregister',
-        payload: { userId: 101 }
+        headers: { 'x-user-id': '101' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -618,7 +617,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/invalid/unregister',
-        payload: { userId: 101 }
+        headers: { 'x-user-id': '101' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -627,17 +626,16 @@ describe('Tournament Routes', () => {
       expect(body.message).toContain('Invalid tournament ID');
     });
 
-    it('should return 400 when userId is missing', async () => {
+    it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/unregister',
-        payload: {}
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(401);
       const body = JSON.parse(response.body);
-      expect(body.error).toBe('Bad Request');
-      expect(body.message).toContain('userId');
+      expect(body.error).toBe('Unauthorized');
+      expect(body.message).toContain('x-user-id');
     });
 
     it('should return 404 when tournament not found', async () => {
@@ -648,7 +646,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/999/unregister',
-        payload: { userId: 101 }
+        headers: { 'x-user-id': '101' },
       });
 
       expect(response.statusCode).toBe(404);
@@ -665,7 +663,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/unregister',
-        payload: { userId: 101 }
+        headers: { 'x-user-id': '101' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -682,7 +680,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/unregister',
-        payload: { userId: 101 }
+        headers: { 'x-user-id': '101' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -699,7 +697,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament/1/unregister',
-        payload: { userId: 101 }
+        headers: { 'x-user-id': '101' },
       });
 
       expect(response.statusCode).toBe(500);

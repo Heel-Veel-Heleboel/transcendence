@@ -51,6 +51,7 @@ export interface RateLimitConfig {
 export interface JWTPayload {
   sub: number;
   user_email: string;
+  user_name: string;
   iat: number;
   exp: number;
   iss: string;

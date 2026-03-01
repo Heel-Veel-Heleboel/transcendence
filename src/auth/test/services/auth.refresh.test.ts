@@ -97,7 +97,8 @@ describe('AuthService - refresh', () => {
     expect(mockUserService.findByUserId).toHaveBeenCalledWith(userId);
     expect(generateAccessToken).toHaveBeenCalledWith({
       sub: userId,
-      user_email: 'test@example.com'
+      user_email: 'test@example.com',
+      user_name: 'testuser'
     });
     expect(generateRefreshToken).toHaveBeenCalledWith(REFRESH_TOKEN_SIZE);
     expect(mockRefreshTokenDao.store).toHaveBeenCalledWith({

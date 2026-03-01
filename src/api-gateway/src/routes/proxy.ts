@@ -101,6 +101,9 @@ function setupHeaderForwardingHooks(
     async (_request: FastifyRequest, _reply: FastifyReply) => {
       if (_request.user) {
         _request.headers['x-user-id'] = String(_request.user.sub);
+        if (_request.user.user_name) {
+          _request.headers['x-user-name'] = _request.user.user_name;
+        }
         _request.log.info(
           {
             user_id: _request.user.sub,

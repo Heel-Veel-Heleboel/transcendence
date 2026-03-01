@@ -68,7 +68,7 @@ describe('Match Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/match/match-123/acknowledge',
-        payload: { userId: 100 },
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -90,7 +90,7 @@ describe('Match Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/match/match-123/acknowledge',
-        payload: { userId: 101 },
+        headers: { 'x-user-id': '101' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -111,7 +111,7 @@ describe('Match Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/match/match-123/acknowledge',
-        payload: { userId: 101 },
+        headers: { 'x-user-id': '101' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -120,16 +120,15 @@ describe('Match Routes', () => {
       expect(mockMatchDao.updateStatus).toHaveBeenCalledWith('match-123', MatchStatus.SCHEDULED);
     });
 
-    it('should return 400 when userId is missing', async () => {
+    it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/match/match-123/acknowledge',
-        payload: {},
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(401);
       const body = JSON.parse(response.body);
-      expect(body.message).toContain('userId');
+      expect(body.message).toContain('x-user-id');
     });
 
     it('should return 404 when match not found', async () => {
@@ -138,7 +137,7 @@ describe('Match Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/match/match-123/acknowledge',
-        payload: { userId: 100 },
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(404);
@@ -153,7 +152,7 @@ describe('Match Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/match/match-123/acknowledge',
-        payload: { userId: 999 },
+        headers: { 'x-user-id': '999' },
       });
 
       expect(response.statusCode).toBe(403);
@@ -168,7 +167,7 @@ describe('Match Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/match/match-123/acknowledge',
-        payload: { userId: 100 },
+        headers: { 'x-user-id': '100' },
       });
 
       expect(response.statusCode).toBe(500);
