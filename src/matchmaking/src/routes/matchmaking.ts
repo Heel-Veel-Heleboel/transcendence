@@ -79,7 +79,7 @@ export async function registerMatchmakingRoutes(
       if (result.success && pool.canFormPair()) {
         pool.tryAutoPair().then(pairResult => {
           if (pairResult.paired) {
-            request.log.info({ userId, gameMode, matchId: pairResult.matchId, roomId: pairResult.roomId }, 'Players paired');
+            request.log.info({ userId, gameMode, matchId: pairResult.matchId }, 'Players paired');
             // Unregister both players — they're no longer in the queue
             poolRegistry.unregisterUser(pairResult.player1Id!);
             poolRegistry.unregisterUser(pairResult.player2Id!);
