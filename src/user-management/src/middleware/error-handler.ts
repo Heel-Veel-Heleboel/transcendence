@@ -1,5 +1,5 @@
 import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
-import  * as UserErrors from '../error/user.js';
+import  * as UserErrors from '../error/user-management.js';
 import { UserDomainErrorMessages, CommonErrorMessages } from '../constants/error-messages.js';
 
 

@@ -13,6 +13,13 @@ export const UserDomainErrorMessages = {
   USER_NOT_FOUND: 'User not found'
 };
 
+export const ProfileDomainErrorMessages = {
+  PROFILE_NOT_FOUND: 'Profile not found',
+  AVATAR_UPLOAD_FAILED: 'Failed to upload avatar',
+  FAILED_TO_UPLOAD_PROFILE_AVATAR: 'Failed to update profile avatar',
+  FAILED_TO_UPDATE_PROFILE_STATS: 'Failed to update profile stats'
+};
+
 export const CommonErrorMessages = {
   DATABASE_ERROR: 'Database error occurred',
   INTERNAL_SERVER_ERROR: 'An unexpected error occurred',
