@@ -21,7 +21,7 @@ export async function registerMatchRoutes(
     const { matchId } = request.params as { matchId: string };
     const userId = getUserIdFromHeader(request);
 
-    if (!userId) {
+    if (userId === null) {
       return reply.status(401).send({
         error: 'Unauthorized',
         message: 'Missing x-user-id header'

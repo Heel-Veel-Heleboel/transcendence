@@ -38,7 +38,7 @@ export async function registerTournamentRoutes(
     };
 
     const createdBy = getUserIdFromHeader(request);
-    if (!createdBy) {
+    if (createdBy === null) {
       return reply.status(401).send({
         error: 'Unauthorized',
         message: 'Missing x-user-id header'
@@ -214,7 +214,7 @@ export async function registerTournamentRoutes(
       });
     }
 
-    if (!userId) {
+    if (userId === null) {
       return reply.status(401).send({
         error: 'Unauthorized',
         message: 'Missing x-user-id header'
@@ -275,14 +275,14 @@ export async function registerTournamentRoutes(
       });
     }
 
-    if (!userId) {
+    if (userId === null) {
       return reply.status(401).send({
         error: 'Unauthorized',
         message: 'Missing x-user-id header'
       });
     }
 
-    if (!username) {
+    if (username === null) {
       return reply.status(401).send({
         error: 'Unauthorized',
         message: 'Missing x-user-name header'
@@ -339,7 +339,7 @@ export async function registerTournamentRoutes(
       });
     }
 
-    if (!userId) {
+    if (userId === null) {
       return reply.status(401).send({
         error: 'Unauthorized',
         message: 'Missing x-user-id header'

@@ -18,7 +18,7 @@ export async function registerHistoryRoutes(
     const { limit } = request.query as { limit?: string };
     const userIdNum = getUserIdFromHeader(request);
 
-    if (!userIdNum) {
+    if (userIdNum === null) {
       return reply.status(401).send({
         error: 'Unauthorized',
         message: 'Missing x-user-id header'
