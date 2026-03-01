@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, beforeAll, afterEach, afterAll, vi } 
 import { FastifyInstance } from 'fastify';
 import http from 'http';
 import { URL } from 'url';
+import { authMiddleware } from '../../src/middleware/auth';
 
 let proxyRoutes: any;
 
@@ -46,6 +47,9 @@ vi.mock('../../src/middleware/auth', () => ({
       reply.code(401).send({ error: 'Unauthorized' });
       return;
     }
+  }),
+  authMiddleware: vi.fn(async () => {
+    return;
   })
 }));
 
