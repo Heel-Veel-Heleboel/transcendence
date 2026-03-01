@@ -3,12 +3,14 @@ import Fastify, { FastifyInstance } from 'fastify';
 import { registerMatchRoutes } from '../../src/routes/match.js';
 import { MatchDao } from '../../src/dao/match.js';
 import { MatchReporting } from '../../src/services/match-reporting.js';
+import { GameServerClient } from '../../src/services/game-server-client.js';
 import { MatchStatus } from '../../generated/prisma/index.js';
 
 describe('Match Routes', () => {
   let server: FastifyInstance;
   let mockMatchDao: MatchDao;
   let mockMatchReporting: MatchReporting;
+  let mockGameServerClient: GameServerClient;
 
   const createMockMatch = (overrides = {}) => ({
     id: 'match-123',
@@ -40,15 +42,19 @@ describe('Match Routes', () => {
     mockMatchDao = {
       findById: vi.fn(),
       acknowledge: vi.fn(),
-      updateStatus: vi.fn(),
       completeMatch: vi.fn(),
+      setGameSessionId: vi.fn().mockResolvedValue(undefined),
     } as any;
 
     mockMatchReporting = {
       reportMatchResult: vi.fn().mockResolvedValue(undefined),
     } as any;
 
-    await registerMatchRoutes(server, mockMatchDao, mockMatchReporting);
+    mockGameServerClient = {
+      createRoom: vi.fn().mockResolvedValue('room-abc'),
+    } as any;
+
+    await registerMatchRoutes(server, mockMatchDao, mockMatchReporting, mockGameServerClient);
     await server.ready();
   });
 
@@ -99,14 +105,11 @@ describe('Match Routes', () => {
       expect(body.bothReady).toBe(false);
     });
 
-    it('should update status to SCHEDULED when both players acknowledge', async () => {
+    it('should create game room and return roomId when both players acknowledge', async () => {
       const match = createMockMatch({ player1Acknowledged: true });
+      const bothAckedMatch = { ...match, player1Acknowledged: true, player2Acknowledged: true };
       (mockMatchDao.findById as any).mockResolvedValue(match);
-      (mockMatchDao.acknowledge as any).mockResolvedValue({
-        ...match,
-        player1Acknowledged: true,
-        player2Acknowledged: true
-      });
+      (mockMatchDao.acknowledge as any).mockResolvedValue(bothAckedMatch);
 
       const response = await server.inject({
         method: 'POST',
@@ -117,7 +120,9 @@ describe('Match Routes', () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
       expect(body.bothReady).toBe(true);
-      expect(mockMatchDao.updateStatus).toHaveBeenCalledWith('match-123', MatchStatus.SCHEDULED);
+      expect(body.roomId).toBe('room-abc');
+      expect(mockGameServerClient.createRoom).toHaveBeenCalledWith(bothAckedMatch);
+      expect(mockMatchDao.setGameSessionId).toHaveBeenCalledWith('match-123', 'room-abc');
     });
 
     it('should return 401 when x-user-id header is missing', async () => {
