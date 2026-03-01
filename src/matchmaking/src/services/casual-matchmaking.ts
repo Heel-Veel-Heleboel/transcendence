@@ -134,9 +134,9 @@ export class MatchmakingService {
   }
 
   /**
-   * Create a match for a pair of players
-   * This is the async DB operation
-   * If it fails, caller should use returnToPool for players who acked
+   * Create a match record for a pair of players (DB only).
+   * The Colyseus room is provisioned later, once both players acknowledge.
+   * Caller should use returnToPool if DB creation fails.
    */
   async createMatch(pair: PlayerPair): Promise<{ matchId: string }> {
     const deadline = new Date(Date.now() + this.ACK_TIMEOUT_MS);
@@ -156,10 +156,10 @@ export class MatchmakingService {
   }
 
   /**
-   * Convenience method: try to pair and create match in one call
-   * Used for testing and simple use cases
+   * Convenience method: try to pair and create match in one call.
+   * Returns player IDs so the caller can clean up pool registry entries.
    */
-  async tryAutoPair(): Promise<{ paired: boolean; matchId?: string }> {
+  async tryAutoPair(): Promise<{ paired: boolean; matchId?: string; player1Id?: number; player2Id?: number }> {
     const pair = this.tryFormPair();
     if (!pair) {
       return { paired: false };
@@ -167,7 +167,7 @@ export class MatchmakingService {
 
     try {
       const { matchId } = await this.createMatch(pair);
-      return { paired: true, matchId };
+      return { paired: true, matchId, player1Id: pair.player1.userId, player2Id: pair.player2.userId };
     } catch (error) {
       // Return both players to front of pool on failure.
       // Call order preserves original pair ordering in the queue.

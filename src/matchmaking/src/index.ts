@@ -8,6 +8,7 @@ import { TournamentParticipantDao } from './dao/tournament-participant.js';
 import { MatchmakingService } from './services/casual-matchmaking.js';
 import { PoolRegistry } from './services/pool-registry.js';
 import { MatchReporting } from './services/match-reporting.js';
+import { GameServerClient } from './services/game-server-client.js';
 import { TournamentService } from './services/tournament.js';
 import { TournamentLifecycleManager } from './services/tournament-lifecycle.js';
 import { registerMatchmakingRoutes } from './routes/matchmaking.js';
@@ -45,6 +46,11 @@ const matchDao = new MatchDao(prisma);
 // Create matchmaking pools for each game mode
 const classicPool = new MatchmakingService(matchDao, 'classic', server.log);
 const powerupPool = new MatchmakingService(matchDao, 'powerup', server.log);
+
+const gameServerClient = new GameServerClient(
+  process.env.GAME_SERVER_URL || 'http://localhost:2567',
+  server.log
+);
 
 const pools: Record<GameMode, MatchmakingService> = {
   classic: classicPool,
@@ -142,7 +148,7 @@ server.get('/health/detailed', async () => {
 
 // Register routes
 await registerMatchmakingRoutes(server, pools, poolRegistry);
-await registerMatchRoutes(server, matchDao, matchReporting);
+await registerMatchRoutes(server, matchDao, matchReporting, gameServerClient);
 await registerTournamentRoutes(server, tournamentService, lifecycleManager);
 
 // Graceful shutdown

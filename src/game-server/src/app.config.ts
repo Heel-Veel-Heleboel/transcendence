@@ -4,7 +4,8 @@ import {
   monitor,
   playground,
   createRouter,
-  createEndpoint
+  createEndpoint,
+  matchMaker
 } from 'colyseus';
 import basicAuth from 'express-basic-auth';
 import express from 'express';
@@ -40,6 +41,41 @@ const server = defineServer({
    * Read more: https://expressjs.com/en/starter/basic-routing.html
    */
   express: app => {
+    app.use(express.json());
+
+    /**
+     * Called by matchmaking service when two players are paired.
+     * Creates a Colyseus room with the match context so the game server can
+     * report results back to matchmaking when the game ends.
+     */
+    app.post('/api/rooms/create', async (req, res) => {
+      try {
+        const { matchId, player1Id, player2Id, player1Username, player2Username, gameMode, tournamentId, deadline, isGoldenGame } = req.body;
+
+        if (!matchId || !player1Id || !player2Id || !player1Username || !player2Username) {
+          res.status(400).json({ error: 'Missing required fields: matchId, player1Id, player2Id, player1Username, player2Username' });
+          return;
+        }
+
+        const room = await matchMaker.createRoom('game_room', {
+          matchId,
+          player1Id,
+          player2Id,
+          player1Username,
+          player2Username,
+          gameMode: gameMode ?? 'classic',
+          tournamentId: tournamentId ?? null,
+          deadline: deadline ?? null,
+          isGoldenGame: isGoldenGame ?? false
+        });
+
+        res.json({ roomId: room.roomId });
+      } catch (err) {
+        console.error('Failed to create game room:', err);
+        res.status(500).json({ error: 'Failed to create game room' });
+      }
+    });
+
     /**
      * Use @colyseus/monitor
      * It is recommended to protect this route with a password

@@ -1,8 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { MatchDao } from '../dao/match.js';
 import { MatchReporting } from '../services/match-reporting.js';
-import { MatchStatus } from '../../generated/prisma/index.js';
 import { getUserIdFromHeader } from './request-context.js';
+import { GameServerClient } from '../services/game-server-client.js';
 
 /**
  * Register match-related routes
@@ -10,12 +10,15 @@ import { getUserIdFromHeader } from './request-context.js';
 export async function registerMatchRoutes(
   server: FastifyInstance,
   matchDao: MatchDao,
-  matchReporting: MatchReporting
+  matchReporting: MatchReporting,
+  gameServerClient: GameServerClient
 ): Promise<void> {
 
   /**
    * POST /match/:matchId/acknowledge
-   * Player acknowledges they are ready for the match
+   * Player acknowledges they are ready for the match.
+   * When both players have acknowledged, a Colyseus room is created on the
+   * game server and the roomId is stored as gameSessionId on the match.
    */
   server.post('/match/:matchId/acknowledge', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
@@ -46,19 +49,27 @@ export async function registerMatchRoutes(
         });
       }
 
-      // Update acknowledgement (DAO handles idempotency)
+      // Update acknowledgement — DAO transitions status to SCHEDULED when both have acked
       const updatedMatch = await matchDao.acknowledge(matchId, userId);
       const bothReady = updatedMatch.player1Acknowledged && updatedMatch.player2Acknowledged;
 
-      // If both ready, update status to SCHEDULED
-      if (bothReady && updatedMatch.status === MatchStatus.PENDING_ACKNOWLEDGEMENT) {
-        await matchDao.updateStatus(matchId, MatchStatus.SCHEDULED);
+      // Both players are ready: provision the Colyseus room so they can connect
+      let roomId: string | null = null;
+      if (bothReady) {
+        try {
+          roomId = await gameServerClient.createRoom(updatedMatch);
+          await matchDao.setGameSessionId(matchId, roomId);
+        } catch (err) {
+          request.log.error({ err, matchId }, 'Failed to create game room after both players acknowledged');
+          // Match stays SCHEDULED — a retry mechanism or admin intervention can recover
+        }
       }
 
       return reply.status(200).send({
         success: true,
         matchId: updatedMatch.id,
-        bothReady
+        bothReady,
+        roomId
       });
     } catch (error) {
       request.log.error({ error, matchId, userId }, 'Error acknowledging match');

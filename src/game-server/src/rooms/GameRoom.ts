@@ -5,11 +5,35 @@ import { GameEngine } from '#gameEngine/GameEngine.js';
 import { Vector3 } from '@babylonjs/core';
 import { Player } from './entities/Player.js';
 
+interface GameRoomOptions {
+  matchId: string;
+  player1Id: number;
+  player2Id: number;
+  player1Username: string;
+  player2Username: string;
+  gameMode: string;
+  tournamentId?: number | null;
+  deadline?: string | null;  // ISO string (Date is not JSON-serializable over the wire)
+  isGoldenGame?: boolean;
+}
+
 export class GameRoom extends Room {
+  autoDispose = false; // Room persists until both players have joined and left
   maxClients = 2;
   state = new GameRoomState();
   engine: GameEngine;
   id = 0;
+
+  // Match context — used when reporting the result back to matchmaking
+  matchId: string;
+  player1Id: number;
+  player2Id: number;
+  player1Username: string;
+  player2Username: string;
+  gameMode: string;
+  tournamentId: number | null;
+  deadline: Date | null;
+  isGoldenGame: boolean;
 
   messages = {
     'set-position': (client: Client, data: any) => {
@@ -18,12 +42,19 @@ export class GameRoom extends Room {
     }
   };
 
-  async onCreate(_options: any) {
+  async onCreate(options: GameRoomOptions) {
+    this.matchId = options.matchId;
+    this.player1Id = options.player1Id;
+    this.player2Id = options.player2Id;
+    this.player1Username = options.player1Username;
+    this.player2Username = options.player2Username;
+    this.gameMode = options.gameMode;
+    this.tournamentId = options.tournamentId ?? null;
+    this.deadline = options.deadline ? new Date(options.deadline) : null;
+    this.isGoldenGame = options.isGoldenGame ?? false;
+
     this.engine = new GameEngine(this);
     await this.engine.initGame();
-    /**
-     * Called when a new room is created.
-     */
   }
 
   onJoin(client: Client, _options: any) {
