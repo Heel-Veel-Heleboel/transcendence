@@ -29,7 +29,6 @@ model User {
 model Profile {
   id                    Int @id @default(autoincrement())
 
-  bio                   String @default("")
   wins                  Int @default(0)
   losses                Int @default(0)
   avatar_url            String?
