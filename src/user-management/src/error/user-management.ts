@@ -20,9 +20,16 @@ export class UserAlreadyExistsError extends Error {
 }
 
 export class DatabaseError extends Error {
-  constructor() {
-    super();
+  constructor(msg?: string) {
+    super(msg);
     this.name = 'DatabaseError';
   }
 }
 
+
+export class ProfileNotFoundError extends Error {
+  constructor() {
+    super();
+    this.name = 'ProfileNotFoundError';
+  }
+}
