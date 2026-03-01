@@ -31,8 +31,6 @@ model Profile {
 
   wins                  Int @default(0)
   losses                Int @default(0)
-  games                 Int @default(0)
-  win_rate              Float @default(0.0)
   avatar_url            String?
 
   user                  User @relation(fields: [user_id], references: [id], onDelete: Cascade)

@@ -50,9 +50,8 @@ export class ProfileRepository implements IProfileRepository {
           user_id: data.user_id
         },
         data: {
-          wins: data.wins,
-          losses: data.losses,
-          win_rate: data.win_rate
+          wins: data.wins ? { increment: 1 } : undefined,
+          losses: data.losses ? { increment: 1 } : undefined
         }
       });
     } catch (error) {
