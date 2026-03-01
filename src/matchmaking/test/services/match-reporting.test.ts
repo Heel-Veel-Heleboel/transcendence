@@ -54,11 +54,11 @@ describe('MatchReporting', () => {
       expect(mockUserManagementClient.reportMatchResult).toHaveBeenCalledTimes(2);
       expect(mockUserManagementClient.reportMatchResult).toHaveBeenCalledWith({
         playerId: 100,
-        result: 'W',
+        isWinner: true,
       });
       expect(mockUserManagementClient.reportMatchResult).toHaveBeenCalledWith({
         playerId: 101,
-        result: 'L',
+        isWinner: false,
       });
     });
 
@@ -90,11 +90,11 @@ describe('MatchReporting', () => {
 
       expect(mockUserManagementClient.reportMatchResult).toHaveBeenCalledWith({
         playerId: 100,
-        result: 'L',
+        isWinner: false,
       });
       expect(mockUserManagementClient.reportMatchResult).toHaveBeenCalledWith({
         playerId: 101,
-        result: 'W',
+        isWinner: true,
       });
     });
 
@@ -185,11 +185,11 @@ describe('MatchReporting', () => {
       expect(mockUserManagementClient.reportMatchResult).toHaveBeenCalledTimes(2);
       expect(mockUserManagementClient.reportMatchResult).toHaveBeenCalledWith({
         playerId: 100,
-        result: 'W',
+        isWinner: true,
       });
       expect(mockUserManagementClient.reportMatchResult).toHaveBeenCalledWith({
         playerId: 101,
-        result: 'L',
+        isWinner: false,
       });
     });
 
@@ -251,11 +251,11 @@ describe('MatchReporting', () => {
       expect(mockUserManagementClient.reportMatchResult).toHaveBeenCalledTimes(2);
       expect(mockUserManagementClient.reportMatchResult).toHaveBeenCalledWith({
         playerId: 100,
-        result: 'L',
+        isWinner: false,
       });
       expect(mockUserManagementClient.reportMatchResult).toHaveBeenCalledWith({
         playerId: 101,
-        result: 'L',
+        isWinner: false,
       });
     });
 
@@ -371,7 +371,7 @@ describe('MatchReporting', () => {
         matchId: 'match-1',
         opponentId: 101,
         opponentUsername: 'opponent1',
-        result: 'W',
+        isWinner: true,
         userScore: 7,
         opponentScore: 5,
         gameMode: 'classic',
@@ -402,7 +402,7 @@ describe('MatchReporting', () => {
       expect(history[0]).toMatchObject({
         opponentId: 101,
         opponentUsername: 'opponent1',
-        result: 'W',
+        isWinner: true,
         userScore: 7,
         opponentScore: 3,
       });
@@ -423,7 +423,7 @@ describe('MatchReporting', () => {
 
       const history = await matchReporting.getMatchHistory(100);
 
-      expect(history[0].result).toBe('L');
+      expect(history[0].isWinner).toBe(false);
     });
 
     it('should exclude casual FORFEITED matches', async () => {

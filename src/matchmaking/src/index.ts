@@ -9,6 +9,7 @@ import { MatchmakingService } from './services/casual-matchmaking.js';
 import { PoolRegistry } from './services/pool-registry.js';
 import { MatchReporting } from './services/match-reporting.js';
 import { GameServerClient } from './services/game-server-client.js';
+import { ChatServiceClient } from './services/chat-service-client.js';
 import { TournamentService } from './services/tournament.js';
 import { TournamentLifecycleManager } from './services/tournament-lifecycle.js';
 import { registerMatchmakingRoutes } from './routes/matchmaking.js';
@@ -52,6 +53,11 @@ const gameServerClient = new GameServerClient(
   server.log
 );
 
+const chatServiceClient = new ChatServiceClient(
+  process.env.CHAT_SERVICE_URL || 'http://localhost:3003',
+  server.log
+);
+
 const pools: Record<GameMode, MatchmakingService> = {
   classic: classicPool,
   powerup: powerupPool
@@ -62,13 +68,13 @@ const poolRegistry = new PoolRegistry();
 
 // HTTP client for User Management service
 const userManagementClient = {
-  async reportMatchResult(message: { playerId: number; result: 'W' | 'L' }): Promise<void> {
+  async reportMatchResult(message: { playerId: number; isWinner: boolean }): Promise<void> {
     const userManagementUrl = process.env.USER_MANAGEMENT_URL || 'http://localhost:3004';
     try {
       const response = await fetch(`${userManagementUrl}/api/users/${message.playerId}/match-result`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ result: message.result })
+        body: JSON.stringify({ isWinner: message.isWinner })
       });
       if (!response.ok) {
         server.log.warn({ playerId: message.playerId, status: response.status }, 'Failed to report match result');
@@ -147,8 +153,8 @@ server.get('/health/detailed', async () => {
 });
 
 // Register routes
-await registerMatchmakingRoutes(server, pools, poolRegistry);
-await registerMatchRoutes(server, matchDao, matchReporting, gameServerClient);
+await registerMatchmakingRoutes(server, pools, poolRegistry, chatServiceClient);
+await registerMatchRoutes(server, matchDao, matchReporting, gameServerClient, chatServiceClient);
 await registerTournamentRoutes(server, tournamentService, lifecycleManager);
 
 // Graceful shutdown

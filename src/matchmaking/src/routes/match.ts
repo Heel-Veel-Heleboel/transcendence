@@ -3,6 +3,7 @@ import { MatchDao } from '../dao/match.js';
 import { MatchReporting } from '../services/match-reporting.js';
 import { getUserIdFromHeader } from './request-context.js';
 import { GameServerClient } from '../services/game-server-client.js';
+import { ChatServiceClient } from '../services/chat-service-client.js';
 
 /**
  * Register match-related routes
@@ -11,7 +12,8 @@ export async function registerMatchRoutes(
   server: FastifyInstance,
   matchDao: MatchDao,
   matchReporting: MatchReporting,
-  gameServerClient: GameServerClient
+  gameServerClient: GameServerClient,
+  chatServiceClient: ChatServiceClient
 ): Promise<void> {
 
   /**
@@ -59,6 +61,13 @@ export async function registerMatchRoutes(
         try {
           roomId = await gameServerClient.createRoom(updatedMatch);
           await matchDao.setGameSessionId(matchId, roomId);
+          // Create a shared game channel for both players (fire-and-forget)
+          chatServiceClient.createGameSessionChannel(
+            [updatedMatch.player1Id, updatedMatch.player2Id],
+            roomId
+          ).catch(err => {
+            request.log.error({ err, matchId, roomId }, 'Failed to create game session channel in chat');
+          });
         } catch (err) {
           request.log.error({ err, matchId }, 'Failed to create game room after both players acknowledged');
           // Match stays SCHEDULED — a retry mechanism or admin intervention can recover

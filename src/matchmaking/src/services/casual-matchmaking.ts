@@ -138,7 +138,7 @@ export class MatchmakingService {
    * The Colyseus room is provisioned later, once both players acknowledge.
    * Caller should use returnToPool if DB creation fails.
    */
-  async createMatch(pair: PlayerPair): Promise<{ matchId: string }> {
+  async createMatch(pair: PlayerPair): Promise<{ matchId: string; deadline: Date }> {
     const deadline = new Date(Date.now() + this.ACK_TIMEOUT_MS);
 
     const match = await this.matchDao.create({
@@ -152,22 +152,23 @@ export class MatchmakingService {
 
     this.log('info', `Created match ${match.id} for users ${pair.player1.userId} and ${pair.player2.userId}`);
 
-    return { matchId: match.id };
+    return { matchId: match.id, deadline };
   }
 
   /**
    * Convenience method: try to pair and create match in one call.
    * Returns player IDs so the caller can clean up pool registry entries.
+   * Returns deadline so the caller can notify players of the ack window.
    */
-  async tryAutoPair(): Promise<{ paired: boolean; matchId?: string; player1Id?: number; player2Id?: number }> {
+  async tryAutoPair(): Promise<{ paired: boolean; matchId?: string; player1Id?: number; player2Id?: number; deadline?: Date }> {
     const pair = this.tryFormPair();
     if (!pair) {
       return { paired: false };
     }
 
     try {
-      const { matchId } = await this.createMatch(pair);
-      return { paired: true, matchId, player1Id: pair.player1.userId, player2Id: pair.player2.userId };
+      const { matchId, deadline } = await this.createMatch(pair);
+      return { paired: true, matchId, player1Id: pair.player1.userId, player2Id: pair.player2.userId, deadline };
     } catch (error) {
       // Return both players to front of pool on failure.
       // Call order preserves original pair ordering in the queue.

@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { MatchmakingService } from '../services/casual-matchmaking.js';
 import { PoolRegistry } from '../services/pool-registry.js';
+import { ChatServiceClient } from '../services/chat-service-client.js';
 import { isValidGameMode, GameMode } from '../types/match.js';
 import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
 
@@ -19,7 +20,8 @@ type PoolMap = Record<GameMode, MatchmakingService>;
 export async function registerMatchmakingRoutes(
   server: FastifyInstance,
   pools: PoolMap,
-  poolRegistry: PoolRegistry
+  poolRegistry: PoolRegistry,
+  chatServiceClient: ChatServiceClient
 ): Promise<void> {
 
   /**
@@ -83,6 +85,15 @@ export async function registerMatchmakingRoutes(
             // Unregister both players — they're no longer in the queue
             poolRegistry.unregisterUser(pairResult.player1Id!);
             poolRegistry.unregisterUser(pairResult.player2Id!);
+            // Notify both players via chat so they can acknowledge readiness
+            chatServiceClient.sendMatchAck(
+              pairResult.matchId!,
+              [pairResult.player1Id!, pairResult.player2Id!],
+              gameMode,
+              pairResult.deadline!
+            ).catch(err => {
+              request.log.error({ err, matchId: pairResult.matchId }, 'Failed to send match-ack via chat');
+            });
           }
         }).catch(err => {
           request.log.error({ err, userId, gameMode }, 'Auto-pair failed after join');

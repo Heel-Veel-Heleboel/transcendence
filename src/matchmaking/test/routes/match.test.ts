@@ -4,6 +4,7 @@ import { registerMatchRoutes } from '../../src/routes/match.js';
 import { MatchDao } from '../../src/dao/match.js';
 import { MatchReporting } from '../../src/services/match-reporting.js';
 import { GameServerClient } from '../../src/services/game-server-client.js';
+import { ChatServiceClient } from '../../src/services/chat-service-client.js';
 import { MatchStatus } from '../../generated/prisma/index.js';
 
 describe('Match Routes', () => {
