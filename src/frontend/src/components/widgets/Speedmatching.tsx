@@ -1,5 +1,5 @@
 import { JSX } from "react"
-import { GamesAvailable } from "../utils/MenuUtils"
+import { LobbyRoom } from "../utils/MenuUtils"
 
 
 /* v8 ignore start*/
@@ -20,7 +20,7 @@ export function Speedmatching(): JSX.Element {
         )
     }
     return (
-        <GamesAvailable quickPlayContent={quickPlayContent()} defaultContent={defaultContent()} customizedContent={customizedContent()} />
+        <LobbyRoom gamesContent={quickPlayContent()} />
     )
 }
 /* v8 ignore stop*/

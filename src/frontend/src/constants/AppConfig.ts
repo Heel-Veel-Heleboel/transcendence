@@ -26,10 +26,8 @@ export const CONFIG = {
   CLOSE_LOGO: 'close.png', // accreditation: <a href="https://www.flaticon.com/free-icons/close" title="close icons">Close icons created by Pixel perfect - Flaticon</a>
   CLOSE_ALT: 'close',
 
-  // NOTE: GamesAvailable
-  GAMES_QUICK_PLAY_TITLE: 'Quick Play',
-  GAMES_DEFAULT_PLAY_TITLE: 'Default',
-  GAMES_CUSTOM_PLAY_TITLE: 'Customized',
+  // NOTE: LobbyRoom
+  LOBBYROOM_TITLE: 'Current Games',
 
   // NOTE: LOGIN PAGE
   LOGIN_PAGE_LOGO: 'logo.png',
