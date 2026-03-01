@@ -68,13 +68,13 @@ const poolRegistry = new PoolRegistry();
 
 // HTTP client for User Management service
 const userManagementClient = {
-  async reportMatchResult(message: { playerId: number; result: 'W' | 'L' }): Promise<void> {
+  async reportMatchResult(message: { playerId: number; isWinner: boolean }): Promise<void> {
     const userManagementUrl = process.env.USER_MANAGEMENT_URL || 'http://localhost:3004';
     try {
       const response = await fetch(`${userManagementUrl}/api/users/${message.playerId}/match-result`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ result: message.result })
+        body: JSON.stringify({ isWinner: message.isWinner })
       });
       if (!response.ok) {
         server.log.warn({ playerId: message.playerId, status: response.status }, 'Failed to report match result');
