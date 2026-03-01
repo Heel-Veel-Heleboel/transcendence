@@ -3,6 +3,7 @@ import { userRoutes } from './routes/user.js';
 import { errorHandler } from './middleware/error-handler.js';
 import prismaDisconnectHook from './middleware/prisma-disconnect-hook.js';
 import { getUserController } from './config/user.controllers.js';
+import  multipart from '@fastify/multipart';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const app = fastify({
@@ -23,6 +24,7 @@ const app = fastify({
 });
 
 const userController = getUserController();
+app.register(multipart, { attachFieldsToBody: true });
 app.setErrorHandler(errorHandler);
 app.addHook('onClose', prismaDisconnectHook);
 app.get('/health', async () => {
