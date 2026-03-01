@@ -2,12 +2,10 @@ import { JSX } from "react";
 import { CONFIG } from '../../constants/AppConfig.ts'
 
 /* v8 ignore start */
-export function GamesAvailable({ quickPlayContent, defaultContent, customizedContent }: { quickPlayContent: JSX.Element, defaultContent: JSX.Element, customizedContent: JSX.Element }): JSX.Element {
+export function LobbyRoom({ gamesContent }: { gamesContent: JSX.Element }): JSX.Element {
     return (
         <div className="min-h-full flex flex-col">
-            <Terminal title={CONFIG.GAMES_QUICK_PLAY_TITLE} child={quickPlayContent} />
-            <Terminal title={CONFIG.GAMES_DEFAULT_PLAY_TITLE} child={defaultContent} />
-            <Terminal title={CONFIG.GAMES_CUSTOM_PLAY_TITLE} child={customizedContent} />
+            <Terminal title={CONFIG.LOBBYROOM_TITLE} child={gamesContent} />
         </div>
     );
 }
@@ -38,7 +36,7 @@ export function Terminal({ title, child }: { title: string, child: JSX.Element }
     return (
         <div className="grow flex flex-col">
             <div className="border border-black">{title}</div>
-            <div className="grow">{child}</div>
+            <div className="grow overflow-auto">{child}</div>
         </div>
     )
 }
