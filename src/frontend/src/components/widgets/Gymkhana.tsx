@@ -1,5 +1,5 @@
-import { JSX } from "react"
-import { GamesAvailable } from "../utils/MenuUtils"
+import { JSX, useState } from "react"
+import { LobbyRoom } from "../utils/MenuUtils"
 
 import { Client } from "@colyseus/sdk";
 import { useLobbyRoom } from "@colyseus/react";
@@ -19,7 +19,7 @@ function Lobby() {
         <ul>
             {rooms.map((room) => (
                 <li key={room.roomId}>
-                    {room.name} — {room.clients}/{room.maxClients} players
+                    {room.name} — {room.clients}/{room.maxClients} players | {room.roomId} roomId
                 </li>
             ))}
         </ul>
@@ -28,23 +28,27 @@ function Lobby() {
 
 /* v8 ignore start */
 export function Gymkhana(): JSX.Element {
-    const quickPlayContent = (): JSX.Element => {
-        return (
-            Lobby()
-        )
+    const [joiningDefault, SetJoiningDefault] = useState<boolean>(false);
+    const [joiningCustomized, SetJoiningCustomized] = useState<boolean>(false);
+    const cancelText = 'cancel';
+
+    function handleDefault() {
+        SetJoiningDefault(!joiningDefault);
     }
-    const defaultContent = (): JSX.Element => {
-        return (
-            <div>content</div>
-        )
+    function handleCustomized() {
+        SetJoiningCustomized(!joiningCustomized);
     }
-    const customizedContent = (): JSX.Element => {
-        return (
-            <div>content</div>
-        )
-    }
+
     return (
-        <GamesAvailable quickPlayContent={quickPlayContent()} defaultContent={defaultContent()} customizedContent={customizedContent()} />
+        <div id='gymKhanaContainer' className="flex justify-items-stretch min-h-full">
+            <div className="w-1/5 flex flex-col border border-black">
+                <button onClick={handleDefault}>{joiningDefault ? cancelText : 'default'}</button>
+                <button onClick={handleCustomized}>{joiningCustomized ? cancelText : 'customized'}</button>
+            </div>
+            <div className="w-4/5">
+                <LobbyRoom gamesContent={Lobby()} />
+            </div>
+        </div>
     )
 }
 /* v8 ignore stop */
