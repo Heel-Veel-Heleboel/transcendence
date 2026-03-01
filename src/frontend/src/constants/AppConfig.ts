@@ -27,6 +27,7 @@ export const CONFIG = {
   CLOSE_ALT: 'close',
 
   // NOTE: LobbyRoom
+  LOBBYROOM: 'lobby',
   LOBBYROOM_TITLE: 'Current Games',
 
   // NOTE: LOGIN PAGE
@@ -56,6 +57,11 @@ export const CONFIG = {
   // NOTE: AUTH
   USERID_COOKIE_NAME: 'user_id',
 
+  // NOTE: MATCHMAKING
+  CLASSIC_GAME: 'classic',
+  POWERUP_GAME: 'powerup',
+  CANCEL_JOIN_BUTTON: 'cancel',
+
   // NOTE: AXIOS
   REQUEST_BASE_URL: 'http://localhost:3000/api/',
   REQUEST_REGISTER: 'auth/register',
@@ -81,5 +87,11 @@ export const CONFIG = {
     'Content-Type': 'application/json'
   },
   REQUEST_REFRESH_UNAUTHORIZED: 401,
-  REQUEST_USER: 'users/find-by-id/'
+  REQUEST_USER: 'users/find-by-id/',
+  REQUEST_MATCHMAKING_CLASSIC: 'matchmaking/classic/join',
+  REQUEST_MATCHMAKING_METHOD: 'POST',
+  REQUEST_MATCHMAKING_POWERUP: 'matchmaking/powerup/join',
+
+  // NOTE: HTML ID
+  MATCHMAKING_CONTAINER_ID: 'MatchmakingContainer'
 };
