@@ -64,13 +64,30 @@ export async function registerMatchmakingRoutes(
 
     try {
       const pool = pools[gameMode];
-      const result = await pool.joinPool(userId, username);
+      const result = pool.joinPool(userId, username);
 
       if (result.success) {
         poolRegistry.registerUser(userId, gameMode);
       }
 
       request.log.info({ userId, gameMode, success: result.success }, 'User join pool attempt');
+
+      // Attempt to pair now that the pool has a new player.
+      // Fire-and-forget: pairing errors are logged but don't fail the join response.
+      // Both players poll GET /match/:matchId or listen for a push notification to
+      // discover the created match and roomId.
+      if (result.success && pool.canFormPair()) {
+        pool.tryAutoPair().then(pairResult => {
+          if (pairResult.paired) {
+            request.log.info({ userId, gameMode, matchId: pairResult.matchId }, 'Players paired');
+            // Unregister both players — they're no longer in the queue
+            poolRegistry.unregisterUser(pairResult.player1Id!);
+            poolRegistry.unregisterUser(pairResult.player2Id!);
+          }
+        }).catch(err => {
+          request.log.error({ err, userId, gameMode }, 'Auto-pair failed after join');
+        });
+      }
 
       return reply.status(200).send({
         success: result.success,
@@ -122,7 +139,7 @@ export async function registerMatchmakingRoutes(
 
     try {
       const pool = pools[gameMode];
-      const result = await pool.leavePool(userId);
+      const result = pool.leavePool(userId);
 
       if (result.success) {
         poolRegistry.unregisterUser(userId);

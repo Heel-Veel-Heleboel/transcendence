@@ -16,15 +16,19 @@ describe('Matchmaking Routes', () => {
     server = Fastify();
 
     mockClassicPool = {
-      joinPool: vi.fn().mockResolvedValue({ success: true, queuePosition: 1 }),
-      leavePool: vi.fn().mockResolvedValue({ success: true }),
+      joinPool: vi.fn().mockReturnValue({ success: true, queuePosition: 1 }),
+      leavePool: vi.fn().mockReturnValue({ success: true }),
       getPoolSize: vi.fn().mockReturnValue(1),
+      canFormPair: vi.fn().mockReturnValue(false),
+      tryAutoPair: vi.fn().mockResolvedValue({ paired: false }),
     } as any;
 
     mockPowerupPool = {
-      joinPool: vi.fn().mockResolvedValue({ success: true, queuePosition: 1 }),
-      leavePool: vi.fn().mockResolvedValue({ success: true }),
+      joinPool: vi.fn().mockReturnValue({ success: true, queuePosition: 1 }),
+      leavePool: vi.fn().mockReturnValue({ success: true }),
       getPoolSize: vi.fn().mockReturnValue(1),
+      canFormPair: vi.fn().mockReturnValue(false),
+      tryAutoPair: vi.fn().mockResolvedValue({ paired: false }),
     } as any;
 
     poolRegistry = new PoolRegistry();
@@ -140,7 +144,7 @@ describe('Matchmaking Routes', () => {
       });
 
       // Mock that user is already in pool
-      (mockClassicPool.joinPool as any).mockResolvedValue({ success: false, queuePosition: 1 });
+      (mockClassicPool.joinPool as any).mockReturnValue({ success: false, queuePosition: 1 });
 
       // Try to join classic again
       const response = await server.inject({
@@ -166,7 +170,7 @@ describe('Matchmaking Routes', () => {
     });
 
     it('should not register user in pool registry on failed join', async () => {
-      (mockClassicPool.joinPool as any).mockResolvedValue({ success: false, queuePosition: -1 });
+      (mockClassicPool.joinPool as any).mockReturnValue({ success: false, queuePosition: -1 });
 
       await server.inject({
         method: 'POST',
@@ -178,7 +182,7 @@ describe('Matchmaking Routes', () => {
     });
 
     it('should return 500 on service error', async () => {
-      (mockClassicPool.joinPool as any).mockRejectedValue(new Error('DB error'));
+      (mockClassicPool.joinPool as any).mockImplementation(() => { throw new Error('DB error'); });
 
       const response = await server.inject({
         method: 'POST',
@@ -312,7 +316,7 @@ describe('Matchmaking Routes', () => {
         headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
-      (mockClassicPool.leavePool as any).mockResolvedValue({ success: false });
+      (mockClassicPool.leavePool as any).mockReturnValue({ success: false });
 
       // Try to leave
       await server.inject({
@@ -332,7 +336,7 @@ describe('Matchmaking Routes', () => {
         headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
       });
 
-      (mockClassicPool.leavePool as any).mockRejectedValue(new Error('DB error'));
+      (mockClassicPool.leavePool as any).mockImplementation(() => { throw new Error('DB error'); });
 
       const response = await server.inject({
         method: 'POST',
