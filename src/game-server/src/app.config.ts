@@ -5,7 +5,8 @@ import {
   playground,
   createRouter,
   createEndpoint,
-  matchMaker
+  matchMaker,
+  LobbyRoom
 } from 'colyseus';
 import basicAuth from 'express-basic-auth';
 import express from 'express';
@@ -20,7 +21,8 @@ const server = defineServer({
    * Define your room handlers:
    */
   rooms: {
-    game_room: defineRoom(GameRoom)
+    lobby: defineRoom(LobbyRoom),
+    game_room: defineRoom(GameRoom).enableRealtimeListing()
   },
 
   /**
@@ -50,10 +52,31 @@ const server = defineServer({
      */
     app.post('/api/rooms/create', async (req, res) => {
       try {
-        const { matchId, player1Id, player2Id, player1Username, player2Username, gameMode, tournamentId, deadline, isGoldenGame } = req.body;
+        const {
+          matchId,
+          player1Id,
+          player2Id,
+          player1Username,
+          player2Username,
+          gameMode,
+          tournamentId,
+          deadline,
+          isGoldenGame
+        } = req.body;
 
-        if (!matchId || !player1Id || !player2Id || !player1Username || !player2Username) {
-          res.status(400).json({ error: 'Missing required fields: matchId, player1Id, player2Id, player1Username, player2Username' });
+        if (
+          !matchId ||
+          !player1Id ||
+          !player2Id ||
+          !player1Username ||
+          !player2Username
+        ) {
+          res
+            .status(400)
+            .json({
+              error:
+                'Missing required fields: matchId, player1Id, player2Id, player1Username, player2Username'
+            });
           return;
         }
 

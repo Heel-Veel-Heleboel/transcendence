@@ -22,6 +22,7 @@
         "@babylonjs/inspector": "^8.38.0",
         "@babylonjs/loaders": "^8.38.0",
         "@babylonjs/materials": "^8.42.0",
+        "@colyseus/react": "^0.1.14",
         "@colyseus/sdk": "^0.17.34",
         "@tailwindcss/postcss": "^4.1.18",
         "@tailwindcss/vite": "^4.1.18",
