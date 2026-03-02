@@ -6,6 +6,7 @@ import { proxyRoutes } from './routes/proxy';
 import { healthRoutes } from './routes/health';
 import { internalRoutes } from './routes/internal';
 import { websocketRoutes } from './websocket/handler';
+import { authMiddleware } from './middleware/auth';
 import { helmetConfig, corsConfig, getBodyLimit, logSecurityConfig } from './config/security';
 import { config } from './config';
 import { loggerOptions } from './config/logger';
@@ -31,6 +32,9 @@ export const createServer = async () => {
 
   // Log security configuration
   logSecurityConfig(server.log);
+
+  // Register global auth middleware to populate request.user from JWT
+  server.addHook('onRequest', authMiddleware);
 
   // Register health check routes (/health and /health/detailed)
   await healthRoutes(server);

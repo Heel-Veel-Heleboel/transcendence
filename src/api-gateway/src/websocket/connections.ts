@@ -1,4 +1,5 @@
 import type { SocketStream } from '@fastify/websocket';
+import WebSocket from 'ws';
 
 const connections = new Map<string, Set<SocketStream>>();
 
@@ -26,12 +27,21 @@ export function sendToUser(userId: string, event: object): boolean {
   if (!userConnections || userConnections.size === 0) return false;
 
   const message = JSON.stringify(event);
+  let sent = false;
   for (const connection of userConnections) {
-    if (connection.socket.readyState === connection.socket.OPEN) {
+    if (connection.socket.readyState === WebSocket.OPEN) {
       connection.socket.send(message);
+      sent = true;
+    } else {
+      userConnections.delete(connection);
     }
   }
-  return true;
+
+  if (userConnections.size === 0) {
+    connections.delete(userId);
+  }
+
+  return sent;
 }
 
 export function sendToUsers(userIds: string[], event: object): { userId: string; delivered: boolean }[] {

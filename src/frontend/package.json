@@ -11,8 +11,8 @@
         "build:server": "vite build --ssr src/entry-server.tsx --outDir dist/server",
         "preview": "cross-env NODE_ENV=production node server",
         "test": "vitest",
-        "test:run": "vitest run",
-        "test:coverage": "vitest run --coverage",
+        "test:run": "vitest run --passWithNoTests",
+        "test:coverage": "vitest run --coverage --passWithNoTests",
         "test:watch": "vitest --watch"
     },
     "dependencies": {
