@@ -21,9 +21,10 @@ export interface SendMessageRequest {
 export interface MatchAckMetadata {
   matchId: string;
   gameMode: string;
-  opponentId: number;
+  playerIds: [number, number];
+  acknowledgedBy: number[];
   expiresAt: string;
-  status: 'pending' | 'acknowledged' | 'expired';
+  status: 'pending' | 'acknowledged' | 'declined' | 'expired';
 }
 
 export interface RespondToMatchAckRequest {
@@ -33,11 +34,6 @@ export interface RespondToMatchAckRequest {
 export interface PaginationQuery {
   cursor?: string;
   limit?: number;
-}
-
-export interface CreateGameSessionChannelRequest {
-  playerIds: number[];
-  gameSessionId: string;
 }
 
 export interface CreateTournamentChannelRequest {

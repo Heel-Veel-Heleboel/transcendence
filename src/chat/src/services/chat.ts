@@ -184,38 +184,48 @@ export class ChatService {
     if (uniqueIds.length !== 2) {
       throw new ChatError(400, 'sendMatchAck requires exactly 2 unique player IDs');
     }
+    const [playerA, playerB] = uniqueIds as [number, number];
 
-    // Create the game session channel for the matched pair
-    const channel = await this.channelDao.create({
-      type: 'GAME_SESSION',
-      name: `Match ${matchId}`,
-      memberIds: uniqueIds
-    });
-
-    // Post a MATCH_ACK message for each player
-    const messages = [];
-    for (const playerId of uniqueIds) {
-      const opponentId = uniqueIds.find(id => id !== playerId) as number;
-      const metadata: MatchAckMetadata = {
-        matchId,
-        gameMode,
-        opponentId,
-        expiresAt,
-        status: 'pending'
-      };
-
-      const message = await this.messageDao.create({
-        channelId: channel.id,
-        senderId: 0,
-        content: `Match found! Game mode: ${gameMode}. Please acknowledge to start.`,
-        type: 'SYSTEM',
-        metadata: JSON.stringify(metadata)
+    // Find or create DM between the two matched players.
+    // Block checks are intentionally skipped here — matchmaking should
+    // prevent blocked users from being paired, but we don't gate on it at
+    // the chat layer for system-initiated acks.
+    let channel = await this.channelDao.findDMBetweenUsers(playerA, playerB);
+    if (!channel) {
+      channel = await this.channelDao.create({
+        type: 'DM',
+        memberIds: [playerA, playerB]
       });
-      messages.push(message);
+      await this.notificationService.notifyUsers([playerA, playerB], {
+        type: 'chat:channel_created',
+        channel: {
+          id: channel.id,
+          type: channel.type,
+          name: channel.name,
+          members: [playerA, playerB]
+        }
+      });
     }
 
-    // Notify both players
-    await this.notificationService.notifyUsers(uniqueIds, {
+    // One shared ack message — both players respond to the same message.
+    const metadata: MatchAckMetadata = {
+      matchId,
+      gameMode,
+      playerIds: [playerA, playerB],
+      acknowledgedBy: [],
+      expiresAt,
+      status: 'pending'
+    };
+
+    const message = await this.messageDao.create({
+      channelId: channel.id,
+      senderId: 0,
+      content: `Match found! Game mode: ${gameMode}. Both players must acknowledge to start.`,
+      type: 'SYSTEM',
+      metadata: JSON.stringify(metadata)
+    });
+
+    await this.notificationService.notifyUsers([playerA, playerB], {
       type: 'chat:match_ack_required',
       channelId: channel.id,
       matchId,
@@ -223,7 +233,7 @@ export class ChatService {
       expiresAt
     });
 
-    return { channel, messages };
+    return { channel, message };
   }
 
   async respondToMatchAck(messageId: string, playerId: number, acknowledge: boolean) {
@@ -234,17 +244,12 @@ export class ChatService {
     const metadata: MatchAckMetadata = JSON.parse(message.metadata);
     if (!metadata.matchId) throw new ChatError(400, 'Not a match acknowledgement message');
 
-    // The ack message is addressed to the opponent of the sender — verify the caller is authorized
-    if (metadata.opponentId === playerId) {
-      throw new ChatError(403, 'This acknowledgement is not addressed to you');
+    if (!metadata.playerIds.includes(playerId)) {
+      throw new ChatError(403, 'You are not part of this match');
     }
 
-    // Verify caller is a member of the channel
-    const isMember = await this.channelDao.isMember(message.channelId, playerId);
-    if (!isMember) throw new ChatError(403, 'Not a member of this channel');
-
     if (metadata.status !== 'pending') {
-      throw new ChatError(400, `Acknowledgement already ${metadata.status}`);
+      throw new ChatError(400, `Match already ${metadata.status}`);
     }
 
     if (new Date(metadata.expiresAt) < new Date()) {
@@ -253,29 +258,40 @@ export class ChatService {
       throw new ChatError(410, 'Match acknowledgement has expired');
     }
 
-    metadata.status = acknowledge ? 'acknowledged' : 'expired';
+    if (metadata.acknowledgedBy.includes(playerId)) {
+      throw new ChatError(409, 'You have already responded to this match');
+    }
+
+    if (!acknowledge) {
+      metadata.status = 'declined';
+      await this.messageDao.updateMetadata(messageId, JSON.stringify(metadata));
+      await this.notificationService.notifyUsers(metadata.playerIds, {
+        type: 'chat:match_ack_response',
+        matchId: metadata.matchId,
+        playerId,
+        acknowledged: false
+      });
+      return { acknowledged: false, matchId: metadata.matchId, gameMode: metadata.gameMode };
+    }
+
+    metadata.acknowledgedBy.push(playerId);
+    const bothAcked = metadata.acknowledgedBy.length === metadata.playerIds.length;
+    if (bothAcked) metadata.status = 'acknowledged';
+
     await this.messageDao.updateMetadata(messageId, JSON.stringify(metadata));
 
-    // Notify the opponent about the ack response
-    await this.notificationService.notifyUsers([metadata.opponentId], {
+    await this.notificationService.notifyUsers(metadata.playerIds, {
       type: 'chat:match_ack_response',
       matchId: metadata.matchId,
       playerId,
-      acknowledged: acknowledge
+      acknowledged: true,
+      bothAcked
     });
 
-    return { acknowledged: acknowledge, matchId: metadata.matchId, gameMode: metadata.gameMode };
+    return { acknowledged: true, matchId: metadata.matchId, gameMode: metadata.gameMode, bothAcked };
   }
 
   // ── Internal / System ─────────────────────────────────────
-
-  async createGameSessionChannel(playerIds: number[], gameSessionId: string) {
-    return this.channelDao.create({
-      type: 'GAME_SESSION',
-      name: `Game ${gameSessionId}`,
-      memberIds: playerIds
-    });
-  }
 
   async createTournamentChannel(userId: number, tournamentId: number, tournamentName: string) {
     const channelName = `Tournament #${tournamentId}: ${tournamentName}`;

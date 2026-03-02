@@ -50,7 +50,6 @@ model Message {
 
 enum ChannelType {
   DM
-  GAME_SESSION
   TOURNAMENT
   GROUP
 }

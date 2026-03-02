@@ -10,7 +10,6 @@ describe('Internal Routes', () => {
     server = Fastify();
     mockChatService = {
       sendMatchAck: vi.fn(),
-      createGameSessionChannel: vi.fn(),
       createTournamentChannel: vi.fn(),
       sendSystemMessage: vi.fn(),
     };
@@ -26,10 +25,10 @@ describe('Internal Routes', () => {
   // ── POST /chat/internal/match-ack ───────────────────────
 
   describe('POST /chat/internal/match-ack', () => {
-    it('should create match ack channel and messages', async () => {
+    it('should create match ack in DM and return channel + message', async () => {
       const mockResult = {
-        channel: { id: 'gs-1' },
-        messages: [{ id: 'ack-1' }, { id: 'ack-2' }],
+        channel: { id: 'dm-1' },
+        message: { id: 'ack-1' },
       };
       mockChatService.sendMatchAck.mockResolvedValueOnce(mockResult);
 
@@ -55,34 +54,6 @@ describe('Internal Routes', () => {
         method: 'POST',
         url: '/chat/internal/match-ack',
         payload: { matchId: 'match-1' },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-  });
-
-  // ── POST /chat/internal/channels/game-session ───────────
-
-  describe('POST /chat/internal/channels/game-session', () => {
-    it('should create a game session channel', async () => {
-      const mockChannel = { id: 'gs-1', type: 'GAME_SESSION' };
-      mockChatService.createGameSessionChannel.mockResolvedValueOnce(mockChannel);
-
-      const response = await server.inject({
-        method: 'POST',
-        url: '/chat/internal/channels/game-session',
-        payload: { playerIds: [1, 2], gameSessionId: 'game-abc' },
-      });
-
-      expect(response.statusCode).toBe(201);
-      expect(mockChatService.createGameSessionChannel).toBeCalledWith([1, 2], 'game-abc');
-    });
-
-    it('should return 400 without playerIds', async () => {
-      const response = await server.inject({
-        method: 'POST',
-        url: '/chat/internal/channels/game-session',
-        payload: { gameSessionId: 'game-abc' },
       });
 
       expect(response.statusCode).toBe(400);
