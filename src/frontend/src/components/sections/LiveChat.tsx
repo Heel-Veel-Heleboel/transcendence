@@ -18,6 +18,19 @@ export function LiveChat(): JSX.Element {
 
 export function LiveChatRooms(): JSX.Element {
     const roomsContent = (): JSX.Element => {
+        // NOTE: GET /chat/channels to get all channels and render them
+        // re-render when [new channel created(dm/group), notification is send for match-ack]
+        // when user clicks on channel, chat content is rendered in chat Component,
+        // and under the channel that is rendered, the names of members of channel will be shown with an indentation
+        // also shows current status of user behind username
+        // e.g.
+        // groupChannel1
+        //     user1 x
+        //     user2 o
+        // user1 x
+        // user2 o
+        // also option to delete chat or leave groupchat if implemented in chat-service
+        // 
         return (
             <div>Room content</div>
         )
@@ -30,6 +43,12 @@ export function LiveChatRooms(): JSX.Element {
 }
 
 export function Chat(): JSX.Element {
+    // NOTE: GET /chat/channels/:channelId/messages to get all messages of selected channel
+    // if notification is sent for every message received then 
+    //      re-render chat when notification is received
+    //      or safe message in state.
+    // else
+    //      re-render chat with time interval
     const chatContent = (): JSX.Element => {
         return (
             <div>Chat content</div>
@@ -43,6 +62,14 @@ export function Chat(): JSX.Element {
 }
 
 export function LiveChatUsers(): JSX.Element {
+    // NOTE: Searchbar with empty content at first render
+    // USERS search username and it displays search result
+    // USER can click on dropdown menu which shows following options
+    //      + show profile
+    //      + friend
+    //      + message
+    //      + groupchat
+    //      + block
     const userContent = (): JSX.Element => {
         return (
             <div>user content</div>
