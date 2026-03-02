@@ -1,5 +1,5 @@
 import { JSX } from "react";
-import { CONFIG } from '../constants/AppConfig.ts'
+import { CONFIG } from '../../constants/AppConfig.ts'
 
 /* v8 ignore start */
 export function GamesAvailable({ quickPlayContent, defaultContent, customizedContent }: { quickPlayContent: JSX.Element, defaultContent: JSX.Element, customizedContent: JSX.Element }): JSX.Element {

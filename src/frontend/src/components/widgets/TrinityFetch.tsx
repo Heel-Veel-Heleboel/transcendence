@@ -1,6 +1,6 @@
 import { JSX } from 'react';
 import platform from 'platform';
-import { browsers } from "../utils/browserLogos";
+import { browsers } from "../../utils/browserLogos";
 
 /* v8 ignore start*/
 export function TrinityFetch(): JSX.Element {

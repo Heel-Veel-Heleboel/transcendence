@@ -1,5 +1,5 @@
 import { JSX } from "react"
-import { CONFIG } from '../constants/AppConfig.ts'
+import { CONFIG } from '../../constants/AppConfig.ts'
 
 /* v8 ignore start*/
 export function CenterContainer({ children }: { children: JSX.Element }): JSX.Element {
