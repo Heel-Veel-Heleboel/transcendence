@@ -6,6 +6,7 @@ import { StartMenu } from '../pages/StartMenu.tsx'
 import { AuthProvider } from '../components/providers/Auth.tsx';
 import { RoomProvider } from '../components/providers/Room.tsx';
 import { CONFIG } from '../constants/AppConfig.ts';
+import { NotificationProvider } from '../components/providers/Notifications.tsx';
 
 /* v8 ignore start */
 export const Router = () => {
@@ -28,14 +29,19 @@ export const Router = () => {
     }
     return (
         <AuthProvider>
-            <RoomProvider>
+            <Routes>
+                <Route path={CONFIG.START_MENU_NAVIGATION} element={<StartMenu />} />
+            </Routes>
+            <NotificationProvider>
                 <Routes>
-
-                    <Route path={CONFIG.START_MENU_NAVIGATION} element={<StartMenu />} />
                     <Route path={CONFIG.MENU_NAVIGATION} element={<Menu />} />
-                    <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />
                 </Routes>
-            </RoomProvider>
+                <RoomProvider>
+                    <Routes>
+                        <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />
+                    </Routes>
+                </RoomProvider>
+            </NotificationProvider>
         </AuthProvider>
     )
 }
