@@ -1,9 +1,6 @@
 import { JSX } from "react";
-import { type FallbackProps } from 'react-error-boundary';
+import { FallbackErrorProps } from "../../types/types";
 
-type FallbackErrorProps = Omit<FallbackProps, 'error'> & {
-    error: any;
-}
 
 export function GeneralErrorFallback({ error, resetErrorBoundary }: FallbackErrorProps): JSX.Element {
     return (
