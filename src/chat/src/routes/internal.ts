@@ -2,7 +2,6 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { ChatService, ChatError } from '../services/chat.js';
 import type {
   SendMatchAckRequest,
-  CreateGameSessionChannelRequest,
   CreateTournamentChannelRequest,
   SystemMessageRequest
 } from '../types/chat.js';
@@ -32,25 +31,6 @@ export async function registerInternalRoutes(
         body.expiresAt
       );
       return reply.status(201).send(result);
-    } catch (error) {
-      return handleError(request, reply, error);
-    }
-  });
-
-  /**
-   * POST /chat/internal/channels/game-session
-   * Called by game service when a match starts.
-   */
-  server.post('/chat/internal/channels/game-session', async (request: FastifyRequest, reply: FastifyReply) => {
-    const body = request.body as CreateGameSessionChannelRequest;
-
-    if (!Array.isArray(body.playerIds) || !body.gameSessionId) {
-      return reply.status(400).send({ error: 'playerIds and gameSessionId are required' });
-    }
-
-    try {
-      const channel = await chatService.createGameSessionChannel(body.playerIds, body.gameSessionId);
-      return reply.status(201).send(channel);
     } catch (error) {
       return handleError(request, reply, error);
     }
