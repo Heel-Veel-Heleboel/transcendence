@@ -28,12 +28,14 @@ import { Callbacks, Room } from '@colyseus/sdk';
 import { Protagonist } from '../components/Protagonist';
 import { Antagonist } from '../components/Antagonist';
 import gameConfig from '../utils/GameConfig.ts';
+import { Dispatch, SetStateAction } from 'react';
 
 /* v8 ignore start */
 export class GameClient {
   private _scene!: Scene;
   private _defaultScene!: Scene;
   private _engine!: AbstractEngine;
+  private _setError!: Dispatch<SetStateAction<Error | null>>;
 
   private _frameCount!: number;
   private _arena!: Arena;
@@ -51,9 +53,13 @@ export class GameClient {
   //@ts-ignore
   private _backgroundMusic!: Sound;
 
-  constructor(defaultScene: Scene) {
+  constructor(
+    defaultScene: Scene,
+    setError: Dispatch<SetStateAction<Error | null>>
+  ) {
     this.defaultScene = defaultScene;
     this.engine = defaultScene.getEngine();
+    this._setError = setError;
   }
 
   async initGame() {
@@ -86,25 +92,29 @@ export class GameClient {
 
   private draw(g: GameClient) {
     return () => {
-      if (typeof g.prota === 'undefined') return;
-      if (!(g.frameCount % 600)) {
-        // console.log(g.balls);
-      }
-      for (const entity of g.balls) {
-        const ball = entity[1];
-        if (ball) {
-          g.prota.hitIndicator.detectIncomingHits(ball);
+      try {
+        if (typeof g.prota === 'undefined') return;
+        if (!(g.frameCount % 600)) {
+          // console.log(g.balls);
         }
-        ball.update();
+        for (const entity of g.balls) {
+          const ball = entity[1];
+          if (ball) {
+            g.prota.hitIndicator.detectIncomingHits(ball);
+          }
+          ball.update();
+        }
+        if (
+          g.keyManager.deltaTime !== 0 &&
+          g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames
+        ) {
+          g.keyManager.resolve();
+        }
+        g.prota.hud.changeMana(0.01);
+        g.frameCount++;
+      } catch (e: any) {
+        this._setError(e);
       }
-      if (
-        g.keyManager.deltaTime !== 0 &&
-        g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames
-      ) {
-        g.keyManager.resolve();
-      }
-      g.prota.hud.changeMana(0.01);
-      g.frameCount++;
     };
   }
 
