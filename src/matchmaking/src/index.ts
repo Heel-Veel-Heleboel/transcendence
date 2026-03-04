@@ -55,7 +55,7 @@ const gameServerClient = new GameServerClient(
 );
 
 const chatServiceClient = new ChatServiceClient(
-  process.env.CHAT_SERVICE_URL || 'http://localhost:3003',
+  process.env.CHAT_SERVICE_URL || 'http://localhost:3006',
   server.log
 );
 
