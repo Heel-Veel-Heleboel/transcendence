@@ -17,31 +17,60 @@ export function Gymkhana(): JSX.Element {
     const [error, setError] = useState<string | null>(null);
 
     async function handleDefault() {
-        try {
-            await api({
-                url: CONFIG.REQUEST_MATCHMAKING_CLASSIC,
+        if (!joiningDefault) {
+            try {
+                await api({
+                    url: CONFIG.REQUEST_MATCHMAKING_CLASSIC,
 
-                method: CONFIG.REQUEST_MATCHMAKING_METHOD
-            });
-        } catch (e: any) {
-            console.error(e);
-            setError(ERRORS.MATCHMAKING_CLASSIC_FAILED);
-            return;
+                    method: CONFIG.REQUEST_MATCHMAKING_METHOD
+                });
+            } catch (e: any) {
+                console.error(e);
+                setError(ERRORS.MATCHMAKING_CLASSIC_FAILED);
+                return;
+            }
+        } else {
+            try {
+                await api({
+                    url: CONFIG.REQUEST_MATCHMAKING_CLASSIC_CANCEL,
+
+                    method: CONFIG.REQUEST_MATCHMAKING_METHOD
+                });
+            } catch (e: any) {
+                console.error(e);
+                setError(ERRORS.MATCHMAKING_LEAVE_FAILED);
+                return;
+            }
         }
         SetJoiningDefault(!joiningDefault);
     }
     async function handleCustomized() {
-        try {
-            await api({
-                url: CONFIG.REQUEST_MATCHMAKING_POWERUP,
-                method: CONFIG.REQUEST_MATCHMAKING_METHOD
-            });
-        } catch (e: any) {
-            console.error(e);
-            setError(ERRORS.MATCHMAKING_POWERUP_FAILED);
-            return;
+        if (!joiningCustomized) {
+            try {
+                await api({
+                    url: CONFIG.REQUEST_MATCHMAKING_POWERUP,
+                    method: CONFIG.REQUEST_MATCHMAKING_METHOD
+                });
+            } catch (e: any) {
+                console.error(e);
+                setError(ERRORS.MATCHMAKING_POWERUP_FAILED);
+                return;
+            }
+        } else {
+            try {
+                await api({
+                    url: CONFIG.REQUEST_MATCHMAKING_POWERUP_CANCEL,
+
+                    method: CONFIG.REQUEST_MATCHMAKING_METHOD
+                });
+            } catch (e: any) {
+                console.error(e);
+                setError(ERRORS.MATCHMAKING_LEAVE_FAILED);
+                return;
+
+            }
+            SetJoiningCustomized(!joiningCustomized);
         }
-        SetJoiningCustomized(!joiningCustomized);
     }
 
     return (

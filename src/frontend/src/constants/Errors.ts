@@ -10,5 +10,6 @@ export const ERRORS = {
   // NOTE: MATCHMAKING
   MATCHMAKING_CLASSIC_FAILED: 'Failed to join classic game',
   MATCHMAKING_POWERUP_FAILED: 'Failed to join powerup game',
+  MATCHMAKING_LEAVE_FAILED: 'Failed to join leave game pool',
   MATCHMAKING_JOIN_FAILED: 'Failed to join game'
 };
