@@ -11,7 +11,7 @@ import {
 import { CONFIG } from '../../constants/AppConfig';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api.ts';
-import { getCookie, createCookie } from '../../utils/cookies';
+import { getCookie, createCookie } from '../utils/cookies';
 import { ERRORS } from '../../constants/Errors.ts';
 
 interface ICredentials {
