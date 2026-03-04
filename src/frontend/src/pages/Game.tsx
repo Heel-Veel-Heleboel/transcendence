@@ -18,6 +18,7 @@ export const Game = (): JSX.Element | null => {
         </ErrorBoundary>
     )
 }
+
 export const GameRender = (): JSX.Element | null => {
     const [room, setRoom] = useState<Room | null>(null);
     const [game, setGame] = useState<GameClient | null>(null);
