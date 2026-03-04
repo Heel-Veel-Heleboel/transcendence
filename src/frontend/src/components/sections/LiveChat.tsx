@@ -1,9 +1,12 @@
 import { JSX } from "react"
 import { TitleBar, Terminal } from "../utils/MenuUtils"
 import { CONFIG } from "../../constants/AppConfig"
+import { connectNotifications } from "../utils/NotificationConnect"
 
 /* v8 ignore start */
 export function LiveChat(): JSX.Element {
+    const notif = connectNotifications();
+
     return (
         <div className="min-h-1/2 min-w-full flex flex-col bg-zinc-800/50 bg-clip-content">
             <TitleBar logoPath={CONFIG.LIVE_CHAT_LOGO} title={CONFIG.LIVE_CHAT_TITLE} />

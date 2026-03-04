@@ -1,14 +1,14 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useContext, useState } from 'react';
 import useWebSocket, { ReadyState, SendMessage } from 'react-use-websocket';
 import { CONFIG } from '../../constants/AppConfig';
 import { useAuth } from './Auth';
-import { SendJsonMessage, WebSocketLike, WebSocketMessage } from 'react-use-websocket/dist/lib/types';
+import { SendJsonMessage, WebSocketLike } from 'react-use-websocket/dist/lib/types';
 
 type NotificationContextType = {
     sendMessage: SendMessage | null;
     lastMessage: MessageEvent<any> | null;
     readyState: ReadyState | null;
-
+    join: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null);
@@ -22,7 +22,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const [getGetWebSocket, setGetWebSocket] = useState<() => (WebSocketLike | null)>(() => null);
     const auth = useAuth();
 
-    function join() {
+    async function join() {
+        if (getReadyState) {
+            return;
+        }
         const {
             sendMessage,
             sendJsonMessage,
@@ -65,7 +68,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
 
     return (
-        <NotificationContext.Provider value={{ sendMessage: getSendMessage, lastMessage: getLastMessage, readyState: getReadyState }}>
+        <NotificationContext.Provider value={{ join: join, sendMessage: getSendMessage, lastMessage: getLastMessage, readyState: getReadyState }}>
             {children}
         </NotificationContext.Provider>
     );
