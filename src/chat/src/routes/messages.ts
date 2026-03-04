@@ -73,6 +73,7 @@ export async function registerMessageRoutes(
       return handleError(request, reply, error);
     }
   });
+
 }
 
 function getUserId(request: FastifyRequest): number | null {
