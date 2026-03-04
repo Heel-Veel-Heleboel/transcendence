@@ -2,7 +2,7 @@ import { JSX, useEffect, useState } from "react"
 import api from "../../api";
 import { CONFIG } from "../../constants/AppConfig";
 import { IUserResponse } from "../../types/types";
-import { getCookie } from "../../utils/cookies";
+import { getCookie } from "../utils/cookies";
 import { ERRORS } from "../../constants/Errors";
 
 /* v8 ignore start */

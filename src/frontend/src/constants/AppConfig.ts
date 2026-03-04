@@ -83,5 +83,8 @@ export const CONFIG = {
     'Content-Type': 'application/json'
   },
   REQUEST_REFRESH_UNAUTHORIZED: 401,
-  REQUEST_USER: 'users/find-by-id/'
+  REQUEST_USER: 'users/find-by-id/',
+
+  // NOTE: NOTIFICATIONS
+  NOTIFICATION_URI: 'ws://localhost:3000/ws'
 };
