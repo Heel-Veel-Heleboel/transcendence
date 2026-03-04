@@ -75,25 +75,42 @@ const poolRegistry = new PoolRegistry();
 
 // HTTP client for User Management service
 const userManagementClient = {
-  async reportMatchResult(message: { playerId: number; isWinner: boolean }): Promise<void> {
-    const userManagementUrl = process.env.USER_MANAGEMENT_URL || 'http://localhost:3004';
+  async reportMatchResult(message: {
+    playerId: number;
+    isWinner: boolean;
+  }): Promise<void> {
+    const userManagementUrl =
+      process.env.USER_MANAGEMENT_URL || 'http://localhost:3004';
     try {
-      const response = await fetch(`${userManagementUrl}/api/users/${message.playerId}/match-result`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isWinner: message.isWinner })
-      });
+      const response = await fetch(
+        `${userManagementUrl}/api/users/${message.playerId}/match-result`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ isWinner: message.isWinner })
+        }
+      );
       if (!response.ok) {
-        server.log.warn({ playerId: message.playerId, status: response.status }, 'Failed to report match result');
+        server.log.warn(
+          { playerId: message.playerId, status: response.status },
+          'Failed to report match result'
+        );
       }
     } catch (error) {
-      server.log.error({ error, playerId: message.playerId }, 'Error reporting match result');
+      server.log.error(
+        { error, playerId: message.playerId },
+        'Error reporting match result'
+      );
     }
   }
 };
 
 // Match reporting service for sending results to user management
-const matchReporting = new MatchReporting(matchDao, userManagementClient, server.log);
+const matchReporting = new MatchReporting(
+  matchDao,
+  userManagementClient,
+  server.log
+);
 
 // Tournament services
 const tournamentDao = new TournamentDao(prisma);
@@ -161,9 +178,22 @@ server.get('/health/detailed', async () => {
 
 // Register routes
 await registerMatchmakingRoutes(server, pools, poolRegistry, chatServiceClient);
-await registerMatchRoutes(server, matchDao, matchReporting, gameServerClient, chatServiceClient, gatewayNotificationClient);
+await registerMatchRoutes(
+  server,
+  matchDao,
+  matchReporting,
+  gameServerClient,
+  chatServiceClient,
+  gatewayNotificationClient
+);
 await registerTournamentRoutes(server, tournamentService, lifecycleManager);
-await registerDirectChallengeRoutes(server, matchDao, chatServiceClient, pools, poolRegistry);
+await registerDirectChallengeRoutes(
+  server,
+  matchDao,
+  chatServiceClient,
+  pools,
+  poolRegistry
+);
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {
