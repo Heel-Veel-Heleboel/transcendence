@@ -15,6 +15,7 @@ import { TournamentLifecycleManager } from './services/tournament-lifecycle.js';
 import { registerMatchmakingRoutes } from './routes/matchmaking.js';
 import { registerMatchRoutes } from './routes/match.js';
 import { registerTournamentRoutes } from './routes/tournament.js';
+import { registerInternalRoutes } from './routes/internal.js';
 import { GameMode } from './types/match.js';
 
 const server = fastify({
@@ -154,8 +155,9 @@ server.get('/health/detailed', async () => {
 
 // Register routes
 await registerMatchmakingRoutes(server, pools, poolRegistry, chatServiceClient);
-await registerMatchRoutes(server, matchDao, matchReporting, gameServerClient, chatServiceClient);
+await registerMatchRoutes(server, matchDao, matchReporting, gameServerClient);
 await registerTournamentRoutes(server, tournamentService, lifecycleManager);
+await registerInternalRoutes(server, matchDao, chatServiceClient, pools, poolRegistry);
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {
