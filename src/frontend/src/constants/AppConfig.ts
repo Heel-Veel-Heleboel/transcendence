@@ -95,6 +95,9 @@ export const CONFIG = {
   REQUEST_MATCHMAKING_POWERUP: 'matchmaking/powerup/join',
   REQUEST_MATCHMAKING_POWERUP_CANCEL: 'matchmaking/powerup/leave',
 
+  REQUEST_CHANNEL_ALL: 'chat/channels',
+  REQUEST_CHANNEL_ALL_METHOD: 'GET',
+
   // NOTE: HTML ID
   MATCHMAKING_CONTAINER_ID: 'MatchmakingContainer',
 

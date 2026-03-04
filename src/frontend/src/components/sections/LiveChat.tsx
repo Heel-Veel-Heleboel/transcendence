@@ -1,7 +1,8 @@
-import { JSX } from "react"
+import { JSX, useEffect, useState } from "react"
 import { TitleBar, Terminal } from "../utils/MenuUtils"
 import { CONFIG } from "../../constants/AppConfig"
 import { connectNotifications } from "../utils/NotificationConnect"
+import api from "../../api";
 
 /* v8 ignore start */
 export function LiveChat(): JSX.Element {
@@ -34,8 +35,39 @@ export function LiveChatRooms(): JSX.Element {
         // user2 o
         // also option to delete chat or leave groupchat if implemented in chat-service
         // 
+        //
+        const [chats, setChats] = useState<Array<string>>([]);
+        const [error, setError] = useState<Error | null>(null);
+
+        useEffect(() => {
+            async function getChannels() {
+                try {
+                    const result = await api({
+                        url: CONFIG.REQUEST_CHANNEL_ALL,
+                        method: CONFIG.REQUEST_CHANNEL_ALL_METHOD,
+                    })
+                    setChats([...chats, result.data[0].id]);
+                    console.log(result);
+                } catch (e: any) {
+                    console.error(e);
+                    setError(e);
+                }
+            }
+
+            getChannels();
+
+        }, []);
+        function List(list: Array<string>) {
+            const listItems = list.map(item =>
+                <li>{item}</li>
+            );
+            return <ul>{listItems}</ul>;
+        }
+
         return (
-            <div>Room content</div>
+            <div>
+                {error ? 'could not load channels' : List(chats)}
+            </div>
         )
     }
     return (
