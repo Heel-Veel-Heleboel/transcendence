@@ -29,15 +29,11 @@ export const Router = () => {
     }
     return (
         <AuthProvider>
-            <Routes>
-                <Route path={CONFIG.START_MENU_NAVIGATION} element={<StartMenu />} />
-            </Routes>
             <NotificationProvider>
-                <Routes>
-                    <Route path={CONFIG.MENU_NAVIGATION} element={<Menu />} />
-                </Routes>
                 <RoomProvider>
                     <Routes>
+                        <Route path={CONFIG.START_MENU_NAVIGATION} element={<StartMenu />} />
+                        <Route path={CONFIG.MENU_NAVIGATION} element={<Menu />} />
                         <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />
                     </Routes>
                 </RoomProvider>
