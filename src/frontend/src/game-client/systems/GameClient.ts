@@ -59,7 +59,21 @@ export class GameClient {
   ) {
     this.defaultScene = defaultScene;
     this.engine = defaultScene.getEngine();
-    this._setError = setError;
+    this.setError = setError;
+    return new Proxy(this, {
+      get(target: any, prop: any) {
+        const origMethod = target[prop];
+        if (typeof origMethod == 'function') {
+          return function (...args: any) {
+            try {
+              return origMethod.apply(target, args);
+            } catch (e: any) {
+              setError(e);
+            }
+          };
+        }
+      }
+    });
   }
 
   async initGame() {
@@ -113,7 +127,8 @@ export class GameClient {
         g.prota.hud.changeMana(0.01);
         g.frameCount++;
       } catch (e: any) {
-        this._setError(e);
+        console.error(e);
+        this.setError(e);
       }
     };
   }
@@ -246,6 +261,9 @@ export class GameClient {
   private set engine(engine: AbstractEngine) {
     this._engine = engine;
   }
+  private set setError(setError: Dispatch<SetStateAction<Error | null>>) {
+    this._setError = setError;
+  }
   private set frameCount(frameCount: number) {
     this._frameCount = frameCount;
   }
@@ -289,6 +307,9 @@ export class GameClient {
   // NOTE: set to public to dispose scene on error
   public get engine(): AbstractEngine {
     return this._engine;
+  }
+  private get setError() {
+    return this._setError;
   }
   private get frameCount(): number {
     return this._frameCount;
