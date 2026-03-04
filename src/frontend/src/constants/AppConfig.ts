@@ -90,8 +90,10 @@ export const CONFIG = {
   REQUEST_USER: 'users/find-by-id/',
 
   REQUEST_MATCHMAKING_CLASSIC: 'matchmaking/classic/join',
+  REQUEST_MATCHMAKING_CLASSIC_CANCEL: 'matchmaking/classic/leave',
   REQUEST_MATCHMAKING_METHOD: 'POST',
   REQUEST_MATCHMAKING_POWERUP: 'matchmaking/powerup/join',
+  REQUEST_MATCHMAKING_POWERUP_CANCEL: 'matchmaking/powerup/leave',
 
   // NOTE: HTML ID
   MATCHMAKING_CONTAINER_ID: 'MatchmakingContainer',
