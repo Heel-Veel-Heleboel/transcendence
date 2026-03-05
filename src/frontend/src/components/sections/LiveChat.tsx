@@ -1,4 +1,4 @@
-import { JSX, useEffect, useState } from "react"
+import { Dispatch, JSX, SetStateAction, useEffect, useState } from "react"
 import { TitleBar, Terminal } from "../utils/MenuUtils"
 import { CONFIG } from "../../constants/AppConfig"
 import api from "../../api";
@@ -9,6 +9,7 @@ export function LiveChat(): JSX.Element {
     // NOTE: causes errors check why
     const notif = useNotifications();
     const [channels, setChannels] = useState<Array<string>>([]);
+    const [chat, setChat] = useState<string | null>(null);
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
@@ -32,8 +33,8 @@ export function LiveChat(): JSX.Element {
         <div className="min-h-1/2 min-w-full flex flex-col bg-zinc-800/50 bg-clip-content">
             <TitleBar logoPath={CONFIG.LIVE_CHAT_LOGO} title={CONFIG.LIVE_CHAT_TITLE} />
             <div className="flex grow">
-                <LiveChatRooms error={error} channels={channels} />
-                <Chat />
+                <LiveChatRooms error={error} channels={channels} setChat={setChat} />
+                <Chat currentChat={chat} />
                 <LiveChatUsers />
             </div>
         </div>
@@ -54,11 +55,11 @@ export function LiveChat(): JSX.Element {
 // also option to delete chat or leave groupchat if implemented in chat-service
 // 
 //
-export function LiveChatRooms({ error, channels }: { error: Error | null, channels: Array<string> }): JSX.Element {
+export function LiveChatRooms({ error, channels, setChat }: { error: Error | null, channels: Array<string>, setChat: Dispatch<SetStateAction<string | null>> }): JSX.Element {
     const roomsContent = (): JSX.Element => {
         function List(list: Array<string>) {
             const listItems = list.map(item =>
-                <li key={item}>{item}</li>
+                <li onClick={() => { setChat(item) }} key={item}>{item}</li>
             );
             return <ul>{listItems}</ul>;
         }
@@ -76,16 +77,49 @@ export function LiveChatRooms({ error, channels }: { error: Error | null, channe
     )
 }
 
-export function Chat(): JSX.Element {
-    // NOTE: GET /chat/channels/:channelId/messages to get all messages of selected channel
-    // if notification is sent for every message received then 
-    //      re-render chat when notification is received
-    //      or safe message in state.
-    // else
-    //      re-render chat with time interval
+// NOTE: GET /chat/channels/:channelId/messages to get all messages of selected channel
+// if notification is sent for every message received then 
+//      re-render chat when notification is received
+//      or safe message in state.
+// else
+//      re-render chat with time interval
+export function Chat({ currentChat }: { currentChat: string | null }): JSX.Element {
+    const [chat, setChat] = useState<Array<string>>([]);
+    const [error, setError] = useState<Error | null>(null);
+    useEffect(() => {
+        async function getChat() {
+            if (currentChat) {
+                try {
+                    const result = await api({
+                        url: CONFIG.REQUEST_CHAT(currentChat),
+                        method: CONFIG.REQUEST_CHAT_METHOD
+                    })
+                    setChat(result.data);
+                    console.log(result);
+                } catch (e: any) {
+                    console.error(e);
+                    setError(e);
+                }
+            }
+        }
+        getChat();
+
+    }, [currentChat])
+
+    function List(list: Array<string>) {
+        const listItems = list.map(item =>
+            <li key={item}>{item}</li>
+        );
+        return <ul>{listItems}</ul>;
+    }
+
     const chatContent = (): JSX.Element => {
         return (
-            <div>Chat content</div>
+            <div>
+                {
+                    error ? 'failed to retrieve chat' : currentChat ? 'some chat' : List(chat)
+                }
+            </div>
         )
     }
     return (
