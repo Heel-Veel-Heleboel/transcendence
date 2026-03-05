@@ -44,11 +44,11 @@ export class ProfileRepository implements IProfileRepository {
   }
 
 
-  async updateWins(user_id: number): Promise<void> {
+  async updateWins(data: UpdateStatsDto): Promise<void> {
     try {
       await this.prisma.profile.update({
         where: {
-          user_id: user_id
+          user_id: data.user_id
         },
         data: {
           wins: { increment: 1 }
@@ -66,11 +66,11 @@ export class ProfileRepository implements IProfileRepository {
   }
   
 
-  async updateLosses(user_id: number): Promise<void> {
+  async updateLosses(data: UpdateStatsDto): Promise<void> {
     try {
       await this.prisma.profile.update({
         where: {
-          user_id: user_id
+          user_id: data.user_id
         },
         data: {
           losses: { increment: 1 }

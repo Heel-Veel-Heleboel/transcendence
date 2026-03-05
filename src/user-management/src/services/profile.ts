@@ -23,9 +23,9 @@ export class ProfileService {
   
   async updateProfileStats(user_id: number, is_winner: boolean): Promise<void> {
     if (is_winner) {
-      await this.profileRepository.updateWins(user_id);
+      await this.profileRepository.updateWins({ user_id });
     } else {
-      await this.profileRepository.updateLosses(user_id);
+      await this.profileRepository.updateLosses({ user_id });
     }
   }
 
