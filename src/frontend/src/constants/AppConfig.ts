@@ -97,6 +97,10 @@ export const CONFIG = {
 
   REQUEST_CHANNEL_ALL: 'chat/channels',
   REQUEST_CHANNEL_ALL_METHOD: 'GET',
+  REQUEST_CHAT: (channelId: string) => {
+    return `/chat/channels/${channelId}/messages`;
+  },
+  REQUEST_CHAT_METHOD: 'GET',
 
   // NOTE: HTML ID
   MATCHMAKING_CONTAINER_ID: 'MatchmakingContainer',
