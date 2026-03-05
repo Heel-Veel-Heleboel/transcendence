@@ -73,9 +73,7 @@ export async function registerMatchRoutes(
               roomId,
               gameMode: updatedMatch.gameMode
             }
-          ).catch(err => {
-            request.log.error({ err, matchId, roomId }, 'Failed to send MATCH_READY notification');
-          });
+          );
 
           // Create a shared game channel for both players (fire-and-forget)
           chatServiceClient.createGameSessionChannel(
