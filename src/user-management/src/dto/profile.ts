@@ -21,6 +21,6 @@ export interface UpdateStatsDto {
 
 export interface UploadAvatarDto {
   user_id: number;
-  avatar_url: string | null;
+  avatar_url: string;
 }
 

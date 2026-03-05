@@ -3,7 +3,6 @@ import { ProfileRepository } from '../repositories/profile.js';
 import { ProfileResponseDto } from '../dto/profile.js';
 
 
-
 export class ProfileService {
   constructor(private readonly profileRepository: ProfileRepository) {}
 
@@ -13,7 +12,7 @@ export class ProfileService {
       return null;
     }
     const games_played = profile.wins + profile.losses;
-    const win_rate = games_played > 0 ? profile.wins / games_played : 0;
+    const win_rate = games_played > 0 ? profile.wins / games_played * 100 : 0;
     return {
       ...profile,
       win_rate,
@@ -23,10 +22,15 @@ export class ProfileService {
 
   
   async updateProfileStats(user_id: number, is_winner: boolean): Promise<void> {
-    await this.profileRepository.updateStats({
-      user_id,
-      wins: is_winner ? 1 : 0,
-      losses: is_winner ? 0 : 1
-    });
+    if (is_winner) {
+      await this.profileRepository.updateWins(user_id);
+    } else {
+      await this.profileRepository.updateLosses(user_id);
+    }
+  }
+
+
+  async uploadUrl(user_id: number, pub_url: string) : Promise<string | null> {
+    return await this.profileRepository.uploadAvatarUrl({ user_id: user_id, avatar_url: pub_url });
   }
 }

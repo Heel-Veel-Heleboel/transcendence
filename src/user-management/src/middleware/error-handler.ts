@@ -1,6 +1,6 @@
 import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
-import  * as UserErrors from '../error/user-management.js';
-import { UserDomainErrorMessages, CommonErrorMessages } from '../constants/error-messages.js';
+import  * as Errors from '../error/user-management.js';
+import { UserDomainErrorMessages, CommonErrorMessages, ProfileDomainErrorMessages } from '../constants/error-messages.js';
 
 
 interface ValidationError {
@@ -29,7 +29,7 @@ export function errorHandler(
   request.log.error({ error: error }, 'User-management error occurred');
 
 
-  if (error instanceof UserErrors.UserAlreadyExistsError) {
+  if (error instanceof Errors.UserAlreadyExistsError) {
     return reply.code(409).send({
       statusCode: 409,
       error: 'Conflict',
@@ -39,7 +39,7 @@ export function errorHandler(
     });
   }
 
-  if (error instanceof UserErrors.UserNotFoundError) {
+  if (error instanceof Errors.UserNotFoundError) {
     return reply.code(404).send({
       statusCode: 404,
       error: 'Not Found',
@@ -47,13 +47,22 @@ export function errorHandler(
     });
   }
 
-  if (error instanceof UserErrors.DatabaseError) {
+  if (error instanceof Errors.ProfileNotFoundError) {
+    return reply.code(404).send({
+      statusCode: 404,
+      error: 'Not Found',
+      message: ProfileDomainErrorMessages.PROFILE_NOT_FOUND
+    });
+  } 
+
+  if (error instanceof Errors.DatabaseError) {
     return reply.code(500).send({
       statusCode: 500,
       error: 'Internal Server Error',
-      message: CommonErrorMessages.DATABASE_ERROR
+      message: error.message || CommonErrorMessages.DATABASE_ERROR
     });
   }
+
 
   if (isFastifyValidationError(error)) {
     const details = error.validation.map(item => ({
