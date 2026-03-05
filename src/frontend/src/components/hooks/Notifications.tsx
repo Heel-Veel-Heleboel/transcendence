@@ -1,6 +1,6 @@
 import useWebSocket from "react-use-websocket";
 import { CONFIG } from "../../constants/AppConfig";
-import { useAuth } from "./Auth";
+import { useAuth } from "../providers/Auth";
 
 export function useNotifications() {
     const auth = useAuth();
