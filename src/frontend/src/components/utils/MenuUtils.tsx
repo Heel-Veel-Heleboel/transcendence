@@ -12,7 +12,7 @@ export function LobbyRoom({ gamesContent }: { gamesContent: JSX.Element }): JSX.
 
 export function TitleBar({ logoPath, title }: { logoPath: string, title: string }): JSX.Element {
     return (
-        <div className="border-1 border-black bg-pink-800 flex justify-between px-1">
+        <div className="h-1/10 border-1 border-black bg-pink-800 flex justify-between px-1">
             <div className="w-5 py-1">
                 <img src={logoPath} alt='logo' />
             </div>
@@ -34,9 +34,9 @@ export function TitleBar({ logoPath, title }: { logoPath: string, title: string 
 
 export function Terminal({ title, child }: { title: string, child: JSX.Element }): JSX.Element {
     return (
-        <div className="grow flex flex-col">
+        <div className="min-h-full max-h-full flex flex-col">
             <div className="border border-black">{title}</div>
-            <div className="grow overflow-auto">{child}</div>
+            <div className="min-h-full max-h-full overflow-auto">{child}</div>
         </div>
     )
 }
@@ -55,7 +55,7 @@ export function Widget({ logoPath, title, width, child }: { logoPath: string, ti
 
 export function MainWindowContainer({ children }: { children: JSX.Element }): JSX.Element {
     return (
-        <div className="p-2 min-w-full grow flex flex-col">
+        <div id='MainWindowContainer' className="min-w-full min-h-full flex flex-col">
             {children}
         </div>
     )

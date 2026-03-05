@@ -3,6 +3,7 @@ import { TitleBar, Terminal } from "../utils/MenuUtils"
 import { CONFIG } from "../../constants/AppConfig"
 import api from "../../api";
 import { useNotifications } from "../hooks/Notifications.tsx";
+import { IChat } from "../../types/types.ts";
 
 /* v8 ignore start */
 export function LiveChat(): JSX.Element {
@@ -32,7 +33,7 @@ export function LiveChat(): JSX.Element {
     return (
         <div className="min-h-1/2 min-w-full flex flex-col bg-zinc-800/50 bg-clip-content">
             <TitleBar logoPath={CONFIG.LIVE_CHAT_LOGO} title={CONFIG.LIVE_CHAT_TITLE} />
-            <div className="flex grow">
+            <div className="flex h-19/20">
                 <LiveChatRooms error={error} channels={channels} setChat={setChat} />
                 <Chat currentChat={chat} />
                 <LiveChatUsers />
@@ -84,7 +85,7 @@ export function LiveChatRooms({ error, channels, setChat }: { error: Error | nul
 // else
 //      re-render chat with time interval
 export function Chat({ currentChat }: { currentChat: string | null }): JSX.Element {
-    const [chat, setChat] = useState<Array<string>>([]);
+    const [chat, setChat] = useState<Array<IChat>>([]);
     const [error, setError] = useState<Error | null>(null);
     useEffect(() => {
         async function getChat() {
@@ -106,24 +107,47 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
 
     }, [currentChat])
 
-    function List(list: Array<string>) {
+    function List(list: Array<IChat>) {
         const listItems = list.map(item =>
-            <li key={item}>{item}</li>
+            <li key={item.id}>
+                <br />
+                <div className="border border-white flex justify-between">
+                    <div></div>
+                    <div className="flex flex-col">
+                        <div>
+                            {item.content}
+                        </div>
+                        <br />
+                        <div className="flex justify-between">
+                            <div></div>
+                            <div className="flex justify-around w-1/4">
+                                <button className="bg-green-500">Accept</button>
+                                <div />
+                                <button className="bg-red-500">Cancel</button>
+                            </div>
+
+                            <div></div>
+                        </div>
+                        <br />
+                    </div>
+                    <div></div>
+                </div>
+            </li>
         );
         return <ul>{listItems}</ul>;
     }
 
     const chatContent = (): JSX.Element => {
         return (
-            <div>
+            <div id="ChatContent" >
                 {
-                    error ? 'failed to retrieve chat' : currentChat ? 'some chat' : List(chat)
+                    error ? 'failed to retrieve chat' : currentChat ? List(chat) : 'select chat'
                 }
             </div>
         )
     }
     return (
-        <div className="w-4/6 border border-black">
+        <div className="w-4/6 min-h-full border border-black">
             <Terminal title={CONFIG.LIVE_CHAT_CHAT_TITLE} child={chatContent()} />
         </div>
     )

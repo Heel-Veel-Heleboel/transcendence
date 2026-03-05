@@ -5,6 +5,16 @@ export interface IUserResponse {
   name: string;
 }
 
+export interface IChat {
+  channelId: string;
+  content: string;
+  createdAt: string;
+  id: string;
+  metadata: string;
+  senderId: number;
+  type: string;
+}
+
 export type FallbackErrorProps = Omit<FallbackProps, 'error'> & {
   error: any;
 };
