@@ -25,6 +25,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     async function join() {
         if (getReadyState) {
             return;
+
         }
         const {
             sendMessage,
