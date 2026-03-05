@@ -8,7 +8,7 @@ export function Toolbar({ redirect }: { redirect: (page: number) => void }): JSX
     const time = localeDate();
     const auth = useAuth();
     return (
-        <div id="toolbar" className="w-full flex justify-between bg-gradient-to-r from-violet-800 from-10% via-orange-500 via-80% to-zinc-400 to-90%">
+        <div id="toolbar" className="h-1/20 w-full flex justify-between bg-gradient-to-r from-violet-800 from-10% via-orange-500 via-80% to-zinc-400 to-90%">
             {/* TODO update with own logo*/}
             <div className="px-2 py-2" onClick={() => redirect(MENU_PAGE.MENU)}>logo</div>
             <div className="py-2">{`${time.date} - ${time.time}`}</div>

@@ -31,7 +31,7 @@ export const Menu = (): JSX.Element => {
         <div className="w-full h-full flex flex-col text-white">
             <Toolbar redirect={redirect} />
             {/*TODO: Change with p5 animation*/}
-            <div className="flex flex-col grow bg-[url(/bg.jpg)] bg-cover">
+            <div className="flex flex-col h-19/20 bg-[url(/bg.jpg)] bg-cover">
                 <MainWindowContainer children={<GetPage page={page} />} />
             </div>
         </div>
