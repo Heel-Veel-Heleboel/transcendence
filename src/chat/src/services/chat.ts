@@ -76,15 +76,17 @@ export class ChatService {
   async getUserChannels(userId: number) {
     const channels = await this.channelDao.findByUserId(userId);
 
-    const channelsWithUnread = await Promise.all(
-      channels.map(async (channel: { id: string; members: { userId: number; lastReadAt: Date | null }[] }) => {
-        const membership = channel.members.find((m) => m.userId === userId);
-        const unreadCount = await this.messageDao.countUnread(channel.id, membership?.lastReadAt ?? null);
-        return { ...channel, unreadCount };
-      })
-    );
+    const batchInput = channels.map((channel: { id: string; members: { userId: number; lastReadAt: Date | null }[] }) => {
+      const membership = channel.members.find((m) => m.userId === userId);
+      return { id: channel.id, lastReadAt: membership?.lastReadAt ?? null };
+    });
 
-    return channelsWithUnread;
+    const unreadCounts = await this.messageDao.countUnreadBatch(batchInput);
+
+    return channels.map((channel: { id: string }) => ({
+      ...channel,
+      unreadCount: unreadCounts.get(channel.id) ?? 0
+    }));
   }
 
   async markChannelRead(channelId: string, userId: number) {
@@ -146,6 +148,17 @@ export class ChatService {
     }
 
     await this.channelDao.delete(channelId);
+
+    const otherMembers = channel.members
+      .map((m: { userId: number }) => m.userId)
+      .filter((id: number) => id !== userId);
+
+    if (otherMembers.length > 0) {
+      await this.notificationService.notifyUsers(otherMembers, {
+        type: 'chat:channel_deleted',
+        channelId
+      });
+    }
   }
 
   async removeMember(channelId: string, requesterId: number, userId: number) {

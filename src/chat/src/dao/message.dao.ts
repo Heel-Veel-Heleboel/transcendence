@@ -74,4 +74,46 @@ export class MessageDao {
     });
   }
 
+  async countUnreadBatch(
+    channels: { id: string; lastReadAt: Date | null }[]
+  ): Promise<Map<string, number>> {
+    if (channels.length === 0) return new Map();
+
+    const neverRead = channels.filter(c => !c.lastReadAt);
+    const hasRead = channels.filter(c => c.lastReadAt);
+
+    const results = new Map<string, number>();
+
+    // Channels never read: count all messages in one groupBy query
+    if (neverRead.length > 0) {
+      const counts = await this.prisma.message.groupBy({
+        by: ['channelId'],
+        where: { channelId: { in: neverRead.map(c => c.id) } },
+        _count: { id: true }
+      });
+      for (const row of counts) {
+        results.set(row.channelId, row._count.id);
+      }
+      for (const c of neverRead) {
+        if (!results.has(c.id)) results.set(c.id, 0);
+      }
+    }
+
+    // Channels with lastReadAt: each has a different threshold, run counts in parallel
+    if (hasRead.length > 0) {
+      const counts = await Promise.all(
+        hasRead.map(c =>
+          this.prisma.message.count({
+            where: { channelId: c.id, createdAt: { gt: c.lastReadAt! } }
+          }).then(count => ({ id: c.id, count }))
+        )
+      );
+      for (const { id, count } of counts) {
+        results.set(id, count);
+      }
+    }
+
+    return results;
+  }
+
 }

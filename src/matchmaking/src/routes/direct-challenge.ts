@@ -78,7 +78,7 @@ export async function registerDirectChallengeRoutes(
         player1Username: challengerUsername,
         player2Username: inviteeUsername.trim(),
         gameMode,
-        deadline,
+        deadline
       });
 
       chatServiceClient.sendMatchAck(
