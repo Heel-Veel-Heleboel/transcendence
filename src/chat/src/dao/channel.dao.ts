@@ -23,8 +23,8 @@ export class ChannelDao {
   }
 
   async findById(channelId: string) {
-    return this.prisma.channel.findUnique({
-      where: { id: channelId },
+    return this.prisma.channel.findFirst({
+      where: { id: channelId, deletedAt: null },
       include: { members: true }
     });
   }
@@ -33,6 +33,7 @@ export class ChannelDao {
     return this.prisma.channel.findFirst({
       where: {
         type: 'DM',
+        deletedAt: null,
         AND: [
           { members: { some: { userId: userA } } },
           { members: { some: { userId: userB } } }
@@ -45,6 +46,7 @@ export class ChannelDao {
   async findByUserId(userId: number) {
     return this.prisma.channel.findMany({
       where: {
+        deletedAt: null,
         members: { some: { userId } }
       },
       include: {
@@ -85,9 +87,17 @@ export class ChannelDao {
     return members.map((m: { userId: number }) => m.userId);
   }
 
+  async markRead(channelId: string, userId: number) {
+    return this.prisma.channelMember.update({
+      where: { channelId_userId: { channelId, userId } },
+      data: { lastReadAt: new Date() }
+    });
+  }
+
   async delete(channelId: string) {
-    return this.prisma.channel.delete({
-      where: { id: channelId }
+    return this.prisma.channel.update({
+      where: { id: channelId },
+      data: { deletedAt: new Date() }
     });
   }
 }

@@ -65,4 +65,13 @@ export class MessageDao {
     });
   }
 
+  async countUnread(channelId: string, since: Date | null): Promise<number> {
+    if (!since) {
+      return this.prisma.message.count({ where: { channelId } });
+    }
+    return this.prisma.message.count({
+      where: { channelId, createdAt: { gt: since } }
+    });
+  }
+
 }

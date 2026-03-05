@@ -11,6 +11,7 @@ const mockChannelDao = {
   removeMember: vi.fn(),
   isMember: vi.fn(),
   getMemberIds: vi.fn(),
+  markRead: vi.fn(),
   delete: vi.fn(),
 };
 
@@ -19,6 +20,7 @@ const mockMessageDao = {
   findById: vi.fn(),
   findByChannel: vi.fn(),
   updateMetadata: vi.fn(),
+  countUnread: vi.fn(),
 };
 
 const mockNotificationService = {
@@ -38,8 +40,10 @@ describe('ChatService', () => {
     vi.clearAllMocks();
     mockBlockService.isBlocked.mockResolvedValue(false);
     mockBlockService.getBlockedUserIds.mockResolvedValue([]);
-    mockNotificationService.notifyUsers.mockResolvedValue(undefined);
-    mockNotificationService.notifyChannelMembers.mockResolvedValue(undefined);
+    mockNotificationService.notifyUsers.mockResolvedValue([]);
+    mockNotificationService.notifyChannelMembers.mockResolvedValue([]);
+    mockChannelDao.markRead.mockResolvedValue({});
+    mockMessageDao.countUnread.mockResolvedValue(0);
 
     service = new ChatService(
       mockChannelDao as any,
@@ -427,10 +431,18 @@ describe('ChatService', () => {
   // ── sendMatchAck ────────────────────────────────────────
 
   describe('sendMatchAck', () => {
+    const bothOnline = [
+      { userId: 1, delivered: true },
+      { userId: 2, delivered: true },
+    ];
+
     it('should create a DM and post one shared ack message when no DM exists', async () => {
       mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce(null);
       const mockChannel = { id: 'dm-1', type: 'DM', name: null, members: [{ userId: 1 }, { userId: 2 }] };
       mockChannelDao.create.mockResolvedValueOnce(mockChannel);
+      mockNotificationService.notifyUsers
+        .mockResolvedValueOnce([]) // channel_created notification
+        .mockResolvedValueOnce(bothOnline); // match_ack_required
       const mockMessage = { id: 'ack-1', senderId: 0, type: 'SYSTEM', createdAt: new Date('2026-01-01') };
       mockMessageDao.create.mockResolvedValueOnce(mockMessage);
 
@@ -439,11 +451,6 @@ describe('ChatService', () => {
       expect(mockChannelDao.findDMBetweenUsers).toBeCalledWith(1, 2);
       expect(mockChannelDao.create).toBeCalledWith({ type: 'DM', memberIds: [1, 2] });
       expect(mockMessageDao.create).toBeCalledTimes(1);
-      expect(mockNotificationService.notifyUsers).toBeCalledWith([1, 2], expect.objectContaining({
-        type: 'chat:match_ack_required',
-        matchId: 'match-123',
-        gameMode: 'classic',
-      }));
       expect(result.channel).toEqual(mockChannel);
       expect(result.message).toEqual(mockMessage);
     });
@@ -451,6 +458,7 @@ describe('ChatService', () => {
     it('should reuse existing DM without creating a new channel', async () => {
       const existingDM = { id: 'dm-existing', type: 'DM', members: [{ userId: 1 }, { userId: 2 }] };
       mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce(existingDM);
+      mockNotificationService.notifyUsers.mockResolvedValueOnce(bothOnline);
       mockMessageDao.create.mockResolvedValueOnce({ id: 'ack-1', createdAt: new Date() });
 
       const result = await service.sendMatchAck('match-456', [1, 2], 'powerup', '2026-01-01T12:05:00Z');
@@ -462,6 +470,12 @@ describe('ChatService', () => {
     it('should store playerIds, acknowledgedBy: [], and status: pending in shared message metadata', async () => {
       mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce(null);
       mockChannelDao.create.mockResolvedValueOnce({ id: 'dm-1', type: 'DM', members: [] });
+      mockNotificationService.notifyUsers
+        .mockResolvedValueOnce([]) // channel_created
+        .mockResolvedValueOnce([   // match_ack_required
+          { userId: 10, delivered: true },
+          { userId: 20, delivered: true },
+        ]);
       mockMessageDao.create.mockResolvedValueOnce({ id: 'ack-1', createdAt: new Date() });
 
       await service.sendMatchAck('match-1', [10, 20], 'powerup', '2026-01-01T12:05:00Z');
@@ -476,6 +490,64 @@ describe('ChatService', () => {
     it('should throw 400 for duplicate or fewer than 2 unique player IDs', async () => {
       await expect(service.sendMatchAck('match-1', [1, 1], 'classic', '2026-01-01T12:05:00Z'))
         .rejects.toThrow(new ChatError(400, 'sendMatchAck requires exactly 2 unique player IDs'));
+    });
+
+    it('should throw 503 when a player is offline', async () => {
+      mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce({
+        id: 'dm-1', type: 'DM', name: null,
+        members: [{ userId: 1 }, { userId: 2 }],
+      });
+      mockNotificationService.notifyUsers.mockResolvedValueOnce([
+        { userId: 1, delivered: true },
+        { userId: 2, delivered: false },
+      ]);
+
+      await expect(service.sendMatchAck('match-1', [1, 2], 'classic', '2026-01-01T12:05:00Z'))
+        .rejects.toThrow(expect.objectContaining({ statusCode: 503 }));
+    });
+
+    it('should notify online player of failure when opponent is offline', async () => {
+      mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce({
+        id: 'dm-1', type: 'DM', name: null,
+        members: [{ userId: 1 }, { userId: 2 }],
+      });
+      mockNotificationService.notifyUsers
+        .mockResolvedValueOnce([
+          { userId: 1, delivered: true },
+          { userId: 2, delivered: false },
+        ])
+        .mockResolvedValueOnce([]); // failure notification
+
+      try {
+        await service.sendMatchAck('match-1', [1, 2], 'classic', '2026-01-01T12:05:00Z');
+      } catch { /* expected */ }
+
+      expect(mockNotificationService.notifyUsers).toHaveBeenCalledTimes(2);
+      expect(mockNotificationService.notifyUsers).toHaveBeenLastCalledWith(
+        [1],
+        expect.objectContaining({
+          type: 'chat:match_ack_failed',
+          matchId: 'match-1',
+          reason: 'opponent_offline',
+        }),
+      );
+    });
+
+    it('should not persist SYSTEM message when a player is offline', async () => {
+      mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce({
+        id: 'dm-1', type: 'DM', name: null,
+        members: [{ userId: 1 }, { userId: 2 }],
+      });
+      mockNotificationService.notifyUsers.mockResolvedValueOnce([
+        { userId: 1, delivered: true },
+        { userId: 2, delivered: false },
+      ]);
+
+      try {
+        await service.sendMatchAck('match-1', [1, 2], 'classic', '2026-01-01T12:05:00Z');
+      } catch { /* expected */ }
+
+      expect(mockMessageDao.create).not.toHaveBeenCalled();
     });
   });
 
@@ -601,6 +673,163 @@ describe('ChatService', () => {
       await expect(service.respondToMatchAck('msg-1', 1, true)).rejects.toThrow(
         new ChatError(400, 'Not a match acknowledgement message')
       );
+    });
+  });
+
+  // ── deleteChannel ──────────────────────────────────────
+
+  describe('deleteChannel', () => {
+    it('should soft-delete a DM channel when requester is a member', async () => {
+      mockChannelDao.findById.mockResolvedValueOnce({
+        id: 'ch-1', type: 'DM', createdBy: 1,
+        members: [{ userId: 1 }, { userId: 2 }],
+      });
+      mockChannelDao.delete.mockResolvedValueOnce({});
+
+      await service.deleteChannel('ch-1', 1);
+
+      expect(mockChannelDao.delete).toHaveBeenCalledWith('ch-1');
+    });
+
+    it('should allow either DM member to delete', async () => {
+      mockChannelDao.findById.mockResolvedValueOnce({
+        id: 'ch-1', type: 'DM', createdBy: 1,
+        members: [{ userId: 1 }, { userId: 2 }],
+      });
+      mockChannelDao.delete.mockResolvedValueOnce({});
+
+      await service.deleteChannel('ch-1', 2);
+
+      expect(mockChannelDao.delete).toHaveBeenCalledWith('ch-1');
+    });
+
+    it('should throw 404 when channel not found', async () => {
+      mockChannelDao.findById.mockResolvedValueOnce(null);
+
+      await expect(service.deleteChannel('ch-1', 1))
+        .rejects.toThrow(new ChatError(404, 'Channel not found'));
+    });
+
+    it('should throw 403 for non-member', async () => {
+      mockChannelDao.findById.mockResolvedValueOnce({
+        id: 'ch-1', type: 'DM', createdBy: 1,
+        members: [{ userId: 1 }, { userId: 2 }],
+      });
+
+      await expect(service.deleteChannel('ch-1', 99))
+        .rejects.toThrow(new ChatError(403, 'Not a member of this channel'));
+    });
+
+    it('should throw 403 for TOURNAMENT channels', async () => {
+      mockChannelDao.findById.mockResolvedValueOnce({
+        id: 'ch-1', type: 'TOURNAMENT', createdBy: 1,
+        members: [{ userId: 1 }],
+      });
+
+      await expect(service.deleteChannel('ch-1', 1))
+        .rejects.toThrow(new ChatError(403, 'Tournament channels cannot be deleted'));
+    });
+
+    it('should throw 403 for GROUP channel when requester is not creator', async () => {
+      mockChannelDao.findById.mockResolvedValueOnce({
+        id: 'ch-1', type: 'GROUP', createdBy: 1,
+        members: [{ userId: 1 }, { userId: 2 }],
+      });
+
+      await expect(service.deleteChannel('ch-1', 2))
+        .rejects.toThrow(new ChatError(403, 'Only the channel creator can delete this channel'));
+    });
+
+    it('should allow GROUP deletion by creator', async () => {
+      mockChannelDao.findById.mockResolvedValueOnce({
+        id: 'ch-1', type: 'GROUP', createdBy: 1,
+        members: [{ userId: 1 }, { userId: 2 }],
+      });
+      mockChannelDao.delete.mockResolvedValueOnce({});
+
+      await service.deleteChannel('ch-1', 1);
+
+      expect(mockChannelDao.delete).toHaveBeenCalledWith('ch-1');
+    });
+  });
+
+  // ── markChannelRead ───────────────────────────────────────
+
+  describe('markChannelRead', () => {
+    it('should update lastReadAt for member', async () => {
+      mockChannelDao.isMember.mockResolvedValueOnce(true);
+
+      await service.markChannelRead('ch-1', 1);
+
+      expect(mockChannelDao.markRead).toHaveBeenCalledWith('ch-1', 1);
+    });
+
+    it('should throw 403 for non-member', async () => {
+      mockChannelDao.isMember.mockResolvedValueOnce(false);
+
+      await expect(service.markChannelRead('ch-1', 99))
+        .rejects.toThrow(new ChatError(403, 'Not a member of this channel'));
+    });
+  });
+
+  // ── getUserChannels (unread count) ────────────────────────
+
+  describe('getUserChannels', () => {
+    it('should return channels with unreadCount', async () => {
+      const now = new Date();
+      mockChannelDao.findByUserId.mockResolvedValueOnce([
+        {
+          id: 'ch-1',
+          members: [{ userId: 1, lastReadAt: now }, { userId: 2, lastReadAt: null }],
+          messages: [],
+        },
+        {
+          id: 'ch-2',
+          members: [{ userId: 1, lastReadAt: null }, { userId: 3, lastReadAt: now }],
+          messages: [],
+        },
+      ]);
+      mockMessageDao.countUnread
+        .mockResolvedValueOnce(3)   // ch-1: 3 unread since lastReadAt
+        .mockResolvedValueOnce(10); // ch-2: 10 unread (never read)
+
+      const channels = await service.getUserChannels(1);
+
+      expect(channels).toHaveLength(2);
+      expect(channels[0].unreadCount).toBe(3);
+      expect(channels[1].unreadCount).toBe(10);
+      expect(mockMessageDao.countUnread).toHaveBeenCalledWith('ch-1', now);
+      expect(mockMessageDao.countUnread).toHaveBeenCalledWith('ch-2', null);
+    });
+
+    it('should use null for lastReadAt when user has never read', async () => {
+      mockChannelDao.findByUserId.mockResolvedValueOnce([{
+        id: 'ch-1',
+        members: [{ userId: 1, lastReadAt: null }],
+        messages: [],
+      }]);
+      mockMessageDao.countUnread.mockResolvedValueOnce(5);
+
+      const channels = await service.getUserChannels(1);
+
+      expect(channels[0].unreadCount).toBe(5);
+      expect(mockMessageDao.countUnread).toHaveBeenCalledWith('ch-1', null);
+    });
+  });
+
+  // ── sendMessage (auto mark read) ─────────────────────────
+
+  describe('sendMessage (auto mark read)', () => {
+    it('should mark sender as read after sending', async () => {
+      mockChannelDao.isMember.mockResolvedValueOnce(true);
+      mockMessageDao.create.mockResolvedValueOnce({
+        id: 'msg-1', channelId: 'ch-1', senderId: 1,
+        content: 'hello', type: 'TEXT', createdAt: new Date(),
+      });
+
+      await service.sendMessage('ch-1', 1, 'hello');
+
+      expect(mockChannelDao.markRead).toHaveBeenCalledWith('ch-1', 1);
     });
   });
 

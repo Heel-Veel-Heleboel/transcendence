@@ -11,7 +11,7 @@ export class NotificationService {
     this.gatewayUrl = process.env.GATEWAY_URL || 'http://localhost:3002';
   }
 
-  async notifyUsers(userIds: number[], event: WebSocketEvent): Promise<void> {
+  async notifyUsers(userIds: number[], event: WebSocketEvent): Promise<{ userId: number; delivered: boolean }[]> {
     try {
       const response = await fetch(`${this.gatewayUrl}/internal/ws/notify`, {
         method: 'POST',
@@ -24,9 +24,14 @@ export class NotificationService {
 
       if (!response.ok) {
         this.logger?.warn({ status: response.status, event: event.type }, 'Gateway notify returned non-OK');
+        return userIds.map(userId => ({ userId, delivered: false }));
       }
+
+      const data = await response.json() as { results: { userId: string; delivered: boolean }[] };
+      return data.results.map(r => ({ userId: parseInt(r.userId, 10), delivered: r.delivered }));
     } catch (error) {
       this.logger?.error({ error, event: event.type }, 'Failed to notify via gateway');
+      return userIds.map(userId => ({ userId, delivered: false }));
     }
   }
 

@@ -74,7 +74,24 @@ export class ChatService {
   }
 
   async getUserChannels(userId: number) {
-    return this.channelDao.findByUserId(userId);
+    const channels = await this.channelDao.findByUserId(userId);
+
+    const channelsWithUnread = await Promise.all(
+      channels.map(async (channel: { id: string; members: { userId: number; lastReadAt: Date | null }[] }) => {
+        const membership = channel.members.find((m) => m.userId === userId);
+        const unreadCount = await this.messageDao.countUnread(channel.id, membership?.lastReadAt ?? null);
+        return { ...channel, unreadCount };
+      })
+    );
+
+    return channelsWithUnread;
+  }
+
+  async markChannelRead(channelId: string, userId: number) {
+    const isMember = await this.channelDao.isMember(channelId, userId);
+    if (!isMember) throw new ChatError(403, 'Not a member of this channel');
+
+    await this.channelDao.markRead(channelId, userId);
   }
 
   async getChannel(channelId: string, userId: number) {
@@ -113,6 +130,24 @@ export class ChatService {
     await this.sendSystemMessage(channelId, `User ${userId} joined the channel`);
   }
 
+  async deleteChannel(channelId: string, userId: number) {
+    const channel = await this.channelDao.findById(channelId);
+    if (!channel) throw new ChatError(404, 'Channel not found');
+
+    const isMember = channel.members.some((m: { userId: number }) => m.userId === userId);
+    if (!isMember) throw new ChatError(403, 'Not a member of this channel');
+
+    if (channel.type === 'TOURNAMENT') {
+      throw new ChatError(403, 'Tournament channels cannot be deleted');
+    }
+
+    if (channel.type === 'GROUP' && channel.createdBy !== userId) {
+      throw new ChatError(403, 'Only the channel creator can delete this channel');
+    }
+
+    await this.channelDao.delete(channelId);
+  }
+
   async removeMember(channelId: string, requesterId: number, userId: number) {
     const channel = await this.channelDao.findById(channelId);
     if (!channel) throw new ChatError(404, 'Channel not found');
@@ -138,17 +173,20 @@ export class ChatService {
       content
     });
 
-    await this.notificationService.notifyChannelMembers(channelId, {
-      type: 'chat:message',
-      channelId,
-      message: {
-        id: message.id,
-        senderId: message.senderId,
-        content: message.content,
-        type: message.type,
-        createdAt: message.createdAt.toISOString()
-      }
-    }, senderId);
+    await Promise.all([
+      this.notificationService.notifyChannelMembers(channelId, {
+        type: 'chat:message',
+        channelId,
+        message: {
+          id: message.id,
+          senderId: message.senderId,
+          content: message.content,
+          type: message.type,
+          createdAt: message.createdAt.toISOString()
+        }
+      }, senderId),
+      this.channelDao.markRead(channelId, senderId)
+    ]);
 
     return message;
   }
@@ -207,7 +245,30 @@ export class ChatService {
       });
     }
 
-    // One shared ack message — both players respond to the same message.
+    // Fire the ack event and check delivery — if a player is offline the
+    // invite fails immediately instead of hanging until expiry.
+    const deliveryResults = await this.notificationService.notifyUsers([playerA, playerB], {
+      type: 'chat:match_ack_required',
+      channelId: channel.id,
+      matchId,
+      gameMode,
+      expiresAt
+    });
+
+    const offlinePlayers = deliveryResults.filter(r => !r.delivered);
+    if (offlinePlayers.length > 0) {
+      const onlinePlayerIds = deliveryResults.filter(r => r.delivered).map(r => r.userId);
+      if (onlinePlayerIds.length > 0) {
+        await this.notificationService.notifyUsers(onlinePlayerIds, {
+          type: 'chat:match_ack_failed',
+          matchId,
+          reason: 'opponent_offline'
+        });
+      }
+      throw new ChatError(503, `Player(s) offline: ${offlinePlayers.map(p => p.userId).join(', ')}`);
+    }
+
+    // Both players are online — persist the ack message for response tracking.
     const metadata: MatchAckMetadata = {
       matchId,
       gameMode,
@@ -223,14 +284,6 @@ export class ChatService {
       content: `Match found! Game mode: ${gameMode}. Both players must acknowledge to start.`,
       type: 'SYSTEM',
       metadata: JSON.stringify(metadata)
-    });
-
-    await this.notificationService.notifyUsers([playerA, playerB], {
-      type: 'chat:match_ack_required',
-      channelId: channel.id,
-      matchId,
-      gameMode,
-      expiresAt
     });
 
     return { channel, message };
