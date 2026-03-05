@@ -98,3 +98,8 @@ src/user-management/prisma/migrations/
 
 # frontend docker-compose
 .docker_compose_started
+
+
+#uploads
+
+src/user-management/uploads/
