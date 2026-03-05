@@ -29,11 +29,9 @@ model User {
 model Profile {
   id                    Int @id @default(autoincrement())
 
-  bio                   String @default("")
   wins                  Int @default(0)
   losses                Int @default(0)
   avatar_url            String?
-  win_rate              Float @default(0.0)
 
   user                  User @relation(fields: [user_id], references: [id], onDelete: Cascade)
   user_id               Int @unique

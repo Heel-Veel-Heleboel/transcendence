@@ -1,5 +1,11 @@
+import { Profile } from '../../generated/prisma/client.js';
 export interface FindProfileDto {
   user_id: number;
+}
+
+export interface ProfileResponseDto extends Profile {
+  win_rate: number;
+  games_played: number;
 }
 
 export interface UpdateBioDto {
@@ -11,7 +17,6 @@ export interface UpdateStatsDto {
   user_id: number;
   wins: number;
   losses: number;
-  win_rate: number;
 }
 
 export interface UploadAvatarDto {
