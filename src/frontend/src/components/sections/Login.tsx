@@ -1,10 +1,11 @@
 import { JSX, useState } from "react"
-import { START_MENU_PAGE, LOGIN_OPTION } from '../constants/Constants.ts'
+import { START_MENU_PAGE, LOGIN_OPTION } from '../../constants/Constants.ts'
 import { ErrorBoundary } from "react-error-boundary";
-import { ErrorFallback } from "./ErrorFallBack.tsx";
-import { MenuOption } from './StartMenuUtils.tsx'
-import { useAuth } from "./Auth.tsx";
+import { GeneralErrorFallback } from "../errors/GeneralErrorFallBack.tsx";
+import { MenuOption } from '../utils/StartMenuUtils.tsx'
+import { useAuth } from "../providers/Auth.tsx";
 import { useNavigate } from "react-router-dom";
+import { CONFIG } from "../../constants/AppConfig.ts";
 
 /* v8 ignore start */
 export function Login({ redirect }: { redirect: (page: number) => void }): JSX.Element {
@@ -30,7 +31,7 @@ export function Login({ redirect }: { redirect: (page: number) => void }): JSX.E
     return (
         <div className="min-h-full text-white text-center flex flex-col justify-around bg-zinc-400/60 border font-orbi">
             {component}
-            <MenuOption text="BACK TO MENU" margin={0} callback={() => redirect(START_MENU_PAGE.MENU)} />
+            <MenuOption text={CONFIG.LOGIN_MENU_RETURN_TEXT} margin={0} callback={() => redirect(START_MENU_PAGE.MENU)} />
         </div>
     )
 }
@@ -70,11 +71,11 @@ export function SignInForm({ callback }: { callback: (page: number) => void }): 
         } catch (e: any) {
             throw e;
         }
-        navigate('/menu');
+        navigate(CONFIG.MENU_NAVIGATION);
     };
     return (
         <div>
-            <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <ErrorBoundary FallbackComponent={GeneralErrorFallback}>
                 <form action={submit}>
                     <label htmlFor="email">email</label><br />
                     <input type="text" name="email" className="border" /> <br />
@@ -114,7 +115,7 @@ export function RegisterForm({ callback }: { callback: (page: number) => void })
 
     };
     return (
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <ErrorBoundary FallbackComponent={GeneralErrorFallback}>
             <form action={submit}>
                 <label htmlFor="email">email</label><br />
                 <input type="text" name="email" className="border" /> <br />

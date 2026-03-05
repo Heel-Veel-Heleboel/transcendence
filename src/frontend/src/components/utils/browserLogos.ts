@@ -1,8 +1,10 @@
 export const browsers = new Map([
-    ['Firefox', {
-        name: 'Firefox',
-        displayName: 'Mozilla Firefox',
-        logo: `                               .:                 
+  [
+    'Firefox',
+    {
+      name: 'Firefox',
+      displayName: 'Mozilla Firefox',
+      logo: `                               .:                 
                              :::::.               
                            .::::::::              
                           :::::::::::.            
@@ -27,13 +29,15 @@ export const browsers = new Map([
        :*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*:       
          .=#%%%%%%%%%%%%%%%%%%%%%%%%%%#=.         
             .-+#%%%%%%%%%%%%%%%%%%#*-.            
-`,
-    }],
-    ['Chrome',
-        {
-            name: 'Chrome',
-            displayName: 'Google Chrome',
-            logo: `                .-=+*##%%%%%#*+=-.                
+`
+    }
+  ],
+  [
+    'Chrome',
+    {
+      name: 'Chrome',
+      displayName: 'Google Chrome',
+      logo: `                .-=+*##%%%%%#*+=-.                
             :=*%%%%%%%%%%%%%%%%%%%%*=:            
          :+%%%%%%%%%%%%%%%%%%%%%%%%%%%%+.         
        -#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#:       
@@ -59,11 +63,14 @@ export const browsers = new Map([
             .-=========++-::::::::::.             
                 .:--====-::::::..                 
 `
-        }],
-    ['chromium', {
-        name: 'Chromium',
-        displayName: 'Chromium',
-        logo: `                .-=+*##%%%%%#*+=-.                
+    }
+  ],
+  [
+    'chromium',
+    {
+      name: 'Chromium',
+      displayName: 'Chromium',
+      logo: `                .-=+*##%%%%%#*+=-.                
             :=*%%%%%%%%%%%%%%%%%%%%*=:            
          :+%%%%%%%%%%%%%%%%%%%%%%%%%%%%+.         
        -#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#:       
@@ -89,11 +96,14 @@ export const browsers = new Map([
             .-=========++-::::::::::.             
                 .:--====-::::::..                 
 `
-    }],
-    ['brave', {
-        name: 'Brave',
-        displayName: 'Brave',
-        logo: `              .+##################+.              
+    }
+  ],
+  [
+    'brave',
+    {
+      name: 'Brave',
+      displayName: 'Brave',
+      logo: `              .+##################+.              
              =*#####################=             
       .... :*#########################-..::.      
    .=*******############################%%%%%+:   
@@ -122,12 +132,15 @@ export const browsers = new Map([
                :+****#######%%%%%*-               
                   :+*#######%%*-                  
                      :+####*-                     
-`,
-    }],
-    ['edge', {
-        name: 'Edge',
-        displayName: 'Microsoft Edge',
-        logo: `                 ...:::::::::::...                
+`
+    }
+  ],
+  [
+    'edge',
+    {
+      name: 'Edge',
+      displayName: 'Microsoft Edge',
+      logo: `                 ...:::::::::::...                
              .:::::::::::::::::-----:.            
           .::::::::::::::::::::::-------:.        
         :::::::::::::::::::::::::::-------:.      
@@ -152,12 +165,15 @@ export const browsers = new Map([
          .-======+*********************=.         
             .:-====++**************+-:            
                 ..:--==++++++==-:.                
-`,
-    }],
-    ['opera', {
-        name: 'Opera',
-        displayName: 'Opera',
-        logo: `                .:-=++******++=-:.                
+`
+    }
+  ],
+  [
+    'opera',
+    {
+      name: 'Opera',
+      displayName: 'Opera',
+      logo: `                .:-=++******++=-:.                
             :-+**************#####*+-:            
          .=************##%%%%%%%%%%%%%#+:         
        :+************+=-:::-=*%%%%%%%%%%%#-       
@@ -182,5 +198,7 @@ export const browsers = new Map([
          :+############*+=-----------==-.         
             :=*%%%%%%%%%%%%##*****#*=:            
                 :-=+*##%%%%##*+=-:                
-`,
-    }]]);
+`
+    }
+  ]
+]);

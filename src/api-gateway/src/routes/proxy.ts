@@ -5,7 +5,7 @@ import {
 } from 'fastify';
 import httpProxy from '@fastify/http-proxy';
 import { config } from '../config';
-import { authGuard } from '../middleware/auth';
+import { authGuard, authMiddleware } from '../middleware/auth';
 import { setupProxyErrorHandler } from './errorHandler';
 import { ServiceConfig } from '../entity/common';
 import type { ExtendedHttpProxyOptions } from '../entity/types';
@@ -17,7 +17,8 @@ import type { ExtendedHttpProxyOptions } from '../entity/types';
 export async function proxyRoutes(fastify: FastifyInstance): Promise<void> {
   // Setup global error handler before registering routes
   setupProxyErrorHandler(fastify);
-
+  // Parse JWT for all proxy routes — populates request.user if a valid Bearer token is present
+  fastify.addHook('onRequest', authMiddleware);
   // Register all service proxies
   await Promise.all(
     config.services.map(service => registerServiceProxy(fastify, service))

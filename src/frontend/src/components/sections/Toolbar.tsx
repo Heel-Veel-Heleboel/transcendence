@@ -1,13 +1,11 @@
 import { JSX, useState, useEffect } from 'react';
-import { MENU_PAGE } from '../constants/Constants.ts'
-import { CONFIG } from '../constants/AppConfig.ts'
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from './Auth.tsx';
+import { MENU_PAGE } from '../../constants/Constants.ts'
+import { CONFIG } from '../../constants/AppConfig.ts'
+import { useAuth } from '../providers/Auth.tsx';
 
 /* v8 ignore start*/
 export function Toolbar({ redirect }: { redirect: (page: number) => void }): JSX.Element {
     const time = localeDate();
-    const navigate = useNavigate();
     const auth = useAuth();
     return (
         <div id="toolbar" className="w-full flex justify-between bg-gradient-to-r from-violet-800 from-10% via-orange-500 via-80% to-zinc-400 to-90%">
