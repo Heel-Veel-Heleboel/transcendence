@@ -2,7 +2,7 @@ import { JSX, useEffect, useState } from "react"
 import { TitleBar, Terminal } from "../utils/MenuUtils"
 import { CONFIG } from "../../constants/AppConfig"
 import api from "../../api";
-import { useNotifications } from "../providers/NotificationsHook.tsx";
+import { useNotifications } from "../hooks/Notifications.tsx";
 
 /* v8 ignore start */
 export function LiveChat(): JSX.Element {
