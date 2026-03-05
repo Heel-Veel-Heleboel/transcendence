@@ -15,7 +15,6 @@ export const UserDomainErrorMessages = {
 
 export const ProfileDomainErrorMessages = {
   PROFILE_NOT_FOUND: 'Profile not found',
-  AVATAR_UPLOAD_FAILED: 'Failed to upload avatar',
   FAILED_TO_UPLOAD_PROFILE_AVATAR: 'Failed to update profile avatar',
   FAILED_TO_UPDATE_PROFILE_STATS: 'Failed to update profile stats'
 };
