@@ -107,6 +107,19 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
 
     }, [currentChat])
 
+    async function sendAccept(messageId: string, response: boolean) {
+        try {
+            await api({
+                url: CONFIG.REQUEST_MATCH_ACK(messageId),
+                method: CONFIG.REQUEST_MATCH_METHOD,
+                headers: CONFIG.REQUEST_MATCH_HEADERS,
+                data: JSON.stringify({ acknowledge: response }),
+            })
+        } catch (e: any) {
+            console.error(e);
+        }
+    }
+
     function List(list: Array<IChat>) {
         const listItems = list.map(item =>
             <li key={item.id}>
@@ -121,9 +134,9 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
                         <div className="flex justify-between">
                             <div></div>
                             <div className="flex justify-around w-1/4">
-                                <button className="bg-green-500">Accept</button>
+                                <button onClick={() => sendAccept(item.id, true)} className="bg-green-500">Accept</button>
                                 <div />
-                                <button className="bg-red-500">Cancel</button>
+                                <button onClick={() => sendAccept(item.id, false)} className="bg-red-500">Cancel</button>
                             </div>
 
                             <div></div>

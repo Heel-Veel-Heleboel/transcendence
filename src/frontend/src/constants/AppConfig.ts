@@ -101,6 +101,13 @@ export const CONFIG = {
     return `/chat/channels/${channelId}/messages`;
   },
   REQUEST_CHAT_METHOD: 'GET',
+  REQUEST_MATCH_ACK: (messageId: string) => {
+    return `/chat/match-ack/${messageId}/respond`;
+  },
+  REQUEST_MATCH_METHOD: 'POST',
+  REQUEST_MATCH_HEADERS: {
+    'Content-Type': 'application/json'
+  },
 
   // NOTE: HTML ID
   MATCHMAKING_CONTAINER_ID: 'MatchmakingContainer',
