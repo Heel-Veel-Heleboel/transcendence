@@ -4,6 +4,7 @@ import { CONFIG } from "../../constants/AppConfig"
 import api from "../../api";
 import { useNotifications } from "../hooks/Notifications.tsx";
 import { IChat } from "../../types/types.ts";
+import { useNavigate } from "react-router-dom";
 
 /* v8 ignore start */
 export function LiveChat(): JSX.Element {
@@ -87,6 +88,7 @@ export function LiveChatRooms({ error, channels, setChat }: { error: Error | nul
 export function Chat({ currentChat }: { currentChat: string | null }): JSX.Element {
     const [chat, setChat] = useState<Array<IChat>>([]);
     const [error, setError] = useState<Error | null>(null);
+    const navigate = useNavigate();
     useEffect(() => {
         async function getChat() {
             if (currentChat) {
@@ -107,8 +109,9 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
 
     }, [currentChat])
 
-    async function sendAccept(messageId: string, response: boolean) {
+    async function sendAck(messageId: string, response: boolean) {
         try {
+            navigate('/game/classic/match-id/room-id');
             await api({
                 url: CONFIG.REQUEST_MATCH_ACK(messageId),
                 method: CONFIG.REQUEST_MATCH_METHOD,
@@ -134,9 +137,9 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
                         <div className="flex justify-between">
                             <div></div>
                             <div className="flex justify-around w-1/4">
-                                <button onClick={() => sendAccept(item.id, true)} className="bg-green-500">Accept</button>
+                                <button onClick={() => sendAck(item.id, true)} className="bg-green-500">Accept</button>
                                 <div />
-                                <button onClick={() => sendAccept(item.id, false)} className="bg-red-500">Cancel</button>
+                                <button onClick={() => sendAck(item.id, false)} className="bg-red-500">Cancel</button>
                             </div>
 
                             <div></div>

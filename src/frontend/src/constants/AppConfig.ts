@@ -2,7 +2,7 @@ export const CONFIG = {
   // NOTE: NAVIGATION
   START_MENU_NAVIGATION: '/',
   MENU_NAVIGATION: '/menu',
-  GAME_NAVIGATION: '/game',
+  GAME_NAVIGATION: '/game/:gameMode/:matchId/:roomId',
 
   // NOTE: DefaultStartMenu
   MENU_OPTION_LOGIN_TEXT: 'LOGIN',

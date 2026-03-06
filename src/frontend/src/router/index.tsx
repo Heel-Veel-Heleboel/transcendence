@@ -35,8 +35,8 @@ export const Router = () => {
                 <RoomProvider>
                     <Routes>
                         <Route path={CONFIG.START_MENU_NAVIGATION} element={<StartMenu />} />
-                        <Route path={CONFIG.MENU_NAVIGATION} element={<Menu />} />
                         <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />
+                        <Route path={CONFIG.MENU_NAVIGATION} element={<Menu />} />
                     </Routes>
                 </RoomProvider>
 
