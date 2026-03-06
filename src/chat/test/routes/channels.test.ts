@@ -232,4 +232,5 @@ describe('Channel Routes', () => {
       expect(response.statusCode).toBe(400);
     });
   });
+
 });

@@ -673,4 +673,5 @@ describe('ChatService', () => {
       );
     });
   });
+
 });

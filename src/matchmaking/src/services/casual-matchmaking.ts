@@ -1,6 +1,6 @@
 import { MatchDao } from '../dao/match.js';
 import { PlayerPool } from '../models/player-pool.js';
-import { PlayerPoolEntry } from '../types/match.js';
+import { PlayerPoolEntry, DEFAULT_ACK_TIMEOUT_MS } from '../types/match.js';
 import { Logger } from '../types/logger.js';
 
 /**
@@ -42,7 +42,7 @@ export class MatchmakingService {
     }
   ) {
     this.gameMode = gameMode;
-    this.ACK_TIMEOUT_MS = config?.ackTimeoutMs ?? 5 * 60 * 1000; // Default: 5 minutes
+    this.ACK_TIMEOUT_MS = config?.ackTimeoutMs ?? DEFAULT_ACK_TIMEOUT_MS;
     this.MAX_WAIT_TIME_MS = config?.maxWaitTimeMs ?? 30 * 60 * 1000; // Default: 30 minutes
   }
 
