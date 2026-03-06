@@ -2,6 +2,7 @@ import { ChannelDao } from '../dao/channel.dao.js';
 import { MessageDao } from '../dao/message.dao.js';
 import { NotificationService } from './notification.js';
 import { BlockService } from './block.js';
+import { MatchmakingClient } from './matchmaking-client.js';
 import type { MatchAckMetadata } from '../types/chat.js';
 
 export class ChatService {
@@ -10,7 +11,8 @@ export class ChatService {
     private readonly messageDao: MessageDao,
     private readonly notificationService: NotificationService,
     private readonly blockService: BlockService,
-    private readonly logger?: { info: Function; error: Function; warn: Function }
+    private readonly logger?: { info: Function; error: Function; warn: Function },
+    private readonly matchmakingClient?: MatchmakingClient
   ) {}
 
   // ── Channels ──────────────────────────────────────────────
@@ -265,6 +267,16 @@ export class ChatService {
     if (!acknowledge) {
       metadata.status = 'declined';
       await this.messageDao.updateMetadata(messageId, JSON.stringify(metadata));
+
+      // Forward decline to matchmaking (cancels the match)
+      if (this.matchmakingClient) {
+        try {
+          await this.matchmakingClient.decline(metadata.matchId, playerId);
+        } catch (err) {
+          this.logger?.error({ err, matchId: metadata.matchId, playerId }, 'Failed to forward decline to matchmaking');
+        }
+      }
+
       await this.notificationService.notifyUsers(metadata.playerIds, {
         type: 'chat:match_ack_response',
         matchId: metadata.matchId,
@@ -279,6 +291,15 @@ export class ChatService {
     if (bothAcked) metadata.status = 'acknowledged';
 
     await this.messageDao.updateMetadata(messageId, JSON.stringify(metadata));
+
+    // Forward acknowledgement to matchmaking (triggers room creation when both acked)
+    if (this.matchmakingClient) {
+      try {
+        await this.matchmakingClient.acknowledge(metadata.matchId, playerId);
+      } catch (err) {
+        this.logger?.error({ err, matchId: metadata.matchId, playerId }, 'Failed to forward ack to matchmaking');
+      }
+    }
 
     await this.notificationService.notifyUsers(metadata.playerIds, {
       type: 'chat:match_ack_response',

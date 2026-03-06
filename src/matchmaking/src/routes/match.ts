@@ -104,6 +104,41 @@ export async function registerMatchRoutes(
   });
 
   /**
+   * POST /match/:matchId/decline
+   * Player declines the match. Match is cancelled (no scores, no winner).
+   */
+  server.post('/match/:matchId/decline', async (request: FastifyRequest, reply: FastifyReply) => {
+    const { matchId } = request.params as { matchId: string };
+    const userId = getUserIdFromHeader(request);
+
+    if (userId === null) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-id header'
+      });
+    }
+
+    try {
+      const updatedMatch = await matchDao.declineMatch(matchId, userId);
+      request.log.info({ matchId, userId }, 'Match declined');
+
+      return reply.status(200).send({
+        success: true,
+        matchId: updatedMatch.id,
+        status: updatedMatch.status
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to decline match';
+      const isValidation = message.includes('not found') || message.includes('cannot decline') || message.includes('not part of');
+      request.log.error({ error, matchId, userId }, 'Error declining match');
+      return reply.status(isValidation ? 400 : 500).send({
+        error: isValidation ? 'Bad Request' : 'Internal Server Error',
+        message
+      });
+    }
+  });
+
+  /**
    * GET /match/:matchId
    * Get match details
    */
