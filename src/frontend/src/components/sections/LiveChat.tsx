@@ -112,8 +112,8 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
             await api({
                 url: CONFIG.REQUEST_MATCH_ACK(messageId),
                 method: CONFIG.REQUEST_MATCH_METHOD,
-                headers: CONFIG.REQUEST_MATCH_HEADERS,
-                data: JSON.stringify({ acknowledge: response }),
+                // headers: CONFIG.REQUEST_MATCH_HEADERS,
+                data: { "acknowledge": response },
             })
         } catch (e: any) {
             console.error(e);
