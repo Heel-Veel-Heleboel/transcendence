@@ -42,12 +42,15 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
 
     const onRender = (_scene: Scene) => { }
 
-    useEffect([room], () => {
+    useEffect(() => {
         const initializeGame = async () => {
             if (room) {
                 try {
                     await game?.initGame();
-                    game?.initRoom(room);
+                    if (!game) {
+                        throw new Error('game init fail');
+                    }
+                    game.initRoom(room);
                 } catch (e: any) {
                     console.error(e);
                     setError(new Error('game initialization error'));
@@ -58,7 +61,7 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
             initializeGame();
         }
 
-    });
+    }, [room]);
 
     useEffect(() => {
         if (roomProv) {

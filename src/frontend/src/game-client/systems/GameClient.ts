@@ -35,8 +35,8 @@ export class GameClient {
   private _scene!: Scene;
   private _defaultScene!: Scene;
   private _engine!: AbstractEngine;
-  private _gameMode: string:
-  private _matchId: string;
+  private _gameMode!: string;
+  private _matchId!: string;
   private _setError!: Dispatch<SetStateAction<Error | null>>;
 
   private _frameCount!: number;
@@ -94,7 +94,7 @@ export class GameClient {
   }
 
   private async initScene(scene: Scene) {
-    this.hud = new Hud('hud.json', scene);
+    this.hud = new Hud('guiTexture.json', scene);
     await this.hud.init();
 
     if (process.env.NODE_ENV !== 'production') {
@@ -132,7 +132,7 @@ export class GameClient {
         ) {
           g.keyManager.resolve();
         }
-        g.prota.hud.changeMana(0.01);
+        // g.prota.hud.changeMana(0.01);
         g.frameCount++;
       } catch (e: any) {
         console.error(e);

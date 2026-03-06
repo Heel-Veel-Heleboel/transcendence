@@ -28,12 +28,14 @@ export class Hud implements IHud {
 
   async init() {
     try {
-      await this.texture.parseFromURLAsync(this.filePath);
+      // NOTE:
+      // create GUI in code, file import is too unreliable
+      // await this.texture.parseFromSnippetAsync('#12W3F');
     } catch (e: any) {
       console.error(e);
       throw new Error(Errors.FAILED_HUD_IMPORT);
     }
-    this.initializeControls();
+    // this.initializeControls();
   }
 
   private initializeControls() {
