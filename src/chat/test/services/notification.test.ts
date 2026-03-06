@@ -17,7 +17,10 @@ describe('NotificationService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    fetchSpy = vi.fn().mockResolvedValue({ ok: true });
+    fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ results: [] }),
+    });
     vi.stubGlobal('fetch', fetchSpy);
     service = new NotificationService(mockChannelDao as any, mockLogger);
   });
@@ -48,7 +51,7 @@ describe('NotificationService', () => {
     });
 
     it('should log warning on non-OK response', async () => {
-      fetchSpy.mockResolvedValueOnce({ ok: false, status: 500 });
+      fetchSpy.mockResolvedValueOnce({ ok: false, status: 500, json: () => Promise.resolve({}) });
 
       await service.notifyUsers([1], { type: 'test' });
 
@@ -58,12 +61,13 @@ describe('NotificationService', () => {
       );
     });
 
-    it('should log error on fetch failure and not throw', async () => {
+    it('should log error on fetch failure and return all-undelivered', async () => {
       const error = new Error('Connection refused');
       fetchSpy.mockRejectedValueOnce(error);
 
-      await expect(service.notifyUsers([1], { type: 'test' })).resolves.toBeUndefined();
+      const result = await service.notifyUsers([1], { type: 'test' });
 
+      expect(result).toEqual([{ userId: 1, delivered: false }]);
       expect(mockLogger.error).toBeCalledWith(
         { error, event: 'test' },
         'Failed to notify via gateway'

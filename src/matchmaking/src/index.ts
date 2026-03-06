@@ -15,6 +15,7 @@ import { TournamentLifecycleManager } from './services/tournament-lifecycle.js';
 import { registerMatchmakingRoutes } from './routes/matchmaking.js';
 import { registerMatchRoutes } from './routes/match.js';
 import { registerTournamentRoutes } from './routes/tournament.js';
+import { registerDirectChallengeRoutes } from './routes/direct-challenge.js';
 import { GameMode } from './types/match.js';
 
 const server = fastify({
@@ -54,7 +55,7 @@ const gameServerClient = new GameServerClient(
 );
 
 const chatServiceClient = new ChatServiceClient(
-  process.env.CHAT_SERVICE_URL || 'http://localhost:3003',
+  process.env.CHAT_SERVICE_URL || 'http://localhost:3006',
   server.log
 );
 
@@ -154,8 +155,9 @@ server.get('/health/detailed', async () => {
 
 // Register routes
 await registerMatchmakingRoutes(server, pools, poolRegistry, chatServiceClient);
-await registerMatchRoutes(server, matchDao, matchReporting, gameServerClient, chatServiceClient);
+await registerMatchRoutes(server, matchDao, matchReporting, gameServerClient);
 await registerTournamentRoutes(server, tournamentService, lifecycleManager);
+await registerDirectChallengeRoutes(server, matchDao, chatServiceClient, pools, poolRegistry);
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {
