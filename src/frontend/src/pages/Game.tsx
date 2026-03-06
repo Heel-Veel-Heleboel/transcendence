@@ -6,12 +6,15 @@ import { useRoom } from '../components/providers/Room';
 import { Room } from '@colyseus/sdk';
 import { ErrorBoundary } from 'react-error-boundary';
 import { GameCrash } from '../components/errors/GameCrash';
+import { useParams } from 'react-router-dom';
 
 
 /* v8 ignore start */
 // NOTE: potential implementation of tests https://humblesoftware.github.io/js-imagediff/test.html
 
 export const Game = (): JSX.Element | null => {
+    const { gameMode, matchId, roomId } = useParams();
+    console.log(gameMode + ' ' + matchId + ' ' + roomId);
     return (
         <ErrorBoundary FallbackComponent={GameCrash}>
             <GameRender />
