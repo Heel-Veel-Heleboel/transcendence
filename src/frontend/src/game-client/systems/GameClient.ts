@@ -35,6 +35,8 @@ export class GameClient {
   private _scene!: Scene;
   private _defaultScene!: Scene;
   private _engine!: AbstractEngine;
+  private _gameMode: string:
+  private _matchId: string;
   private _setError!: Dispatch<SetStateAction<Error | null>>;
 
   private _frameCount!: number;
@@ -55,11 +57,17 @@ export class GameClient {
 
   constructor(
     defaultScene: Scene,
+    gameMode: string,
+    matchId: string,
     setError: Dispatch<SetStateAction<Error | null>>
   ) {
     this.defaultScene = defaultScene;
     this.engine = defaultScene.getEngine();
+    this.gameMode = gameMode;
+    this.matchId = matchId;
     this.setError = setError;
+
+    // NOTE: Wraps class in Proxy to catch errors in every method
     return new Proxy(this, {
       get(target: any, prop: any) {
         const origMethod = target[prop];
@@ -261,6 +269,12 @@ export class GameClient {
   private set engine(engine: AbstractEngine) {
     this._engine = engine;
   }
+  private set gameMode(gameMode: string) {
+    this._gameMode = gameMode;
+  }
+  private set matchId(matchId: string) {
+    this._matchId = matchId;
+  }
   private set setError(setError: Dispatch<SetStateAction<Error | null>>) {
     this._setError = setError;
   }
@@ -307,6 +321,12 @@ export class GameClient {
   // NOTE: set to public to dispose scene on error
   public get engine(): AbstractEngine {
     return this._engine;
+  }
+  public get gameMode(): string {
+    return this._gameMode;
+  }
+  public get matchId(): string {
+    return this._matchId;
   }
   private get setError() {
     return this._setError;
