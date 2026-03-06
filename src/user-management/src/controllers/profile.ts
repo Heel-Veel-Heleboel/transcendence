@@ -10,7 +10,7 @@ import * as ProfileSchema from '../schemas/profile.js';
 
 
 const pump = util.promisify(pipeline);
-const allowedExtensions = ['.png', '.jpg', '.jpeg'];
+const allowedExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
 
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
@@ -35,7 +35,6 @@ export class ProfileController {
   async updateProfileStats(request: FastifyRequest<{ Body: ProfileSchema.UpdateProfileStatsSchemaType }>, reply: FastifyReply): Promise<FastifyReply> {
 
     const { user_id, is_winner } = request.body;
-    console.log('Received updateProfileStats request:', { user_id, is_winner });
     request.log.info({ user_id, is_winner }, 'Update profile stats attempt');
     await this.profileService.updateProfileStats(user_id, is_winner);
     request.log.info({ user_id }, 'Profile stats updated successfully');
@@ -45,43 +44,49 @@ export class ProfileController {
 
 
 
-  async uploadAvatar(request: FastifyRequest<{ Body: ProfileSchema.UploadAvatarSchemaType }>, reply: FastifyReply): Promise<FastifyReply> {
-    // Convert user_id from string to number (route params are always strings)
-    // const user_id = Number(request.body.user_id);
-    // if (isNaN(user_id)) {
-    //   return reply.status(400).send({ message: 'Invalid user_id' });
-    // }
-    
+  async uploadAvatar( request: FastifyRequest< {Params: { user_id: number }}>, reply: FastifyReply): Promise<FastifyReply> {
 
-    const file = await request.file();
-  
+    const file = await request.file({ limits: { fileSize: 1024 } });
+
     if (!file) {
       return reply.status(400).send({ message: 'No file uploaded' });
     }
-    
+
+    const user_id = request.params.user_id;
+
     const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR || 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir);
+    fs.mkdirSync(uploadDir, { recursive: true });
+
+    const file_extension = path.extname(file.filename).toLowerCase();
+
+    if (!file.mimetype.startsWith('image/')) {
+      file.file.resume();
+      return reply.status(400).send({ message: 'Invalid file type' });
     }
 
-    request.log.info({ filename: file.filename }, 'File upload attempt');
-
-    // Generate unique filename to avoid collisions
-    const file_extention = path.extname(file.filename);
-    if (!allowedExtensions.includes(file_extention)) {
+    if (!allowedExtensions.includes(file_extension)) {
+      file.file.resume(); 
       return reply.status(400).send({ message: 'Invalid file extension' });
     }
-    const unique_filename = crypto.randomUUID() + file_extention;
-    const filePath = path.join(uploadDir, unique_filename);
-    
-    // Save file to disk
-    await pump(file.file, fs.createWriteStream(filePath));
-    request.log.info({ filename: unique_filename }, 'File uploaded successfully');
 
-    // Create public URL and store in database
+    const unique_filename = crypto.randomUUID() + file_extension;
+    const filePath = path.join(uploadDir, unique_filename);
+
+    try {
+      await pump(file.file, fs.createWriteStream(filePath));
+    } catch (error) {
+      await fs.promises.unlink(filePath).catch(() => {});
+      request.log.error({ error }, 'Error uploading file');
+      return reply.status(500).send({ message: 'Upload failed' });
+    }
+
+    if (file.file.truncated) {
+      await fs.promises.unlink(filePath).catch(() => {});
+      return reply.code(413).send({ message: 'File too large' });
+    }
+
     const pub_url = `${process.env.PREFIX || '/uploads/'}${unique_filename}`;
-    const result = await this.profileService.uploadUrl(request.body.user_id, pub_url);
-    request.log.info({ user_id: request.body.user_id, pub_url }, 'Avatar URL stored in database');
+    const result = await this.profileService.uploadUrl(user_id, pub_url);
 
     return reply.code(200).send({
       message: 'Avatar uploaded successfully',

@@ -7,17 +7,9 @@ export const FindProfileSchema = Type.Object({
 export type FindProfileSchemaType = Static<typeof FindProfileSchema>;
 
 
-
-
-export const UploadAvatarSchema =  Type.Object({
+export const UploadAvatarSchema = Type.Object({
   user_id: Type.Number()
 });
-
-export type UploadAvatarSchemaType = Static<typeof UploadAvatarSchema>;
-
-
-
-
 export const UpdateProfileStatsSchema = Type.Object({
   user_id: Type.Number(),
   is_winner: Type.Boolean()

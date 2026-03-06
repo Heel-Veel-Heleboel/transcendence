@@ -1,6 +1,7 @@
 //server
 import fastify from 'fastify';
-//roures
+
+//routes
 import { userRoutes } from './routes/user.js';
 import { profileRoutes } from './routes/profile.js';
 
@@ -44,11 +45,7 @@ app.get('/health', async () => {
   return { status: 'ok' };
 });
 
-app.register(multipart, {
-  limits: {
-    fileSize: 1 * 1024 * 1024 // 5MB file size limit
-  }
-});
+app.register(multipart);
 
 const upload_dir = process.env.UPLOAD_DIR || 'uploads';
 const prefix = process.env.PREFIX || '/uploads/';

@@ -8,10 +8,10 @@ export async function profileRoutes(fastify: FastifyInstance, options: { profCon
   fastify.get('/find-by-user-id/:user_id', {
     schema: { params: ProfileSchema.FindProfileSchema },
     handler: profController.getProfileByUserId.bind(profController)
-  });;
+  });
 
-  fastify.post('/upload-avatar', {
-    schema: { body: ProfileSchema.UploadAvatarSchema },
+  fastify.post('/upload-avatar/:user_id', {
+    schema: { params: ProfileSchema.UploadAvatarSchema },
     handler: profController.uploadAvatar.bind(profController)
   });
 

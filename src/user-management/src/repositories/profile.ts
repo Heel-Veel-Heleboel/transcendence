@@ -17,30 +17,20 @@ export class ProfileRepository implements IProfileRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async findByUserId(data: FindProfileDto): Promise<Profile | null> {
-    try {
-      const profile = await this.prisma.profile.findUnique({
-        where: {
-          user_id: data.user_id
-        },
-        include: {
-          user: {
-            select: {
-              name: true,
-              activity_status: true
-            }
+    const profile = await this.prisma.profile.findUnique({
+      where: {
+        user_id: data.user_id
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            activity_status: true
           }
         }
-      });
-      return profile;
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        if (error.code === 'P2025') {
-          throw new UserManagementError.ProfileNotFoundError();
-        }
-        throw new UserManagementError.DatabaseError();
       }
-      throw error;  
-    }
+    });
+    return profile;
   }
 
 
