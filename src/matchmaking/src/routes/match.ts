@@ -3,6 +3,8 @@ import { MatchDao } from '../dao/match.js';
 import { MatchReporting } from '../services/match-reporting.js';
 import { getUserIdFromHeader } from './request-context.js';
 import { GameServerClient } from '../services/game-server-client.js';
+import { ChatServiceClient } from '../services/chat-service-client.js';
+import { GatewayNotificationClient } from '../services/gateway-notification-client.js';
 
 /**
  * Register match-related routes
@@ -11,7 +13,9 @@ export async function registerMatchRoutes(
   server: FastifyInstance,
   matchDao: MatchDao,
   matchReporting: MatchReporting,
-  gameServerClient: GameServerClient
+  gameServerClient: GameServerClient,
+  chatServiceClient: ChatServiceClient,
+  gatewayNotificationClient: GatewayNotificationClient
 ): Promise<void> {
 
   /**
@@ -56,9 +60,28 @@ export async function registerMatchRoutes(
       // Both players are ready: provision the Colyseus room so they can connect
       let roomId: string | null = null;
       if (bothReady) {
+        request.log.info({ matchId, player1Id: updatedMatch.player1Id, player2Id: updatedMatch.player2Id }, 'Both players acknowledged, creating game room');
         try {
           roomId = await gameServerClient.createRoom(updatedMatch);
           await matchDao.setGameSessionId(matchId, roomId);
+          // Notify both players with the roomId so they can connect to the game
+          gatewayNotificationClient.notifyUsers(
+            [updatedMatch.player1Id, updatedMatch.player2Id],
+            {
+              type: 'MATCH_READY',
+              matchId,
+              roomId,
+              gameMode: updatedMatch.gameMode
+            }
+          );
+
+          // Create a shared game channel for both players (fire-and-forget)
+          chatServiceClient.createGameSessionChannel(
+            [updatedMatch.player1Id, updatedMatch.player2Id],
+            roomId
+          ).catch(err => {
+            request.log.error({ err, matchId, roomId }, 'Failed to create game session channel in chat');
+          });
         } catch (err) {
           request.log.error({ err, matchId }, 'Failed to create game room after both players acknowledged');
           // Match stays SCHEDULED — a retry mechanism or admin intervention can recover
