@@ -2,8 +2,8 @@
   {
     "name": "user-service",
     "upstream": "http://localhost:3001",
-    "prefix": "/api/user",
-    "rewritePrefix": "user",
+    "prefix": "/api/users",
+    "rewritePrefix": "users",
     "timeout": 5000,
     "retries": 2,
     "requiresAuth": false,
