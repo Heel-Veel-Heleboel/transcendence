@@ -12,17 +12,20 @@ import { useParams } from 'react-router-dom';
 /* v8 ignore start */
 // NOTE: potential implementation of tests https://humblesoftware.github.io/js-imagediff/test.html
 
-export const Game = (): JSX.Element | null => {
+export function Game(): JSX.Element | null {
     const { gameMode, matchId, roomId } = useParams();
+
+    if (typeof gameMode === 'undefined' || typeof matchId === 'undefined' || typeof roomId === 'undefined')
+        throw new Error('uri error');
     console.log(gameMode + ' ' + matchId + ' ' + roomId);
     return (
         <ErrorBoundary FallbackComponent={GameCrash}>
-            <GameRender />
+            <GameRender gameMode={gameMode} matchId={matchId} roomId={roomId} />
         </ErrorBoundary>
     )
 }
 
-export const GameRender = (): JSX.Element | null => {
+export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, matchId: string, roomId: string }): JSX.Element | null {
     const [room, setRoom] = useState<Room | null>(null);
     const [game, setGame] = useState<GameClient | null>(null);
     const [error, setError] = useState<Error | null>(null);
@@ -30,7 +33,7 @@ export const GameRender = (): JSX.Element | null => {
 
     const onSceneReady = async (scene: Scene) => {
         try {
-            setGame(new GameClient(scene, setError))
+            setGame(new GameClient(scene, gameMode, matchId, setError))
         } catch (e: any) {
             console.error(e);
             setError(new Error('game-client construction error'))
@@ -39,7 +42,7 @@ export const GameRender = (): JSX.Element | null => {
 
     const onRender = (_scene: Scene) => { }
 
-    useEffect(() => {
+    useEffect([room], () => {
         const initializeGame = async () => {
             if (room) {
                 try {
@@ -55,11 +58,11 @@ export const GameRender = (): JSX.Element | null => {
             initializeGame();
         }
 
-    }, [room]);
+    });
 
     useEffect(() => {
         if (roomProv) {
-            roomProv.join();
+            roomProv.join(roomId);
             const room = roomProv.room;
             setRoom(room);
         }
