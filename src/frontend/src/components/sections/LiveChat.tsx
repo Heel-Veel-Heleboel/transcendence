@@ -4,7 +4,6 @@ import { CONFIG } from "../../constants/AppConfig"
 import api from "../../api";
 import { useNotifications } from "../hooks/Notifications.tsx";
 import { IChat } from "../../types/types.ts";
-import { useNavigate } from "react-router-dom";
 
 /* v8 ignore start */
 export function LiveChat(): JSX.Element {
@@ -88,7 +87,6 @@ export function LiveChatRooms({ error, channels, setChat }: { error: Error | nul
 export function Chat({ currentChat }: { currentChat: string | null }): JSX.Element {
     const [chat, setChat] = useState<Array<IChat>>([]);
     const [error, setError] = useState<Error | null>(null);
-    const navigate = useNavigate();
     useEffect(() => {
         async function getChat() {
             if (currentChat) {
@@ -111,7 +109,6 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
 
     async function sendAck(messageId: string, response: boolean) {
         try {
-            navigate('/game/classic/match-id/room-id');
             await api({
                 url: CONFIG.REQUEST_MATCH_ACK(messageId),
                 method: CONFIG.REQUEST_MATCH_METHOD,
