@@ -15,12 +15,10 @@ export interface UpdateBioDto {
 
 export interface UpdateStatsDto {
   user_id: number;
-  wins: number;
-  losses: number;
 }
 
 export interface UploadAvatarDto {
   user_id: number;
-  avatar_url: string | null;
+  avatar_url: string;
 }
 

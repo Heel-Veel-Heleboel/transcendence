@@ -31,12 +31,12 @@ describe('Auth routes', () => {
     expect(MockFastify.get).toBeCalledTimes(0);
     expect(MockFastify.post).toHaveBeenCalledWith('/register', expect.objectContaining({
       schema: SchemaTypes.RegistrationSchema,
-      preValidation: validatePasswordHook,
+      preHandler: validatePasswordHook,
       handler: expect.any(Function)
     }));
     expect(MockFastify.put).toHaveBeenCalledWith('/change-password', expect.objectContaining({
       schema: SchemaTypes.ChangePasswordSchema,
-      preValidation: validatePasswordHook,
+      preHandler: validatePasswordHook,
       handler: expect.any(Function)
     }));
     expect(MockFastify.post).toHaveBeenCalledWith('/login', expect.objectContaining({

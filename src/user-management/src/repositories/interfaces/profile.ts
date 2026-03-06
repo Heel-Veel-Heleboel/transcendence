@@ -7,6 +7,7 @@ import {
 
 export interface IProfileRepository { 
   findByUserId(data: FindProfileDto): Promise<Profile | null>;
-  updateStats(data: UpdateStatsDto): Promise<void>;
-  uploadAvatar(data: UploadAvatarDto): Promise<string | null>;
+  updateWins(data: UpdateStatsDto): Promise<void>;
+  updateLosses(data: UpdateStatsDto): Promise<void>;
+  uploadAvatarUrl(data: UploadAvatarDto): Promise<string | null>;
 }
