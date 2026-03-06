@@ -1,7 +1,7 @@
 import { IUserRepository } from './interfaces/user.js';
 import { PrismaClient, User } from '../../generated/prisma/client.js';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
-import * as UserError from '../error/user.js';
+import * as UserError from '../error/user-management.js';
 import { 
   CreatedUserDto,
   CreateUserDto,
