@@ -33,6 +33,7 @@ export async function registerTournamentRoutes(
       minPlayers?: number;
       maxPlayers?: number;
       matchDeadlineMin?: number;
+      ackDeadlineMin?: number;
       registrationEnd: string;
       startTime?: string | null;
     };
@@ -88,6 +89,13 @@ export async function registerTournamentRoutes(
       });
     }
 
+    if (body.ackDeadlineMin != null && (!Number.isInteger(body.ackDeadlineMin) || body.ackDeadlineMin < 10 || body.ackDeadlineMin > 60)) {
+      return reply.status(400).send({
+        error: 'Bad Request',
+        message: 'ackDeadlineMin must be an integer between 10 and 60'
+      });
+    }
+
     // Validate date parsing
     const registrationEnd = new Date(body.registrationEnd);
     if (isNaN(registrationEnd.getTime())) {
@@ -111,10 +119,11 @@ export async function registerTournamentRoutes(
     try {
       const tournament = await tournamentService.createTournament({
         name: body.name.trim(),
-        format: body.format as 'round_robin' | 'single_elimination' | undefined,
+        format: body.format as 'single_elimination' | undefined,
         minPlayers: body.minPlayers,
         maxPlayers: body.maxPlayers,
         matchDeadlineMin: body.matchDeadlineMin,
+        ackDeadlineMin: body.ackDeadlineMin,
         createdBy,
         registrationEnd,
         startTime

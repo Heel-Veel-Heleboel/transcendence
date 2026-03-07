@@ -27,20 +27,21 @@ describe('TournamentParticipantDao', () => {
         id: 1,
         tournamentId: 1,
         userId: 100,
+        username: 'user100',
         registeredAt: new Date(),
-        wins: 0,
-        losses: 0,
-        scoreDiff: 0,
+        seed: null,
+        eliminatedIn: null,
         finalRank: null,
       };
       mockPrismaClient.tournamentParticipant.create.mockResolvedValueOnce(mockParticipant);
 
-      const result = await dao.register(1, 100);
+      const result = await dao.register(1, 100, 'user100');
 
       expect(mockPrismaClient.tournamentParticipant.create).toBeCalledWith({
         data: {
           tournamentId: 1,
           userId: 100,
+          username: 'user100',
         },
       });
       expect(result).toEqual(mockParticipant);
@@ -145,79 +146,45 @@ describe('TournamentParticipantDao', () => {
     });
   });
 
-  describe('updateStats', () => {
-    it('should update participant stats', async () => {
+  describe('setSeed', () => {
+    it('should set seed position for a participant', async () => {
       const mockParticipant = {
         id: 1,
-        wins: 3,
-        losses: 1,
-        scoreDiff: 10,
+        tournamentId: 1,
+        userId: 100,
+        seed: 3,
       };
       mockPrismaClient.tournamentParticipant.update.mockResolvedValueOnce(mockParticipant);
 
-      const result = await dao.updateStats(1, 100, {
-        wins: 3,
-        losses: 1,
-        scoreDiff: 10,
-      });
+      const result = await dao.setSeed(1, 100, 3);
 
       expect(mockPrismaClient.tournamentParticipant.update).toBeCalledWith({
         where: {
           tournamentId_userId: { tournamentId: 1, userId: 100 },
         },
-        data: {
-          wins: 3,
-          losses: 1,
-          scoreDiff: 10,
-        },
+        data: { seed: 3 },
       });
       expect(result).toEqual(mockParticipant);
     });
   });
 
-  describe('incrementWins', () => {
-    it('should increment wins and update score diff', async () => {
+  describe('eliminate', () => {
+    it('should mark a participant as eliminated in a round', async () => {
       const mockParticipant = {
         id: 1,
-        wins: 2,
-        scoreDiff: 5,
+        tournamentId: 1,
+        userId: 100,
+        eliminatedIn: 2,
       };
       mockPrismaClient.tournamentParticipant.update.mockResolvedValueOnce(mockParticipant);
 
-      const result = await dao.incrementWins(1, 100, 3);
+      const result = await dao.eliminate(1, 100, 2);
 
       expect(mockPrismaClient.tournamentParticipant.update).toBeCalledWith({
         where: {
           tournamentId_userId: { tournamentId: 1, userId: 100 },
         },
-        data: {
-          wins: { increment: 1 },
-          scoreDiff: { increment: 3 },
-        },
-      });
-      expect(result).toEqual(mockParticipant);
-    });
-  });
-
-  describe('incrementLosses', () => {
-    it('should increment losses and update score diff (negative)', async () => {
-      const mockParticipant = {
-        id: 1,
-        losses: 2,
-        scoreDiff: -5,
-      };
-      mockPrismaClient.tournamentParticipant.update.mockResolvedValueOnce(mockParticipant);
-
-      const result = await dao.incrementLosses(1, 100, -3);
-
-      expect(mockPrismaClient.tournamentParticipant.update).toBeCalledWith({
-        where: {
-          tournamentId_userId: { tournamentId: 1, userId: 100 },
-        },
-        data: {
-          losses: { increment: 1 },
-          scoreDiff: { increment: -3 },
-        },
+        data: { eliminatedIn: 2 },
       });
       expect(result).toEqual(mockParticipant);
     });
@@ -244,11 +211,11 @@ describe('TournamentParticipantDao', () => {
   });
 
   describe('getRankings', () => {
-    it('should return rankings sorted by wins then scoreDiff', async () => {
+    it('should return rankings sorted by finalRank then eliminatedIn', async () => {
       const mockParticipants = [
-        { userId: 100, wins: 3, losses: 1, scoreDiff: 10 },
-        { userId: 101, wins: 2, losses: 2, scoreDiff: 5 },
-        { userId: 102, wins: 1, losses: 3, scoreDiff: -15 },
+        { userId: 100, username: 'user100', seed: 1, eliminatedIn: null, finalRank: 1 },
+        { userId: 101, username: 'user101', seed: 2, eliminatedIn: 2, finalRank: 2 },
+        { userId: 102, username: 'user102', seed: 3, eliminatedIn: 1, finalRank: 3 },
       ];
       mockPrismaClient.tournamentParticipant.findMany.mockResolvedValueOnce(mockParticipants);
 
@@ -256,28 +223,26 @@ describe('TournamentParticipantDao', () => {
 
       expect(mockPrismaClient.tournamentParticipant.findMany).toBeCalledWith({
         where: { tournamentId: 1 },
-        orderBy: [{ wins: 'desc' }, { scoreDiff: 'desc' }],
+        orderBy: [{ finalRank: 'asc' }, { eliminatedIn: 'desc' }],
       });
       expect(result).toEqual([
-        { rank: 1, userId: 100, wins: 3, losses: 1, scoreDiff: 10, matchesPlayed: 4 },
-        { rank: 2, userId: 101, wins: 2, losses: 2, scoreDiff: 5, matchesPlayed: 4 },
-        { rank: 3, userId: 102, wins: 1, losses: 3, scoreDiff: -15, matchesPlayed: 4 },
+        { rank: 1, userId: 100, username: 'user100', seed: 1, eliminatedIn: null },
+        { rank: 2, userId: 101, username: 'user101', seed: 2, eliminatedIn: 2 },
+        { rank: 3, userId: 102, username: 'user102', seed: 3, eliminatedIn: 1 },
       ]);
     });
 
-    it('should handle ties by scoreDiff', async () => {
+    it('should use index-based rank when finalRank is null', async () => {
       const mockParticipants = [
-        { userId: 100, wins: 2, losses: 2, scoreDiff: 8 },
-        { userId: 101, wins: 2, losses: 2, scoreDiff: 3 },
-        { userId: 102, wins: 2, losses: 2, scoreDiff: -11 },
+        { userId: 100, username: 'user100', seed: 1, eliminatedIn: null, finalRank: null },
+        { userId: 101, username: 'user101', seed: 2, eliminatedIn: 2, finalRank: null },
       ];
       mockPrismaClient.tournamentParticipant.findMany.mockResolvedValueOnce(mockParticipants);
 
       const result = await dao.getRankings(1);
 
-      expect(result[0].userId).toBe(100);
-      expect(result[1].userId).toBe(101);
-      expect(result[2].userId).toBe(102);
+      expect(result[0].rank).toBe(1);
+      expect(result[1].rank).toBe(2);
     });
   });
 
@@ -312,22 +277,20 @@ describe('TournamentParticipantDao', () => {
     });
   });
 
-  describe('findTiedParticipants', () => {
-    it('should find participants with matching wins and scoreDiff', async () => {
+  describe('getParticipantsWithUsernames', () => {
+    it('should return participants with usernames', async () => {
       const mockParticipants = [
-        { userId: 100, wins: 2, scoreDiff: 5 },
-        { userId: 101, wins: 2, scoreDiff: 5 },
+        { userId: 100, username: 'user100' },
+        { userId: 101, username: 'user101' },
       ];
       mockPrismaClient.tournamentParticipant.findMany.mockResolvedValueOnce(mockParticipants);
 
-      const result = await dao.findTiedParticipants(1, 2, 5);
+      const result = await dao.getParticipantsWithUsernames(1);
 
       expect(mockPrismaClient.tournamentParticipant.findMany).toBeCalledWith({
-        where: {
-          tournamentId: 1,
-          wins: 2,
-          scoreDiff: 5,
-        },
+        where: { tournamentId: 1 },
+        select: { userId: true, username: true },
+        orderBy: { registeredAt: 'asc' },
       });
       expect(result).toEqual(mockParticipants);
     });
@@ -341,24 +304,18 @@ describe('TournamentParticipantDao', () => {
         { tournamentId: 1, userId: 102, rank: 3 },
       ];
 
+      mockPrismaClient.tournamentParticipant.update.mockReturnValue(Promise.resolve());
       mockPrismaClient.$transaction.mockResolvedValueOnce([]);
 
       await dao.setAllFinalRanks(rankings);
 
-      expect(mockPrismaClient.$transaction).toBeCalledWith([
-        mockPrismaClient.tournamentParticipant.update({
-          where: { tournamentId_userId: { tournamentId: 1, userId: 100 } },
-          data: { finalRank: 1 },
-        }),
-        mockPrismaClient.tournamentParticipant.update({
-          where: { tournamentId_userId: { tournamentId: 1, userId: 101 } },
-          data: { finalRank: 2 },
-        }),
-        mockPrismaClient.tournamentParticipant.update({
-          where: { tournamentId_userId: { tournamentId: 1, userId: 102 } },
-          data: { finalRank: 3 },
-        }),
-      ]);
+      expect(mockPrismaClient.$transaction).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.any(Promise),
+          expect.any(Promise),
+          expect.any(Promise),
+        ])
+      );
     });
   });
 });

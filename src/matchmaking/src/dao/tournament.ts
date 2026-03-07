@@ -19,10 +19,11 @@ export class TournamentDao {
     return await this.prisma.tournament.create({
       data: {
         name: data.name,
-        format: data.format ?? 'round_robin',
+        format: data.format ?? 'single_elimination',
         minPlayers: data.minPlayers ?? 2,
         maxPlayers: data.maxPlayers ?? 8,
         matchDeadlineMin: data.matchDeadlineMin ?? 30,
+        ackDeadlineMin: data.ackDeadlineMin ?? 20,
         createdBy: data.createdBy,
         registrationEnd: data.registrationEnd,
         startTime: data.startTime ?? null,

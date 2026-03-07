@@ -7,15 +7,7 @@ import { TournamentStatus } from '../../generated/prisma/index.js';
 /**
  * Tournament format types
  */
-export type TournamentFormat = 'round_robin' | 'single_elimination';
-
-/**
- * Tie-breaker cascade (applied in order):
- * 1. wins - most wins
- * 2. score_diff - sum of (own_score - opponent_score) across all matches
- * 3. head_to_head - score diff in matches between tied players only
- * 4. golden_game - schedule an extra match between tied players
- */
+export type TournamentFormat = 'single_elimination';
 
 /**
  * Input data for creating a tournament
@@ -26,6 +18,7 @@ export interface CreateTournamentData {
   minPlayers?: number;
   maxPlayers?: number;
   matchDeadlineMin?: number;
+  ackDeadlineMin?: number;
   createdBy: number;
   registrationEnd: Date;
   startTime?: Date | null;
@@ -40,6 +33,7 @@ export interface UpdateTournamentData {
   registrationEnd?: Date;
   startTime?: Date | null;
   endTime?: Date | null;
+  totalRounds?: number;
 }
 
 /**
@@ -60,18 +54,12 @@ export interface TournamentSummary {
 }
 
 /**
- * Participant ranking in a tournament
+ * Participant standing in a knockout tournament
  */
 export interface TournamentRanking {
   rank: number;
   userId: number;
-  wins: number;
-  losses: number;
-  scoreDiff: number;
-  matchesPlayed: number;
+  username: string;
+  seed: number | null;
+  eliminatedIn: number | null;  // null = still in or winner
 }
-
-/**
- * Tournament leaderboard
- */
-export type TournamentLeaderboard = TournamentRanking[];

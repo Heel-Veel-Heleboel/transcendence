@@ -30,8 +30,7 @@ export class GameServerClient {
         player2Username: match.player2Username,
         gameMode: match.gameMode,
         tournamentId: match.tournamentId,
-        deadline: match.deadline?.toISOString() ?? null,
-        isGoldenGame: match.isGoldenGame
+        deadline: match.deadline?.toISOString() ?? null
       })
     });
 

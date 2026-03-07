@@ -24,7 +24,8 @@ export class MatchDao {
     gameMode?: string;
     tournamentId?: number | null;
     deadline?: Date | null;
-    isGoldenGame?: boolean;
+    round?: number | null;
+    bracketPosition?: number | null;
   }): Promise<Match> {
     return await this.prisma.match.create({
       data: {
@@ -35,7 +36,8 @@ export class MatchDao {
         gameMode: data.gameMode ?? 'classic',
         tournamentId: data.tournamentId ?? null,
         deadline: data.deadline ?? null,
-        isGoldenGame: data.isGoldenGame ?? false,
+        round: data.round ?? null,
+        bracketPosition: data.bracketPosition ?? null,
         status: 'PENDING_ACKNOWLEDGEMENT',
         scheduledAt: new Date()
       }
@@ -69,7 +71,7 @@ export class MatchDao {
   async findByTournamentId(tournamentId: number): Promise<Match[]> {
     return await this.prisma.match.findMany({
       where: { tournamentId },
-      orderBy: { scheduledAt: 'asc' }
+      orderBy: [{ round: 'asc' }, { bracketPosition: 'asc' }]
     });
   }
 
@@ -192,69 +194,6 @@ export class MatchDao {
   }
 
   /**
-   * Handle acknowledgement forfeit scenarios when deadline expires
-   * - Both ACKed: No action (match can proceed)
-   * - One ACKed: ACKed player wins 7-0
-   * - Neither ACKed: Both lose, both get -7 score differential
-   */
-  async handleAckForfeit(matchId: string): Promise<Match> {
-    const match = await this.findById(matchId);
-    if (!match) {
-      throw new Error(`Match ${matchId} not found`);
-    }
-
-    const p1Acked = match.player1Acknowledged;
-    const p2Acked = match.player2Acknowledged;
-
-    // Case 1: Both acknowledged - no forfeit needed
-    if (p1Acked && p2Acked) {
-      return match;
-    }
-
-    // Case 2: One acknowledged - ACKed player wins 7-0
-    if (p1Acked && !p2Acked) {
-      return await this.prisma.match.update({
-        where: { id: matchId },
-        data: {
-          status: 'FORFEITED',
-          winnerId: match.player1Id,
-          player1Score: 7,
-          player2Score: 0,
-          resultSource: 'ack_forfeit:player2_no_ack',
-          completedAt: new Date()
-        }
-      });
-    }
-
-    if (!p1Acked && p2Acked) {
-      return await this.prisma.match.update({
-        where: { id: matchId },
-        data: {
-          status: 'FORFEITED',
-          winnerId: match.player2Id,
-          player1Score: 0,
-          player2Score: 7,
-          resultSource: 'ack_forfeit:player1_no_ack',
-          completedAt: new Date()
-        }
-      });
-    }
-
-    // Case 3: Neither acknowledged - both lose, no winner
-    return await this.prisma.match.update({
-      where: { id: matchId },
-      data: {
-        status: 'FORFEITED',
-        winnerId: null,
-        player1Score: 0,
-        player2Score: 0,
-        resultSource: 'ack_forfeit:both_no_ack',
-        completedAt: new Date()
-      }
-    });
-  }
-
-  /**
    * Set game session ID
    */
   async setGameSessionId(matchId: string, gameSessionId: string): Promise<Match> {
@@ -279,25 +218,6 @@ export class MatchDao {
   async countByStatus(status: MatchStatus): Promise<number> {
     return await this.prisma.match.count({
       where: { status }
-    });
-  }
-
-  /**
-   * Find matches between specific players in a tournament (for head-to-head)
-   */
-  async findBetweenPlayers(
-    tournamentId: number,
-    playerIds: number[]
-  ): Promise<Match[]> {
-    return await this.prisma.match.findMany({
-      where: {
-        tournamentId,
-        AND: [
-          { player1Id: { in: playerIds } },
-          { player2Id: { in: playerIds } }
-        ],
-        status: 'COMPLETED'
-      }
     });
   }
 
@@ -440,6 +360,78 @@ export class MatchDao {
         status: 'TIMEOUT',
         completedAt: new Date()
       }
+    });
+  }
+
+  /**
+   * Find the next match in a tournament's current round that hasn't been activated.
+   * Used for sequential match scheduling within a round.
+   */
+  async findNextQueuedMatch(tournamentId: number): Promise<Match | null> {
+    return await this.prisma.match.findFirst({
+      where: {
+        tournamentId,
+        status: 'PENDING_ACKNOWLEDGEMENT',
+        deadline: null
+      },
+      orderBy: [{ round: 'asc' }, { bracketPosition: 'asc' }]
+    });
+  }
+
+  /**
+   * Activate a queued match by setting its deadline.
+   * Also resets acknowledgement flags in case this is a retry.
+   */
+  async activateMatch(matchId: string, deadline: Date): Promise<Match> {
+    return await this.prisma.match.update({
+      where: { id: matchId },
+      data: {
+        deadline,
+        status: 'PENDING_ACKNOWLEDGEMENT',
+        player1Acknowledged: false,
+        player2Acknowledged: false
+      }
+    });
+  }
+
+  /**
+   * Reset a match to PENDING_ACKNOWLEDGEMENT for retry (e.g., game server failure).
+   * Clears acknowledgement flags, game session, and sets a new deadline.
+   */
+  async resetToPendingAck(matchId: string, deadline: Date): Promise<Match> {
+    return await this.prisma.match.update({
+      where: { id: matchId },
+      data: {
+        status: 'PENDING_ACKNOWLEDGEMENT',
+        deadline,
+        player1Acknowledged: false,
+        player2Acknowledged: false,
+        gameSessionId: null,
+        startedAt: null
+      }
+    });
+  }
+
+  /**
+   * Find all completed matches in a specific round of a tournament
+   */
+  async findCompletedInRound(tournamentId: number, round: number): Promise<Match[]> {
+    return await this.prisma.match.findMany({
+      where: {
+        tournamentId,
+        round,
+        status: { in: ['COMPLETED', 'FORFEITED', 'TIMEOUT'] }
+      },
+      orderBy: { bracketPosition: 'asc' }
+    });
+  }
+
+  /**
+   * Count matches in a specific round of a tournament
+   */
+  async countInRound(tournamentId: number, round: number): Promise<number> {
+    return await this.prisma.match.count({
+      where: { tournamentId, round }
     });
   }
 }

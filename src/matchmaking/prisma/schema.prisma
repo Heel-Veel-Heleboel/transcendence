@@ -15,7 +15,6 @@ enum TournamentStatus {
   REGISTRATION  // Open for signups
   SCHEDULED     // Registration closed, waiting to start
   IN_PROGRESS   // Matches being played
-  TIE_BREAKER   // Golden game in progress
   COMPLETED     // All matches finished
   CANCELLED     // Tournament cancelled
 }
@@ -34,16 +33,16 @@ enum MatchStatus {
 // NOTE: PlayerPool is kept in-memory only (no database persistence)
 // If service restarts, players simply rejoin the queue
 
-// Tournament configuration and state
+// Tournament configuration and state (single elimination / knockout)
 model Tournament {
   // Tournament configuration (set at creation)
   id                Int               @id @default(autoincrement())
   name              String
-  format            String            @default("round_robin") // round_robin, single_elimination
+  format            String            @default("single_elimination")
   minPlayers        Int               @default(2)             // Minimum players to start
   maxPlayers        Int               @default(8)             // Maximum registration limit
   matchDeadlineMin  Int               @default(30)            // Minutes per match deadline
-  tieBreaker        String            @default("score_diff")  // score_diff, golden_game, head_to_head
+  ackDeadlineMin    Int               @default(20)            // Minutes for players to acknowledge a match (10-60)
   createdBy         Int                                       // userId who created tournament
 
   // Scheduling
@@ -54,6 +53,7 @@ model Tournament {
 
   // State tracking
   status            TournamentStatus  @default(REGISTRATION)
+  totalRounds       Int?                                      // Set when bracket is generated
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
 
@@ -73,9 +73,8 @@ model TournamentParticipant {
   userId        Int
   username      String                  // Snapshot at registration (for match creation)
   registeredAt  DateTime   @default(now())
-  wins          Int        @default(0)
-  losses        Int        @default(0)
-  scoreDiff     Int        @default(0)  // For tie-breaking: sum of (own_score - opponent_score)
+  seed          Int?                    // Bracket seed position (set when tournament starts)
+  eliminatedIn  Int?                    // Round number where player was eliminated (null = still in / winner)
   finalRank     Int?                    // Set when tournament completes
 
   tournament    Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
@@ -107,8 +106,11 @@ model Match {
   player1Score          Int?
   player2Score          Int?
   gameSessionId         String?                 // Reference to game-service session
-  isGoldenGame          Boolean      @default(false)  // Flag for tie-breaker matches
   resultSource          String?                 // Who reported result: "game_service", "admin:userId", "timeout", "ack_forfeit"
+
+  // Knockout bracket fields (null for casual matches)
+  round                 Int?                    // Round number: 1 = first round, 2 = quarters, etc.
+  bracketPosition       Int?                    // Position within the round (0-indexed)
 
   tournament    Tournament?  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
