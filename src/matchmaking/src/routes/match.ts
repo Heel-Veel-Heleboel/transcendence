@@ -231,7 +231,7 @@ export async function registerMatchRoutes(
    */
   server.post('/match/:matchId/result', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
-    const { winnerId, player1Score, player2Score, gameSessionId, isFinished = true } = request.body as {
+    const { winnerId, player1Score, player2Score, gameSessionId, isFinished } = request.body as {
       winnerId?: number;
       player1Score?: number;
       player2Score?: number;

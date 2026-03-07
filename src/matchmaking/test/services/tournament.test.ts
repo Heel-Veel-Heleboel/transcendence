@@ -38,15 +38,13 @@ describe('TournamentService', () => {
       isRegistered: vi.fn(),
       findByTournament: vi.fn(),
       findByUser: vi.fn(),
-      updateStats: vi.fn(),
-      incrementWins: vi.fn(),
-      incrementLosses: vi.fn(),
+      setSeed: vi.fn(),
+      eliminate: vi.fn(),
       setFinalRank: vi.fn(),
       getRankings: vi.fn(),
       count: vi.fn(),
       getParticipantUserIds: vi.fn(),
       getParticipantsWithUsernames: vi.fn(),
-      findTiedParticipants: vi.fn(),
       setAllFinalRanks: vi.fn(),
     } as unknown as TournamentParticipantDao;
 
@@ -59,16 +57,19 @@ describe('TournamentService', () => {
       findUnacknowledged: vi.fn(),
       findOverdue: vi.fn(),
       updateStatus: vi.fn(),
-      recordResult: vi.fn(),
-      recordAcknowledgement: vi.fn(),
-      handleAckForfeit: vi.fn(),
       setGameSessionId: vi.fn(),
       delete: vi.fn(),
       countByStatus: vi.fn(),
-      findBetweenPlayers: vi.fn(),
       acknowledge: vi.fn(),
       completeMatch: vi.fn(),
+      cancelMatch: vi.fn(),
       findActiveMatchForUser: vi.fn(),
+      findNextQueuedMatch: vi.fn(),
+      activateMatch: vi.fn(),
+      resetToPendingAck: vi.fn(),
+      findCompletedInRound: vi.fn(),
+      countInRound: vi.fn(),
+      recordTimeout: vi.fn(),
     } as unknown as MatchDao;
 
     service = new TournamentService(
@@ -84,7 +85,7 @@ describe('TournamentService', () => {
       const mockTournament = {
         id: 1,
         name: 'Test Tournament',
-        format: 'round_robin',
+        format: 'single_elimination',
         status: 'REGISTRATION',
         createdBy: 100,
         registrationEnd: futureDate,
@@ -113,6 +114,20 @@ describe('TournamentService', () => {
           name: 'Test Tournament',
           createdBy: 100,
           registrationEnd: pastDate,
+        })
+      ).rejects.toThrow(TournamentError);
+    });
+
+    it('should throw error if minPlayers > maxPlayers', async () => {
+      const futureDate = new Date(Date.now() + 3600000);
+
+      await expect(
+        service.createTournament({
+          name: 'Test Tournament',
+          createdBy: 100,
+          registrationEnd: futureDate,
+          minPlayers: 16,
+          maxPlayers: 8,
         })
       ).rejects.toThrow(TournamentError);
     });
@@ -293,6 +308,23 @@ describe('TournamentService', () => {
 
       await expect(service.register(1, 100, 'testuser')).rejects.toThrow(TournamentError);
     });
+
+    it('should unregister and throw if race condition causes over-capacity', async () => {
+      const futureDate = new Date(Date.now() + 3600000);
+      const mockTournament = {
+        id: 1,
+        status: 'REGISTRATION',
+        registrationEnd: futureDate,
+        maxPlayers: 4,
+      };
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
+      vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
+      vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(true);
+      vi.mocked(mockParticipantDao.count).mockResolvedValueOnce(5); // Over max
+
+      await expect(service.register(1, 100, 'testuser')).rejects.toThrow(TournamentError);
+      expect(mockParticipantDao.unregister).toHaveBeenCalledWith(1, 100);
+    });
   });
 
   describe('unregister', () => {
@@ -380,12 +412,42 @@ describe('TournamentService', () => {
   });
 
   describe('startTournament', () => {
-    it('should generate round-robin matches and start tournament', async () => {
+    it('should generate knockout bracket and return first activated match', async () => {
       const mockTournament = {
         id: 1,
         status: 'SCHEDULED',
         minPlayers: 2,
-        matchDeadlineMin: 30,
+        ackDeadlineMin: 20,
+      };
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
+      vi.mocked(mockParticipantDao.getParticipantsWithUsernames).mockResolvedValueOnce([
+        { userId: 100, username: 'user100' },
+        { userId: 101, username: 'user101' },
+        { userId: 102, username: 'user102' },
+        { userId: 103, username: 'user103' },
+      ]);
+
+      const mockMatch = { id: 'match-1', tournamentId: 1, round: 1, bracketPosition: 0 };
+      vi.mocked(mockMatchDao.create).mockResolvedValue(mockMatch as any);
+
+      const result = await service.startTournament(1);
+
+      // 4 players = 2 matches in round 1
+      expect(mockMatchDao.create).toHaveBeenCalledTimes(2);
+      expect(mockTournamentDao.updateStatus).toHaveBeenCalledWith(1, 'IN_PROGRESS');
+      expect(mockTournamentDao.update).toHaveBeenCalledWith(1, { totalRounds: 2 });
+      // Seeds assigned for all 4 players
+      expect(mockParticipantDao.setSeed).toHaveBeenCalledTimes(4);
+      // Returns the first match
+      expect(result).toEqual(mockMatch);
+    });
+
+    it('should handle byes for non-power-of-2 player counts', async () => {
+      const mockTournament = {
+        id: 1,
+        status: 'SCHEDULED',
+        minPlayers: 2,
+        ackDeadlineMin: 20,
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.getParticipantsWithUsernames).mockResolvedValueOnce([
@@ -394,15 +456,62 @@ describe('TournamentService', () => {
         { userId: 102, username: 'user102' },
       ]);
 
+      const mockMatch = { id: 'match-1', tournamentId: 1, round: 1 };
+      vi.mocked(mockMatchDao.create).mockResolvedValue(mockMatch as any);
+
+      await service.startTournament(1);
+
+      // 3 players, bracket size 4 → 1 bye, 1 match in round 1
+      expect(mockMatchDao.create).toHaveBeenCalledTimes(1);
+      expect(mockTournamentDao.update).toHaveBeenCalledWith(1, { totalRounds: 2 });
+    });
+
+    it('should set deadline only on first match', async () => {
+      const mockTournament = {
+        id: 1,
+        status: 'SCHEDULED',
+        minPlayers: 2,
+        ackDeadlineMin: 20,
+      };
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
+      vi.mocked(mockParticipantDao.getParticipantsWithUsernames).mockResolvedValueOnce([
+        { userId: 100, username: 'user100' },
+        { userId: 101, username: 'user101' },
+        { userId: 102, username: 'user102' },
+        { userId: 103, username: 'user103' },
+      ]);
+
       const mockMatch = { id: 'match-1', tournamentId: 1 };
       vi.mocked(mockMatchDao.create).mockResolvedValue(mockMatch as any);
 
-      const matches = await service.startTournament(1);
+      await service.startTournament(1);
 
-      // 3 players = 3 matches (3 * 2 / 2)
-      expect(matches.length).toBe(3);
-      expect(mockMatchDao.create).toHaveBeenCalledTimes(3);
+      const createCalls = vi.mocked(mockMatchDao.create).mock.calls;
+      // First match should have a deadline
+      expect(createCalls[0][0].deadline).toBeInstanceOf(Date);
+      // Second match should have null deadline (queued)
+      expect(createCalls[1][0].deadline).toBeNull();
+    });
+
+    it('should revert to SCHEDULED if bracket generation fails', async () => {
+      const mockTournament = {
+        id: 1,
+        status: 'SCHEDULED',
+        minPlayers: 2,
+        ackDeadlineMin: 20,
+      };
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
+      vi.mocked(mockParticipantDao.getParticipantsWithUsernames).mockResolvedValueOnce([
+        { userId: 100, username: 'user100' },
+        { userId: 101, username: 'user101' },
+      ]);
+      vi.mocked(mockParticipantDao.setSeed).mockRejectedValueOnce(new Error('DB error'));
+
+      await expect(service.startTournament(1)).rejects.toThrow('DB error');
+
+      // Should have set IN_PROGRESS then reverted to SCHEDULED
       expect(mockTournamentDao.updateStatus).toHaveBeenCalledWith(1, 'IN_PROGRESS');
+      expect(mockTournamentDao.updateStatus).toHaveBeenCalledWith(1, 'SCHEDULED');
     });
 
     it('should throw error if tournament not in SCHEDULED status', async () => {
@@ -420,6 +529,7 @@ describe('TournamentService', () => {
         id: 1,
         status: 'SCHEDULED',
         minPlayers: 4,
+        ackDeadlineMin: 20,
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.getParticipantsWithUsernames).mockResolvedValueOnce([
@@ -431,87 +541,236 @@ describe('TournamentService', () => {
     });
   });
 
+  describe('activateNextMatch', () => {
+    it('should activate the next queued match', async () => {
+      const mockTournament = { id: 1, ackDeadlineMin: 20 };
+      const queuedMatch = { id: 'match-2', tournamentId: 1, round: 1, bracketPosition: 1 };
+      const activatedMatch = { ...queuedMatch, deadline: new Date() };
+
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
+      vi.mocked(mockMatchDao.findNextQueuedMatch).mockResolvedValueOnce(queuedMatch as any);
+      vi.mocked(mockMatchDao.activateMatch).mockResolvedValueOnce(activatedMatch as any);
+
+      const result = await service.activateNextMatch(1);
+
+      expect(result).toEqual(activatedMatch);
+      expect(mockMatchDao.activateMatch).toHaveBeenCalledWith('match-2', expect.any(Date));
+    });
+
+    it('should return null when no queued matches remain', async () => {
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce({ id: 1, ackDeadlineMin: 20 } as any);
+      vi.mocked(mockMatchDao.findNextQueuedMatch).mockResolvedValueOnce(null);
+
+      const result = await service.activateNextMatch(1);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null if tournament not found', async () => {
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(null);
+
+      const result = await service.activateNextMatch(999);
+
+      expect(result).toBeNull();
+    });
+  });
+
   describe('processMatchResult', () => {
-    it('should update winner and loser stats', async () => {
-      const mockMatch = {
+    it('should eliminate the loser', async () => {
+      const match = {
         id: 'match-1',
         tournamentId: 1,
+        round: 1,
         player1Id: 100,
         player2Id: 101,
+        player1Username: 'user100',
+        player2Username: 'user101',
         winnerId: 100,
-        player1Score: 7,
-        player2Score: 3,
         status: 'COMPLETED',
       };
 
-      // Guard check: tournament is IN_PROGRESS
-      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce({
-        id: 1,
-        status: 'IN_PROGRESS',
-      } as any);
+      vi.mocked(mockMatchDao.countInRound).mockResolvedValueOnce(2);
+      vi.mocked(mockMatchDao.findCompletedInRound).mockResolvedValueOnce([match] as any);
 
-      vi.mocked(mockMatchDao.findByTournamentId).mockResolvedValueOnce([
-        { ...mockMatch, status: 'COMPLETED' },
-      ] as any);
+      await service.processMatchResult(match as any);
 
-      // Rankings called twice: once in checkForTies, once in finalizeTournament
-      const mockRankings = [
-        { rank: 1, userId: 100, wins: 1, losses: 0, scoreDiff: 4, matchesPlayed: 1 },
-        { rank: 2, userId: 101, wins: 0, losses: 1, scoreDiff: -4, matchesPlayed: 1 },
-      ];
-      vi.mocked(mockParticipantDao.getRankings)
-        .mockResolvedValueOnce(mockRankings)
-        .mockResolvedValueOnce(mockRankings);
-
-      await service.processMatchResult(mockMatch as any);
-
-      expect(mockParticipantDao.incrementWins).toHaveBeenCalledWith(1, 100, 4);
-      expect(mockParticipantDao.incrementLosses).toHaveBeenCalledWith(1, 101, -4);
+      expect(mockParticipantDao.eliminate).toHaveBeenCalledWith(1, 101, 1);
     });
 
-    it('should skip non-tournament matches', async () => {
-      const mockMatch = {
-        id: 'match-1',
-        tournamentId: null, // Casual match
-        player1Id: 100,
-        player2Id: 101,
-      };
-
-      await service.processMatchResult(mockMatch as any);
-
-      expect(mockParticipantDao.incrementWins).not.toHaveBeenCalled();
-      expect(mockParticipantDao.incrementLosses).not.toHaveBeenCalled();
-    });
-
-    it('should handle both forfeit case', async () => {
-      const mockMatch = {
+    it('should eliminate both players on double forfeit (no winnerId)', async () => {
+      const match = {
         id: 'match-1',
         tournamentId: 1,
+        round: 1,
         player1Id: 100,
         player2Id: 101,
-        winnerId: null, // Both forfeit
-        player1Score: 0,
-        player2Score: 0,
+        winnerId: null,
         status: 'FORFEITED',
       };
 
-      // Guard check: tournament is IN_PROGRESS
-      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce({
-        id: 1,
-        status: 'IN_PROGRESS',
-      } as any);
+      vi.mocked(mockMatchDao.countInRound).mockResolvedValueOnce(2);
+      vi.mocked(mockMatchDao.findCompletedInRound).mockResolvedValueOnce([match] as any);
 
-      vi.mocked(mockMatchDao.findByTournamentId).mockResolvedValueOnce([mockMatch] as any);
+      await service.processMatchResult(match as any);
 
-      // Rankings called twice: once in checkForTies, once in finalizeTournament
-      vi.mocked(mockParticipantDao.getRankings)
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([]);
+      expect(mockParticipantDao.eliminate).toHaveBeenCalledWith(1, 100, 1);
+      expect(mockParticipantDao.eliminate).toHaveBeenCalledWith(1, 101, 1);
+    });
 
-      await service.processMatchResult(mockMatch as any);
+    it('should skip non-tournament matches', async () => {
+      const match = {
+        id: 'match-1',
+        tournamentId: null,
+        round: null,
+        player1Id: 100,
+        player2Id: 101,
+      };
 
-      expect(mockParticipantDao.incrementLosses).toHaveBeenCalledWith(1, 100, 0);
-      expect(mockParticipantDao.incrementLosses).toHaveBeenCalledWith(1, 101, -0);
+      await service.processMatchResult(match as any);
+
+      expect(mockParticipantDao.eliminate).not.toHaveBeenCalled();
+    });
+
+    it('should not advance round if matches remain in current round', async () => {
+      const match = {
+        id: 'match-1',
+        tournamentId: 1,
+        round: 1,
+        player1Id: 100,
+        player2Id: 101,
+        winnerId: 100,
+        player1Username: 'user100',
+        player2Username: 'user101',
+        status: 'COMPLETED',
+      };
+
+      // 2 matches in round, only 1 completed
+      vi.mocked(mockMatchDao.countInRound).mockResolvedValueOnce(2);
+      vi.mocked(mockMatchDao.findCompletedInRound).mockResolvedValueOnce([match] as any);
+
+      await service.processMatchResult(match as any);
+
+      // Should not create next round matches
+      expect(mockMatchDao.create).not.toHaveBeenCalled();
+    });
+
+    it('should advance to next round when all matches in round are done', async () => {
+      const match1 = {
+        id: 'match-1',
+        tournamentId: 1,
+        round: 1,
+        bracketPosition: 0,
+        player1Id: 100,
+        player2Id: 101,
+        player1Username: 'user100',
+        player2Username: 'user101',
+        winnerId: 100,
+        status: 'COMPLETED',
+      };
+      const match2 = {
+        id: 'match-2',
+        tournamentId: 1,
+        round: 1,
+        bracketPosition: 1,
+        player1Id: 102,
+        player2Id: 103,
+        player1Username: 'user102',
+        player2Username: 'user103',
+        winnerId: 103,
+        status: 'COMPLETED',
+      };
+
+      // All 2 matches in round completed
+      vi.mocked(mockMatchDao.countInRound).mockResolvedValueOnce(2);
+      vi.mocked(mockMatchDao.findCompletedInRound).mockResolvedValueOnce([match1, match2] as any);
+
+      // Round 1 complete → advanceToNextRound checks for bye players
+      vi.mocked(mockParticipantDao.findByTournament).mockResolvedValueOnce([
+        { userId: 100, username: 'user100', tournamentId: 1, seed: 1, eliminatedIn: null },
+        { userId: 101, username: 'user101', tournamentId: 1, seed: 2, eliminatedIn: 1 },
+        { userId: 102, username: 'user102', tournamentId: 1, seed: 3, eliminatedIn: 1 },
+        { userId: 103, username: 'user103', tournamentId: 1, seed: 4, eliminatedIn: null },
+      ] as any);
+
+      await service.processMatchResult(match2 as any);
+
+      // Should create 1 match in round 2 (winners: 100 vs 103)
+      expect(mockMatchDao.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tournamentId: 1,
+          round: 2,
+          bracketPosition: 0,
+          player1Id: 100,
+          player2Id: 103,
+        })
+      );
+    });
+
+    it('should include bye players when advancing from round 1', async () => {
+      const match1 = {
+        id: 'match-1',
+        tournamentId: 1,
+        round: 1,
+        bracketPosition: 0,
+        player1Id: 101,
+        player2Id: 102,
+        player1Username: 'user101',
+        player2Username: 'user102',
+        winnerId: 101,
+        status: 'COMPLETED',
+      };
+
+      vi.mocked(mockMatchDao.countInRound).mockResolvedValueOnce(1);
+      vi.mocked(mockMatchDao.findCompletedInRound).mockResolvedValueOnce([match1] as any);
+
+      // Bye player (userId 100) wasn't in any round 1 match
+      vi.mocked(mockParticipantDao.findByTournament).mockResolvedValueOnce([
+        { userId: 100, username: 'user100', tournamentId: 1, registeredAt: new Date(), seed: 1, eliminatedIn: null, finalRank: null, id: 1 },
+        { userId: 101, username: 'user101', tournamentId: 1, registeredAt: new Date(), seed: 2, eliminatedIn: null, finalRank: null, id: 2 },
+        { userId: 102, username: 'user102', tournamentId: 1, registeredAt: new Date(), seed: 3, eliminatedIn: 1, finalRank: null, id: 3 },
+      ] as any);
+
+      await service.processMatchResult(match1 as any);
+
+      // Round 2: bye player (100) vs round 1 winner (101)
+      expect(mockMatchDao.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          round: 2,
+          player1Id: 100,
+          player2Id: 101,
+        })
+      );
+    });
+
+    it('should finalize tournament when only one player remains', async () => {
+      const finalMatch = {
+        id: 'match-final',
+        tournamentId: 1,
+        round: 2,
+        bracketPosition: 0,
+        player1Id: 100,
+        player2Id: 103,
+        player1Username: 'user100',
+        player2Username: 'user103',
+        winnerId: 100,
+        status: 'COMPLETED',
+      };
+
+      vi.mocked(mockMatchDao.countInRound).mockResolvedValueOnce(1);
+      vi.mocked(mockMatchDao.findCompletedInRound).mockResolvedValueOnce([finalMatch] as any);
+
+      // Only 1 winner → tournament is done
+      vi.mocked(mockParticipantDao.findByTournament).mockResolvedValueOnce([
+        { userId: 100, eliminatedIn: null },
+        { userId: 103, eliminatedIn: 2 },
+        { userId: 101, eliminatedIn: 1 },
+        { userId: 102, eliminatedIn: 1 },
+      ] as any);
+
+      await service.processMatchResult(finalMatch as any);
+
+      expect(mockParticipantDao.setAllFinalRanks).toHaveBeenCalled();
+      expect(mockTournamentDao.updateStatus).toHaveBeenCalledWith(1, 'COMPLETED');
     });
   });
 
@@ -519,8 +778,8 @@ describe('TournamentService', () => {
     it('should return rankings for tournament', async () => {
       const mockTournament = { id: 1 };
       const mockRankings = [
-        { rank: 1, userId: 100, wins: 3, losses: 0, scoreDiff: 15, matchesPlayed: 3 },
-        { rank: 2, userId: 101, wins: 2, losses: 1, scoreDiff: 5, matchesPlayed: 3 },
+        { rank: 1, userId: 100, username: 'user100', seed: 1, eliminatedIn: null },
+        { rank: 2, userId: 101, username: 'user101', seed: 2, eliminatedIn: 2 },
       ];
 
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
@@ -550,100 +809,6 @@ describe('TournamentService', () => {
 
       expect(result).toEqual(mockMatches);
       expect(mockMatchDao.findByTournamentId).toHaveBeenCalledWith(1);
-    });
-  });
-
-  describe('tie-breaker logic', () => {
-    it('should finalize tournament when no ties exist', async () => {
-      const mockMatch = {
-        id: 'match-1',
-        tournamentId: 1,
-        player1Id: 100,
-        player2Id: 101,
-        winnerId: 100,
-        player1Score: 7,
-        player2Score: 3,
-        status: 'COMPLETED',
-      };
-
-      // Guard check: tournament is IN_PROGRESS
-      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce({
-        id: 1,
-        status: 'IN_PROGRESS',
-      } as any);
-
-      // All matches complete
-      vi.mocked(mockMatchDao.findByTournamentId).mockResolvedValueOnce([mockMatch] as any);
-
-      // Clear ranking difference - called twice in flow (checkForTies + finalizeTournament)
-      const mockRankings = [
-        { rank: 1, userId: 100, wins: 1, losses: 0, scoreDiff: 4, matchesPlayed: 1 },
-        { rank: 2, userId: 101, wins: 0, losses: 1, scoreDiff: -4, matchesPlayed: 1 },
-      ];
-      vi.mocked(mockParticipantDao.getRankings)
-        .mockResolvedValueOnce(mockRankings)
-        .mockResolvedValueOnce(mockRankings);
-
-      await service.processMatchResult(mockMatch as any);
-
-      expect(mockParticipantDao.setAllFinalRanks).toHaveBeenCalled();
-      expect(mockTournamentDao.updateStatus).toHaveBeenCalledWith(1, 'COMPLETED');
-    });
-
-    it('should schedule golden game when players are tied after head-to-head', async () => {
-      const mockMatch = {
-        id: 'match-1',
-        tournamentId: 1,
-        player1Id: 100,
-        player2Id: 101,
-        winnerId: 100,
-        player1Score: 7,
-        player2Score: 7,
-        status: 'COMPLETED',
-      };
-
-      // Guard check: tournament is IN_PROGRESS
-      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce({
-        id: 1,
-        status: 'IN_PROGRESS',
-      } as any);
-
-      // All matches complete
-      vi.mocked(mockMatchDao.findByTournamentId).mockResolvedValueOnce([mockMatch] as any);
-
-      // Tied rankings
-      vi.mocked(mockParticipantDao.getRankings).mockResolvedValueOnce([
-        { rank: 1, userId: 100, wins: 1, losses: 1, scoreDiff: 0, matchesPlayed: 2 },
-        { rank: 2, userId: 101, wins: 1, losses: 1, scoreDiff: 0, matchesPlayed: 2 },
-      ]);
-
-      // Head-to-head is also tied
-      vi.mocked(mockMatchDao.findBetweenPlayers).mockResolvedValueOnce([
-        { player1Id: 100, player2Id: 101, player1Score: 5, player2Score: 5 },
-      ] as any);
-
-      // Mock tournament for golden game deadline
-      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce({
-        id: 1,
-        matchDeadlineMin: 30,
-      } as any);
-
-      // Golden game creation
-      vi.mocked(mockMatchDao.create).mockResolvedValueOnce({
-        id: 'golden-match',
-        tournamentId: 1,
-        isGoldenGame: true,
-      } as any);
-
-      await service.processMatchResult(mockMatch as any);
-
-      expect(mockTournamentDao.updateStatus).toHaveBeenCalledWith(1, 'TIE_BREAKER');
-      expect(mockMatchDao.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tournamentId: 1,
-          isGoldenGame: true,
-        })
-      );
     });
   });
 });

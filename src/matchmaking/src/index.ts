@@ -78,10 +78,10 @@ const userManagementClient = {
   async reportMatchResult(message: { playerId: number; isWinner: boolean }): Promise<void> {
     const userManagementUrl = process.env.USER_MANAGEMENT_URL || 'http://localhost:3004';
     try {
-      const response = await fetch(`${userManagementUrl}/api/users/${message.playerId}/match-result`, {
+      const response = await fetch(`${userManagementUrl}/profile/update-stats`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isWinner: message.isWinner })
+        body: JSON.stringify({ user_id: message.playerId, is_winner: message.isWinner })
       });
       if (!response.ok) {
         server.log.warn({ playerId: message.playerId, status: response.status }, 'Failed to report match result');
