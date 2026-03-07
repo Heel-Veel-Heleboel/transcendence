@@ -364,6 +364,32 @@ export class MatchDao {
   }
 
   /**
+   * Cancel an in-progress match (e.g. game ended prematurely).
+   * Records partial scores but sets status to CANCELLED with no winner.
+   */
+  async cancelMatch(
+    matchId: string,
+    result: {
+      player1Score?: number;
+      player2Score?: number;
+      gameSessionId?: string;
+      resultSource: string;
+    }
+  ): Promise<Match> {
+    return await this.prisma.match.update({
+      where: { id: matchId },
+      data: {
+        player1Score: result.player1Score ?? 0,
+        player2Score: result.player2Score ?? 0,
+        gameSessionId: result.gameSessionId ?? null,
+        resultSource: result.resultSource,
+        status: 'CANCELLED',
+        completedAt: new Date()
+      }
+    });
+  }
+
+  /**
    * Find active match for a user (PENDING_ACKNOWLEDGEMENT, SCHEDULED, or IN_PROGRESS)
    */
   async findActiveMatchForUser(userId: number): Promise<Match | null> {

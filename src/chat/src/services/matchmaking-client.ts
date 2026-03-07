@@ -15,7 +15,6 @@ export class MatchmakingClient {
     const response = await fetch(`${this.matchmakingUrl}/match/${matchId}/acknowledge`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'x-user-id': String(playerId)
       }
     });
@@ -35,7 +34,6 @@ export class MatchmakingClient {
     const response = await fetch(`${this.matchmakingUrl}/match/${matchId}/decline`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'x-user-id': String(playerId)
       }
     });

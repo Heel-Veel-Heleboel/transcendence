@@ -230,6 +230,7 @@ export class ChatService {
     await this.notificationService.notifyUsers([playerA, playerB], {
       type: 'chat:match_ack_required',
       channelId: channel.id,
+      messageId: message.id,
       matchId,
       gameMode,
       expiresAt
