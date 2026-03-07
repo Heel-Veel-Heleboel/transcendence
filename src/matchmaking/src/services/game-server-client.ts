@@ -31,7 +31,6 @@ export class GameServerClient {
         gameMode: match.gameMode,
         tournamentId: match.tournamentId,
         deadline: match.deadline?.toISOString() ?? null,
-        isGoldenGame: match.isGoldenGame
       })
     });
 

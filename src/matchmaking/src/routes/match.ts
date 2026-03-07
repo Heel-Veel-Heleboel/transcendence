@@ -1,6 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { MatchDao } from '../dao/match.js';
+import { TournamentDao } from '../dao/tournament.js';
 import { MatchReporting } from '../services/match-reporting.js';
+import { TournamentLifecycleManager } from '../services/tournament-lifecycle.js';
 import { getUserIdFromHeader } from './request-context.js';
 import { GameServerClient } from '../services/game-server-client.js';
 import { ChatServiceClient } from '../services/chat-service-client.js';
@@ -12,10 +14,12 @@ import { GatewayNotificationClient } from '../services/gateway-notification-clie
 export async function registerMatchRoutes(
   server: FastifyInstance,
   matchDao: MatchDao,
+  tournamentDao: TournamentDao,
   matchReporting: MatchReporting,
   gameServerClient: GameServerClient,
   chatServiceClient: ChatServiceClient,
-  gatewayNotificationClient: GatewayNotificationClient
+  gatewayNotificationClient: GatewayNotificationClient,
+  lifecycleManager?: TournamentLifecycleManager
 ): Promise<void> {
 
   /**
@@ -84,7 +88,30 @@ export async function registerMatchRoutes(
           });
         } catch (err) {
           request.log.error({ err, matchId }, 'Failed to create game room after both players acknowledged');
-          // Match stays SCHEDULED — a retry mechanism or admin intervention can recover
+
+          if (updatedMatch.tournamentId) {
+            // Tournament match: reset to PENDING_ACK with a fresh deadline and notify players to re-ack
+            const tournament = await tournamentDao.findById(updatedMatch.tournamentId);
+            const ackMinutes = tournament?.ackDeadlineMin ?? 20;
+            const newDeadline = new Date(Date.now() + ackMinutes * 60 * 1000);
+            const resetMatch = await matchDao.resetToPendingAck(matchId, newDeadline);
+
+            // Reschedule the deadline timer and notify players
+            lifecycleManager?.onMatchCreated(resetMatch);
+            gatewayNotificationClient.notifyUsers(
+              [resetMatch.player1Id, resetMatch.player2Id],
+              {
+                type: 'TOURNAMENT_MATCH_RETRY',
+                matchId,
+                tournamentId: resetMatch.tournamentId,
+                deadline: newDeadline.toISOString(),
+                gameMode: resetMatch.gameMode
+              }
+            );
+
+            request.log.info({ matchId }, 'Tournament match reset to PENDING_ACK after game server failure');
+          }
+          // Casual match stays SCHEDULED — crash report flow (TRAN-274) handles recovery
         }
       }
 
@@ -119,8 +146,41 @@ export async function registerMatchRoutes(
     }
 
     try {
-      const updatedMatch = await matchDao.declineMatch(matchId, userId);
-      request.log.info({ matchId, userId }, 'Match declined');
+      const match = await matchDao.findById(matchId);
+      if (!match) {
+        return reply.status(404).send({ error: 'Not Found', message: 'Match not found' });
+      }
+      if (match.status !== 'PENDING_ACKNOWLEDGEMENT') {
+        return reply.status(400).send({ error: 'Bad Request', message: `Match is ${match.status}, cannot decline` });
+      }
+      if (match.player1Id !== userId && match.player2Id !== userId) {
+        return reply.status(403).send({ error: 'Forbidden', message: 'You are not a player in this match' });
+      }
+
+      let updatedMatch;
+      if (match.tournamentId) {
+        // Tournament match: treat decline as forfeit — other player wins 7-0
+        const winnerId = match.player1Id === userId ? match.player2Id : match.player1Id;
+        const isPlayer1Declining = match.player1Id === userId;
+        updatedMatch = await matchDao.completeMatch(matchId, {
+          winnerId,
+          player1Score: isPlayer1Declining ? 0 : 7,
+          player2Score: isPlayer1Declining ? 7 : 0,
+          resultSource: `forfeit:declined:${userId}`
+        });
+        // Override status to FORFEITED
+        updatedMatch = await matchDao.updateStatus(matchId, 'FORFEITED');
+
+        // Process tournament result and chain to next match
+        lifecycleManager?.onMatchCompleted(updatedMatch).catch(err => {
+          request.log.error({ error: err, matchId }, 'Error processing tournament forfeit');
+        });
+      } else {
+        // Casual match: cancel as before
+        updatedMatch = await matchDao.declineMatch(matchId, userId);
+      }
+
+      request.log.info({ matchId, userId, tournament: !!match.tournamentId }, 'Match declined');
 
       return reply.status(200).send({
         success: true,
@@ -129,10 +189,9 @@ export async function registerMatchRoutes(
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to decline match';
-      const isValidation = message.includes('not found') || message.includes('cannot decline') || message.includes('not part of');
       request.log.error({ error, matchId, userId }, 'Error declining match');
-      return reply.status(isValidation ? 400 : 500).send({
-        error: isValidation ? 'Bad Request' : 'Internal Server Error',
+      return reply.status(500).send({
+        error: 'Internal Server Error',
         message
       });
     }
@@ -236,6 +295,11 @@ export async function registerMatchRoutes(
       // Report result to user management (fire and forget, don't block response)
       matchReporting.reportMatchResult(updatedMatch).catch(err => {
         request.log.error({ error: err, matchId }, 'Failed to report match result to user management');
+      });
+
+      // Process tournament match completion (stats + chain to next match)
+      lifecycleManager?.onMatchCompleted(updatedMatch).catch(err => {
+        request.log.error({ error: err, matchId }, 'Error processing tournament match completion');
       });
 
       request.log.info({ matchId, winnerId, player1Score, player2Score }, 'Match completed');

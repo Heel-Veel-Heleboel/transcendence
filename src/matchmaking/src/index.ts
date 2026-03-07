@@ -108,6 +108,7 @@ const lifecycleManager = new TournamentLifecycleManager(
   tournamentService,
   tournamentDao,
   matchDao,
+  gatewayNotificationClient,
   undefined, // use default timer provider
   server.log
 );
@@ -161,7 +162,7 @@ server.get('/health/detailed', async () => {
 
 // Register routes
 await registerMatchmakingRoutes(server, pools, poolRegistry, chatServiceClient);
-await registerMatchRoutes(server, matchDao, matchReporting, gameServerClient, chatServiceClient, gatewayNotificationClient);
+await registerMatchRoutes(server, matchDao, tournamentDao, matchReporting, gameServerClient, chatServiceClient, gatewayNotificationClient, lifecycleManager);
 await registerTournamentRoutes(server, tournamentService, lifecycleManager);
 await registerDirectChallengeRoutes(server, matchDao, chatServiceClient, pools, poolRegistry);
 

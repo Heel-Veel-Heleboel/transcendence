@@ -16,10 +16,10 @@ export type GameMode = 'classic' | 'powerup';
 export const GAME_MODES: readonly GameMode[] = ['classic', 'powerup'] as const;
 
 /**
- * Default ack timeout for match acknowledgement (5 minutes).
- * Shared between pool matchmaking and direct challenges.
+ * Default ack timeout for casual match acknowledgement (1 minute).
+ * Used by pool matchmaking and direct challenges.
  */
-export const DEFAULT_ACK_TIMEOUT_MS = 5 * 60 * 1000;
+export const DEFAULT_ACK_TIMEOUT_MS = 1 * 60 * 1000;
 
 /**
  * Validate if a string is a valid game mode
