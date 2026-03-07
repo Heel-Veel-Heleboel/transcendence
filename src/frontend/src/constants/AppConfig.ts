@@ -58,8 +58,10 @@ export const CONFIG = {
   USERID_COOKIE_NAME: 'user_id',
 
   // NOTE: MATCHMAKING
-  CLASSIC_GAME: 'classic',
-  POWERUP_GAME: 'powerup',
+  SINGLE_CLASSIC_GAME: 'join classic 1v1',
+  TOURNAMENT_CLASSIC_GAME: 'join classic tournament',
+  SINGLE_POWERUP_GAME: 'join powerup 1v1',
+  TOURNAMENT_POWERUP_GAME: 'join powerup tournament',
   CANCEL_JOIN_BUTTON: 'cancel',
 
   // NOTE: AXIOS
