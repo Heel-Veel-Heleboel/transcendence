@@ -62,13 +62,11 @@ export function DefaultMenu(): JSX.Element {
 
 
 export function Widgets(): JSX.Element {
-    const widgetWidth = "w-1/4"
     return (
         <div className="min-h-1/2 min-w-full flex bg-sky-800/60 bg-clip-content">
-            <Widget title={CONFIG.MATCHMAKING_TITLE} logoPath={CONFIG.MATCHMAKING_LOGO} width={widgetWidth} child={Speedmatching()} />
-            <Widget title={CONFIG.TOURNAMENT_TITLE} logoPath={CONFIG.TOURNAMENT_LOGO} width={widgetWidth} child={Gymkhana()} />
-            <Widget title={CONFIG.NEOFETCH_TITLE} logoPath={CONFIG.NEOFETCH_LOGO} width={widgetWidth} child={TrinityFetch()} />
-            <Widget title={CONFIG.MUSICPLAYER_TITLE} logoPath={CONFIG.MUSICPLAYER_LOGO} width={widgetWidth} child={Mtvx()} />
+            <Widget title={CONFIG.TOURNAMENT_TITLE} logoPath={CONFIG.TOURNAMENT_LOGO} width={'w-2/4'} child={Gymkhana()} />
+            <Widget title={CONFIG.NEOFETCH_TITLE} logoPath={CONFIG.NEOFETCH_LOGO} width={'w-1/4'} child={TrinityFetch()} />
+            <Widget title={CONFIG.MUSICPLAYER_TITLE} logoPath={CONFIG.MUSICPLAYER_LOGO} width={'w-1/4'} child={Mtvx()} />
         </div>
     )
 

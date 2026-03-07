@@ -12,6 +12,20 @@ const client = new Client("ws://localhost:2567");
 
 /* v8 ignore start */
 export function Gymkhana(): JSX.Element {
+    return (
+
+        <div id={CONFIG.MATCHMAKING_CONTAINER_ID} className="flex flex-col justify-items-stretch min-h-full">
+            <div className="w-full min-h-1/3 border border-black">
+                <JoinGames />
+            </div>
+            <div className="w-full min-h-1/2">
+                <LobbyRoom title="something" gamesContent={Lobby()} />
+            </div>
+        </div>
+    );
+}
+
+export function JoinGames(): JSX.Element {
     const [joiningDefault, SetJoiningDefault] = useState<boolean>(false);
     const [joiningCustomized, SetJoiningCustomized] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -74,18 +88,21 @@ export function Gymkhana(): JSX.Element {
     }
 
     return (
-        <div id={CONFIG.MATCHMAKING_CONTAINER_ID} className="flex justify-items-stretch min-h-full">
-            <div className="w-1/5 flex flex-col border border-black">
-                {error ? <MatchMakingError setState={setError} /> :
-                    <div className="flex flex-col">
+        <div className="min-h-full w-full min-h-full" id="JoinGames">
+            {error ? <MatchMakingError setState={setError} /> :
+                <div className="flex w-full">
+                    <div className="flex w-1/2 justify-between border border-black">
+                        <div />
                         <button onClick={handleDefault}>{joiningDefault ? CONFIG.CANCEL_JOIN_BUTTON : CONFIG.CLASSIC_GAME}</button>
-                        <button onClick={handleCustomized}>{joiningCustomized ? CONFIG.CANCEL_JOIN_BUTTON : CONFIG.POWERUP_GAME}</button>
+                        <div />
                     </div>
-                }
-            </div>
-            <div className="w-4/5">
-                <LobbyRoom gamesContent={Lobby()} />
-            </div>
+                    <div className="flex w-1/2 justify-between border border-black">
+                        <div />
+                        <button onClick={handleCustomized}>{joiningCustomized ? CONFIG.CANCEL_JOIN_BUTTON : CONFIG.POWERUP_GAME}</button>
+                        <div />
+                    </div>
+                </div>
+            }
         </div>
     )
 }

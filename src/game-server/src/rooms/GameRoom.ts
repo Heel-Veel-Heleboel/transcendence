@@ -79,7 +79,12 @@ export class GameRoom extends Room {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isFinished: false })
+          body: JSON.stringify({
+            winnerId: winner,
+            player1Score: 1,
+            player2Score: 2,
+            isFinished: true
+          })
         }
       );
       console.log(response);
