@@ -167,21 +167,24 @@ export async function registerMatchRoutes(
 
   /**
    * POST /match/:matchId/result
-   * Report match result (called by game-service)
+   * Report match result (called by game-service).
+   * When isFinished is false the match is recorded as CANCELLED (premature end).
    */
   server.post('/match/:matchId/result', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
-    const { winnerId, player1Score, player2Score, gameSessionId } = request.body as {
-      winnerId: number;
-      player1Score: number;
-      player2Score: number;
+    const { winnerId, player1Score, player2Score, gameSessionId, isFinished = true } = request.body as {
+      winnerId?: number;
+      player1Score?: number;
+      player2Score?: number;
       gameSessionId?: string;
+      isFinished?: boolean;
     };
 
-    if (!winnerId || player1Score === undefined || player2Score === undefined) {
+    // For finished matches, winnerId and scores are required
+    if (isFinished && (!winnerId || player1Score === undefined || player2Score === undefined)) {
       return reply.status(400).send({
         error: 'Bad Request',
-        message: 'winnerId, player1Score, and player2Score are required'
+        message: 'winnerId, player1Score, and player2Score are required for finished matches'
       });
     }
 
@@ -195,6 +198,24 @@ export async function registerMatchRoutes(
         });
       }
 
+      if (!isFinished) {
+        // Game ended prematurely — cancel the match
+        const updatedMatch = await matchDao.cancelMatch(matchId, {
+          player1Score: player1Score ?? 0,
+          player2Score: player2Score ?? 0,
+          gameSessionId,
+          resultSource: 'game_service_cancelled'
+        });
+
+        request.log.info({ matchId, player1Score, player2Score }, 'Match cancelled (premature end)');
+
+        return reply.status(200).send({
+          success: true,
+          matchId: updatedMatch.id,
+          status: 'CANCELLED'
+        });
+      }
+
       // Verify winner is one of the players
       if (winnerId !== match.player1Id && winnerId !== match.player2Id) {
         return reply.status(400).send({
@@ -205,9 +226,9 @@ export async function registerMatchRoutes(
 
       // Update match with result
       const updatedMatch = await matchDao.completeMatch(matchId, {
-        winnerId,
-        player1Score,
-        player2Score,
+        winnerId: winnerId!,
+        player1Score: player1Score!,
+        player2Score: player2Score!,
         gameSessionId,
         resultSource: 'game_service'
       });
