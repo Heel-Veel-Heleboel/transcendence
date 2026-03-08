@@ -31,15 +31,6 @@ export function Gymkhana(): JSX.Element {
     );
 }
 
-// <div id='GamesPanel' className="w-full min-h-1/2 flex">
-//     <div className="min-h-full w-1/2">
-//         <LobbyRoom title="Current Games" gamesContent={Lobby()} />
-//     </div>
-//     <div className="min-h-full w-1/2">
-//         <LobbyRoom title="Open Tournaments" gamesContent={Lobby()} />
-//     </div>
-// </div>
-//
 export function JoinTournamentGames(): JSX.Element {
     const [joiningDefault, SetJoiningDefault] = useState<boolean>(false);
     const [joiningCustomized, SetJoiningCustomized] = useState<boolean>(false);
@@ -49,25 +40,26 @@ export function JoinTournamentGames(): JSX.Element {
         if (!joiningDefault) {
             try {
                 await api({
-                    url: CONFIG.REQUEST_MATCHMAKING_CLASSIC,
+                    url: CONFIG.REQUEST_TOURNAMENT,
 
-                    method: CONFIG.REQUEST_MATCHMAKING_METHOD
+                    method: CONFIG.REQUEST_TOURNAMENT_METHOD,
+                    data: JSON.stringify({ name: 'champions_league', gameMode: 'classic' })
                 });
             } catch (e: any) {
                 console.error(e);
-                setError(ERRORS.MATCHMAKING_CLASSIC_FAILED);
+                setError(ERRORS.TOURNAMENT_CREATE_FAILED);
                 return;
             }
         } else {
             try {
                 await api({
-                    url: CONFIG.REQUEST_MATCHMAKING_CLASSIC_CANCEL,
+                    url: CONFIG.REQUEST_TOURNAMENT_CANCEL('id'),
 
-                    method: CONFIG.REQUEST_MATCHMAKING_METHOD
+                    method: CONFIG.REQUEST_TOURNAMENT_METHOD
                 });
             } catch (e: any) {
                 console.error(e);
-                setError(ERRORS.MATCHMAKING_LEAVE_FAILED);
+                setError(ERRORS.TOURNAMENT_CANCEL_FAILED);
                 return;
             }
         }
@@ -77,26 +69,27 @@ export function JoinTournamentGames(): JSX.Element {
         if (!joiningCustomized) {
             try {
                 await api({
-                    url: CONFIG.REQUEST_MATCHMAKING_POWERUP,
-                    method: CONFIG.REQUEST_MATCHMAKING_METHOD
+                    url: CONFIG.REQUEST_TOURNAMENT,
+
+                    method: CONFIG.REQUEST_TOURNAMENT_METHOD,
+                    data: JSON.stringify({ name: 'olympics', gameMode: 'powerup' })
                 });
             } catch (e: any) {
                 console.error(e);
-                setError(ERRORS.MATCHMAKING_POWERUP_FAILED);
+                setError(ERRORS.TOURNAMENT_CREATE_FAILED);
                 return;
             }
         } else {
             try {
                 await api({
-                    url: CONFIG.REQUEST_MATCHMAKING_POWERUP_CANCEL,
+                    url: CONFIG.REQUEST_TOURNAMENT_CANCEL('id'),
 
-                    method: CONFIG.REQUEST_MATCHMAKING_METHOD
+                    method: CONFIG.REQUEST_TOURNAMENT_METHOD
                 });
             } catch (e: any) {
                 console.error(e);
-                setError(ERRORS.MATCHMAKING_LEAVE_FAILED);
+                setError(ERRORS.TOURNAMENT_CANCEL_FAILED);
                 return;
-
             }
             SetJoiningCustomized(!joiningCustomized);
         }
@@ -104,8 +97,6 @@ export function JoinTournamentGames(): JSX.Element {
 
 
     return (
-        // <div className="min-h-full w-full min-h-full" id="TournamentJoinGames">
-        //     {error ? <MatchMakingError setState={setError} /> :
         <div className="min-h-full flex w-full">
             <div className="min-h-full flex w-1/2 justify-between border border-black">
                 <div />
@@ -118,8 +109,6 @@ export function JoinTournamentGames(): JSX.Element {
                 <div />
             </div>
         </div>
-        //     }
-        // </div>
     )
 }
 
