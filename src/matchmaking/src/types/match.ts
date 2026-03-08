@@ -10,8 +10,6 @@ import { MatchStatus } from '../../generated/prisma/index.js';
  */
 export type GameMode = 'classic' | 'powerup';
 
-export const DEFAULT_ACK_TIMEOUT_MS = 5 * 60 * 1000;
-
 /**
  * All available game modes
  */
