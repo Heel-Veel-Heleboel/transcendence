@@ -1,7 +1,6 @@
 import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import  * as Errors from '../error/user-management.js';
-import { UserDomainErrorMessages, CommonErrorMessages, ProfileDomainErrorMessages } from '../constants/error-messages.js';
-
+import { UserDomainErrorMessages, CommonErrorMessages, ProfileDomainErrorMessages, FriendshipDomainErrorMessages } from '../constants/error-messages.js';
 
 interface ValidationError {
   instancePath: string;
@@ -62,6 +61,24 @@ export function errorHandler(
       message: error.message || CommonErrorMessages.DATABASE_ERROR
     });
   }
+
+
+  if (error instanceof Errors.FriendshipAlreadyExistsError) {
+    return reply.code(409).send({
+      statusCode: 409,
+      error: 'Conflict',
+      message: FriendshipDomainErrorMessages.FRIENDSHIP_ALREADY_EXISTS
+    });
+  }
+
+  if (error instanceof Errors.FriendshipNotFoundError) {
+    return reply.code(404).send({
+      statusCode: 404,
+      error: 'Not Found',
+      message: FriendshipDomainErrorMessages.FRIENDSHIP_NOT_FOUND
+    });
+  } 
+
 
 
   if (isFastifyValidationError(error)) {
