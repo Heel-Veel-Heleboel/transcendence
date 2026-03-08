@@ -40,9 +40,15 @@ export class TournamentService {
   // ============================================================================
 
   async createTournament(data: CreateTournamentData): Promise<Tournament> {
-    const hasActive = await this.tournamentDao.hasActiveCreatedTournament(data.createdBy);
-    if (hasActive) {
-      throw new TournamentError('Already have an active tournament', 'ALREADY_HAS_TOURNAMENT');
+    const [hasCreatedActive, inActive] = await Promise.all([
+      this.tournamentDao.hasActiveCreatedTournament(data.createdBy),
+      this.participantDao.isInActiveTournament(data.createdBy)
+    ]);
+    if (hasCreatedActive) {
+      throw new TournamentError('Already have created an active tournament', 'ALREADY_HAS_TOURNAMENT');
+    }
+    if (inActive) {
+      throw new TournamentError('Already in an active tournament', 'ALREADY_IN_TOURNAMENT');
     }
 
     const tournament = await this.tournamentDao.create(data);
