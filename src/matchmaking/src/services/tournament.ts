@@ -113,6 +113,11 @@ export class TournamentService {
       throw new TournamentError('Already registered for this tournament', 'ALREADY_REGISTERED');
     }
 
+    const inActive = await this.participantDao.isInActiveTournament(userId);
+    if (inActive) {
+      throw new TournamentError('Already in an active tournament', 'ALREADY_IN_TOURNAMENT');
+    }
+
     const hasCapacity = await this.tournamentDao.hasCapacity(tournamentId);
     if (!hasCapacity) {
       throw new TournamentError('Tournament is full', 'TOURNAMENT_FULL');

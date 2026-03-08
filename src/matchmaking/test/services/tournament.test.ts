@@ -36,6 +36,7 @@ describe('TournamentService', () => {
       unregister: vi.fn(),
       findByTournamentAndUser: vi.fn(),
       isRegistered: vi.fn(),
+      isInActiveTournament: vi.fn(),
       findByTournament: vi.fn(),
       findByUser: vi.fn(),
       setSeed: vi.fn(),
@@ -188,6 +189,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(false);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(true);
       vi.mocked(mockParticipantDao.count).mockResolvedValueOnce(3);
 
@@ -207,6 +209,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(false);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(true);
       vi.mocked(mockParticipantDao.count).mockResolvedValueOnce(4);
 
@@ -256,6 +259,23 @@ describe('TournamentService', () => {
       await expect(service.register(1, 100, 'testuser')).rejects.toThrow(TournamentError);
     });
 
+    it('should throw error if already in an active tournament', async () => {
+      const futureDate = new Date(Date.now() + 3600000);
+      const mockTournament = {
+        id: 1,
+        status: 'REGISTRATION',
+        registrationEnd: futureDate,
+      };
+      vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
+      vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(true);
+
+      const error = await service.register(1, 100, 'testuser').catch(e => e);
+      expect(error).toBeInstanceOf(TournamentError);
+      expect(error.message).toBe('Already in an active tournament');
+      expect(error.code).toBe('ALREADY_IN_TOURNAMENT');
+    });
+
     it('should throw error if tournament is full', async () => {
       const futureDate = new Date(Date.now() + 3600000);
       const mockTournament = {
@@ -265,6 +285,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(false);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(false);
 
       await expect(service.register(1, 100, 'testuser')).rejects.toThrow(TournamentError);
@@ -280,6 +301,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(false);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(true);
       vi.mocked(mockParticipantDao.count).mockResolvedValueOnce(5); // Over max
 

@@ -547,6 +547,23 @@ describe('Tournament Routes', () => {
       expect(body.code).toBe('ALREADY_REGISTERED');
     });
 
+    it('should return 400 when already in an active tournament', async () => {
+      vi.mocked(mockTournamentService.register).mockRejectedValue(
+        new TournamentError('Already in an active tournament', 'ALREADY_IN_TOURNAMENT')
+      );
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/tournament/1/register',
+        headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body);
+      expect(body.error).toBe('Bad Request');
+      expect(body.code).toBe('ALREADY_IN_TOURNAMENT');
+    });
+
     it('should return 400 when tournament is full', async () => {
       vi.mocked(mockTournamentService.register).mockRejectedValue(
         new TournamentError('Tournament is full', 'TOURNAMENT_FULL')

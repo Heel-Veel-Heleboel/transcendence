@@ -79,6 +79,22 @@ export class TournamentParticipantDao {
   }
 
   /**
+   * Check if a user is registered in any active tournament
+   * (REGISTRATION, SCHEDULED, or IN_PROGRESS)
+   */
+  async isInActiveTournament(userId: number): Promise<boolean> {
+    const count = await this.prisma.tournamentParticipant.count({
+      where: {
+        userId,
+        tournament: {
+          status: { in: ['REGISTRATION', 'SCHEDULED', 'IN_PROGRESS'] }
+        }
+      }
+    });
+    return count > 0;
+  }
+
+  /**
    * Set seed position for a participant (when bracket is generated)
    */
   async setSeed(
