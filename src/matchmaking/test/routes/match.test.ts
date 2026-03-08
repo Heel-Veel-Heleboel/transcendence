@@ -275,7 +275,6 @@ describe('Match Routes', () => {
           winnerId: 100,
           player1Score: 11,
           player2Score: 5,
-          gameSessionId: 'game-session-1'
         },
       });
 
@@ -287,7 +286,6 @@ describe('Match Routes', () => {
         winnerId: 100,
         player1Score: 11,
         player2Score: 5,
-        gameSessionId: 'game-session-1',
         resultSource: 'game_service'
       });
     });
@@ -319,7 +317,7 @@ describe('Match Routes', () => {
       expect(mockMatchReporting.reportMatchResult).toHaveBeenCalledWith(completedMatch);
     });
 
-    it('should accept result without gameSessionId', async () => {
+    it('should accept result with minimal payload', async () => {
       const match = createMockMatch({ status: MatchStatus.IN_PROGRESS });
       const completedMatch = { ...match, status: MatchStatus.COMPLETED, winnerId: 100 };
       (mockMatchDao.findById as any).mockResolvedValue(match);
@@ -478,7 +476,6 @@ describe('Match Routes', () => {
       expect(mockMatchDao.cancelMatch).toHaveBeenCalledWith('match-123', {
         player1Score: 3,
         player2Score: 2,
-        gameSessionId: undefined,
         resultSource: 'game_service_cancelled',
       });
     });

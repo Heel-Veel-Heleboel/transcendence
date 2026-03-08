@@ -265,7 +265,6 @@ export class MatchDao {
       winnerId: number;
       player1Score: number;
       player2Score: number;
-      gameSessionId?: string;
       resultSource: string;
     }
   ): Promise<Match> {
@@ -275,7 +274,6 @@ export class MatchDao {
         winnerId: result.winnerId,
         player1Score: result.player1Score,
         player2Score: result.player2Score,
-        gameSessionId: result.gameSessionId ?? null,
         resultSource: result.resultSource,
         status: 'COMPLETED',
         completedAt: new Date()
@@ -292,7 +290,6 @@ export class MatchDao {
     result: {
       player1Score?: number;
       player2Score?: number;
-      gameSessionId?: string;
       resultSource: string;
     }
   ): Promise<Match> {
@@ -301,7 +298,6 @@ export class MatchDao {
       data: {
         player1Score: result.player1Score ?? 0,
         player2Score: result.player2Score ?? 0,
-        gameSessionId: result.gameSessionId ?? null,
         resultSource: result.resultSource,
         status: 'CANCELLED',
         completedAt: new Date()

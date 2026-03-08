@@ -22,10 +22,10 @@ describe('TournamentLifecycleManager', () => {
   const createMockTournament = (overrides: Partial<Tournament> = {}): Tournament => ({
     id: 1,
     name: 'Test Tournament',
-    format: 'single_elimination',
+    gameMode: 'classic',
     minPlayers: 2,
     maxPlayers: 8,
-    matchDeadlineMin: 30,
+    matchDurationMin: 3,
     ackDeadlineMin: 20,
     createdBy: 100,
     registrationStart: new Date(),

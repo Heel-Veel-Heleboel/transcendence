@@ -29,10 +29,10 @@ describe('TournamentDao', () => {
       const mockTournament = {
         id: 1,
         name: 'Test Tournament',
-        format: 'single_elimination',
+        gameMode: 'classic',
         minPlayers: 2,
-        maxPlayers: 8,
-        matchDeadlineMin: 30,
+        maxPlayers: 16,
+        matchDurationMin: 3,
         ackDeadlineMin: 20,
         createdBy: 100,
         registrationEnd,
@@ -50,10 +50,10 @@ describe('TournamentDao', () => {
       expect(mockPrismaClient.tournament.create).toBeCalledWith({
         data: {
           name: 'Test Tournament',
-          format: 'single_elimination',
+          gameMode: 'classic',
           minPlayers: 2,
-          maxPlayers: 8,
-          matchDeadlineMin: 30,
+          maxPlayers: 16,
+          matchDurationMin: 3,
           ackDeadlineMin: 20,
           createdBy: 100,
           registrationEnd,
@@ -70,10 +70,10 @@ describe('TournamentDao', () => {
       const mockTournament = {
         id: 1,
         name: 'Custom Tournament',
-        format: 'single_elimination',
+        gameMode: 'powerup',
         minPlayers: 4,
         maxPlayers: 16,
-        matchDeadlineMin: 60,
+        matchDurationMin: 60,
         ackDeadlineMin: 30,
         createdBy: 100,
         registrationEnd,
@@ -84,10 +84,10 @@ describe('TournamentDao', () => {
 
       const result = await dao.create({
         name: 'Custom Tournament',
-        format: 'single_elimination',
+        gameMode: 'powerup',
         minPlayers: 4,
         maxPlayers: 16,
-        matchDeadlineMin: 60,
+        matchDurationMin: 60,
         ackDeadlineMin: 30,
         createdBy: 100,
         registrationEnd,
@@ -97,10 +97,10 @@ describe('TournamentDao', () => {
       expect(mockPrismaClient.tournament.create).toBeCalledWith({
         data: {
           name: 'Custom Tournament',
-          format: 'single_elimination',
+          gameMode: 'powerup',
           minPlayers: 4,
           maxPlayers: 16,
-          matchDeadlineMin: 60,
+          matchDurationMin: 60,
           ackDeadlineMin: 30,
           createdBy: 100,
           registrationEnd,
@@ -143,7 +143,7 @@ describe('TournamentDao', () => {
       const mockTournament = {
         id: 1,
         name: 'Test Tournament',
-        format: 'single_elimination',
+        gameMode: 'classic',
         status: 'REGISTRATION',
         minPlayers: 2,
         maxPlayers: 8,
@@ -168,7 +168,7 @@ describe('TournamentDao', () => {
       expect(result).toEqual({
         id: 1,
         name: 'Test Tournament',
-        format: 'single_elimination',
+        gameMode: 'classic',
         status: 'REGISTRATION',
         minPlayers: 2,
         maxPlayers: 8,
@@ -275,7 +275,7 @@ describe('TournamentDao', () => {
         {
           id: 1,
           name: 'Open Tournament',
-          format: 'single_elimination',
+          gameMode: 'classic',
           status: 'REGISTRATION',
           minPlayers: 2,
           maxPlayers: 8,

@@ -40,27 +40,6 @@ export class TournamentService {
   // ============================================================================
 
   async createTournament(data: CreateTournamentData): Promise<Tournament> {
-    if (data.registrationEnd <= new Date()) {
-      throw new TournamentError(
-        'Registration end must be in the future',
-        'INVALID_REGISTRATION_END'
-      );
-    }
-
-    if (data.minPlayers != null && data.maxPlayers != null && data.minPlayers > data.maxPlayers) {
-      throw new TournamentError(
-        'minPlayers must be less than or equal to maxPlayers',
-        'INVALID_PLAYER_LIMITS'
-      );
-    }
-
-    if (data.startTime && data.startTime <= data.registrationEnd) {
-      throw new TournamentError(
-        'Start time must be after registration end',
-        'INVALID_START_TIME'
-      );
-    }
-
     const tournament = await this.tournamentDao.create(data);
     this.log('info', `Tournament ${tournament.id} created by user ${data.createdBy}`, {
       tournamentId: tournament.id,

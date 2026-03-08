@@ -11,11 +11,11 @@ describe('Tournament Routes', () => {
   const mockTournament = {
     id: 1,
     name: 'Test Tournament',
-    format: 'round_robin',
+    gameMode: 'classic',
     status: 'REGISTRATION' as TournamentStatus,
     minPlayers: 4,
     maxPlayers: 8,
-    matchDeadlineMin: 30,
+    matchDurationMin: 30,
     createdBy: 100,
     registrationEnd: new Date('2099-12-31'),
     startTime: null,
@@ -27,7 +27,7 @@ describe('Tournament Routes', () => {
   const mockTournamentSummary = {
     id: 1,
     name: 'Test Tournament',
-    format: 'round_robin',
+    gameMode: 'classic',
     status: 'REGISTRATION' as TournamentStatus,
     minPlayers: 4,
     maxPlayers: 8,
@@ -71,14 +71,13 @@ describe('Tournament Routes', () => {
   // ============================================================================
 
   describe('POST /tournament', () => {
-    it('should create a tournament successfully', async () => {
+    it('should create a tournament with just name (defaults to classic)', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament',
         headers: { 'x-user-id': '100' },
         payload: {
           name: 'Test Tournament',
-          registrationEnd: '2099-12-31T00:00:00Z'
         }
       });
 
@@ -89,43 +88,35 @@ describe('Tournament Routes', () => {
       expect(body.tournament.name).toBe('Test Tournament');
       expect(mockTournamentService.createTournament).toHaveBeenCalledWith({
         name: 'Test Tournament',
-        format: undefined,
-        minPlayers: undefined,
-        maxPlayers: undefined,
-        matchDeadlineMin: undefined,
+        gameMode: 'classic',
+        minPlayers: 2,
+        maxPlayers: 16,
+        matchDurationMin: 3,
+        ackDeadlineMin: 20,
         createdBy: 100,
-        registrationEnd: new Date('2099-12-31T00:00:00Z'),
+        registrationEnd: expect.any(Date),
         startTime: null
       });
     });
 
-    it('should create a tournament with all optional fields', async () => {
+    it('should create a tournament with powerup mode', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament',
         headers: { 'x-user-id': '100' },
         payload: {
-          name: 'Full Tournament',
-          format: 'single_elimination',
-          minPlayers: 8,
-          maxPlayers: 16,
-          matchDeadlineMin: 60,
-          registrationEnd: '2099-12-31T00:00:00Z',
-          startTime: '2100-01-01T00:00:00Z'
+          name: 'Powerup Tournament',
+          gameMode: 'powerup',
         }
       });
 
       expect(response.statusCode).toBe(201);
-      expect(mockTournamentService.createTournament).toHaveBeenCalledWith({
-        name: 'Full Tournament',
-        format: 'single_elimination',
-        minPlayers: 8,
-        maxPlayers: 16,
-        matchDeadlineMin: 60,
-        createdBy: 100,
-        registrationEnd: new Date('2099-12-31T00:00:00Z'),
-        startTime: new Date('2100-01-01T00:00:00Z')
-      });
+      expect(mockTournamentService.createTournament).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Powerup Tournament',
+          gameMode: 'powerup',
+        })
+      );
     });
 
     it('should return 400 when name is missing', async () => {
@@ -133,9 +124,7 @@ describe('Tournament Routes', () => {
         method: 'POST',
         url: '/tournament',
         headers: { 'x-user-id': '100' },
-        payload: {
-          registrationEnd: '2099-12-31T00:00:00Z'
-        }
+        payload: {}
       });
 
       expect(response.statusCode).toBe(400);
@@ -144,13 +133,29 @@ describe('Tournament Routes', () => {
       expect(body.message).toContain('name');
     });
 
+    it('should return 400 for invalid gameMode', async () => {
+      const response = await server.inject({
+        method: 'POST',
+        url: '/tournament',
+        headers: { 'x-user-id': '100' },
+        payload: {
+          name: 'Test Tournament',
+          gameMode: 'invalid_mode'
+        }
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body);
+      expect(body.error).toBe('Bad Request');
+      expect(body.message).toContain('gameMode');
+    });
+
     it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/tournament',
         payload: {
           name: 'Test Tournament',
-          registrationEnd: '2099-12-31T00:00:00Z'
         }
       });
 
@@ -160,25 +165,9 @@ describe('Tournament Routes', () => {
       expect(body.message).toContain('x-user-id');
     });
 
-    it('should return 400 when registrationEnd is missing', async () => {
-      const response = await server.inject({
-        method: 'POST',
-        url: '/tournament',
-        headers: { 'x-user-id': '100' },
-        payload: {
-          name: 'Test Tournament'
-        }
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body);
-      expect(body.error).toBe('Bad Request');
-      expect(body.message).toContain('registrationEnd');
-    });
-
     it('should return 400 on TournamentError', async () => {
       vi.mocked(mockTournamentService.createTournament).mockRejectedValue(
-        new TournamentError('Registration end must be in the future', 'INVALID_REGISTRATION_END')
+        new TournamentError('Some error', 'SOME_CODE')
       );
 
       const response = await server.inject({
@@ -187,14 +176,13 @@ describe('Tournament Routes', () => {
         headers: { 'x-user-id': '100' },
         payload: {
           name: 'Test Tournament',
-          registrationEnd: '2099-12-31T00:00:00Z'
         }
       });
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
       expect(body.error).toBe('Bad Request');
-      expect(body.code).toBe('INVALID_REGISTRATION_END');
+      expect(body.code).toBe('SOME_CODE');
     });
 
     it('should return 500 on unexpected error', async () => {
@@ -208,7 +196,6 @@ describe('Tournament Routes', () => {
         headers: { 'x-user-id': '100' },
         payload: {
           name: 'Test Tournament',
-          registrationEnd: '2099-12-31T00:00:00Z'
         }
       });
 

@@ -85,7 +85,7 @@ describe('TournamentService', () => {
       const mockTournament = {
         id: 1,
         name: 'Test Tournament',
-        format: 'single_elimination',
+        gameMode: 'classic',
         status: 'REGISTRATION',
         createdBy: 100,
         registrationEnd: futureDate,
@@ -106,45 +106,6 @@ describe('TournamentService', () => {
       });
     });
 
-    it('should throw error if registration end is in the past', async () => {
-      const pastDate = new Date(Date.now() - 3600000);
-
-      await expect(
-        service.createTournament({
-          name: 'Test Tournament',
-          createdBy: 100,
-          registrationEnd: pastDate,
-        })
-      ).rejects.toThrow(TournamentError);
-    });
-
-    it('should throw error if minPlayers > maxPlayers', async () => {
-      const futureDate = new Date(Date.now() + 3600000);
-
-      await expect(
-        service.createTournament({
-          name: 'Test Tournament',
-          createdBy: 100,
-          registrationEnd: futureDate,
-          minPlayers: 16,
-          maxPlayers: 8,
-        })
-      ).rejects.toThrow(TournamentError);
-    });
-
-    it('should throw error if start time is before registration end', async () => {
-      const futureDate = new Date(Date.now() + 3600000);
-      const earlierDate = new Date(Date.now() + 1800000);
-
-      await expect(
-        service.createTournament({
-          name: 'Test Tournament',
-          createdBy: 100,
-          registrationEnd: futureDate,
-          startTime: earlierDate,
-        })
-      ).rejects.toThrow(TournamentError);
-    });
   });
 
   describe('getTournament', () => {

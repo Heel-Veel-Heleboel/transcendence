@@ -2,7 +2,11 @@ import { PrismaClient, Tournament, TournamentStatus } from '../../generated/pris
 import {
   CreateTournamentData,
   UpdateTournamentData,
-  TournamentSummary
+  TournamentSummary,
+  DEFAULT_MAX_PLAYERS,
+  DEFAULT_MIN_PLAYERS,
+  DEFAULT_MATCH_DURATION_MIN,
+  DEFAULT_ACK_DEADLINE_MIN
 } from '../types/tournament.js';
 
 /**
@@ -19,11 +23,11 @@ export class TournamentDao {
     return await this.prisma.tournament.create({
       data: {
         name: data.name,
-        format: data.format ?? 'single_elimination',
-        minPlayers: data.minPlayers ?? 2,
-        maxPlayers: data.maxPlayers ?? 8,
-        matchDeadlineMin: data.matchDeadlineMin ?? 30,
-        ackDeadlineMin: data.ackDeadlineMin ?? 20,
+        gameMode: data.gameMode ?? 'classic',
+        minPlayers: data.minPlayers ?? DEFAULT_MIN_PLAYERS,
+        maxPlayers: data.maxPlayers ?? DEFAULT_MAX_PLAYERS,
+        matchDurationMin: data.matchDurationMin ?? DEFAULT_MATCH_DURATION_MIN,
+        ackDeadlineMin: data.ackDeadlineMin ?? DEFAULT_ACK_DEADLINE_MIN,
         createdBy: data.createdBy,
         registrationEnd: data.registrationEnd,
         startTime: data.startTime ?? null,
@@ -61,7 +65,7 @@ export class TournamentDao {
     return {
       id: tournament.id,
       name: tournament.name,
-      format: tournament.format,
+      gameMode: tournament.gameMode,
       status: tournament.status,
       minPlayers: tournament.minPlayers,
       maxPlayers: tournament.maxPlayers,
@@ -141,7 +145,7 @@ export class TournamentDao {
     return tournaments.map(t => ({
       id: t.id,
       name: t.name,
-      format: t.format,
+      gameMode: t.gameMode,
       status: t.status,
       minPlayers: t.minPlayers,
       maxPlayers: t.maxPlayers,

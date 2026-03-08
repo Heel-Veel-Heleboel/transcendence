@@ -231,11 +231,10 @@ export async function registerMatchRoutes(
    */
   server.post('/match/:matchId/result', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
-    const { winnerId, player1Score, player2Score, gameSessionId, isFinished } = request.body as {
+    const { winnerId, player1Score, player2Score, isFinished } = request.body as {
       winnerId?: number;
       player1Score?: number;
       player2Score?: number;
-      gameSessionId?: string;
       isFinished?: boolean;
     };
 
@@ -262,7 +261,6 @@ export async function registerMatchRoutes(
         const updatedMatch = await matchDao.cancelMatch(matchId, {
           player1Score: player1Score ?? 0,
           player2Score: player2Score ?? 0,
-          gameSessionId,
           resultSource: 'game_service_cancelled'
         });
 
@@ -288,7 +286,6 @@ export async function registerMatchRoutes(
         winnerId: winnerId!,
         player1Score: player1Score!,
         player2Score: player2Score!,
-        gameSessionId,
         resultSource: 'game_service'
       });
 

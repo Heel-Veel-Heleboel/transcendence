@@ -658,7 +658,6 @@ describe('MatchDao', () => {
         data: {
           player1Score: 3,
           player2Score: 2,
-          gameSessionId: null,
           resultSource: 'game_service_cancelled',
           status: 'CANCELLED',
           completedAt: expect.any(Date),

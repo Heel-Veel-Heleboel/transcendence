@@ -38,10 +38,10 @@ model Tournament {
   // Tournament configuration (set at creation)
   id                Int               @id @default(autoincrement())
   name              String
-  format            String            @default("single_elimination")
+  gameMode          String            @default("classic")
   minPlayers        Int               @default(2)             // Minimum players to start
   maxPlayers        Int               @default(8)             // Maximum registration limit
-  matchDeadlineMin  Int               @default(30)            // Minutes per match deadline
+  matchDurationMin  Int               @default(3)             // Maximum match duration in minutes
   ackDeadlineMin    Int               @default(20)            // Minutes for players to acknowledge a match (10-60)
   createdBy         Int                                       // userId who created tournament
 
