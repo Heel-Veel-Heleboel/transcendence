@@ -38,6 +38,7 @@ export interface ITournamentStatus {
 
 export function JoinTournamentGames(): JSX.Element {
     const [tournament, setTournament] = useState<ITournamentStatus | null>(null);
+    const [details, setDetails] = useState<ITournament | null>(null);
     const [isConnecting, setIsConnecting] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -74,16 +75,22 @@ export function JoinTournamentGames(): JSX.Element {
     useEffect(() => {
         async function getTournament() {
             try {
-                const result = await api({
+                const status = await api({
                     url: CONFIG.REQUEST_TOURNAMENT_STATUS,
                 })
                 console.log('tournament');
-                console.log(result);
-                setTournament(result.data)
-                setIsConnecting(false);
+                console.log(status);
+                const tournamentDetails = await api({
+                    url: CONFIG.REQUEST_TOURNAMENT_INFO(status.data.activeTournamentId)
+                })
+                setTournament(status.data)
+                setDetails(tournamentDetails.data);
             } catch (e: any) {
                 console.error(e);
-                setError(e);
+                // setError(e);
+            }
+            finally {
+                setIsConnecting(false);
             }
         }
 
@@ -91,13 +98,13 @@ export function JoinTournamentGames(): JSX.Element {
     }, [])
 
     if (isConnecting) return <p>Connecting...</p>;
-    if (error) return <p>Error: {error}</p>;
+    if (error) return <p>Error</p>;
 
 
     return (
         <div className="min-h-full flex w-full">
             {
-                tournament ? TournamentStatus(tournament) :
+                tournament ? TournamentStatus(details) :
                     <div className="min-h-full flex w-full">
                         <div className="min-h-full flex w-1/2 justify-between border border-black">
                             <div />
@@ -115,30 +122,7 @@ export function JoinTournamentGames(): JSX.Element {
     )
 }
 
-export function TournamentStatus(tournament: ITournamentStatus): JSX.Element {
-    const [details, setDetails] = useState<ITournament | null>(null);
-    const [isConnecting, setIsConnecting] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        async function getTournament() {
-            try {
-                const result = await api({
-                    url: CONFIG.REQUEST_TOURNAMENT_INFO(tournament.activeTournamentId);
-                })
-                setDetails(result.data);
-                setIsConnecting(false);
-            } catch (e: any) {
-                console.error(e);
-                setError(e);
-            }
-        }
-        getTournament();
-    }, [tournament])
-
-    if (isConnecting) return <p>Connecting...</p>;
-    if (error) return <p>Error: {error}</p>;
-
+export function TournamentStatus(details: ITournament | null): JSX.Element {
     return (
         <div>{details?.name}</div>
     )
@@ -302,7 +286,7 @@ function OpenTournaments(): JSX.Element {
         <ul>
             {tournaments.map((tournament) => (
                 <li key={tournament.id}>
-                    {tournament.name} | {tournament.gameMode} | {tournament.participantCount} | {tournament.status}
+                    {tournament.name} | {tournament.gameMode} | {tournament.participantCount} | {tournament.status} | {tournament.createdBy}
                 </li>
             ))}
         </ul>
