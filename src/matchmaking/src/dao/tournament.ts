@@ -194,6 +194,20 @@ export class TournamentDao {
   }
 
   /**
+   * Check if a user has created an active tournament
+   * (REGISTRATION, SCHEDULED, or IN_PROGRESS)
+   */
+  async hasActiveCreatedTournament(userId: number): Promise<boolean> {
+    const count = await this.prisma.tournament.count({
+      where: {
+        createdBy: userId,
+        status: { in: ['REGISTRATION', 'SCHEDULED', 'IN_PROGRESS'] }
+      }
+    });
+    return count > 0;
+  }
+
+  /**
    * Count tournaments by status
    */
   async countByStatus(status: TournamentStatus): Promise<number> {
