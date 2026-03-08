@@ -5,6 +5,7 @@ import { MatchmakingService } from '../services/casual-matchmaking.js';
 import { PoolRegistry } from '../services/pool-registry.js';
 import { isValidGameMode, GameMode } from '../types/match.js';
 import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
+import { DEFAULT_ACK_TIMEOUT_MS } from '../types/match.js';
 
 /**
  * Register direct-challenge route.
@@ -69,8 +70,7 @@ export async function registerDirectChallengeRoutes(
         }
       }
 
-      const ACK_TIMEOUT_MS = 5 * 60 * 1000;
-      const deadline = new Date(Date.now() + ACK_TIMEOUT_MS);
+      const deadline = new Date(Date.now() + DEFAULT_ACK_TIMEOUT_MS);
 
       const match = await matchDao.create({
         player1Id: challengerId,
