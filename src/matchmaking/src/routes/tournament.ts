@@ -2,6 +2,14 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { TournamentService, TournamentError } from '../services/tournament.js';
 import { TournamentLifecycleManager } from '../services/tournament-lifecycle.js';
 import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
+import { GameMode, isValidGameMode } from '../types/match.js';
+import {
+  DEFAULT_MIN_PLAYERS,
+  DEFAULT_MAX_PLAYERS,
+  DEFAULT_MATCH_DURATION_MIN,
+  DEFAULT_ACK_DEADLINE_MIN,
+  DEFAULT_REGISTRATION_DURATION_MIN
+} from '../types/tournament.js';
 
 /**
  * Register tournament routes
@@ -29,12 +37,7 @@ export async function registerTournamentRoutes(
   server.post('/tournament', async (request: FastifyRequest, reply: FastifyReply) => {
     const body = request.body as {
       name: string;
-      format?: string;
-      minPlayers?: number;
-      maxPlayers?: number;
-      matchDeadlineMin?: number;
-      registrationEnd: string;
-      startTime?: string | null;
+      gameMode?: string;
     };
 
     const createdBy = getUserIdFromHeader(request);
@@ -59,65 +62,34 @@ export async function registerTournamentRoutes(
       });
     }
 
-    if (!body.registrationEnd) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'registrationEnd is required'
-      });
-    }
-
-    // Validate optional numeric fields
-    if (body.minPlayers != null && (!Number.isInteger(body.minPlayers) || body.minPlayers < 2)) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'minPlayers must be an integer >= 2'
-      });
-    }
-
-    if (body.maxPlayers != null && (!Number.isInteger(body.maxPlayers) || body.maxPlayers < 2)) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'maxPlayers must be an integer >= 2'
-      });
-    }
-
-    if (body.matchDeadlineMin != null && (typeof body.matchDeadlineMin !== 'number' || body.matchDeadlineMin <= 0)) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'matchDeadlineMin must be a positive number'
-      });
-    }
-
-    // Validate date parsing
-    const registrationEnd = new Date(body.registrationEnd);
-    if (isNaN(registrationEnd.getTime())) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'registrationEnd is not a valid date'
-      });
-    }
-
-    let startTime: Date | null = null;
-    if (body.startTime) {
-      startTime = new Date(body.startTime);
-      if (isNaN(startTime.getTime())) {
+    // Validate and normalize game mode (defaults to 'classic')
+    let gameMode: GameMode = 'classic';
+    if (body.gameMode != null) {
+      if (!isValidGameMode(body.gameMode)) {
         return reply.status(400).send({
           error: 'Bad Request',
-          message: 'startTime is not a valid date'
+          message: 'gameMode must be one of: classic, powerup'
         });
       }
+      gameMode = body.gameMode;
     }
+
+    // Compute registration end relative to current time (e.g. 60 minutes from now)
+    const registrationEnd = new Date(
+      Date.now() + DEFAULT_REGISTRATION_DURATION_MIN * 60 * 1000
+    );
 
     try {
       const tournament = await tournamentService.createTournament({
         name: body.name.trim(),
-        format: body.format as 'round_robin' | 'single_elimination' | undefined,
-        minPlayers: body.minPlayers,
-        maxPlayers: body.maxPlayers,
-        matchDeadlineMin: body.matchDeadlineMin,
+        gameMode,
+        minPlayers: DEFAULT_MIN_PLAYERS,
+        maxPlayers: DEFAULT_MAX_PLAYERS,
+        matchDurationMin: DEFAULT_MATCH_DURATION_MIN,
+        ackDeadlineMin: DEFAULT_ACK_DEADLINE_MIN,
         createdBy,
         registrationEnd,
-        startTime
+        startTime: null
       });
 
       request.log.info({ tournamentId: tournament.id, createdBy }, 'Tournament created');

@@ -6,6 +6,7 @@ const mockPrismaClient = {
     create: vi.fn(),
     findUnique: vi.fn(),
     findMany: vi.fn(),
+    findFirst: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
     count: vi.fn(),
@@ -27,6 +28,8 @@ describe('MatchDao', () => {
         id: 'match-uuid',
         player1Id: 100,
         player2Id: 101,
+        player1Username: 'user100',
+        player2Username: 'user101',
         tournamentId: null,
         status: 'PENDING_ACKNOWLEDGEMENT',
         scheduledAt: new Date(),
@@ -39,6 +42,8 @@ describe('MatchDao', () => {
       const result = await dao.create({
         player1Id: 100,
         player2Id: 101,
+        player1Username: 'user100',
+        player2Username: 'user101',
         deadline,
       });
 
@@ -46,10 +51,13 @@ describe('MatchDao', () => {
         data: {
           player1Id: 100,
           player2Id: 101,
+          player1Username: 'user100',
+          player2Username: 'user101',
           gameMode: 'classic',
           tournamentId: null,
           deadline,
-          isGoldenGame: false,
+          round: null,
+          bracketPosition: null,
           status: 'PENDING_ACKNOWLEDGEMENT',
           scheduledAt: expect.any(Date),
         },
@@ -57,13 +65,15 @@ describe('MatchDao', () => {
       expect(result).toEqual(mockMatch);
     });
 
-    it('should create a tournament match', async () => {
+    it('should create a tournament match with round and bracketPosition', async () => {
       const deadline = new Date('2026-01-01T12:00:00Z');
       const mockMatch = {
         id: 'match-uuid',
         player1Id: 100,
         player2Id: 101,
         tournamentId: 5,
+        round: 1,
+        bracketPosition: 0,
         status: 'PENDING_ACKNOWLEDGEMENT',
         deadline,
       };
@@ -72,48 +82,30 @@ describe('MatchDao', () => {
       const result = await dao.create({
         player1Id: 100,
         player2Id: 101,
+        player1Username: 'user100',
+        player2Username: 'user101',
         tournamentId: 5,
         deadline,
+        round: 1,
+        bracketPosition: 0,
       });
 
       expect(mockPrismaClient.match.create).toBeCalledWith({
         data: {
           player1Id: 100,
           player2Id: 101,
+          player1Username: 'user100',
+          player2Username: 'user101',
           gameMode: 'classic',
           tournamentId: 5,
           deadline,
-          isGoldenGame: false,
+          round: 1,
+          bracketPosition: 0,
           status: 'PENDING_ACKNOWLEDGEMENT',
           scheduledAt: expect.any(Date),
         },
       });
       expect(result).toEqual(mockMatch);
-    });
-
-    it('should create a golden game match', async () => {
-      const mockMatch = {
-        id: 'match-uuid',
-        player1Id: 100,
-        player2Id: 101,
-        isGoldenGame: true,
-      };
-      mockPrismaClient.match.create.mockResolvedValueOnce(mockMatch);
-
-      await dao.create({
-        player1Id: 100,
-        player2Id: 101,
-        tournamentId: 5,
-        isGoldenGame: true,
-      });
-
-      expect(mockPrismaClient.match.create).toBeCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            isGoldenGame: true,
-          }),
-        })
-      );
     });
   });
 
@@ -165,10 +157,10 @@ describe('MatchDao', () => {
   });
 
   describe('findByTournamentId', () => {
-    it('should find all matches for a tournament', async () => {
+    it('should find all matches for a tournament ordered by round and bracketPosition', async () => {
       const mockMatches = [
-        { id: 'match-1', tournamentId: 5 },
-        { id: 'match-2', tournamentId: 5 },
+        { id: 'match-1', tournamentId: 5, round: 1, bracketPosition: 0 },
+        { id: 'match-2', tournamentId: 5, round: 1, bracketPosition: 1 },
       ];
       mockPrismaClient.match.findMany.mockResolvedValueOnce(mockMatches);
 
@@ -176,7 +168,7 @@ describe('MatchDao', () => {
 
       expect(mockPrismaClient.match.findMany).toBeCalledWith({
         where: { tournamentId: 5 },
-        orderBy: { scheduledAt: 'asc' },
+        orderBy: [{ round: 'asc' }, { bracketPosition: 'asc' }],
       });
       expect(result).toEqual(mockMatches);
     });
@@ -483,128 +475,6 @@ describe('MatchDao', () => {
     });
   });
 
-  describe('handleAckForfeit', () => {
-    it('should return match unchanged when both players acknowledged', async () => {
-      const mockMatch = {
-        id: 'match-uuid',
-        player1Id: 100,
-        player2Id: 101,
-        player1Acknowledged: true,
-        player2Acknowledged: true,
-      };
-      mockPrismaClient.match.findUnique.mockResolvedValueOnce(mockMatch);
-
-      const result = await dao.handleAckForfeit('match-uuid');
-
-      expect(mockPrismaClient.match.update).not.toBeCalled();
-      expect(result).toEqual(mockMatch);
-    });
-
-    it('should award player1 7-0 win when player2 did not acknowledge', async () => {
-      const mockMatch = {
-        id: 'match-uuid',
-        player1Id: 100,
-        player2Id: 101,
-        player1Acknowledged: true,
-        player2Acknowledged: false,
-      };
-      mockPrismaClient.match.findUnique.mockResolvedValueOnce(mockMatch);
-      mockPrismaClient.match.update.mockResolvedValueOnce({
-        ...mockMatch,
-        status: 'FORFEITED',
-        winnerId: 100,
-        player1Score: 7,
-        player2Score: 0,
-      });
-
-      await dao.handleAckForfeit('match-uuid');
-
-      expect(mockPrismaClient.match.update).toBeCalledWith({
-        where: { id: 'match-uuid' },
-        data: {
-          status: 'FORFEITED',
-          winnerId: 100,
-          player1Score: 7,
-          player2Score: 0,
-          resultSource: 'ack_forfeit:player2_no_ack',
-          completedAt: expect.any(Date),
-        },
-      });
-    });
-
-    it('should award player2 7-0 win when player1 did not acknowledge', async () => {
-      const mockMatch = {
-        id: 'match-uuid',
-        player1Id: 100,
-        player2Id: 101,
-        player1Acknowledged: false,
-        player2Acknowledged: true,
-      };
-      mockPrismaClient.match.findUnique.mockResolvedValueOnce(mockMatch);
-      mockPrismaClient.match.update.mockResolvedValueOnce({
-        ...mockMatch,
-        status: 'FORFEITED',
-        winnerId: 101,
-        player1Score: 0,
-        player2Score: 7,
-      });
-
-      await dao.handleAckForfeit('match-uuid');
-
-      expect(mockPrismaClient.match.update).toBeCalledWith({
-        where: { id: 'match-uuid' },
-        data: {
-          status: 'FORFEITED',
-          winnerId: 101,
-          player1Score: 0,
-          player2Score: 7,
-          resultSource: 'ack_forfeit:player1_no_ack',
-          completedAt: expect.any(Date),
-        },
-      });
-    });
-
-    it('should record both losses when neither player acknowledged', async () => {
-      const mockMatch = {
-        id: 'match-uuid',
-        player1Id: 100,
-        player2Id: 101,
-        player1Acknowledged: false,
-        player2Acknowledged: false,
-      };
-      mockPrismaClient.match.findUnique.mockResolvedValueOnce(mockMatch);
-      mockPrismaClient.match.update.mockResolvedValueOnce({
-        ...mockMatch,
-        status: 'FORFEITED',
-        winnerId: null,
-        player1Score: 0,
-        player2Score: 0,
-      });
-
-      await dao.handleAckForfeit('match-uuid');
-
-      expect(mockPrismaClient.match.update).toBeCalledWith({
-        where: { id: 'match-uuid' },
-        data: {
-          status: 'FORFEITED',
-          winnerId: null,
-          player1Score: 0,
-          player2Score: 0,
-          resultSource: 'ack_forfeit:both_no_ack',
-          completedAt: expect.any(Date),
-        },
-      });
-    });
-
-    it('should throw error if match not found', async () => {
-      mockPrismaClient.match.findUnique.mockResolvedValueOnce(null);
-
-      await expect(dao.handleAckForfeit('invalid')).rejects.toThrow(
-        'Match invalid not found'
-      );
-    });
-  });
-
   describe('setGameSessionId', () => {
     it('should set game session ID', async () => {
       const mockMatch = {
@@ -654,32 +524,177 @@ describe('MatchDao', () => {
     });
   });
 
-  describe('findBetweenPlayers', () => {
-    it('should find completed matches between specific players in tournament', async () => {
-      const mockMatches = [
-        {
-          id: 'match-1',
+  describe('findNextQueuedMatch', () => {
+    it('should find next queued match for a tournament', async () => {
+      const mockMatch = {
+        id: 'match-2',
+        tournamentId: 5,
+        status: 'PENDING_ACKNOWLEDGEMENT',
+        deadline: null,
+        round: 1,
+        bracketPosition: 1,
+      };
+      mockPrismaClient.match.findFirst.mockResolvedValueOnce(mockMatch);
+
+      const result = await dao.findNextQueuedMatch(5);
+
+      expect(mockPrismaClient.match.findFirst).toBeCalledWith({
+        where: {
           tournamentId: 5,
-          player1Id: 100,
-          player2Id: 101,
-          status: 'COMPLETED',
+          status: 'PENDING_ACKNOWLEDGEMENT',
+          deadline: null,
         },
+        orderBy: [{ round: 'asc' }, { bracketPosition: 'asc' }],
+      });
+      expect(result).toEqual(mockMatch);
+    });
+  });
+
+  describe('activateMatch', () => {
+    it('should activate a queued match with a deadline', async () => {
+      const deadline = new Date('2026-01-01T12:00:00Z');
+      const mockMatch = {
+        id: 'match-uuid',
+        status: 'PENDING_ACKNOWLEDGEMENT',
+        deadline,
+      };
+      mockPrismaClient.match.update.mockResolvedValueOnce(mockMatch);
+
+      const result = await dao.activateMatch('match-uuid', deadline);
+
+      expect(mockPrismaClient.match.update).toBeCalledWith({
+        where: { id: 'match-uuid' },
+        data: {
+          deadline,
+          status: 'PENDING_ACKNOWLEDGEMENT',
+          player1Acknowledged: false,
+          player2Acknowledged: false,
+        },
+      });
+      expect(result).toEqual(mockMatch);
+    });
+  });
+
+  describe('resetToPendingAck', () => {
+    it('should reset match to PENDING_ACKNOWLEDGEMENT with fresh deadline', async () => {
+      const deadline = new Date('2026-01-01T12:00:00Z');
+      const mockMatch = {
+        id: 'match-uuid',
+        status: 'PENDING_ACKNOWLEDGEMENT',
+        deadline,
+      };
+      mockPrismaClient.match.update.mockResolvedValueOnce(mockMatch);
+
+      const result = await dao.resetToPendingAck('match-uuid', deadline);
+
+      expect(mockPrismaClient.match.update).toBeCalledWith({
+        where: { id: 'match-uuid' },
+        data: {
+          status: 'PENDING_ACKNOWLEDGEMENT',
+          deadline,
+          player1Acknowledged: false,
+          player2Acknowledged: false,
+          gameSessionId: null,
+          startedAt: null,
+        },
+      });
+      expect(result).toEqual(mockMatch);
+    });
+  });
+
+  describe('findCompletedInRound', () => {
+    it('should find completed matches in a tournament round', async () => {
+      const mockMatches = [
+        { id: 'match-1', tournamentId: 5, round: 1, status: 'COMPLETED' },
+        { id: 'match-2', tournamentId: 5, round: 1, status: 'FORFEITED' },
       ];
       mockPrismaClient.match.findMany.mockResolvedValueOnce(mockMatches);
 
-      const result = await dao.findBetweenPlayers(5, [100, 101, 102]);
+      const result = await dao.findCompletedInRound(5, 1);
 
       expect(mockPrismaClient.match.findMany).toBeCalledWith({
         where: {
           tournamentId: 5,
-          AND: [
-            { player1Id: { in: [100, 101, 102] } },
-            { player2Id: { in: [100, 101, 102] } },
-          ],
-          status: 'COMPLETED',
+          round: 1,
+          status: { in: ['COMPLETED', 'FORFEITED', 'TIMEOUT'] },
         },
+        orderBy: { bracketPosition: 'asc' },
       });
       expect(result).toEqual(mockMatches);
+    });
+  });
+
+  describe('countInRound', () => {
+    it('should count matches in a tournament round', async () => {
+      mockPrismaClient.match.count.mockResolvedValueOnce(4);
+
+      const result = await dao.countInRound(5, 1);
+
+      expect(mockPrismaClient.match.count).toBeCalledWith({
+        where: { tournamentId: 5, round: 1 },
+      });
+      expect(result).toBe(4);
+    });
+  });
+
+  describe('cancelMatch', () => {
+    it('should cancel a match with partial scores', async () => {
+      const mockMatch = {
+        id: 'match-uuid',
+        status: 'CANCELLED',
+        player1Score: 3,
+        player2Score: 2,
+      };
+      mockPrismaClient.match.update.mockResolvedValueOnce(mockMatch);
+
+      const result = await dao.cancelMatch('match-uuid', {
+        player1Score: 3,
+        player2Score: 2,
+        resultSource: 'game_service_cancelled',
+      });
+
+      expect(mockPrismaClient.match.update).toBeCalledWith({
+        where: { id: 'match-uuid' },
+        data: {
+          player1Score: 3,
+          player2Score: 2,
+          resultSource: 'game_service_cancelled',
+          status: 'CANCELLED',
+          completedAt: expect.any(Date),
+        },
+      });
+      expect(result).toEqual(mockMatch);
+    });
+  });
+
+  describe('recordTimeout', () => {
+    it('should record match timeout', async () => {
+      const mockMatch = {
+        id: 'match-uuid',
+        status: 'TIMEOUT',
+        winnerId: 100,
+      };
+      mockPrismaClient.match.update.mockResolvedValueOnce(mockMatch);
+
+      const result = await dao.recordTimeout('match-uuid', {
+        winnerId: 100,
+        player1Score: 7,
+        player2Score: 0,
+        resultSource: 'timeout',
+      });
+
+      expect(mockPrismaClient.match.update).toBeCalledWith({
+        where: { id: 'match-uuid' },
+        data: {
+          winnerId: 100,
+          player1Score: 7,
+          player2Score: 0,
+          resultSource: 'timeout',
+          status: 'TIMEOUT',
+          completedAt: expect.any(Date),
+        },
+      });
+      expect(result).toEqual(mockMatch);
     });
   });
 });

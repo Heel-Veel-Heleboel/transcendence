@@ -2,15 +2,21 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import Fastify, { FastifyInstance } from 'fastify';
 import { registerMatchRoutes } from '../../src/routes/match.js';
 import { MatchDao } from '../../src/dao/match.js';
+import { TournamentDao } from '../../src/dao/tournament.js';
 import { MatchReporting } from '../../src/services/match-reporting.js';
 import { GameServerClient } from '../../src/services/game-server-client.js';
+import { ChatServiceClient } from '../../src/services/chat-service-client.js';
+import { GatewayNotificationClient } from '../../src/services/gateway-notification-client.js';
 import { MatchStatus } from '../../generated/prisma/index.js';
 
 describe('Match Routes', () => {
   let server: FastifyInstance;
   let mockMatchDao: MatchDao;
+  let mockTournamentDao: TournamentDao;
   let mockMatchReporting: MatchReporting;
   let mockGameServerClient: GameServerClient;
+  let mockChatServiceClient: ChatServiceClient;
+  let mockGatewayNotificationClient: GatewayNotificationClient;
 
   const createMockMatch = (overrides = {}) => ({
     id: 'match-123',
@@ -28,7 +34,8 @@ describe('Match Routes', () => {
     player2Score: null,
     gameSessionId: null,
     deadline: null,
-    isGoldenGame: false,
+    round: null,
+    bracketPosition: null,
     resultSource: null,
     completedAt: null,
     createdAt: new Date(),
@@ -43,7 +50,12 @@ describe('Match Routes', () => {
       findById: vi.fn(),
       acknowledge: vi.fn(),
       completeMatch: vi.fn(),
+      cancelMatch: vi.fn(),
       setGameSessionId: vi.fn().mockResolvedValue(undefined),
+    } as any;
+
+    mockTournamentDao = {
+      findById: vi.fn(),
     } as any;
 
     mockMatchReporting = {
@@ -54,7 +66,23 @@ describe('Match Routes', () => {
       createRoom: vi.fn().mockResolvedValue('room-abc'),
     } as any;
 
-    await registerMatchRoutes(server, mockMatchDao, mockMatchReporting, mockGameServerClient);
+    mockChatServiceClient = {
+      createGameSessionChannel: vi.fn().mockResolvedValue(undefined),
+    } as any;
+
+    mockGatewayNotificationClient = {
+      notifyUsers: vi.fn(),
+    } as any;
+
+    await registerMatchRoutes(
+      server,
+      mockMatchDao,
+      mockTournamentDao,
+      mockMatchReporting,
+      mockGameServerClient,
+      mockChatServiceClient,
+      mockGatewayNotificationClient
+    );
     await server.ready();
   });
 
@@ -243,10 +271,10 @@ describe('Match Routes', () => {
         method: 'POST',
         url: '/match/match-123/result',
         payload: {
+          isFinished: true,
           winnerId: 100,
           player1Score: 11,
           player2Score: 5,
-          gameSessionId: 'game-session-1'
         },
       });
 
@@ -258,7 +286,6 @@ describe('Match Routes', () => {
         winnerId: 100,
         player1Score: 11,
         player2Score: 5,
-        gameSessionId: 'game-session-1',
         resultSource: 'game_service'
       });
     });
@@ -280,6 +307,7 @@ describe('Match Routes', () => {
         method: 'POST',
         url: '/match/match-123/result',
         payload: {
+          isFinished: true,
           winnerId: 100,
           player1Score: 11,
           player2Score: 5
@@ -289,7 +317,7 @@ describe('Match Routes', () => {
       expect(mockMatchReporting.reportMatchResult).toHaveBeenCalledWith(completedMatch);
     });
 
-    it('should accept result without gameSessionId', async () => {
+    it('should accept result with minimal payload', async () => {
       const match = createMockMatch({ status: MatchStatus.IN_PROGRESS });
       const completedMatch = { ...match, status: MatchStatus.COMPLETED, winnerId: 100 };
       (mockMatchDao.findById as any).mockResolvedValue(match);
@@ -299,6 +327,7 @@ describe('Match Routes', () => {
         method: 'POST',
         url: '/match/match-123/result',
         payload: {
+          isFinished: true,
           winnerId: 100,
           player1Score: 11,
           player2Score: 5
@@ -308,11 +337,15 @@ describe('Match Routes', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return 400 when winnerId is missing', async () => {
+    it('should return 400 when winnerId is missing for finished match', async () => {
+      const match = createMockMatch({ status: MatchStatus.IN_PROGRESS });
+      (mockMatchDao.findById as any).mockResolvedValue(match);
+
       const response = await server.inject({
         method: 'POST',
         url: '/match/match-123/result',
         payload: {
+          isFinished: true,
           player1Score: 11,
           player2Score: 5
         },
@@ -323,11 +356,15 @@ describe('Match Routes', () => {
       expect(body.message).toContain('winnerId');
     });
 
-    it('should return 400 when scores are missing', async () => {
+    it('should return 400 when scores are missing for finished match', async () => {
+      const match = createMockMatch({ status: MatchStatus.IN_PROGRESS });
+      (mockMatchDao.findById as any).mockResolvedValue(match);
+
       const response = await server.inject({
         method: 'POST',
         url: '/match/match-123/result',
         payload: {
+          isFinished: true,
           winnerId: 100
         },
       });
@@ -344,6 +381,7 @@ describe('Match Routes', () => {
         method: 'POST',
         url: '/match/match-123/result',
         payload: {
+          isFinished: true,
           winnerId: 100,
           player1Score: 11,
           player2Score: 5
@@ -363,6 +401,7 @@ describe('Match Routes', () => {
         method: 'POST',
         url: '/match/match-123/result',
         payload: {
+          isFinished: true,
           winnerId: 999,
           player1Score: 11,
           player2Score: 5
@@ -381,6 +420,7 @@ describe('Match Routes', () => {
         method: 'POST',
         url: '/match/match-123/result',
         payload: {
+          isFinished: true,
           winnerId: 100,
           player1Score: 11,
           player2Score: 5
@@ -403,6 +443,7 @@ describe('Match Routes', () => {
         method: 'POST',
         url: '/match/match-123/result',
         payload: {
+          isFinished: true,
           winnerId: 100,
           player1Score: 11,
           player2Score: 5
@@ -411,6 +452,32 @@ describe('Match Routes', () => {
 
       // Response should still be 200 because matchReporting is fire-and-forget
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should cancel match when isFinished is false', async () => {
+      const match = createMockMatch({ status: MatchStatus.IN_PROGRESS });
+      const cancelledMatch = { ...match, status: MatchStatus.CANCELLED };
+      (mockMatchDao.findById as any).mockResolvedValue(match);
+      (mockMatchDao.cancelMatch as any).mockResolvedValue(cancelledMatch);
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/match/match-123/result',
+        payload: {
+          isFinished: false,
+          player1Score: 3,
+          player2Score: 2,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.status).toBe('CANCELLED');
+      expect(mockMatchDao.cancelMatch).toHaveBeenCalledWith('match-123', {
+        player1Score: 3,
+        player2Score: 2,
+        resultSource: 'game_service_cancelled',
+      });
     });
   });
 });

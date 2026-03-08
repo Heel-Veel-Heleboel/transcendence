@@ -79,60 +79,50 @@ export class TournamentParticipantDao {
   }
 
   /**
-   * Update participant stats after a match
+   * Check if a user is registered in any active tournament
+   * (REGISTRATION, SCHEDULED, or IN_PROGRESS)
    */
-  async updateStats(
+  async isInActiveTournament(userId: number): Promise<boolean> {
+    const count = await this.prisma.tournamentParticipant.count({
+      where: {
+        userId,
+        tournament: {
+          status: { in: ['REGISTRATION', 'SCHEDULED', 'IN_PROGRESS'] }
+        }
+      }
+    });
+    return count > 0;
+  }
+
+  /**
+   * Set seed position for a participant (when bracket is generated)
+   */
+  async setSeed(
     tournamentId: number,
     userId: number,
-    stats: {
-      wins?: number;
-      losses?: number;
-      scoreDiff?: number;
-    }
+    seed: number
   ): Promise<TournamentParticipant> {
     return await this.prisma.tournamentParticipant.update({
       where: {
         tournamentId_userId: { tournamentId, userId }
       },
-      data: stats
+      data: { seed }
     });
   }
 
   /**
-   * Increment wins for a participant
+   * Mark a participant as eliminated in a specific round
    */
-  async incrementWins(
+  async eliminate(
     tournamentId: number,
     userId: number,
-    scoreDiff: number
+    round: number
   ): Promise<TournamentParticipant> {
     return await this.prisma.tournamentParticipant.update({
       where: {
         tournamentId_userId: { tournamentId, userId }
       },
-      data: {
-        wins: { increment: 1 },
-        scoreDiff: { increment: scoreDiff }
-      }
-    });
-  }
-
-  /**
-   * Increment losses for a participant
-   */
-  async incrementLosses(
-    tournamentId: number,
-    userId: number,
-    scoreDiff: number
-  ): Promise<TournamentParticipant> {
-    return await this.prisma.tournamentParticipant.update({
-      where: {
-        tournamentId_userId: { tournamentId, userId }
-      },
-      data: {
-        losses: { increment: 1 },
-        scoreDiff: { increment: scoreDiff }
-      }
+      data: { eliminatedIn: round }
     });
   }
 
@@ -153,25 +143,32 @@ export class TournamentParticipantDao {
   }
 
   /**
-   * Get rankings for a tournament
-   * Sorted by: wins DESC, scoreDiff DESC
+   * Get rankings for a knockout tournament.
+   * Winner (no eliminatedIn) first, then sorted by round eliminated (later = better).
    */
   async getRankings(tournamentId: number): Promise<TournamentRanking[]> {
     const participants = await this.prisma.tournamentParticipant.findMany({
-      where: { tournamentId },
-      orderBy: [
-        { wins: 'desc' },
-        { scoreDiff: 'desc' }
-      ]
+      where: { tournamentId }
     });
 
-    return participants.map((p, index) => ({
-      rank: index + 1,
+    // Sort: non-eliminated first (still alive / winner), then by round eliminated desc (later = better).
+    // If finalRank is set (post-finalization), use it as primary sort.
+    const sorted = [...participants].sort((a, b) => {
+      if (a.finalRank !== null && b.finalRank !== null) return a.finalRank - b.finalRank;
+      if (a.finalRank !== null) return -1;
+      if (b.finalRank !== null) return 1;
+      if (a.eliminatedIn === null && b.eliminatedIn !== null) return -1;
+      if (b.eliminatedIn === null && a.eliminatedIn !== null) return 1;
+      if (a.eliminatedIn === null && b.eliminatedIn === null) return 0;
+      return (b.eliminatedIn ?? 0) - (a.eliminatedIn ?? 0);
+    });
+
+    return sorted.map((p, index) => ({
+      rank: p.finalRank ?? index + 1,
       userId: p.userId,
-      wins: p.wins,
-      losses: p.losses,
-      scoreDiff: p.scoreDiff,
-      matchesPlayed: p.wins + p.losses
+      username: p.username,
+      seed: p.seed,
+      eliminatedIn: p.eliminatedIn
     }));
   }
 
@@ -205,23 +202,6 @@ export class TournamentParticipantDao {
       where: { tournamentId },
       select: { userId: true, username: true },
       orderBy: { registeredAt: 'asc' }
-    });
-  }
-
-  /**
-   * Find participants with same wins and scoreDiff (for tie-breaking)
-   */
-  async findTiedParticipants(
-    tournamentId: number,
-    wins: number,
-    scoreDiff: number
-  ): Promise<TournamentParticipant[]> {
-    return await this.prisma.tournamentParticipant.findMany({
-      where: {
-        tournamentId,
-        wins,
-        scoreDiff
-      }
     });
   }
 

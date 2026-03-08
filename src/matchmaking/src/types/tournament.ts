@@ -5,27 +5,32 @@ import { TournamentStatus } from '../../generated/prisma/index.js';
  */
 
 /**
- * Tournament format types
+ * Tournament configuration defaults
+ *
+ * These are applied by the backend when a user creates a tournament.
+ * The client only needs to provide a name and game mode.
  */
-export type TournamentFormat = 'round_robin' | 'single_elimination';
+export const DEFAULT_MIN_PLAYERS = 2;
+export const DEFAULT_MAX_PLAYERS = 16;
+export const DEFAULT_MATCH_DURATION_MIN = 3;
+export const DEFAULT_ACK_DEADLINE_MIN = 20;
 
 /**
- * Tie-breaker cascade (applied in order):
- * 1. wins - most wins
- * 2. score_diff - sum of (own_score - opponent_score) across all matches
- * 3. head_to_head - score diff in matches between tied players only
- * 4. golden_game - schedule an extra match between tied players
+ * Registration window in minutes from the time the tournament
+ * creation request is received.
  */
+export const DEFAULT_REGISTRATION_DURATION_MIN = 60;
 
 /**
  * Input data for creating a tournament
  */
 export interface CreateTournamentData {
   name: string;
-  format?: TournamentFormat;
+  gameMode?: string;
   minPlayers?: number;
   maxPlayers?: number;
-  matchDeadlineMin?: number;
+  matchDurationMin?: number;
+  ackDeadlineMin?: number;
   createdBy: number;
   registrationEnd: Date;
   startTime?: Date | null;
@@ -40,6 +45,7 @@ export interface UpdateTournamentData {
   registrationEnd?: Date;
   startTime?: Date | null;
   endTime?: Date | null;
+  totalRounds?: number;
 }
 
 /**
@@ -48,7 +54,7 @@ export interface UpdateTournamentData {
 export interface TournamentSummary {
   id: number;
   name: string;
-  format: string;
+  gameMode: string;
   status: TournamentStatus;
   minPlayers: number;
   maxPlayers: number;
@@ -60,18 +66,12 @@ export interface TournamentSummary {
 }
 
 /**
- * Participant ranking in a tournament
+ * Participant standing in a knockout tournament
  */
 export interface TournamentRanking {
   rank: number;
   userId: number;
-  wins: number;
-  losses: number;
-  scoreDiff: number;
-  matchesPlayed: number;
+  username: string;
+  seed: number | null;
+  eliminatedIn: number | null;  // null = still in or winner
 }
-
-/**
- * Tournament leaderboard
- */
-export type TournamentLeaderboard = TournamentRanking[];

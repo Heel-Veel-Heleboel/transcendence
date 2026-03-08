@@ -2,6 +2,7 @@ import { Tournament, Match } from '../../generated/prisma/index.js';
 import { TournamentService } from './tournament.js';
 import { TournamentDao } from '../dao/tournament.js';
 import { MatchDao } from '../dao/match.js';
+import { GatewayNotificationClient } from './gateway-notification-client.js';
 import { Logger } from '../types/logger.js';
 
 /**
@@ -53,6 +54,7 @@ export class TournamentLifecycleManager {
     private readonly tournamentService: TournamentService,
     private readonly tournamentDao: TournamentDao,
     private readonly matchDao: MatchDao,
+    private readonly gatewayNotificationClient: GatewayNotificationClient,
     private readonly timerProvider: TimerProvider = defaultTimerProvider,
     private readonly logger?: Logger
   ) {}
@@ -175,11 +177,18 @@ export class TournamentLifecycleManager {
   }
 
   /**
-   * Called when a match is completed/forfeited
-   * Cancels the deadline timer
+   * Called when a match reaches a terminal state (COMPLETED/FORFEITED/TIMEOUT).
+   * Cancels the deadline timer and activates the next queued match if this is
+   * a tournament match.
    */
-  onMatchCompleted(matchId: string): void {
-    this.cancelMatchTimer(matchId);
+  async onMatchCompleted(match: Match): Promise<void> {
+    this.cancelMatchTimer(match.id);
+
+    // If this is a tournament match, process result and activate next match
+    if (match.tournamentId) {
+      await this.tournamentService.processMatchResult(match);
+      await this.activateNextTournamentMatch(match.tournamentId);
+    }
   }
 
   // ============================================================================
@@ -295,14 +304,15 @@ export class TournamentLifecycleManager {
     this.tournamentTimers.delete(tournamentId);
 
     try {
-      const matches = await this.tournamentService.startTournament(tournamentId);
+      const firstMatch = await this.tournamentService.startTournament(tournamentId);
 
-      // Schedule deadlines for all generated matches
-      for (const match of matches) {
-        this.onMatchCreated(match);
+      // The first activated match has a deadline — schedule its timer and notify players
+      if (firstMatch) {
+        this.scheduleMatchDeadline(firstMatch);
+        this.notifyMatchPlayers(firstMatch);
       }
 
-      this.log('info', `Tournament ${tournamentId} started with ${matches.length} matches`);
+      this.log('info', `Tournament ${tournamentId} started, first match activated: ${firstMatch?.id}`);
     } catch (error) {
       this.log('error', `Failed to start tournament ${tournamentId}`, { error });
     }
@@ -349,13 +359,53 @@ export class TournamentLifecycleManager {
 
       this.log('info', `Match ${matchId} timed out`, { winnerId, player1Score, player2Score });
 
-      // If this is a tournament match, process the result
+      // If this is a tournament match, process result and activate next match
       if (updatedMatch.tournamentId) {
         await this.tournamentService.processMatchResult(updatedMatch);
+        await this.activateNextTournamentMatch(updatedMatch.tournamentId);
       }
     } catch (error) {
       this.log('error', `Failed to handle match deadline for ${matchId}`, { error });
     }
+  }
+
+  // ============================================================================
+  // Internal: Match Chaining
+  // ============================================================================
+
+  /**
+   * Activate the next queued match in a tournament.
+   * Called after a match reaches a terminal state to keep the sequential flow going.
+   */
+  private async activateNextTournamentMatch(tournamentId: number): Promise<void> {
+    try {
+      const nextMatch = await this.tournamentService.activateNextMatch(tournamentId);
+      if (nextMatch) {
+        this.scheduleMatchDeadline(nextMatch);
+        this.notifyMatchPlayers(nextMatch);
+        this.log('info', `Activated next match ${nextMatch.id} for tournament ${tournamentId}`);
+      } else {
+        this.log('info', `No more queued matches for tournament ${tournamentId}`);
+      }
+    } catch (error) {
+      this.log('error', `Failed to activate next match for tournament ${tournamentId}`, { error });
+    }
+  }
+
+  /**
+   * Notify both players that a match is ready for acknowledgement.
+   */
+  private notifyMatchPlayers(match: Match): void {
+    this.gatewayNotificationClient.notifyUsers(
+      [match.player1Id, match.player2Id],
+      {
+        type: 'TOURNAMENT_MATCH_PENDING',
+        matchId: match.id,
+        tournamentId: match.tournamentId,
+        deadline: match.deadline?.toISOString() ?? null,
+        gameMode: match.gameMode
+      }
+    );
   }
 
   // ============================================================================
