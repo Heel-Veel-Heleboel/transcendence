@@ -71,14 +71,14 @@ describe('Tournament Routes', () => {
   });
 
   // ============================================================================
-  // POST /tournament - Create Tournament
+  // POST /matchmaking/tournament - Create Tournament
   // ============================================================================
 
-  describe('POST /tournament', () => {
+  describe('POST /matchmaking/tournament', () => {
     it('should create a tournament with just name (defaults to classic)', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament',
+        url: '/matchmaking/tournament',
         headers: { 'x-user-id': '100' },
         payload: {
           name: 'Test Tournament',
@@ -106,7 +106,7 @@ describe('Tournament Routes', () => {
     it('should create a tournament with powerup mode', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament',
+        url: '/matchmaking/tournament',
         headers: { 'x-user-id': '100' },
         payload: {
           name: 'Powerup Tournament',
@@ -126,7 +126,7 @@ describe('Tournament Routes', () => {
     it('should return 400 when name is missing', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament',
+        url: '/matchmaking/tournament',
         headers: { 'x-user-id': '100' },
         payload: {}
       });
@@ -140,7 +140,7 @@ describe('Tournament Routes', () => {
     it('should return 400 for invalid gameMode', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament',
+        url: '/matchmaking/tournament',
         headers: { 'x-user-id': '100' },
         payload: {
           name: 'Test Tournament',
@@ -157,7 +157,7 @@ describe('Tournament Routes', () => {
     it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament',
+        url: '/matchmaking/tournament',
         payload: {
           name: 'Test Tournament',
         }
@@ -176,7 +176,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament',
+        url: '/matchmaking/tournament',
         headers: { 'x-user-id': '100' },
         payload: {
           name: 'Test Tournament',
@@ -196,7 +196,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament',
+        url: '/matchmaking/tournament',
         headers: { 'x-user-id': '100' },
         payload: {
           name: 'Another Tournament',
@@ -216,7 +216,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament',
+        url: '/matchmaking/tournament',
         headers: { 'x-user-id': '100' },
         payload: {
           name: 'Test Tournament',
@@ -230,14 +230,14 @@ describe('Tournament Routes', () => {
   });
 
   // ============================================================================
-  // GET /tournament/status/me - User Tournament Status
+  // GET /matchmaking/tournament/status/me - User Tournament Status
   // ============================================================================
 
-  describe('GET /tournament/status/me', () => {
+  describe('GET /matchmaking/tournament/status/me', () => {
     it('should return status when user can create and join', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/status/me',
+        url: '/matchmaking/tournament/status/me',
         headers: { 'x-user-id': '100' },
       });
 
@@ -257,7 +257,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/status/me',
+        url: '/matchmaking/tournament/status/me',
         headers: { 'x-user-id': '100' },
       });
 
@@ -275,7 +275,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/status/me',
+        url: '/matchmaking/tournament/status/me',
         headers: { 'x-user-id': '100' },
       });
 
@@ -288,7 +288,7 @@ describe('Tournament Routes', () => {
     it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/status/me',
+        url: '/matchmaking/tournament/status/me',
       });
 
       expect(response.statusCode).toBe(401);
@@ -301,7 +301,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/status/me',
+        url: '/matchmaking/tournament/status/me',
         headers: { 'x-user-id': '100' },
       });
 
@@ -310,14 +310,14 @@ describe('Tournament Routes', () => {
   });
 
   // ============================================================================
-  // GET /tournament/:id - Get Tournament
+  // GET /matchmaking/tournament/:id - Get Tournament
   // ============================================================================
 
-  describe('GET /tournament/:id', () => {
+  describe('GET /matchmaking/tournament/:id', () => {
     it('should get tournament details', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/1'
+        url: '/matchmaking/tournament/1'
       });
 
       expect(response.statusCode).toBe(200);
@@ -330,7 +330,7 @@ describe('Tournament Routes', () => {
     it('should return 400 for invalid tournament ID', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/invalid'
+        url: '/matchmaking/tournament/invalid'
       });
 
       expect(response.statusCode).toBe(400);
@@ -344,7 +344,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/999'
+        url: '/matchmaking/tournament/999'
       });
 
       expect(response.statusCode).toBe(404);
@@ -359,7 +359,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/1'
+        url: '/matchmaking/tournament/1'
       });
 
       expect(response.statusCode).toBe(500);
@@ -369,14 +369,14 @@ describe('Tournament Routes', () => {
   });
 
   // ============================================================================
-  // GET /tournament - List Tournaments
+  // GET /matchmaking/tournament - List Tournaments
   // ============================================================================
 
-  describe('GET /tournament', () => {
+  describe('GET /matchmaking/tournament', () => {
     it('should list open tournaments', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament'
+        url: '/matchmaking/tournament'
       });
 
       expect(response.statusCode).toBe(200);
@@ -391,7 +391,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament'
+        url: '/matchmaking/tournament'
       });
 
       expect(response.statusCode).toBe(200);
@@ -406,7 +406,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament'
+        url: '/matchmaking/tournament'
       });
 
       expect(response.statusCode).toBe(500);
@@ -416,14 +416,14 @@ describe('Tournament Routes', () => {
   });
 
   // ============================================================================
-  // POST /tournament/:id/cancel - Cancel Tournament
+  // POST /matchmaking/tournament/:id/cancel - Cancel Tournament
   // ============================================================================
 
-  describe('POST /tournament/:id/cancel', () => {
+  describe('POST /matchmaking/tournament/:id/cancel', () => {
     it('should cancel a tournament successfully', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/cancel',
+        url: '/matchmaking/tournament/1/cancel',
         headers: { 'x-user-id': '100' },
       });
 
@@ -437,7 +437,7 @@ describe('Tournament Routes', () => {
     it('should return 400 for invalid tournament ID', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/invalid/cancel',
+        url: '/matchmaking/tournament/invalid/cancel',
         headers: { 'x-user-id': '100' },
       });
 
@@ -450,7 +450,7 @@ describe('Tournament Routes', () => {
     it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/cancel',
+        url: '/matchmaking/tournament/1/cancel',
       });
 
       expect(response.statusCode).toBe(401);
@@ -466,7 +466,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/999/cancel',
+        url: '/matchmaking/tournament/999/cancel',
         headers: { 'x-user-id': '100' },
       });
 
@@ -483,7 +483,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/cancel',
+        url: '/matchmaking/tournament/1/cancel',
         headers: { 'x-user-id': '999' },
       });
 
@@ -500,7 +500,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/cancel',
+        url: '/matchmaking/tournament/1/cancel',
         headers: { 'x-user-id': '100' },
       });
 
@@ -517,7 +517,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/cancel',
+        url: '/matchmaking/tournament/1/cancel',
         headers: { 'x-user-id': '100' },
       });
 
@@ -528,14 +528,14 @@ describe('Tournament Routes', () => {
   });
 
   // ============================================================================
-  // POST /tournament/:id/register - Register for Tournament
+  // POST /matchmaking/tournament/:id/register - Register for Tournament
   // ============================================================================
 
-  describe('POST /tournament/:id/register', () => {
+  describe('POST /matchmaking/tournament/:id/register', () => {
     it('should register for a tournament successfully', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/register',
+        url: '/matchmaking/tournament/1/register',
         headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
@@ -552,7 +552,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/register',
+        url: '/matchmaking/tournament/1/register',
         headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
@@ -564,7 +564,7 @@ describe('Tournament Routes', () => {
     it('should return 400 for invalid tournament ID', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/invalid/register',
+        url: '/matchmaking/tournament/invalid/register',
         headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
@@ -577,7 +577,7 @@ describe('Tournament Routes', () => {
     it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/register',
+        url: '/matchmaking/tournament/1/register',
         headers: { 'x-user-name': 'testuser' },
       });
 
@@ -590,7 +590,7 @@ describe('Tournament Routes', () => {
     it('should return 401 when x-user-name header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/register',
+        url: '/matchmaking/tournament/1/register',
         headers: { 'x-user-id': '101' },
       });
 
@@ -607,7 +607,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/999/register',
+        url: '/matchmaking/tournament/999/register',
         headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
@@ -624,7 +624,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/register',
+        url: '/matchmaking/tournament/1/register',
         headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
@@ -641,7 +641,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/register',
+        url: '/matchmaking/tournament/1/register',
         headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
@@ -658,7 +658,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/register',
+        url: '/matchmaking/tournament/1/register',
         headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
@@ -675,7 +675,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/register',
+        url: '/matchmaking/tournament/1/register',
         headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
@@ -692,7 +692,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/register',
+        url: '/matchmaking/tournament/1/register',
         headers: { 'x-user-id': '101', 'x-user-name': 'testuser' },
       });
 
@@ -703,14 +703,14 @@ describe('Tournament Routes', () => {
   });
 
   // ============================================================================
-  // POST /tournament/:id/unregister - Unregister from Tournament
+  // POST /matchmaking/tournament/:id/unregister - Unregister from Tournament
   // ============================================================================
 
-  describe('POST /tournament/:id/unregister', () => {
+  describe('POST /matchmaking/tournament/:id/unregister', () => {
     it('should unregister from a tournament successfully', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/unregister',
+        url: '/matchmaking/tournament/1/unregister',
         headers: { 'x-user-id': '101' },
       });
 
@@ -724,7 +724,7 @@ describe('Tournament Routes', () => {
     it('should return 400 for invalid tournament ID', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/invalid/unregister',
+        url: '/matchmaking/tournament/invalid/unregister',
         headers: { 'x-user-id': '101' },
       });
 
@@ -737,7 +737,7 @@ describe('Tournament Routes', () => {
     it('should return 401 when x-user-id header is missing', async () => {
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/unregister',
+        url: '/matchmaking/tournament/1/unregister',
       });
 
       expect(response.statusCode).toBe(401);
@@ -753,7 +753,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/999/unregister',
+        url: '/matchmaking/tournament/999/unregister',
         headers: { 'x-user-id': '101' },
       });
 
@@ -770,7 +770,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/unregister',
+        url: '/matchmaking/tournament/1/unregister',
         headers: { 'x-user-id': '101' },
       });
 
@@ -787,7 +787,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/unregister',
+        url: '/matchmaking/tournament/1/unregister',
         headers: { 'x-user-id': '101' },
       });
 
@@ -804,7 +804,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'POST',
-        url: '/tournament/1/unregister',
+        url: '/matchmaking/tournament/1/unregister',
         headers: { 'x-user-id': '101' },
       });
 
@@ -815,14 +815,14 @@ describe('Tournament Routes', () => {
   });
 
   // ============================================================================
-  // GET /tournament/:id/rankings - Get Rankings
+  // GET /matchmaking/tournament/:id/rankings - Get Rankings
   // ============================================================================
 
-  describe('GET /tournament/:id/rankings', () => {
+  describe('GET /matchmaking/tournament/:id/rankings', () => {
     it('should get tournament rankings', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/1/rankings'
+        url: '/matchmaking/tournament/1/rankings'
       });
 
       expect(response.statusCode).toBe(200);
@@ -837,7 +837,7 @@ describe('Tournament Routes', () => {
     it('should return 400 for invalid tournament ID', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/invalid/rankings'
+        url: '/matchmaking/tournament/invalid/rankings'
       });
 
       expect(response.statusCode).toBe(400);
@@ -853,7 +853,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/999/rankings'
+        url: '/matchmaking/tournament/999/rankings'
       });
 
       expect(response.statusCode).toBe(404);
@@ -869,7 +869,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/1/rankings'
+        url: '/matchmaking/tournament/1/rankings'
       });
 
       expect(response.statusCode).toBe(500);
@@ -879,14 +879,14 @@ describe('Tournament Routes', () => {
   });
 
   // ============================================================================
-  // GET /tournament/:id/matches - Get Matches
+  // GET /matchmaking/tournament/:id/matches - Get Matches
   // ============================================================================
 
-  describe('GET /tournament/:id/matches', () => {
+  describe('GET /matchmaking/tournament/:id/matches', () => {
     it('should get tournament matches', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/1/matches'
+        url: '/matchmaking/tournament/1/matches'
       });
 
       expect(response.statusCode).toBe(200);
@@ -899,7 +899,7 @@ describe('Tournament Routes', () => {
     it('should return 400 for invalid tournament ID', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/invalid/matches'
+        url: '/matchmaking/tournament/invalid/matches'
       });
 
       expect(response.statusCode).toBe(400);
@@ -913,7 +913,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/1/matches'
+        url: '/matchmaking/tournament/1/matches'
       });
 
       expect(response.statusCode).toBe(200);
@@ -928,7 +928,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/1/matches'
+        url: '/matchmaking/tournament/1/matches'
       });
 
       expect(response.statusCode).toBe(500);
@@ -938,14 +938,14 @@ describe('Tournament Routes', () => {
   });
 
   // ============================================================================
-  // GET /tournament/:id/participants - Get Participants
+  // GET /matchmaking/tournament/:id/participants - Get Participants
   // ============================================================================
 
-  describe('GET /tournament/:id/participants', () => {
+  describe('GET /matchmaking/tournament/:id/participants', () => {
     it('should get tournament participants', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/1/participants'
+        url: '/matchmaking/tournament/1/participants'
       });
 
       expect(response.statusCode).toBe(200);
@@ -959,7 +959,7 @@ describe('Tournament Routes', () => {
     it('should return 400 for invalid tournament ID', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/invalid/participants'
+        url: '/matchmaking/tournament/invalid/participants'
       });
 
       expect(response.statusCode).toBe(400);
@@ -973,7 +973,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/1/participants'
+        url: '/matchmaking/tournament/1/participants'
       });
 
       expect(response.statusCode).toBe(200);
@@ -989,7 +989,7 @@ describe('Tournament Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/tournament/1/participants'
+        url: '/matchmaking/tournament/1/participants'
       });
 
       expect(response.statusCode).toBe(500);

@@ -31,10 +31,10 @@ export async function registerTournamentRoutes(
   // ============================================================================
 
   /**
-   * POST /tournament
+   * POST /matchmaking/tournament
    * Create a new tournament
    */
-  server.post('/tournament', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.post('/matchmaking/tournament', async (request: FastifyRequest, reply: FastifyReply) => {
     const body = request.body as {
       name: string;
       gameMode?: string;
@@ -118,10 +118,10 @@ export async function registerTournamentRoutes(
   });
 
   /**
-   * GET /tournament/status/me
+   * GET /matchmaking/tournament/status/me
    * Check if user can create or join a tournament
    */
-  server.get('/tournament/status/me', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.get('/matchmaking/tournament/status/me', async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = getUserIdFromHeader(request);
 
     if (userId === null) {
@@ -149,10 +149,10 @@ export async function registerTournamentRoutes(
   });
 
   /**
-   * GET /tournament/:id
+   * GET /matchmaking/tournament/:id
    * Get tournament details
    */
-  server.get('/tournament/:id', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.get('/matchmaking/tournament/:id', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
 
@@ -184,10 +184,10 @@ export async function registerTournamentRoutes(
   });
 
   /**
-   * GET /tournament
+   * GET /matchmaking/tournament
    * Get list of open tournaments (accepting registrations)
    */
-  server.get('/tournament', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.get('/matchmaking/tournament', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const tournaments = await tournamentService.getOpenTournaments();
 
@@ -202,10 +202,10 @@ export async function registerTournamentRoutes(
   });
 
   /**
-   * POST /tournament/:id/cancel
+   * POST /matchmaking/tournament/:id/cancel
    * Cancel a tournament (creator only)
    */
-  server.post('/tournament/:id/cancel', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.post('/matchmaking/tournament/:id/cancel', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
     const userId = getUserIdFromHeader(request);
@@ -262,10 +262,10 @@ export async function registerTournamentRoutes(
   // ============================================================================
 
   /**
-   * POST /tournament/:id/register
+   * POST /matchmaking/tournament/:id/register
    * Register for a tournament
    */
-  server.post('/tournament/:id/register', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.post('/matchmaking/tournament/:id/register', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
     const userId = getUserIdFromHeader(request);
@@ -327,10 +327,10 @@ export async function registerTournamentRoutes(
   });
 
   /**
-   * POST /tournament/:id/unregister
+   * POST /matchmaking/tournament/:id/unregister
    * Unregister from a tournament
    */
-  server.post('/tournament/:id/unregister', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.post('/matchmaking/tournament/:id/unregister', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
     const userId = getUserIdFromHeader(request);
@@ -380,10 +380,10 @@ export async function registerTournamentRoutes(
   // ============================================================================
 
   /**
-   * GET /tournament/:id/rankings
+   * GET /matchmaking/tournament/:id/rankings
    * Get current rankings/standings for a tournament
    */
-  server.get('/tournament/:id/rankings', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.get('/matchmaking/tournament/:id/rankings', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
 
@@ -415,10 +415,10 @@ export async function registerTournamentRoutes(
   });
 
   /**
-   * GET /tournament/:id/matches
+   * GET /matchmaking/tournament/:id/matches
    * Get all matches for a tournament
    */
-  server.get('/tournament/:id/matches', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.get('/matchmaking/tournament/:id/matches', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
 
@@ -443,10 +443,10 @@ export async function registerTournamentRoutes(
   });
 
   /**
-   * GET /tournament/:id/participants
+   * GET /matchmaking/tournament/:id/participants
    * Get participant list for a tournament
    */
-  server.get('/tournament/:id/participants', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.get('/matchmaking/tournament/:id/participants', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
 
