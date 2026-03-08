@@ -57,8 +57,8 @@ describe('Tournament Routes', () => {
       ]),
       getParticipantIds: vi.fn().mockResolvedValue([101, 102, 103]),
       getUserTournamentStatus: vi.fn().mockResolvedValue({
-        hasCreatedTournament: false,
-        isInActiveTournament: false
+        activeTournamentId: null,
+        isCreator: false
       })
     } as any;
 
@@ -189,9 +189,9 @@ describe('Tournament Routes', () => {
       expect(body.code).toBe('SOME_CODE');
     });
 
-    it('should return 400 when user already has an active tournament', async () => {
+    it('should return 400 when user is already in an active tournament', async () => {
       vi.mocked(mockTournamentService.createTournament).mockRejectedValue(
-        new TournamentError('Already have an active tournament', 'ALREADY_HAS_TOURNAMENT')
+        new TournamentError('Already in an active tournament', 'ALREADY_IN_TOURNAMENT')
       );
 
       const response = await server.inject({
@@ -206,7 +206,7 @@ describe('Tournament Routes', () => {
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
       expect(body.error).toBe('Bad Request');
-      expect(body.code).toBe('ALREADY_HAS_TOURNAMENT');
+      expect(body.code).toBe('ALREADY_IN_TOURNAMENT');
     });
 
     it('should return 500 on unexpected error', async () => {
@@ -234,7 +234,7 @@ describe('Tournament Routes', () => {
   // ============================================================================
 
   describe('GET /matchmaking/tournament/status/me', () => {
-    it('should return status when user can create and join', async () => {
+    it('should return null activeTournamentId when user is free', async () => {
       const response = await server.inject({
         method: 'GET',
         url: '/matchmaking/tournament/status/me',
@@ -243,16 +243,14 @@ describe('Tournament Routes', () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
-      expect(body.canCreate).toBe(true);
-      expect(body.canJoin).toBe(true);
-      expect(body.hasCreatedTournament).toBe(false);
-      expect(body.isInActiveTournament).toBe(false);
+      expect(body.activeTournamentId).toBeNull();
+      expect(body.isCreator).toBe(false);
     });
 
-    it('should return canCreate=false when user has active tournament', async () => {
+    it('should return activeTournamentId and isCreator=true when user created a tournament', async () => {
       vi.mocked(mockTournamentService.getUserTournamentStatus).mockResolvedValueOnce({
-        hasCreatedTournament: true,
-        isInActiveTournament: false
+        activeTournamentId: 5,
+        isCreator: true
       });
 
       const response = await server.inject({
@@ -263,14 +261,14 @@ describe('Tournament Routes', () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
-      expect(body.canCreate).toBe(false);
-      expect(body.canJoin).toBe(true);
+      expect(body.activeTournamentId).toBe(5);
+      expect(body.isCreator).toBe(true);
     });
 
-    it('should return canJoin=false when user is in active tournament', async () => {
+    it('should return activeTournamentId and isCreator=false when user is a participant', async () => {
       vi.mocked(mockTournamentService.getUserTournamentStatus).mockResolvedValueOnce({
-        hasCreatedTournament: false,
-        isInActiveTournament: true
+        activeTournamentId: 7,
+        isCreator: false
       });
 
       const response = await server.inject({
@@ -281,8 +279,8 @@ describe('Tournament Routes', () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
-      expect(body.canCreate).toBe(false);
-      expect(body.canJoin).toBe(false);
+      expect(body.activeTournamentId).toBe(7);
+      expect(body.isCreator).toBe(false);
     });
 
     it('should return 401 when x-user-id header is missing', async () => {

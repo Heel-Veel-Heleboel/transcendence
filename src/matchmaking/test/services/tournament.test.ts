@@ -22,7 +22,6 @@ describe('TournamentService', () => {
       findRegistrationEnding: vi.fn(),
       findReadyToStart: vi.fn(),
       findOpen: vi.fn(),
-      hasActiveCreatedTournament: vi.fn(),
       update: vi.fn(),
       updateStatus: vi.fn(),
       delete: vi.fn(),
@@ -37,7 +36,7 @@ describe('TournamentService', () => {
       unregister: vi.fn(),
       findByTournamentAndUser: vi.fn(),
       isRegistered: vi.fn(),
-      isInActiveTournament: vi.fn(),
+      getActiveTournament: vi.fn(),
       findByTournament: vi.fn(),
       findByUser: vi.fn(),
       setSeed: vi.fn(),
@@ -92,7 +91,7 @@ describe('TournamentService', () => {
         createdBy: 100,
         registrationEnd: futureDate,
       };
-      vi.mocked(mockTournamentDao.hasActiveCreatedTournament).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce(null);
       vi.mocked(mockTournamentDao.create).mockResolvedValueOnce(mockTournament as any);
 
       const result = await service.createTournament({
@@ -109,8 +108,10 @@ describe('TournamentService', () => {
       });
     });
 
-    it('should throw error if user already has an active tournament', async () => {
-      vi.mocked(mockTournamentDao.hasActiveCreatedTournament).mockResolvedValueOnce(true);
+    it('should throw error if user is already in an active tournament', async () => {
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce({
+        tournamentId: 5, createdBy: 100
+      });
 
       const error = await service.createTournament({
         name: 'Another Tournament',
@@ -119,7 +120,7 @@ describe('TournamentService', () => {
       }).catch(e => e);
 
       expect(error).toBeInstanceOf(TournamentError);
-      expect(error.code).toBe('ALREADY_HAS_TOURNAMENT');
+      expect(error.code).toBe('ALREADY_IN_TOURNAMENT');
       expect(mockTournamentDao.create).not.toHaveBeenCalled();
     });
   });
@@ -204,7 +205,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
-      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce(null);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(true);
       vi.mocked(mockParticipantDao.count).mockResolvedValueOnce(3);
 
@@ -224,7 +225,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
-      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce(null);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(true);
       vi.mocked(mockParticipantDao.count).mockResolvedValueOnce(4);
 
@@ -283,7 +284,9 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
-      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(true);
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce({
+        tournamentId: 5, createdBy: 200
+      });
 
       const error = await service.register(1, 100, 'testuser').catch(e => e);
       expect(error).toBeInstanceOf(TournamentError);
@@ -300,7 +303,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
-      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce(null);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(false);
 
       await expect(service.register(1, 100, 'testuser')).rejects.toThrow(TournamentError);
@@ -316,7 +319,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
-      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce(null);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(true);
       vi.mocked(mockParticipantDao.count).mockResolvedValueOnce(5); // Over max
 
