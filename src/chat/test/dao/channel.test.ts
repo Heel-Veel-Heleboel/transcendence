@@ -15,6 +15,7 @@ const mockPrismaClient = {
     deleteMany: vi.fn(),
     findUnique: vi.fn(),
     findMany: vi.fn(),
+    update: vi.fn(),
   },
 };
 
@@ -103,19 +104,19 @@ describe('ChannelDao', () => {
         type: 'DM',
         members: [{ userId: 1 }, { userId: 2 }],
       };
-      mockPrismaClient.channel.findUnique.mockResolvedValueOnce(mockChannel);
+      mockPrismaClient.channel.findFirst.mockResolvedValueOnce(mockChannel);
 
       const result = await dao.findById('channel-uuid');
 
-      expect(mockPrismaClient.channel.findUnique).toBeCalledWith({
-        where: { id: 'channel-uuid' },
+      expect(mockPrismaClient.channel.findFirst).toBeCalledWith({
+        where: { id: 'channel-uuid', deletedAt: null },
         include: { members: true },
       });
       expect(result).toEqual(mockChannel);
     });
 
     it('should return null if channel not found', async () => {
-      mockPrismaClient.channel.findUnique.mockResolvedValueOnce(null);
+      mockPrismaClient.channel.findFirst.mockResolvedValueOnce(null);
 
       const result = await dao.findById('non-existent');
 
@@ -137,6 +138,7 @@ describe('ChannelDao', () => {
       expect(mockPrismaClient.channel.findFirst).toBeCalledWith({
         where: {
           type: 'DM',
+          deletedAt: null,
           AND: [
             { members: { some: { userId: 1 } } },
             { members: { some: { userId: 2 } } },
@@ -168,6 +170,7 @@ describe('ChannelDao', () => {
 
       expect(mockPrismaClient.channel.findMany).toBeCalledWith({
         where: {
+          deletedAt: null,
           members: { some: { userId: 1 } },
         },
         include: {
@@ -269,13 +272,27 @@ describe('ChannelDao', () => {
   });
 
   describe('delete', () => {
-    it('should delete a channel', async () => {
-      mockPrismaClient.channel.delete.mockResolvedValueOnce({ id: 'ch-1' });
+    it('should soft-delete a channel by setting deletedAt', async () => {
+      mockPrismaClient.channel.update.mockResolvedValueOnce({ id: 'ch-1' });
 
       await dao.delete('ch-1');
 
-      expect(mockPrismaClient.channel.delete).toBeCalledWith({
+      expect(mockPrismaClient.channel.update).toBeCalledWith({
         where: { id: 'ch-1' },
+        data: { deletedAt: expect.any(Date) },
+      });
+    });
+  });
+
+  describe('markRead', () => {
+    it('should update lastReadAt for a channel member', async () => {
+      mockPrismaClient.channelMember.update.mockResolvedValueOnce({});
+
+      await dao.markRead('ch-1', 1);
+
+      expect(mockPrismaClient.channelMember.update).toBeCalledWith({
+        where: { channelId_userId: { channelId: 'ch-1', userId: 1 } },
+        data: { lastReadAt: expect.any(Date) },
       });
     });
   });
