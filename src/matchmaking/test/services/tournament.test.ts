@@ -97,15 +97,16 @@ describe('TournamentService', () => {
       const result = await service.createTournament({
         name: 'Test Tournament',
         createdBy: 100,
+        creatorUsername: 'creator',
         registrationEnd: futureDate,
       });
 
       expect(result).toEqual(mockTournament);
-      expect(mockTournamentDao.create).toHaveBeenCalledWith({
+      expect(mockTournamentDao.create).toHaveBeenCalledWith(expect.objectContaining({
         name: 'Test Tournament',
         createdBy: 100,
-        registrationEnd: futureDate,
-      });
+      }));
+      expect(mockParticipantDao.register).toHaveBeenCalledWith(1, 100, 'creator');
     });
 
     it('should throw error if user is already in an active tournament', async () => {
@@ -116,6 +117,7 @@ describe('TournamentService', () => {
       const error = await service.createTournament({
         name: 'Another Tournament',
         createdBy: 100,
+        creatorUsername: 'creator',
         registrationEnd: new Date(Date.now() + 3600000),
       }).catch(e => e);
 

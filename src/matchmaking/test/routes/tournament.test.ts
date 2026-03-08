@@ -79,7 +79,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {
           name: 'Test Tournament',
         }
@@ -98,6 +98,7 @@ describe('Tournament Routes', () => {
         matchDurationMin: 3,
         ackDeadlineMin: 20,
         createdBy: 100,
+        creatorUsername: 'creator',
         registrationEnd: expect.any(Date),
         startTime: null
       });
@@ -107,7 +108,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {
           name: 'Powerup Tournament',
           gameMode: 'powerup',
@@ -127,7 +128,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {}
       });
 
@@ -141,7 +142,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {
           name: 'Test Tournament',
           gameMode: 'invalid_mode'
@@ -158,6 +159,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
+        headers: { 'x-user-name': 'creator' },
         payload: {
           name: 'Test Tournament',
         }
@@ -169,6 +171,22 @@ describe('Tournament Routes', () => {
       expect(body.message).toContain('x-user-id');
     });
 
+    it('should return 401 when x-user-name header is missing', async () => {
+      const response = await server.inject({
+        method: 'POST',
+        url: '/matchmaking/tournament',
+        headers: { 'x-user-id': '100' },
+        payload: {
+          name: 'Test Tournament',
+        }
+      });
+
+      expect(response.statusCode).toBe(401);
+      const body = JSON.parse(response.body);
+      expect(body.error).toBe('Unauthorized');
+      expect(body.message).toContain('x-user-name');
+    });
+
     it('should return 400 on TournamentError', async () => {
       vi.mocked(mockTournamentService.createTournament).mockRejectedValue(
         new TournamentError('Some error', 'SOME_CODE')
@@ -177,7 +195,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {
           name: 'Test Tournament',
         }
@@ -197,7 +215,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {
           name: 'Another Tournament',
         }
@@ -217,7 +235,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {
           name: 'Test Tournament',
         }

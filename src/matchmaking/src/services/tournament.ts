@@ -46,6 +46,10 @@ export class TournamentService {
     }
 
     const tournament = await this.tournamentDao.create(data);
+
+    // Auto-register creator as participant
+    await this.participantDao.register(tournament.id, data.createdBy, data.creatorUsername);
+
     this.log('info', `Tournament ${tournament.id} created by user ${data.createdBy}`, {
       tournamentId: tournament.id,
       name: tournament.name

@@ -32,6 +32,7 @@ export interface CreateTournamentData {
   matchDurationMin?: number;
   ackDeadlineMin?: number;
   createdBy: number;
+  creatorUsername: string;
   registrationEnd: Date;
   startTime?: Date | null;
 }
