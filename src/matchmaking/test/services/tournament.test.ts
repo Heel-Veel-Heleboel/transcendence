@@ -22,6 +22,7 @@ describe('TournamentService', () => {
       findRegistrationEnding: vi.fn(),
       findReadyToStart: vi.fn(),
       findOpen: vi.fn(),
+      hasActiveCreatedTournament: vi.fn(),
       update: vi.fn(),
       updateStatus: vi.fn(),
       delete: vi.fn(),
@@ -91,6 +92,7 @@ describe('TournamentService', () => {
         createdBy: 100,
         registrationEnd: futureDate,
       };
+      vi.mocked(mockTournamentDao.hasActiveCreatedTournament).mockResolvedValueOnce(false);
       vi.mocked(mockTournamentDao.create).mockResolvedValueOnce(mockTournament as any);
 
       const result = await service.createTournament({
@@ -107,6 +109,19 @@ describe('TournamentService', () => {
       });
     });
 
+    it('should throw error if user already has an active tournament', async () => {
+      vi.mocked(mockTournamentDao.hasActiveCreatedTournament).mockResolvedValueOnce(true);
+
+      const error = await service.createTournament({
+        name: 'Another Tournament',
+        createdBy: 100,
+        registrationEnd: new Date(Date.now() + 3600000),
+      }).catch(e => e);
+
+      expect(error).toBeInstanceOf(TournamentError);
+      expect(error.code).toBe('ALREADY_HAS_TOURNAMENT');
+      expect(mockTournamentDao.create).not.toHaveBeenCalled();
+    });
   });
 
   describe('getTournament', () => {

@@ -55,7 +55,11 @@ describe('Tournament Routes', () => {
       getMatches: vi.fn().mockResolvedValue([
         { id: 1, player1Id: 101, player2Id: 102, tournamentId: 1, status: 'PENDING' }
       ]),
-      getParticipantIds: vi.fn().mockResolvedValue([101, 102, 103])
+      getParticipantIds: vi.fn().mockResolvedValue([101, 102, 103]),
+      getUserTournamentStatus: vi.fn().mockResolvedValue({
+        hasCreatedTournament: false,
+        isInActiveTournament: false
+      })
     } as any;
 
     await registerTournamentRoutes(server, mockTournamentService);
@@ -185,6 +189,26 @@ describe('Tournament Routes', () => {
       expect(body.code).toBe('SOME_CODE');
     });
 
+    it('should return 400 when user already has an active tournament', async () => {
+      vi.mocked(mockTournamentService.createTournament).mockRejectedValue(
+        new TournamentError('Already have an active tournament', 'ALREADY_HAS_TOURNAMENT')
+      );
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/tournament',
+        headers: { 'x-user-id': '100' },
+        payload: {
+          name: 'Another Tournament',
+        }
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body);
+      expect(body.error).toBe('Bad Request');
+      expect(body.code).toBe('ALREADY_HAS_TOURNAMENT');
+    });
+
     it('should return 500 on unexpected error', async () => {
       vi.mocked(mockTournamentService.createTournament).mockRejectedValue(
         new Error('Database error')
@@ -202,6 +226,86 @@ describe('Tournament Routes', () => {
       expect(response.statusCode).toBe(500);
       const body = JSON.parse(response.body);
       expect(body.error).toBe('Internal Server Error');
+    });
+  });
+
+  // ============================================================================
+  // GET /tournament/status/me - User Tournament Status
+  // ============================================================================
+
+  describe('GET /tournament/status/me', () => {
+    it('should return status when user can create and join', async () => {
+      const response = await server.inject({
+        method: 'GET',
+        url: '/tournament/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.canCreate).toBe(true);
+      expect(body.canJoin).toBe(true);
+      expect(body.hasCreatedTournament).toBe(false);
+      expect(body.isInActiveTournament).toBe(false);
+    });
+
+    it('should return canCreate=false when user has active tournament', async () => {
+      vi.mocked(mockTournamentService.getUserTournamentStatus).mockResolvedValueOnce({
+        hasCreatedTournament: true,
+        isInActiveTournament: false
+      });
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/tournament/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.canCreate).toBe(false);
+      expect(body.canJoin).toBe(true);
+    });
+
+    it('should return canJoin=false when user is in active tournament', async () => {
+      vi.mocked(mockTournamentService.getUserTournamentStatus).mockResolvedValueOnce({
+        hasCreatedTournament: false,
+        isInActiveTournament: true
+      });
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/tournament/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.canCreate).toBe(false);
+      expect(body.canJoin).toBe(false);
+    });
+
+    it('should return 401 when x-user-id header is missing', async () => {
+      const response = await server.inject({
+        method: 'GET',
+        url: '/tournament/status/me',
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it('should return 500 on unexpected error', async () => {
+      vi.mocked(mockTournamentService.getUserTournamentStatus).mockRejectedValueOnce(
+        new Error('Database error')
+      );
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/tournament/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      expect(response.statusCode).toBe(500);
     });
   });
 

@@ -40,6 +40,11 @@ export class TournamentService {
   // ============================================================================
 
   async createTournament(data: CreateTournamentData): Promise<Tournament> {
+    const hasActive = await this.tournamentDao.hasActiveCreatedTournament(data.createdBy);
+    if (hasActive) {
+      throw new TournamentError('Already have an active tournament', 'ALREADY_HAS_TOURNAMENT');
+    }
+
     const tournament = await this.tournamentDao.create(data);
     this.log('info', `Tournament ${tournament.id} created by user ${data.createdBy}`, {
       tournamentId: tournament.id,
@@ -164,6 +169,21 @@ export class TournamentService {
 
   async getParticipantIds(tournamentId: number): Promise<number[]> {
     return await this.participantDao.getParticipantUserIds(tournamentId);
+  }
+
+  /**
+   * Check if user can create or join a tournament.
+   * Returns their active status: whether they've created or are registered in one.
+   */
+  async getUserTournamentStatus(userId: number): Promise<{
+    hasCreatedTournament: boolean;
+    isInActiveTournament: boolean;
+  }> {
+    const [hasCreatedTournament, isInActiveTournament] = await Promise.all([
+      this.tournamentDao.hasActiveCreatedTournament(userId),
+      this.participantDao.isInActiveTournament(userId)
+    ]);
+    return { hasCreatedTournament, isInActiveTournament };
   }
 
   // ============================================================================
