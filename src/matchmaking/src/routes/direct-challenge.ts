@@ -3,9 +3,8 @@ import { MatchDao } from '../dao/match.js';
 import { ChatServiceClient } from '../services/chat-service-client.js';
 import { MatchmakingService } from '../services/casual-matchmaking.js';
 import { PoolRegistry } from '../services/pool-registry.js';
-import { isValidGameMode, GameMode } from '../types/match.js';
+import { isValidGameMode, GameMode, DEFAULT_ACK_TIMEOUT_MS } from '../types/match.js';
 import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
-import { DEFAULT_ACK_TIMEOUT_MS } from '../types/match.js';
 
 /**
  * Register direct-challenge route.
@@ -47,16 +46,16 @@ export async function registerDirectChallengeRoutes(
     const { inviteeId, inviteeUsername, gameMode } = body;
 
     if (typeof inviteeId !== 'number') {
-      return reply.status(400).send({ error: 'inviteeId must be a number' });
+      return reply.status(400).send({ error: 'Bad Request', message: 'inviteeId must be a number' });
     }
     if (typeof inviteeUsername !== 'string' || inviteeUsername.trim() === '') {
-      return reply.status(400).send({ error: 'inviteeUsername must be a non-empty string' });
+      return reply.status(400).send({ error: 'Bad Request', message: 'inviteeUsername must be a non-empty string' });
     }
     if (typeof gameMode !== 'string' || !isValidGameMode(gameMode)) {
-      return reply.status(400).send({ error: 'gameMode must be one of: classic, powerup' });
+      return reply.status(400).send({ error: 'Bad Request', message: 'gameMode must be one of: classic, powerup' });
     }
     if (challengerId === inviteeId) {
-      return reply.status(400).send({ error: 'Cannot challenge yourself' });
+      return reply.status(400).send({ error: 'Bad Request', message: 'Cannot challenge yourself' });
     }
 
     try {

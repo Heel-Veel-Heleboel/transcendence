@@ -9,7 +9,7 @@ export async function authRoutes(fastify: FastifyInstance, options: {authControl
   
   fastify.post<{ Body: SchemaTypes.RegistrationSchemaType }>('/register', {
     schema: SchemaTypes.RegistrationSchema,
-    preValidation: validatePasswordHook,
+    preHandler: validatePasswordHook,
     handler: authController.register.bind(authController)
   });
 
@@ -30,7 +30,7 @@ export async function authRoutes(fastify: FastifyInstance, options: {authControl
 
   fastify.put<{ Body: SchemaTypes.ChangePasswordSchemaType }>('/change-password', {
     schema: SchemaTypes.ChangePasswordSchema,
-    preValidation: validatePasswordHook,
+    preHandler: validatePasswordHook,
     handler: authController.changePassword.bind(authController)
   });
 

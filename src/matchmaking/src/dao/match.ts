@@ -119,7 +119,7 @@ export class MatchDao {
 
     if (status === 'IN_PROGRESS') {
       updateData.startedAt = new Date();
-    } else if (status === 'COMPLETED' || status === 'FORFEITED' || status === 'TIMEOUT') {
+    } else if (status === 'COMPLETED' || status === 'FORFEITED' || status === 'TIMEOUT' || status === 'CANCELLED') {
       updateData.completedAt = new Date();
     }
 
@@ -302,6 +302,34 @@ export class MatchDao {
   }
 
   /**
+   * Decline/cancel a match. Sets status to CANCELLED with no scores.
+   * Only allowed while the match is still PENDING_ACKNOWLEDGEMENT.
+   */
+  async declineMatch(matchId: string, decliningPlayerId: number): Promise<Match> {
+    const match = await this.findById(matchId);
+    if (!match) {
+      throw new Error(`Match ${matchId} not found`);
+    }
+
+    if (match.status !== 'PENDING_ACKNOWLEDGEMENT') {
+      throw new Error(`Match ${matchId} is ${match.status}, cannot decline`);
+    }
+
+    if (match.player1Id !== decliningPlayerId && match.player2Id !== decliningPlayerId) {
+      throw new Error(`Player ${decliningPlayerId} is not part of match ${matchId}`);
+    }
+
+    return await this.prisma.match.update({
+      where: { id: matchId },
+      data: {
+        status: 'CANCELLED',
+        resultSource: `declined:${decliningPlayerId}`,
+        completedAt: new Date()
+      }
+    });
+  }
+
+  /**
    * Convenience method: Acknowledge (alias for recordAcknowledgement)
    */
   async acknowledge(matchId: string, playerId: number): Promise<Match> {
@@ -330,6 +358,32 @@ export class MatchDao {
         gameSessionId: result.gameSessionId ?? null,
         resultSource: result.resultSource,
         status: 'COMPLETED',
+        completedAt: new Date()
+      }
+    });
+  }
+
+  /**
+   * Cancel an in-progress match (e.g. game ended prematurely).
+   * Records partial scores but sets status to CANCELLED with no winner.
+   */
+  async cancelMatch(
+    matchId: string,
+    result: {
+      player1Score?: number;
+      player2Score?: number;
+      gameSessionId?: string;
+      resultSource: string;
+    }
+  ): Promise<Match> {
+    return await this.prisma.match.update({
+      where: { id: matchId },
+      data: {
+        player1Score: result.player1Score ?? 0,
+        player2Score: result.player2Score ?? 0,
+        gameSessionId: result.gameSessionId ?? null,
+        resultSource: result.resultSource,
+        status: 'CANCELLED',
         completedAt: new Date()
       }
     });

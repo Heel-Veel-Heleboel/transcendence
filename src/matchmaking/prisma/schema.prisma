@@ -28,6 +28,7 @@ enum MatchStatus {
   COMPLETED                // Result recorded
   FORFEITED                // Player left or failed to acknowledge
   TIMEOUT                  // Deadline passed without starting
+  CANCELLED                // Player declined the match
 }
 
 // NOTE: PlayerPool is kept in-memory only (no database persistence)

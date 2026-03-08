@@ -3,6 +3,8 @@ import { MatchDao } from '../dao/match.js';
 import { MatchReporting } from '../services/match-reporting.js';
 import { getUserIdFromHeader } from './request-context.js';
 import { GameServerClient } from '../services/game-server-client.js';
+import { ChatServiceClient } from '../services/chat-service-client.js';
+import { GatewayNotificationClient } from '../services/gateway-notification-client.js';
 
 /**
  * Register match-related routes
@@ -11,7 +13,9 @@ export async function registerMatchRoutes(
   server: FastifyInstance,
   matchDao: MatchDao,
   matchReporting: MatchReporting,
-  gameServerClient: GameServerClient
+  gameServerClient: GameServerClient,
+  chatServiceClient: ChatServiceClient,
+  gatewayNotificationClient: GatewayNotificationClient
 ): Promise<void> {
 
   /**
@@ -56,9 +60,28 @@ export async function registerMatchRoutes(
       // Both players are ready: provision the Colyseus room so they can connect
       let roomId: string | null = null;
       if (bothReady) {
+        request.log.info({ matchId, player1Id: updatedMatch.player1Id, player2Id: updatedMatch.player2Id }, 'Both players acknowledged, creating game room');
         try {
           roomId = await gameServerClient.createRoom(updatedMatch);
           await matchDao.setGameSessionId(matchId, roomId);
+          // Notify both players with the roomId so they can connect to the game
+          gatewayNotificationClient.notifyUsers(
+            [updatedMatch.player1Id, updatedMatch.player2Id],
+            {
+              type: 'MATCH_READY',
+              matchId,
+              roomId,
+              gameMode: updatedMatch.gameMode
+            }
+          );
+
+          // Create a shared game channel for both players (fire-and-forget)
+          chatServiceClient.createGameSessionChannel(
+            [updatedMatch.player1Id, updatedMatch.player2Id],
+            roomId
+          ).catch(err => {
+            request.log.error({ err, matchId, roomId }, 'Failed to create game session channel in chat');
+          });
         } catch (err) {
           request.log.error({ err, matchId }, 'Failed to create game room after both players acknowledged');
           // Match stays SCHEDULED — a retry mechanism or admin intervention can recover
@@ -76,6 +99,41 @@ export async function registerMatchRoutes(
       return reply.status(500).send({
         error: 'Internal Server Error',
         message: 'Failed to acknowledge match'
+      });
+    }
+  });
+
+  /**
+   * POST /match/:matchId/decline
+   * Player declines the match. Match is cancelled (no scores, no winner).
+   */
+  server.post('/match/:matchId/decline', async (request: FastifyRequest, reply: FastifyReply) => {
+    const { matchId } = request.params as { matchId: string };
+    const userId = getUserIdFromHeader(request);
+
+    if (userId === null) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-id header'
+      });
+    }
+
+    try {
+      const updatedMatch = await matchDao.declineMatch(matchId, userId);
+      request.log.info({ matchId, userId }, 'Match declined');
+
+      return reply.status(200).send({
+        success: true,
+        matchId: updatedMatch.id,
+        status: updatedMatch.status
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to decline match';
+      const isValidation = message.includes('not found') || message.includes('cannot decline') || message.includes('not part of');
+      request.log.error({ error, matchId, userId }, 'Error declining match');
+      return reply.status(isValidation ? 400 : 500).send({
+        error: isValidation ? 'Bad Request' : 'Internal Server Error',
+        message
       });
     }
   });
@@ -109,21 +167,24 @@ export async function registerMatchRoutes(
 
   /**
    * POST /match/:matchId/result
-   * Report match result (called by game-service)
+   * Report match result (called by game-service).
+   * When isFinished is false the match is recorded as CANCELLED (premature end).
    */
   server.post('/match/:matchId/result', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
-    const { winnerId, player1Score, player2Score, gameSessionId } = request.body as {
-      winnerId: number;
-      player1Score: number;
-      player2Score: number;
+    const { winnerId, player1Score, player2Score, gameSessionId, isFinished = true } = request.body as {
+      winnerId?: number;
+      player1Score?: number;
+      player2Score?: number;
       gameSessionId?: string;
+      isFinished?: boolean;
     };
 
-    if (!winnerId || player1Score === undefined || player2Score === undefined) {
+    // For finished matches, winnerId and scores are required
+    if (isFinished && (!winnerId || player1Score === undefined || player2Score === undefined)) {
       return reply.status(400).send({
         error: 'Bad Request',
-        message: 'winnerId, player1Score, and player2Score are required'
+        message: 'winnerId, player1Score, and player2Score are required for finished matches'
       });
     }
 
@@ -137,6 +198,24 @@ export async function registerMatchRoutes(
         });
       }
 
+      if (!isFinished) {
+        // Game ended prematurely — cancel the match
+        const updatedMatch = await matchDao.cancelMatch(matchId, {
+          player1Score: player1Score ?? 0,
+          player2Score: player2Score ?? 0,
+          gameSessionId,
+          resultSource: 'game_service_cancelled'
+        });
+
+        request.log.info({ matchId, player1Score, player2Score }, 'Match cancelled (premature end)');
+
+        return reply.status(200).send({
+          success: true,
+          matchId: updatedMatch.id,
+          status: 'CANCELLED'
+        });
+      }
+
       // Verify winner is one of the players
       if (winnerId !== match.player1Id && winnerId !== match.player2Id) {
         return reply.status(400).send({
@@ -147,9 +226,9 @@ export async function registerMatchRoutes(
 
       // Update match with result
       const updatedMatch = await matchDao.completeMatch(matchId, {
-        winnerId,
-        player1Score,
-        player2Score,
+        winnerId: winnerId!,
+        player1Score: player1Score!,
+        player2Score: player2Score!,
         gameSessionId,
         resultSource: 'game_service'
       });

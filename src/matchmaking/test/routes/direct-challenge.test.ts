@@ -243,7 +243,7 @@ describe('Direct Challenge Routes', () => {
       });
 
       expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body).error).toContain('gameMode');
+      expect(JSON.parse(response.body).message).toContain('gameMode');
     });
 
     it('should return 400 when inviteeId is a string', async () => {
@@ -288,7 +288,7 @@ describe('Direct Challenge Routes', () => {
       });
 
       expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body).error).toContain('yourself');
+      expect(JSON.parse(response.body).message).toContain('yourself');
     });
 
     it('should return 400 when gameMode is missing', async () => {

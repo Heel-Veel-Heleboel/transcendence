@@ -1,19 +1,23 @@
 import { IProfileRepository } from './interfaces/profile.js';
 import { PrismaClient, Profile } from '../../generated/prisma/client.js';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/client';
+import * as UserManagementError from '../error/user-management.js';
+import * as ErrorMessages from '../constants/error-messages.js'; 
+
 
 import { 
   FindProfileDto,
-  UpdateBioDto,
   UpdateStatsDto,
   UploadAvatarDto
 } from '../dto/profile.js';
+
 
 
 export class ProfileRepository implements IProfileRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async findByUserId(data: FindProfileDto): Promise<Profile | null> {
-    return  await this.prisma.profile.findUnique({
+    const profile = await this.prisma.profile.findUnique({
       where: {
         user_id: data.user_id
       },
@@ -26,43 +30,74 @@ export class ProfileRepository implements IProfileRepository {
         }
       }
     });
+    return profile;
   }
 
-  async updateBio(data: UpdateBioDto): Promise<void> {
-    await this.prisma.profile.update({
-      where: {
-        user_id: data.user_id
-      },
-      data: {
-        bio: data.bio
+
+  async updateWins(data: UpdateStatsDto): Promise<void> {
+    try {
+      await this.prisma.profile.update({
+        where: {
+          user_id: data.user_id
+        },
+        data: {
+          wins: { increment: 1 }
+        }
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new UserManagementError.ProfileNotFoundError();
+        }
+        throw new UserManagementError.DatabaseError(ErrorMessages.ProfileDomainErrorMessages.FAILED_TO_UPDATE_PROFILE_STATS);
       }
-    });
+      throw error;  
+    }
   }
+  
 
-  async updateStats(data: UpdateStatsDto): Promise<Profile> {
-
-    return await this.prisma.profile.update({
-      where: {
-        user_id: data.user_id
-      },
-      data: {
-        wins: data.wins,
-        losses: data.losses,
-        win_rate: data.win_rate
+  async updateLosses(data: UpdateStatsDto): Promise<void> {
+    try {
+      await this.prisma.profile.update({
+        where: {
+          user_id: data.user_id
+        },
+        data: {
+          losses: { increment: 1 }
+        }
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new UserManagementError.ProfileNotFoundError();
+        }
+        throw new UserManagementError.DatabaseError(ErrorMessages.ProfileDomainErrorMessages.FAILED_TO_UPDATE_PROFILE_STATS);
       }
-    });
+      throw error;  
+    }
   }
 
-  async uploadAvatar(data: UploadAvatarDto): Promise<string | null> {
-    const updatedProfile = await this.prisma.profile.update({
-      where: {
-        user_id: data.user_id
-      },
-      data: {
-        avatar_url: data.avatar_url
+
+  async uploadAvatarUrl(data: UploadAvatarDto): Promise<string | null> {
+    try {
+      await this.prisma.profile.update({
+        where: {
+          user_id: data.user_id
+        },
+        data: {
+          avatar_url: data.avatar_url
+        }
+      });
+      return data.avatar_url;
+    }
+    catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new UserManagementError.ProfileNotFoundError();
+        }
+        throw new UserManagementError.DatabaseError(ErrorMessages.ProfileDomainErrorMessages.FAILED_TO_UPLOAD_PROFILE_AVATAR);
       }
-    });
-    return updatedProfile.avatar_url;
+      throw error;  
+    }
   }
-    
 }

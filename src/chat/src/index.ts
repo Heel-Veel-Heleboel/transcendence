@@ -6,6 +6,7 @@ import { ChannelDao } from './dao/channel.dao.js';
 import { MessageDao } from './dao/message.dao.js';
 import { NotificationService } from './services/notification.js';
 import { BlockService } from './services/block.js';
+import { MatchmakingClient } from './services/matchmaking-client.js';
 import { ChatService } from './services/chat.js';
 import { registerChannelRoutes } from './routes/channels.js';
 import { registerMessageRoutes } from './routes/messages.js';
@@ -40,7 +41,10 @@ const channelDao = new ChannelDao(prisma);
 const messageDao = new MessageDao(prisma);
 const notificationService = new NotificationService(channelDao, server.log);
 const blockService = new BlockService(server.log);
-const chatService = new ChatService(channelDao, messageDao, notificationService, blockService, server.log);
+const matchmakingClient = new MatchmakingClient(
+  process.env.MATCHMAKING_URL || 'http://localhost:3005'
+);
+const chatService = new ChatService(channelDao, messageDao, notificationService, blockService, server.log, matchmakingClient);
 
 // Health checks
 server.get('/health', async () => ({

@@ -7,6 +7,7 @@ interface ValidationError {
   message?: string;
   params?: {
     limit?: number;
+    missingProperty?: string;
     [key: string]: unknown;
   };
 }
@@ -62,10 +63,12 @@ export function authErrorHandler(
 
   if (isFastifyValidationError(error)) {
     const details = error.validation.map(item => {
-      const path = item.instancePath.replace(/^\//, '');
+      const path = item.instancePath.replace(/^\//, '') || item.params?.missingProperty || '';
       let message = item.message || '';
       
-      if (item.message?.includes('minLength')) {
+      if (item.params?.missingProperty) {
+        message = `${item.params.missingProperty} is required`;
+      } else if (item.message?.includes('minLength')) {
         message = `${path || 'Field'} must be at least ${item.params?.limit || 3} characters long`;
       } else if (item.message?.includes('maxLength')) {
         message = `${path || 'Field'} must not exceed ${item.params?.limit || 20} characters`;
