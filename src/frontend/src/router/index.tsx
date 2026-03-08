@@ -1,5 +1,5 @@
 import { Route, Routes, useLocation } from 'react-router-dom'
-import { useState, useLayoutEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { Game } from '../pages/Game.tsx'
 import { Menu } from '../pages/Menu.tsx'
 import { StartMenu } from '../pages/StartMenu.tsx'
@@ -10,11 +10,9 @@ import { NotificationProvider } from '../components/providers/Notifications.tsx'
 
 /* v8 ignore start */
 export const Router = () => {
-    const [hydrated, setHydrated] = useState(false);
     const location = useLocation();
     const currentLocation = location.pathname.split("/")[1];
     useLayoutEffect(() => {
-        setHydrated(true);
         let name;
         if (typeof currentLocation[0] === 'undefined') {
             name = 'Start Menu';
@@ -24,9 +22,6 @@ export const Router = () => {
         document.title = `Transcendance | ${name}`
     }, [])
 
-    // if (hydrated === false) {
-    //     return null;
-    // }
     return (
         <AuthProvider>
             <NotificationProvider>

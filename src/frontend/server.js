@@ -53,13 +53,11 @@ app.use('*all', async (req, res) => {
     }
 
     const rendered = await render(url);
-    console.log('url: ' + url);
-    console.log('rendered :' + rendered);
 
     const html = template
       .replace(`<!--app-head-->`, rendered.head ?? '')
       .replace(`<!--app-html-->`, rendered.html ?? '');
-    console.log('html: ' + html);
+    console.log('html: \n' + html);
 
     res.status(200).set({ 'Content-Type': 'text/html' }).send(html);
   } catch (e) {
