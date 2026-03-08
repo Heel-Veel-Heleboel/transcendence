@@ -134,11 +134,7 @@ export async function registerTournamentRoutes(
     try {
       const status = await tournamentService.getUserTournamentStatus(userId);
 
-      return reply.status(200).send({
-        canCreate: !status.hasCreatedTournament && !status.isInActiveTournament,
-        canJoin: !status.isInActiveTournament,
-        ...status
-      });
+      return reply.status(200).send(status);
     } catch (error) {
       request.log.error({ error, userId }, 'Error getting user tournament status');
       return reply.status(500).send({

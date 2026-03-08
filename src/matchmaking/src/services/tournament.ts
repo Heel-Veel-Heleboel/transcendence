@@ -40,14 +40,8 @@ export class TournamentService {
   // ============================================================================
 
   async createTournament(data: CreateTournamentData): Promise<Tournament> {
-    const [hasCreatedActive, inActive] = await Promise.all([
-      this.tournamentDao.hasActiveCreatedTournament(data.createdBy),
-      this.participantDao.isInActiveTournament(data.createdBy)
-    ]);
-    if (hasCreatedActive) {
-      throw new TournamentError('Already have created an active tournament', 'ALREADY_HAS_TOURNAMENT');
-    }
-    if (inActive) {
+    const active = await this.participantDao.getActiveTournament(data.createdBy);
+    if (active) {
       throw new TournamentError('Already in an active tournament', 'ALREADY_IN_TOURNAMENT');
     }
 
@@ -124,8 +118,8 @@ export class TournamentService {
       throw new TournamentError('Already registered for this tournament', 'ALREADY_REGISTERED');
     }
 
-    const inActive = await this.participantDao.isInActiveTournament(userId);
-    if (inActive) {
+    const active = await this.participantDao.getActiveTournament(userId);
+    if (active) {
       throw new TournamentError('Already in an active tournament', 'ALREADY_IN_TOURNAMENT');
     }
 
@@ -179,17 +173,20 @@ export class TournamentService {
 
   /**
    * Check if user can create or join a tournament.
-   * Returns their active status: whether they've created or are registered in one.
+   * Returns active tournament info if any, with whether user is its creator.
    */
   async getUserTournamentStatus(userId: number): Promise<{
-    hasCreatedTournament: boolean;
-    isInActiveTournament: boolean;
+    activeTournamentId: number | null;
+    isCreator: boolean;
   }> {
-    const [hasCreatedTournament, isInActiveTournament] = await Promise.all([
-      this.tournamentDao.hasActiveCreatedTournament(userId),
-      this.participantDao.isInActiveTournament(userId)
-    ]);
-    return { hasCreatedTournament, isInActiveTournament };
+    const active = await this.participantDao.getActiveTournament(userId);
+    if (!active) {
+      return { activeTournamentId: null, isCreator: false };
+    }
+    return {
+      activeTournamentId: active.tournamentId,
+      isCreator: active.createdBy === userId
+    };
   }
 
   // ============================================================================
