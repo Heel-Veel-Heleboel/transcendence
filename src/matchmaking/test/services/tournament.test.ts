@@ -725,6 +725,96 @@ describe('TournamentService', () => {
       );
     });
 
+    it('should carry bye player forward after double forfeit creates odd winner count', async () => {
+      // Round 1 had 4 matches (8 players). Round 2 has 4 winners.
+      // In round 2: match1 has a winner, match2 is a double forfeit → 1 winner + 0 = odd.
+      // Round 2 match results:
+      const match2a = {
+        id: 'match-2a',
+        tournamentId: 1,
+        round: 2,
+        bracketPosition: 0,
+        player1Id: 100,
+        player2Id: 101,
+        player1Username: 'user100',
+        player2Username: 'user101',
+        winnerId: 100,
+        status: 'COMPLETED',
+      };
+      const match2b = {
+        id: 'match-2b',
+        tournamentId: 1,
+        round: 2,
+        bracketPosition: 1,
+        player1Id: 102,
+        player2Id: 103,
+        player1Username: 'user102',
+        player2Username: 'user103',
+        winnerId: null, // double forfeit
+        status: 'FORFEITED',
+      };
+
+      // All 2 matches in round 2 completed
+      vi.mocked(mockMatchDao.countInRound).mockResolvedValueOnce(2);
+      vi.mocked(mockMatchDao.findCompletedInRound).mockResolvedValueOnce([match2a, match2b] as any);
+
+      const participants = [
+        { userId: 100, username: 'user100', tournamentId: 1, seed: 1, eliminatedIn: null, finalRank: null },
+        { userId: 101, username: 'user101', tournamentId: 1, seed: 2, eliminatedIn: 2, finalRank: null },
+        { userId: 102, username: 'user102', tournamentId: 1, seed: 3, eliminatedIn: 2, finalRank: null },
+        { userId: 103, username: 'user103', tournamentId: 1, seed: 4, eliminatedIn: 2, finalRank: null },
+      ];
+      // Called once in advanceToNextRound, once in finalizeTournament
+      vi.mocked(mockParticipantDao.findByTournament)
+        .mockResolvedValueOnce(participants as any)
+        .mockResolvedValueOnce(participants as any);
+
+      await service.processMatchResult(match2b as any);
+
+      // Only 1 advancing player (user 100) → tournament should finalize
+      expect(mockParticipantDao.setAllFinalRanks).toHaveBeenCalled();
+      expect(mockTournamentDao.updateStatus).toHaveBeenCalledWith(1, 'COMPLETED');
+    });
+
+    it('should pair bye player with winner in next round after odd advancement', async () => {
+      // 3 players advance to round 2 (e.g. from 6-player bracket: 2 round-1 winners + 1 bye)
+      // Round 2: match between 2 of them, 1 gets bye
+      // After round 2 match completes, round 3 should pair the bye player with the winner
+      const match2 = {
+        id: 'match-r2',
+        tournamentId: 1,
+        round: 2,
+        bracketPosition: 0,
+        player1Id: 101,
+        player2Id: 102,
+        player1Username: 'user101',
+        player2Username: 'user102',
+        winnerId: 101,
+        status: 'COMPLETED',
+      };
+
+      vi.mocked(mockMatchDao.countInRound).mockResolvedValueOnce(1);
+      vi.mocked(mockMatchDao.findCompletedInRound).mockResolvedValueOnce([match2] as any);
+
+      // Player 100 had a bye in round 2 (not in any round 2 match, not eliminated)
+      vi.mocked(mockParticipantDao.findByTournament).mockResolvedValueOnce([
+        { userId: 100, username: 'user100', tournamentId: 1, seed: 1, eliminatedIn: null, finalRank: null },
+        { userId: 101, username: 'user101', tournamentId: 1, seed: 2, eliminatedIn: null, finalRank: null },
+        { userId: 102, username: 'user102', tournamentId: 1, seed: 3, eliminatedIn: 2, finalRank: null },
+      ] as any);
+
+      await service.processMatchResult(match2 as any);
+
+      // Round 3 should pair bye player (100) with round 2 winner (101)
+      expect(mockMatchDao.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          round: 3,
+          player1Id: 100,
+          player2Id: 101,
+        })
+      );
+    });
+
     it('should finalize tournament when only one player remains', async () => {
       const finalMatch = {
         id: 'match-final',
@@ -743,12 +833,16 @@ describe('TournamentService', () => {
       vi.mocked(mockMatchDao.findCompletedInRound).mockResolvedValueOnce([finalMatch] as any);
 
       // Only 1 winner → tournament is done
-      vi.mocked(mockParticipantDao.findByTournament).mockResolvedValueOnce([
+      // Called once in advanceToNextRound, once in finalizeTournament
+      const participants = [
         { userId: 100, eliminatedIn: null },
         { userId: 103, eliminatedIn: 2 },
         { userId: 101, eliminatedIn: 1 },
         { userId: 102, eliminatedIn: 1 },
-      ] as any);
+      ];
+      vi.mocked(mockParticipantDao.findByTournament)
+        .mockResolvedValueOnce(participants as any)
+        .mockResolvedValueOnce(participants as any);
 
       await service.processMatchResult(finalMatch as any);
 

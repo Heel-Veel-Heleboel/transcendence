@@ -148,14 +148,22 @@ export class TournamentParticipantDao {
    */
   async getRankings(tournamentId: number): Promise<TournamentRanking[]> {
     const participants = await this.prisma.tournamentParticipant.findMany({
-      where: { tournamentId },
-      orderBy: [
-        { finalRank: 'asc' },
-        { eliminatedIn: 'desc' }
-      ]
+      where: { tournamentId }
     });
 
-    return participants.map((p, index) => ({
+    // Sort: non-eliminated first (still alive / winner), then by round eliminated desc (later = better).
+    // If finalRank is set (post-finalization), use it as primary sort.
+    const sorted = [...participants].sort((a, b) => {
+      if (a.finalRank !== null && b.finalRank !== null) return a.finalRank - b.finalRank;
+      if (a.finalRank !== null) return -1;
+      if (b.finalRank !== null) return 1;
+      if (a.eliminatedIn === null && b.eliminatedIn !== null) return -1;
+      if (b.eliminatedIn === null && a.eliminatedIn !== null) return 1;
+      if (a.eliminatedIn === null && b.eliminatedIn === null) return 0;
+      return (b.eliminatedIn ?? 0) - (a.eliminatedIn ?? 0);
+    });
+
+    return sorted.map((p, index) => ({
       rank: p.finalRank ?? index + 1,
       userId: p.userId,
       username: p.username,

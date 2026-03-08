@@ -254,8 +254,12 @@ export class TournamentService {
     participants: Array<{ userId: number; username: string }>,
     ackDeadlineMin: number
   ): Promise<Match> {
-    // Shuffle for random seeding
-    const shuffled = [...participants].sort(() => Math.random() - 0.5);
+    // Fisher-Yates shuffle for unbiased random seeding
+    const shuffled = [...participants];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
 
     // Assign seeds
     for (let i = 0; i < shuffled.length; i++) {
@@ -389,20 +393,19 @@ export class TournamentService {
       }
     }
 
-    // If round 1 just finished, add bye players to the advancing pool
-    let advancingPlayers = winners;
-    if (completedRound === 1) {
-      const allParticipants = await this.participantDao.findByTournament(tournamentId);
-      const round1PlayerIds = new Set(
-        completedMatches.flatMap(m => [m.player1Id, m.player2Id])
-      );
-      const byePlayers = allParticipants
-        .filter(p => !round1PlayerIds.has(p.userId))
-        .map(p => ({ userId: p.userId, username: p.username }));
+    // Add non-eliminated players who didn't play in this round (byes).
+    // In round 1 these are players who got initial bracket byes;
+    // in later rounds these arise from double forfeits leaving an odd winner count.
+    const allParticipants = await this.participantDao.findByTournament(tournamentId);
+    const roundPlayerIds = new Set(
+      completedMatches.flatMap(m => [m.player1Id, m.player2Id])
+    );
+    const byePlayers = allParticipants
+      .filter(p => !roundPlayerIds.has(p.userId) && p.eliminatedIn === null)
+      .map(p => ({ userId: p.userId, username: p.username }));
 
-      // Bye players first (higher seeds), then round 1 winners
-      advancingPlayers = [...byePlayers, ...winners];
-    }
+    // Bye players first (higher seeds), then round winners
+    const advancingPlayers = [...byePlayers, ...winners];
 
     // 0 or 1 players remaining = tournament over
     if (advancingPlayers.length <= 1) {
@@ -419,7 +422,9 @@ export class TournamentService {
       const p2 = advancingPlayers[i + 1];
 
       if (!p2) {
-        // Odd player count (from double forfeits) — auto-advance
+        // Odd player count (from double forfeits) — player gets a bye.
+        // They won't have a match this round, so advanceToNextRound will
+        // pick them up as a bye player when this round completes.
         this.log('info', `Player ${p1.userId} gets bye in round ${nextRound}`);
         continue;
       }

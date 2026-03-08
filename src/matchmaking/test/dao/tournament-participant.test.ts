@@ -223,7 +223,6 @@ describe('TournamentParticipantDao', () => {
 
       expect(mockPrismaClient.tournamentParticipant.findMany).toBeCalledWith({
         where: { tournamentId: 1 },
-        orderBy: [{ finalRank: 'asc' }, { eliminatedIn: 'desc' }],
       });
       expect(result).toEqual([
         { rank: 1, userId: 100, username: 'user100', seed: 1, eliminatedIn: null },
