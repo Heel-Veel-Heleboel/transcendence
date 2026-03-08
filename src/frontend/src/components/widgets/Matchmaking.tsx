@@ -31,11 +31,8 @@ export function Matchmaking(): JSX.Element {
 }
 
 export interface ITournamentStatus {
-    canCreate: boolean
-    canJoin: boolean
-    hasCreatedTournament: boolean
-    isInActiveTournament: boolean
-
+    activeTournamentId: number | null;
+    isCreator: boolean;
 }
 
 
@@ -47,7 +44,7 @@ export function JoinTournamentGames(): JSX.Element {
     async function handleDefault() {
         try {
             await api({
-                url: CONFIG.REQUEST_TOURNAMENT,
+                url: CONFIG.REQUEST_TOURNAMENT_CREATION,
 
                 method: CONFIG.REQUEST_TOURNAMENT_METHOD,
                 headers: CONFIG.REQUEST_TOURNAMENT_HEADERS,
@@ -62,7 +59,7 @@ export function JoinTournamentGames(): JSX.Element {
     async function handleCustomized() {
         try {
             await api({
-                url: CONFIG.REQUEST_TOURNAMENT,
+                url: CONFIG.REQUEST_TOURNAMENT_CREATION,
                 method: CONFIG.REQUEST_TOURNAMENT_METHOD,
                 headers: CONFIG.REQUEST_TOURNAMENT_HEADERS,
                 data: JSON.stringify({ name: 'olympics', gameMode: 'powerup' })
@@ -99,18 +96,53 @@ export function JoinTournamentGames(): JSX.Element {
 
     return (
         <div className="min-h-full flex w-full">
-            <div className="min-h-full flex w-1/2 justify-between border border-black">
-                <div />
-                <button onClick={handleDefault}>{CONFIG.TOURNAMENT_CLASSIC_GAME}</button>
-                <div />
-            </div>
-            <div className="min-h-full flex w-1/2 justify-between border border-black">
-                <div />
-                <button onClick={handleCustomized}>{CONFIG.TOURNAMENT_POWERUP_GAME}</button>
-                <div />
-            </div>
+            {
+                tournament ? TournamentStatus(tournament) :
+                    <div className="min-h-full flex w-full">
+                        <div className="min-h-full flex w-1/2 justify-between border border-black">
+                            <div />
+                            <button onClick={handleDefault}>{CONFIG.TOURNAMENT_CLASSIC_GAME}</button>
+                            <div />
+                        </div >
+                        <div className="min-h-full flex w-1/2 justify-between border border-black">
+                            <div />
+                            <button onClick={handleCustomized}>{CONFIG.TOURNAMENT_POWERUP_GAME}</button>
+                            <div />
+                        </div>
+                    </div >
+            }
         </div>
     )
+}
+
+export function TournamentStatus(tournament: ITournamentStatus): JSX.Element {
+    const [details, setDetails] = useState<ITournament | null>(null);
+    const [isConnecting, setIsConnecting] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function getTournament() {
+            try {
+                const result = await api({
+                    url: CONFIG.REQUEST_TOURNAMENT_INFO(tournament.activeTournamentId);
+                })
+                setDetails(result.data);
+                setIsConnecting(false);
+            } catch (e: any) {
+                console.error(e);
+                setError(e);
+            }
+        }
+        getTournament();
+    }, [tournament])
+
+    if (isConnecting) return <p>Connecting...</p>;
+    if (error) return <p>Error: {error}</p>;
+
+    return (
+        <div>{details?.name}</div>
+    )
+
 }
 
 export function JoinSingleGames(): JSX.Element {
@@ -250,7 +282,7 @@ function OpenTournaments(): JSX.Element {
         async function getTournaments() {
             try {
                 const result = await api({
-                    url: CONFIG.REQUEST_TOURNAMENT
+                    url: CONFIG.REQUEST_TOURNAMENTS
                 });
                 setTournaments(result.data.tournaments);
                 setIsConnecting(false);
@@ -270,7 +302,7 @@ function OpenTournaments(): JSX.Element {
         <ul>
             {tournaments.map((tournament) => (
                 <li key={tournament.id}>
-                    {tournament.name}
+                    {tournament.name} | {tournament.gameMode} | {tournament.participantCount} | {tournament.status}
                 </li>
             ))}
         </ul>

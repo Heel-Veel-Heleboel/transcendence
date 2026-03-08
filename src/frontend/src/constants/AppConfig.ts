@@ -98,13 +98,17 @@ export const CONFIG = {
   REQUEST_MATCHMAKING_POWERUP_CANCEL: 'matchmaking/powerup/leave',
 
   REQUEST_TOURNAMENT_STATUS: 'matchmaking/tournament/status/me',
-  REQUEST_TOURNAMENT: 'matchmaking/tournament',
-  REQUEST_TOURNAMENT_METHOD: 'POST',
-  REQUEST_TOURNAMENT_CANCEL: (tournamentId: string) => {
-    return `/tournament/${tournamentId}/cancel`;
+  REQUEST_TOURNAMENT_INFO: (tournamentId: number | null) => {
+    return `matchmaking/tournament/${String(tournamentId)}`;
   },
+  REQUEST_TOURNAMENT_CREATION: 'matchmaking/tournament',
+  REQUEST_TOURNAMENTS: 'matchmaking/tournament',
+  REQUEST_TOURNAMENT_METHOD: 'POST',
   REQUEST_TOURNAMENT_HEADERS: {
     'Content-Type': 'application/json'
+  },
+  REQUEST_TOURNAMENT_CANCEL: (tournamentId: string) => {
+    return `matchmaking/tournament/${tournamentId}/cancel`;
   },
 
   REQUEST_CHANNEL_ALL: 'chat/channels',
