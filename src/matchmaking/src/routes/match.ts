@@ -282,6 +282,7 @@ export async function registerMatchRoutes(
       }
 
       // Update match with result
+      // winnerId, player1Score, player2Score are guaranteed defined by the isFinished guard above
       const updatedMatch = await matchDao.completeMatch(matchId, {
         winnerId: winnerId!,
         player1Score: player1Score!,

@@ -80,17 +80,17 @@ export async function registerMatchmakingRoutes(
       // discover the created match and roomId.
       if (result.success && pool.canFormPair()) {
         pool.tryAutoPair().then(pairResult => {
-          if (pairResult.paired) {
+          if (pairResult.paired && pairResult.matchId && pairResult.player1Id && pairResult.player2Id && pairResult.deadline) {
             request.log.info({ userId, gameMode, matchId: pairResult.matchId }, 'Players paired');
             // Unregister both players — they're no longer in the queue
-            poolRegistry.unregisterUser(pairResult.player1Id!);
-            poolRegistry.unregisterUser(pairResult.player2Id!);
+            poolRegistry.unregisterUser(pairResult.player1Id);
+            poolRegistry.unregisterUser(pairResult.player2Id);
             // Notify both players via chat so they can acknowledge readiness
             chatServiceClient.sendMatchAck(
-              pairResult.matchId!,
-              [pairResult.player1Id!, pairResult.player2Id!],
+              pairResult.matchId,
+              [pairResult.player1Id, pairResult.player2Id],
               gameMode,
-              pairResult.deadline!
+              pairResult.deadline
             ).catch(err => {
               request.log.error({ err, matchId: pairResult.matchId }, 'Failed to send match-ack via chat');
             });

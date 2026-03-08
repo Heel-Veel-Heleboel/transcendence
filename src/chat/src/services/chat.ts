@@ -76,7 +76,26 @@ export class ChatService {
   }
 
   async getUserChannels(userId: number) {
-    return this.channelDao.findByUserId(userId);
+    const channels = await this.channelDao.findByUserId(userId);
+
+    const batchInput = channels.map((channel: { id: string; members: { userId: number; lastReadAt: Date | null }[] }) => {
+      const membership = channel.members.find((m) => m.userId === userId);
+      return { id: channel.id, lastReadAt: membership?.lastReadAt ?? null };
+    });
+
+    const unreadCounts = await this.messageDao.countUnreadBatch(batchInput);
+
+    return channels.map((channel: { id: string }) => ({
+      ...channel,
+      unreadCount: unreadCounts.get(channel.id) ?? 0
+    }));
+  }
+
+  async markChannelRead(channelId: string, userId: number) {
+    const isMember = await this.channelDao.isMember(channelId, userId);
+    if (!isMember) throw new ChatError(403, 'Not a member of this channel');
+
+    await this.channelDao.markRead(channelId, userId);
   }
 
   async getChannel(channelId: string, userId: number) {
@@ -115,6 +134,35 @@ export class ChatService {
     await this.sendSystemMessage(channelId, `User ${userId} joined the channel`);
   }
 
+  async deleteChannel(channelId: string, userId: number) {
+    const channel = await this.channelDao.findById(channelId);
+    if (!channel) throw new ChatError(404, 'Channel not found');
+
+    const isMember = channel.members.some((m: { userId: number }) => m.userId === userId);
+    if (!isMember) throw new ChatError(403, 'Not a member of this channel');
+
+    if (channel.type === 'TOURNAMENT') {
+      throw new ChatError(403, 'Tournament channels cannot be deleted');
+    }
+
+    if (channel.type === 'GROUP' && channel.createdBy !== userId) {
+      throw new ChatError(403, 'Only the channel creator can delete this channel');
+    }
+
+    await this.channelDao.delete(channelId);
+
+    const otherMembers = channel.members
+      .map((m: { userId: number }) => m.userId)
+      .filter((id: number) => id !== userId);
+
+    if (otherMembers.length > 0) {
+      await this.notificationService.notifyUsers(otherMembers, {
+        type: 'chat:channel_deleted',
+        channelId
+      });
+    }
+  }
+
   async removeMember(channelId: string, requesterId: number, userId: number) {
     const channel = await this.channelDao.findById(channelId);
     if (!channel) throw new ChatError(404, 'Channel not found');
@@ -140,17 +188,20 @@ export class ChatService {
       content
     });
 
-    await this.notificationService.notifyChannelMembers(channelId, {
-      type: 'chat:message',
-      channelId,
-      message: {
-        id: message.id,
-        senderId: message.senderId,
-        content: message.content,
-        type: message.type,
-        createdAt: message.createdAt.toISOString()
-      }
-    }, senderId);
+    await Promise.all([
+      this.notificationService.notifyChannelMembers(channelId, {
+        type: 'chat:message',
+        channelId,
+        message: {
+          id: message.id,
+          senderId: message.senderId,
+          content: message.content,
+          type: message.type,
+          createdAt: message.createdAt.toISOString()
+        }
+      }, senderId),
+      this.channelDao.markRead(channelId, senderId)
+    ]);
 
     return message;
   }
@@ -209,7 +260,8 @@ export class ChatService {
       });
     }
 
-    // One shared ack message — both players respond to the same message.
+    // Persist the ack message — players will pick it up via WebSocket if online,
+    // or from GET /messages when they reconnect. Expiry is checked at response time.
     const metadata: MatchAckMetadata = {
       matchId,
       gameMode,

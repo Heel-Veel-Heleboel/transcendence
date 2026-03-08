@@ -14,18 +14,21 @@ model Channel {
   createdBy Int?
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
 
   members  ChannelMember[]
   messages Message[]
 
   @@index([type])
+  @@index([deletedAt])
 }
 
 model ChannelMember {
-  id        String   @id @default(uuid())
-  channelId String
-  userId    Int
-  joinedAt  DateTime @default(now())
+  id         String    @id @default(uuid())
+  channelId  String
+  userId     Int
+  joinedAt   DateTime  @default(now())
+  lastReadAt DateTime?
 
   channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 

@@ -79,6 +79,42 @@ export async function registerChannelRoutes(
   });
 
   /**
+   * DELETE /chat/channels/:channelId
+   * Soft-delete a channel (DM: any member; GROUP: creator only; TOURNAMENT: not allowed)
+   */
+  server.delete('/chat/channels/:channelId', async (request: FastifyRequest, reply: FastifyReply) => {
+    const userId = getUserId(request);
+    if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
+
+    const { channelId } = request.params as { channelId: string };
+
+    try {
+      await chatService.deleteChannel(channelId, userId);
+      return reply.status(200).send({ success: true });
+    } catch (error) {
+      return handleError(request, reply, error);
+    }
+  });
+
+  /**
+   * POST /chat/channels/:channelId/read
+   * Mark all messages in a channel as read for the authenticated user
+   */
+  server.post('/chat/channels/:channelId/read', async (request: FastifyRequest, reply: FastifyReply) => {
+    const userId = getUserId(request);
+    if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
+
+    const { channelId } = request.params as { channelId: string };
+
+    try {
+      await chatService.markChannelRead(channelId, userId);
+      return reply.status(200).send({ success: true });
+    } catch (error) {
+      return handleError(request, reply, error);
+    }
+  });
+
+  /**
    * POST /chat/channels/:channelId/members
    * Add a member to a group channel
    */
