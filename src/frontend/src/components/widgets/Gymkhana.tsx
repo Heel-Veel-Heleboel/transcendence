@@ -14,22 +14,32 @@ const client = new Client("ws://localhost:2567");
 export function Gymkhana(): JSX.Element {
     return (
 
-        <div id={CONFIG.MATCHMAKING_CONTAINER_ID} className="flex flex-col justify-items-stretch min-h-full">
-            <div className="flex w-full min-h-1/3 border border-black">
-                <div className="min-h-full w-1/2">
-                    <JoinSingleGames />
-                </div>
-                <div className="min-h-full w-1/2">
-                    <JoinTournamentGames />
-                </div>
+        <div id={CONFIG.MATCHMAKING_CONTAINER_ID} className="h-9/10 flex flex-col">
+            <div className="min-h-1/4 flex">
+                <JoinSingleGames />
+                <JoinTournamentGames />
             </div>
-            <div className="w-full min-h-1/2">
-                <LobbyRoom title="something" gamesContent={Lobby()} />
+            <div id='GamesPanel' className="w-full min-h-3/4 flex">
+                <div className="min-h-full w-1/2">
+                    <LobbyRoom title="Current Games" gamesContent={Lobby()} />
+                </div>
+                <div className="min-h-full w-1/2">
+                    <LobbyRoom title="Open Tournaments" gamesContent={Lobby()} />
+                </div>
             </div>
         </div>
     );
 }
 
+// <div id='GamesPanel' className="w-full min-h-1/2 flex">
+//     <div className="min-h-full w-1/2">
+//         <LobbyRoom title="Current Games" gamesContent={Lobby()} />
+//     </div>
+//     <div className="min-h-full w-1/2">
+//         <LobbyRoom title="Open Tournaments" gamesContent={Lobby()} />
+//     </div>
+// </div>
+//
 export function JoinTournamentGames(): JSX.Element {
     const [joiningDefault, SetJoiningDefault] = useState<boolean>(false);
     const [joiningCustomized, SetJoiningCustomized] = useState<boolean>(false);
@@ -96,13 +106,13 @@ export function JoinTournamentGames(): JSX.Element {
     return (
         // <div className="min-h-full w-full min-h-full" id="TournamentJoinGames">
         //     {error ? <MatchMakingError setState={setError} /> :
-        <div className="min-h-full flex w-full grow">
-            <div className="flex w-1/2 justify-between border border-black">
+        <div className="min-h-full flex w-full">
+            <div className="min-h-full flex w-1/2 justify-between border border-black">
                 <div />
                 <button onClick={handleDefault}>{joiningDefault ? CONFIG.CANCEL_JOIN_BUTTON : CONFIG.TOURNAMENT_CLASSIC_GAME}</button>
                 <div />
             </div>
-            <div className="flex w-1/2 justify-between border border-black">
+            <div className="min-h-full flex w-1/2 justify-between border border-black">
                 <div />
                 <button onClick={handleCustomized}>{joiningCustomized ? CONFIG.CANCEL_JOIN_BUTTON : CONFIG.TOURNAMENT_POWERUP_GAME}</button>
                 <div />
@@ -176,21 +186,19 @@ export function JoinSingleGames(): JSX.Element {
     }
 
     return (
-        <div className="min-h-full w-full min-h-full" id="SingleJoinGames">
-            {error ? <MatchMakingError setState={setError} /> :
-                <div className="flex w-full">
-                    <div className="flex w-1/2 justify-between border border-black">
-                        <div />
-                        <button onClick={handleDefault}>{joiningDefault ? CONFIG.CANCEL_JOIN_BUTTON : CONFIG.SINGLE_CLASSIC_GAME}</button>
-                        <div />
-                    </div>
-                    <div className="flex w-1/2 justify-between border border-black">
-                        <div />
-                        <button onClick={handleCustomized}>{joiningCustomized ? CONFIG.CANCEL_JOIN_BUTTON : CONFIG.SINGLE_POWERUP_GAME}</button>
-                        <div />
-                    </div>
+        <div className="min-h-full w-full" id="SingleJoinGames">
+            <div className="flex w-full min-h-full">
+                <div className="min-h-full flex w-1/2 justify-between border border-black">
+                    <div />
+                    <button onClick={handleDefault}>{joiningDefault ? CONFIG.CANCEL_JOIN_BUTTON : CONFIG.SINGLE_CLASSIC_GAME}</button>
+                    <div />
                 </div>
-            }
+                <div className="min-h-full flex w-1/2 justify-between border border-black">
+                    <div />
+                    <button onClick={handleCustomized}>{joiningCustomized ? CONFIG.CANCEL_JOIN_BUTTON : CONFIG.SINGLE_POWERUP_GAME}</button>
+                    <div />
+                </div>
+            </div>
         </div>
     )
 }

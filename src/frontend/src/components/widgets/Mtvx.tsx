@@ -60,7 +60,7 @@ export function Mtvx(): JSX.Element {
     }
 
     return (
-        <div className="flex min-h-full">
+        <div className="flex min-h-9/10">
             <div className='min-h-full w-1/2'>
                 <div className="min-h-full flex items-center justify-center">
                     <img className="w-1/2 h-1/2" alt="cover-art" id="cover-art" />

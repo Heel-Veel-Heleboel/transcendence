@@ -4,7 +4,7 @@ import { CONFIG } from '../../constants/AppConfig.ts'
 /* v8 ignore start */
 export function LobbyRoom({ title, gamesContent }: { title: string, gamesContent: JSX.Element }): JSX.Element {
     return (
-        <div className="min-h-full flex flex-col">
+        <div className="min-h-full flex flex-col border border-black">
             <Terminal title={title} child={gamesContent} />
         </div>
     );
@@ -42,10 +42,11 @@ export function Terminal({ title, child }: { title: string, child: JSX.Element }
 }
 
 export function Widget({ logoPath, title, width, child }: { logoPath: string, title: string, width: string, child: JSX.Element }): JSX.Element {
-    const outerContainerCss = `${width} flex flex-col`
+    const outerContainerCss = `${width} flex flex-col min-h-full`
     return (
         <div className={outerContainerCss}>
             <TitleBar logoPath={logoPath} title={title} />
+
             {child}
         </div>
     )
