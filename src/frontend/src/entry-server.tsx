@@ -2,6 +2,8 @@ import { StrictMode } from 'react'
 import { renderToString } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom/server';
 import { Router } from './router'
+import { StartMenu } from './pages/StartMenu';
+import { Title } from './components/utils/StartMenuUtils';
 
 /* v8 ignore start */
 export function render({ path }: { path: string }) {
@@ -12,6 +14,7 @@ export function render({ path }: { path: string }) {
             </StaticRouter >
         </StrictMode>,
     )
+    console.log('serverside: ' + html);
     return { html }
 }
 /* v8 ignore stop */

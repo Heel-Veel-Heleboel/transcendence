@@ -24,9 +24,9 @@ export const Router = () => {
         document.title = `Transcendance | ${name}`
     }, [])
 
-    if (hydrated === false) {
-        return null;
-    }
+    // if (hydrated === false) {
+    //     return null;
+    // }
     return (
         <AuthProvider>
             <NotificationProvider>
