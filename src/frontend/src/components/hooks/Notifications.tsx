@@ -13,7 +13,6 @@ export function useNotifications() {
                 onOpen: () => { notif.sendMessage(JSON.stringify({ type: 'AUTH', token: (auth.token) })) },
                 onMessage: (event) => {
                     const msg = JSON.parse(event.data);
-                    console.log(msg);
 
                     if (msg.type === 'MATCH_READY') {
                         navigate(`/game/${msg.gameMode}/${msg.matchId}/${msg.roomId}`)
@@ -27,7 +26,5 @@ export function useNotifications() {
                     }
                 }
             });
-    console.log(notif.readyState);
-    console.log('here');
     return notif
 }
