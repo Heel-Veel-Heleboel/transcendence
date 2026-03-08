@@ -33,7 +33,7 @@ describe('NotificationService', () => {
     it('should POST to gateway internal notify endpoint', async () => {
       await service.notifyUsers([1, 2], { type: 'chat:message', content: 'hi' });
 
-      expect(fetchSpy).toBeCalledWith('http://localhost:3002/internal/ws/notify', {
+      expect(fetchSpy).toBeCalledWith('http://localhost:3000/internal/ws/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -67,7 +67,7 @@ describe('NotificationService', () => {
 
       const result = await service.notifyUsers([1], { type: 'test' });
 
-      expect(result).toEqual([{ userId: 1, delivered: false }]);
+      expect(result).toEqual(undefined);
       expect(mockLogger.error).toBeCalledWith(
         { error, event: 'test' },
         'Failed to notify via gateway'

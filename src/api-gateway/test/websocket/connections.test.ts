@@ -4,7 +4,6 @@ import {
   removeConnection,
   sendToUser,
   sendToUsers,
-  isOnline,
   getConnectionCount,
 } from '../../src/websocket/connections';
 
@@ -27,44 +26,6 @@ describe('WebSocket connections', () => {
       addConnection(userId, conn);
       removeConnection(userId, conn);
     }
-  });
-
-  describe('isOnline', () => {
-    it('should return false for user with no connections', () => {
-      expect(isOnline('99')).toBe(false);
-    });
-
-    it('should return true for user with an active connection', () => {
-      const conn = createMockConnection();
-      addConnection('1', conn);
-
-      expect(isOnline('1')).toBe(true);
-
-      removeConnection('1', conn);
-    });
-
-    it('should return false after last connection is removed', () => {
-      const conn = createMockConnection();
-      addConnection('1', conn);
-      removeConnection('1', conn);
-
-      expect(isOnline('1')).toBe(false);
-    });
-
-    it('should return true when user has multiple connections', () => {
-      const conn1 = createMockConnection();
-      const conn2 = createMockConnection();
-      addConnection('1', conn1);
-      addConnection('1', conn2);
-
-      expect(isOnline('1')).toBe(true);
-
-      removeConnection('1', conn1);
-      expect(isOnline('1')).toBe(true);
-
-      removeConnection('1', conn2);
-      expect(isOnline('1')).toBe(false);
-    });
   });
 
   describe('sendToUser', () => {

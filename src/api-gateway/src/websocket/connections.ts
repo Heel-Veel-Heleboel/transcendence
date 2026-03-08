@@ -51,11 +51,6 @@ export function sendToUsers(userIds: string[], event: object): { userId: string;
   }));
 }
 
-export function isOnline(userId: string): boolean {
-  const userConnections = connections.get(userId);
-  return !!userConnections && userConnections.size > 0;
-}
-
 export function getConnectionCount(): number {
   let count = 0;
   for (const conns of connections.values()) {

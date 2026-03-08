@@ -260,30 +260,8 @@ export class ChatService {
       });
     }
 
-    // Fire the ack event and check delivery — if a player is offline the
-    // invite fails immediately instead of hanging until expiry.
-    const deliveryResults = await this.notificationService.notifyUsers([playerA, playerB], {
-      type: 'chat:match_ack_required',
-      channelId: channel.id,
-      matchId,
-      gameMode,
-      expiresAt
-    });
-
-    const offlinePlayers = deliveryResults.filter(r => !r.delivered);
-    if (offlinePlayers.length > 0) {
-      const onlinePlayerIds = deliveryResults.filter(r => r.delivered).map(r => r.userId);
-      if (onlinePlayerIds.length > 0) {
-        await this.notificationService.notifyUsers(onlinePlayerIds, {
-          type: 'chat:match_ack_failed',
-          matchId,
-          reason: 'opponent_offline'
-        });
-      }
-      throw new ChatError(503, `Player(s) offline: ${offlinePlayers.map(p => p.userId).join(', ')}`);
-    }
-
-    // Both players are online — persist the ack message for response tracking.
+    // Persist the ack message — players will pick it up via WebSocket if online,
+    // or from GET /messages when they reconnect. Expiry is checked at response time.
     const metadata: MatchAckMetadata = {
       matchId,
       gameMode,

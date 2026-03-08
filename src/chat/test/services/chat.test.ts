@@ -21,6 +21,7 @@ const mockMessageDao = {
   findByChannel: vi.fn(),
   updateMetadata: vi.fn(),
   countUnread: vi.fn(),
+  countUnreadBatch: vi.fn(),
 };
 
 const mockNotificationService = {
@@ -44,6 +45,7 @@ describe('ChatService', () => {
     mockNotificationService.notifyChannelMembers.mockResolvedValue([]);
     mockChannelDao.markRead.mockResolvedValue({});
     mockMessageDao.countUnread.mockResolvedValue(0);
+    mockMessageDao.countUnreadBatch.mockResolvedValue(new Map());
 
     service = new ChatService(
       mockChannelDao as any,
@@ -431,18 +433,12 @@ describe('ChatService', () => {
   // ── sendMatchAck ────────────────────────────────────────
 
   describe('sendMatchAck', () => {
-    const bothOnline = [
-      { userId: 1, delivered: true },
-      { userId: 2, delivered: true },
-    ];
-
     it('should create a DM and post one shared ack message when no DM exists', async () => {
       mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce(null);
       const mockChannel = { id: 'dm-1', type: 'DM', name: null, members: [{ userId: 1 }, { userId: 2 }] };
       mockChannelDao.create.mockResolvedValueOnce(mockChannel);
       mockNotificationService.notifyUsers
         .mockResolvedValueOnce([]) // channel_created notification
-        .mockResolvedValueOnce(bothOnline); // match_ack_required
       const mockMessage = { id: 'ack-1', senderId: 0, type: 'SYSTEM', createdAt: new Date('2026-01-01') };
       mockMessageDao.create.mockResolvedValueOnce(mockMessage);
 
@@ -451,6 +447,11 @@ describe('ChatService', () => {
       expect(mockChannelDao.findDMBetweenUsers).toBeCalledWith(1, 2);
       expect(mockChannelDao.create).toBeCalledWith({ type: 'DM', memberIds: [1, 2] });
       expect(mockMessageDao.create).toBeCalledTimes(1);
+      expect(mockNotificationService.notifyUsers).toBeCalledWith([1, 2], expect.objectContaining({
+        type: 'chat:match_ack_required',
+        matchId: 'match-123',
+        gameMode: 'classic',
+      }));
       expect(result.channel).toEqual(mockChannel);
       expect(result.message).toEqual(mockMessage);
     });
@@ -458,7 +459,6 @@ describe('ChatService', () => {
     it('should reuse existing DM without creating a new channel', async () => {
       const existingDM = { id: 'dm-existing', type: 'DM', members: [{ userId: 1 }, { userId: 2 }] };
       mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce(existingDM);
-      mockNotificationService.notifyUsers.mockResolvedValueOnce(bothOnline);
       mockMessageDao.create.mockResolvedValueOnce({ id: 'ack-1', createdAt: new Date() });
 
       const result = await service.sendMatchAck('match-456', [1, 2], 'powerup', '2026-01-01T12:05:00Z');
@@ -470,12 +470,6 @@ describe('ChatService', () => {
     it('should store playerIds, acknowledgedBy: [], and status: pending in shared message metadata', async () => {
       mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce(null);
       mockChannelDao.create.mockResolvedValueOnce({ id: 'dm-1', type: 'DM', members: [] });
-      mockNotificationService.notifyUsers
-        .mockResolvedValueOnce([]) // channel_created
-        .mockResolvedValueOnce([   // match_ack_required
-          { userId: 10, delivered: true },
-          { userId: 20, delivered: true },
-        ]);
       mockMessageDao.create.mockResolvedValueOnce({ id: 'ack-1', createdAt: new Date() });
 
       await service.sendMatchAck('match-1', [10, 20], 'powerup', '2026-01-01T12:05:00Z');
@@ -492,63 +486,6 @@ describe('ChatService', () => {
         .rejects.toThrow(new ChatError(400, 'sendMatchAck requires exactly 2 unique player IDs'));
     });
 
-    it('should throw 503 when a player is offline', async () => {
-      mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce({
-        id: 'dm-1', type: 'DM', name: null,
-        members: [{ userId: 1 }, { userId: 2 }],
-      });
-      mockNotificationService.notifyUsers.mockResolvedValueOnce([
-        { userId: 1, delivered: true },
-        { userId: 2, delivered: false },
-      ]);
-
-      await expect(service.sendMatchAck('match-1', [1, 2], 'classic', '2026-01-01T12:05:00Z'))
-        .rejects.toThrow(expect.objectContaining({ statusCode: 503 }));
-    });
-
-    it('should notify online player of failure when opponent is offline', async () => {
-      mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce({
-        id: 'dm-1', type: 'DM', name: null,
-        members: [{ userId: 1 }, { userId: 2 }],
-      });
-      mockNotificationService.notifyUsers
-        .mockResolvedValueOnce([
-          { userId: 1, delivered: true },
-          { userId: 2, delivered: false },
-        ])
-        .mockResolvedValueOnce([]); // failure notification
-
-      try {
-        await service.sendMatchAck('match-1', [1, 2], 'classic', '2026-01-01T12:05:00Z');
-      } catch { /* expected */ }
-
-      expect(mockNotificationService.notifyUsers).toHaveBeenCalledTimes(2);
-      expect(mockNotificationService.notifyUsers).toHaveBeenLastCalledWith(
-        [1],
-        expect.objectContaining({
-          type: 'chat:match_ack_failed',
-          matchId: 'match-1',
-          reason: 'opponent_offline',
-        }),
-      );
-    });
-
-    it('should not persist SYSTEM message when a player is offline', async () => {
-      mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce({
-        id: 'dm-1', type: 'DM', name: null,
-        members: [{ userId: 1 }, { userId: 2 }],
-      });
-      mockNotificationService.notifyUsers.mockResolvedValueOnce([
-        { userId: 1, delivered: true },
-        { userId: 2, delivered: false },
-      ]);
-
-      try {
-        await service.sendMatchAck('match-1', [1, 2], 'classic', '2026-01-01T12:05:00Z');
-      } catch { /* expected */ }
-
-      expect(mockMessageDao.create).not.toHaveBeenCalled();
-    });
   });
 
   // ── respondToMatchAck ───────────────────────────────────
@@ -789,17 +726,22 @@ describe('ChatService', () => {
           messages: [],
         },
       ]);
-      mockMessageDao.countUnread
-        .mockResolvedValueOnce(3)   // ch-1: 3 unread since lastReadAt
-        .mockResolvedValueOnce(10); // ch-2: 10 unread (never read)
+      mockMessageDao.countUnreadBatch.mockResolvedValueOnce(
+        new Map([
+          ['ch-1', 3],   // ch-1: 3 unread since lastReadAt
+          ['ch-2', 10],  // ch-2: 10 unread (never read)
+        ]),
+      );
 
       const channels = await service.getUserChannels(1);
 
       expect(channels).toHaveLength(2);
       expect(channels[0].unreadCount).toBe(3);
       expect(channels[1].unreadCount).toBe(10);
-      expect(mockMessageDao.countUnread).toHaveBeenCalledWith('ch-1', now);
-      expect(mockMessageDao.countUnread).toHaveBeenCalledWith('ch-2', null);
+      expect(mockMessageDao.countUnreadBatch).toHaveBeenCalledWith([
+        { id: 'ch-1', lastReadAt: now },
+        { id: 'ch-2', lastReadAt: null },
+      ]);
     });
 
     it('should use null for lastReadAt when user has never read', async () => {
@@ -808,12 +750,16 @@ describe('ChatService', () => {
         members: [{ userId: 1, lastReadAt: null }],
         messages: [],
       }]);
-      mockMessageDao.countUnread.mockResolvedValueOnce(5);
+      mockMessageDao.countUnreadBatch.mockResolvedValueOnce(
+        new Map([['ch-1', 5]]),
+      );
 
       const channels = await service.getUserChannels(1);
 
       expect(channels[0].unreadCount).toBe(5);
-      expect(mockMessageDao.countUnread).toHaveBeenCalledWith('ch-1', null);
+      expect(mockMessageDao.countUnreadBatch).toHaveBeenCalledWith([
+        { id: 'ch-1', lastReadAt: null },
+      ]);
     });
   });
 
