@@ -3,7 +3,7 @@ import platform from 'platform';
 import { browsers } from "../utils/browserLogos";
 
 /* v8 ignore start*/
-export function TrinityFetch(): JSX.Element {
+export function Neofetch(): JSX.Element {
     // TODO add user@alias above info
     const browser = (platform.name === null) ? '?' : platform.name;
     const browserVersion = (platform.version === null) ? '?' : platform.version;

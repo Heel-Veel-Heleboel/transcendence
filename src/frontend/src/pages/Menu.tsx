@@ -7,8 +7,8 @@ import { Profile } from '../components/sections/Profile.tsx'
 import { Settings } from '../components/sections/Settings.tsx'
 import { LiveChat } from '../components/sections/LiveChat.tsx'
 import { Matchmaking } from "../components/widgets/Matchmaking.tsx";
-import { Mtvx } from "../components/widgets/Mtvx.tsx";
-import { TrinityFetch } from "../components/widgets/TrinityFetch.tsx";
+import { MusicPlayer } from "../components/widgets/MusicPlayer.tsx";
+import { Neofetch } from "../components/widgets/Neofetch.tsx";
 import { useAuth } from "../components/providers/Auth.tsx";
 
 /* v8 ignore start */
@@ -64,8 +64,8 @@ export function Widgets(): JSX.Element {
     return (
         <div className="min-h-1/2 min-w-full flex bg-sky-800/60 bg-clip-content">
             <Widget title={CONFIG.TOURNAMENT_TITLE} logoPath={CONFIG.TOURNAMENT_LOGO} width={'w-2/4'} child={Matchmaking()} />
-            <Widget title={CONFIG.NEOFETCH_TITLE} logoPath={CONFIG.NEOFETCH_LOGO} width={'w-1/4'} child={TrinityFetch()} />
-            <Widget title={CONFIG.MUSICPLAYER_TITLE} logoPath={CONFIG.MUSICPLAYER_LOGO} width={'w-1/4'} child={Mtvx()} />
+            <Widget title={CONFIG.NEOFETCH_TITLE} logoPath={CONFIG.NEOFETCH_LOGO} width={'w-1/4'} child={Neofetch()} />
+            <Widget title={CONFIG.MUSICPLAYER_TITLE} logoPath={CONFIG.MUSICPLAYER_LOGO} width={'w-1/4'} child={MusicPlayer()} />
         </div>
     )
 
