@@ -6,8 +6,7 @@ import { MainWindowContainer, Widget } from '../components/utils/MenuUtils.tsx'
 import { Profile } from '../components/sections/Profile.tsx'
 import { Settings } from '../components/sections/Settings.tsx'
 import { LiveChat } from '../components/sections/LiveChat.tsx'
-import { Gymkhana } from "../components/widgets/Gymkhana.tsx";
-import { Speedmatching } from "../components/widgets/Speedmatching.tsx";
+import { Matchmaking } from "../components/widgets/Matchmaking.tsx";
 import { Mtvx } from "../components/widgets/Mtvx.tsx";
 import { TrinityFetch } from "../components/widgets/TrinityFetch.tsx";
 import { useAuth } from "../components/providers/Auth.tsx";
@@ -64,7 +63,7 @@ export function DefaultMenu(): JSX.Element {
 export function Widgets(): JSX.Element {
     return (
         <div className="min-h-1/2 min-w-full flex bg-sky-800/60 bg-clip-content">
-            <Widget title={CONFIG.TOURNAMENT_TITLE} logoPath={CONFIG.TOURNAMENT_LOGO} width={'w-2/4'} child={Gymkhana()} />
+            <Widget title={CONFIG.TOURNAMENT_TITLE} logoPath={CONFIG.TOURNAMENT_LOGO} width={'w-2/4'} child={Matchmaking()} />
             <Widget title={CONFIG.NEOFETCH_TITLE} logoPath={CONFIG.NEOFETCH_LOGO} width={'w-1/4'} child={TrinityFetch()} />
             <Widget title={CONFIG.MUSICPLAYER_TITLE} logoPath={CONFIG.MUSICPLAYER_LOGO} width={'w-1/4'} child={Mtvx()} />
         </div>

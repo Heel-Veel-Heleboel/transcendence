@@ -1,4 +1,4 @@
-import { Dispatch, JSX, SetStateAction, useState } from "react"
+import { Dispatch, JSX, SetStateAction, useEffect, useState } from "react"
 import { LobbyRoom } from "../utils/MenuUtils"
 
 import { Client } from "@colyseus/sdk";
@@ -11,7 +11,7 @@ const client = new Client("ws://localhost:2567");
 
 
 /* v8 ignore start */
-export function Gymkhana(): JSX.Element {
+export function Matchmaking(): JSX.Element {
     return (
 
         <div id={CONFIG.MATCHMAKING_CONTAINER_ID} className="h-9/10 flex flex-col">
@@ -21,10 +21,10 @@ export function Gymkhana(): JSX.Element {
             </div>
             <div id='GamesPanel' className="w-full min-h-3/4 flex">
                 <div className="min-h-full w-1/2">
-                    <LobbyRoom title="Current Games" gamesContent={Lobby()} />
+                    <LobbyRoom title="Current Games" gamesContent={CurrentGames()} />
                 </div>
                 <div className="min-h-full w-1/2">
-                    <LobbyRoom title="Open Tournaments" gamesContent={Lobby()} />
+                    <LobbyRoom title="Open Tournaments" gamesContent={OpenTournaments()} />
                 </div>
             </div>
         </div>
@@ -203,20 +203,57 @@ function MatchMakingError({ setState }: { setState: Dispatch<SetStateAction<stri
 }
 
 
-function Lobby(): JSX.Element {
+function CurrentGames(): JSX.Element {
     const { rooms, error, isConnecting } = useLobbyRoom(
         () => client.joinOrCreate(CONFIG.LOBBYROOM),
     );
 
     if (isConnecting) return <p>Connecting...</p>;
     if (error) return <p>Error: {error.message}</p>;
-    console.log(rooms);
 
     return (
         <ul>
             {rooms.map((room) => (
                 <li key={room.roomId}>
                     {room.name} — {room.clients}/{room.maxClients} players | {room.roomId} roomId
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+function OpenTournaments(): JSX.Element {
+    const [tournaments, setTournaments] = useState<string[]>([]);
+    const [isConnecting, setIsConnecting] = useState<boolean>(true);
+    const [error, setError] = useState<Error | null>(null);
+
+    useEffect(() => {
+        async function getTournament() {
+            try {
+                const result = await api({
+                    url: CONFIG.REQUEST_TOURNAMENT
+                });
+                console.log('result');
+                console.log(result);
+                setTournaments(result.data);
+                setIsConnecting(false);
+            } catch (e: any) {
+                console.error(e);
+                setError(e);
+            }
+        }
+
+        getTournament()
+    }, [])
+
+    if (isConnecting) return <p>Connecting...</p>;
+    if (error) return <p>Error: {error.message}</p>;
+
+    return (
+        <ul>
+
+            {tournaments.map((tournament) => (
+                <li key={tournament}>
                 </li>
             ))}
         </ul>
