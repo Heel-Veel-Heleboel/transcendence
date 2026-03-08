@@ -1,5 +1,5 @@
 import { UserRepository } from '../repositories/user.js';
-import * as SchemaTypes  from '../schemas/user.services.js';
+import * as SchemaTypes  from '../schemas/user.js';
 import { AuthClient } from '../client/auth.js';
 
 export class UserService {

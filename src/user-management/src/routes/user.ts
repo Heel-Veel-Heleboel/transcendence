@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { UserController } from '../controllers/user.js';
-import * as SchemaTypes from '../schemas/user.services.js';
+import * as SchemaTypes from '../schemas/user.js';
 
 export async function userRoutes(fastify: FastifyInstance, options: { userController: UserController }) {
   const { userController } = options;
