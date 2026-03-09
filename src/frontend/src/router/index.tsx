@@ -8,6 +8,7 @@ import { RoomProvider } from '../components/providers/Room.tsx';
 import { CONFIG } from '../constants/AppConfig.ts';
 import { ErrorBoundary } from 'react-error-boundary';
 import { GeneralErrorFallback } from '../components/errors/GeneralErrorFallBack.tsx';
+import { Profile, VisitorProfile } from '../pages/Profile.tsx';
 
 /* v8 ignore start */
 export const Router = () => {
@@ -30,8 +31,10 @@ export const Router = () => {
                 <RoomProvider>
                     <Routes>
                         <Route path={CONFIG.START_MENU_NAVIGATION} element={<StartMenu />} />
-                        <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />
                         <Route path={CONFIG.MENU_NAVIGATION} element={<Menu />} />
+                        <Route path={CONFIG.USER_PROFILE_NAVIGATION} element={<Profile />} />
+                        <Route path={CONFIG.VISITOR_PROFILE_NAVIGATION} element={<VisitorProfile />} />
+                        <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />
                     </Routes>
                 </RoomProvider>
 

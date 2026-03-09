@@ -1,7 +1,7 @@
 import { JSX, useLayoutEffect, useState } from "react"
 import { Login } from '../components/sections/Login.tsx'
 import { Credits } from '../components/sections/Credits.tsx'
-import { CenterContainer, MainWindowContainer, Logo, MenuOption, Title, Animation } from "../components/utils/StartMenuUtils.tsx"
+import { CenterContainer, StartMainWindowContainer, Logo, MenuOption, Title, Animation } from "../components/utils/StartMenuUtils.tsx"
 import { START_MENU_PAGE } from '../constants/Constants.ts'
 import "../style.css"
 import { CONFIG } from "../constants/AppConfig.ts"
@@ -39,7 +39,7 @@ export const StartMenu = (): JSX.Element => {
     return (
         <div id='StartMenu' className="min-h-full grow">
             <Animation />
-            <MainWindowContainer children={<GetPage page={page} redirect={redirect} />} />
+            <StartMainWindowContainer children={<GetPage page={page} redirect={redirect} />} />
         </div >
     )
 }

@@ -1,4 +1,4 @@
-import { JSX } from "react";
+import { JSX, ReactNode } from "react";
 import { CONFIG } from '../../constants/AppConfig.ts'
 
 /* v8 ignore start */
@@ -52,7 +52,7 @@ export function Widget({ logoPath, title, width, child }: { logoPath: string, ti
     )
 }
 
-export function MainWindowContainer({ children }: { children: JSX.Element }): JSX.Element {
+export function MainWindowContainer({ children }: { children: ReactNode }): JSX.Element {
     return (
         <div id='MainWindowContainer' className="min-w-full min-h-full flex flex-col">
             {children}
