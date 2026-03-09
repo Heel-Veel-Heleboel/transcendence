@@ -48,6 +48,14 @@ export async function registerTournamentRoutes(
       });
     }
 
+    const creatorUsername = getUserNameFromHeader(request);
+    if (creatorUsername === null) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-name header'
+      });
+    }
+
     if (!body.name || typeof body.name !== 'string') {
       return reply.status(400).send({
         error: 'Bad Request',
@@ -88,6 +96,7 @@ export async function registerTournamentRoutes(
         matchDurationMin: DEFAULT_MATCH_DURATION_MIN,
         ackDeadlineMin: DEFAULT_ACK_DEADLINE_MIN,
         createdBy,
+        creatorUsername,
         registrationEnd,
         startTime: null
       });
