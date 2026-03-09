@@ -20,15 +20,17 @@ export function LiveChat(): JSX.Element {
                     url: CONFIG.REQUEST_CHANNEL_ALL,
                     method: CONFIG.REQUEST_CHANNEL_ALL_METHOD,
                 })
-                setChannels([...channels, result.data[0].id]);
+
                 console.log(result);
+                const mappedChannels = result.data.map(channel => channel.id);
+                setChannels(mappedChannels);
             } catch (e: any) {
                 console.error(e);
                 setError(e);
             }
         }
         getChannels();
-    }, []);
+    }, [notif.lastMessage]);
 
     return (
         <div className="min-h-1/2 min-w-full flex flex-col bg-zinc-800/50 bg-clip-content">

@@ -13,6 +13,9 @@ export function useNotifications() {
                 onOpen: () => { notif.sendMessage(JSON.stringify({ type: 'AUTH', token: (auth.token) })) },
                 onMessage: (event) => {
                     const msg = JSON.parse(event.data);
+                    console.log(msg);
+                    console.log('lastMessage')
+                    console.log(notif.lastMessage);
 
                     if (msg.type === 'MATCH_READY') {
                         navigate(`/game/${msg.gameMode}/${msg.matchId}/${msg.roomId}`)
