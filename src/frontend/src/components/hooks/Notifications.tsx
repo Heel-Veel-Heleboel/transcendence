@@ -2,8 +2,10 @@ import useWebSocket from "react-use-websocket";
 import { CONFIG } from "../../constants/AppConfig";
 import { useAuth } from "../providers/Auth";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 export function useNotifications() {
+    const [chatUpdate, setChatUpdate] = useState<string>('');
     const auth = useAuth();
     const navigate = useNavigate();
     const notif =
@@ -20,6 +22,9 @@ export function useNotifications() {
                     if (msg.type === 'MATCH_READY') {
                         navigate(`/game/${msg.gameMode}/${msg.matchId}/${msg.roomId}`)
                     }
+                    if (msg.type === 'chat:match_ack_required') {
+                        setChatUpdate(msg.messageId);
+                    }
                     // handle chat:message, chat:match_ack_required, etc.
                 },
                 onClose: (event) => {
@@ -29,5 +34,5 @@ export function useNotifications() {
                     }
                 }
             });
-    return notif
+    return { ws: notif, chatUpdate: chatUpdate }
 }

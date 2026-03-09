@@ -30,7 +30,7 @@ export function LiveChat(): JSX.Element {
             }
         }
         getChannels();
-    }, [notif.lastMessage]);
+    }, [notif.chatUpdate]);
 
     return (
         <div className="min-h-1/2 min-w-full flex flex-col bg-zinc-800/50 bg-clip-content">
