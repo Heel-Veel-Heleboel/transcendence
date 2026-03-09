@@ -163,7 +163,7 @@ server.get('/health/detailed', async () => {
 // Register routes
 await registerMatchmakingRoutes(server, pools, poolRegistry, chatServiceClient);
 await registerMatchRoutes(server, matchDao, tournamentDao, matchReporting, gameServerClient, chatServiceClient, gatewayNotificationClient, lifecycleManager);
-await registerTournamentRoutes(server, tournamentService, lifecycleManager);
+await registerTournamentRoutes(server, tournamentService, gatewayNotificationClient, lifecycleManager);
 await registerDirectChallengeRoutes(server, matchDao, chatServiceClient, pools, poolRegistry);
 
 // Graceful shutdown

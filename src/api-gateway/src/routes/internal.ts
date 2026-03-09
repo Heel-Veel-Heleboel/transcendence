@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { sendToUsers } from '../websocket/connections';
+import { sendToUsers, broadcastToAll } from '../websocket/connections';
 
 interface NotifyBody {
   userIds: string[];
@@ -31,5 +31,23 @@ export async function internalRoutes(server: FastifyInstance): Promise<void> {
     request.log.info({ eventType: event.type, requested: userIds.length, delivered }, 'WebSocket notify');
 
     return reply.send({ results });
+  });
+
+  server.post('/internal/ws/broadcast', async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = request.body;
+    if (!body || typeof body !== 'object') {
+      return reply.code(400).send({ error: 'Request body must be a JSON object' });
+    }
+
+    const { event } = body as { event: { type: string; [key: string]: unknown } };
+
+    if (!event || typeof event.type !== 'string') {
+      return reply.code(400).send({ error: 'event must have a type field' });
+    }
+
+    const delivered = broadcastToAll(event);
+    request.log.info({ eventType: event.type, delivered }, 'WebSocket broadcast');
+
+    return reply.send({ delivered });
   });
 }
