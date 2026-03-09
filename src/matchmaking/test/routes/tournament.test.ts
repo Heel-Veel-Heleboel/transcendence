@@ -62,7 +62,12 @@ describe('Tournament Routes', () => {
       })
     } as any;
 
-    await registerTournamentRoutes(server, mockTournamentService);
+    const mockGatewayNotificationClient = {
+      notifyUsers: vi.fn(),
+      broadcastEvent: vi.fn()
+    } as any;
+
+    await registerTournamentRoutes(server, mockTournamentService, mockGatewayNotificationClient);
     await server.ready();
   });
 

@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { TournamentService, TournamentError } from '../services/tournament.js';
 import { TournamentLifecycleManager } from '../services/tournament-lifecycle.js';
+import { GatewayNotificationClient } from '../services/gateway-notification-client.js';
 import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
 import { GameMode, isValidGameMode } from '../types/match.js';
 import {
@@ -23,6 +24,7 @@ import {
 export async function registerTournamentRoutes(
   server: FastifyInstance,
   tournamentService: TournamentService,
+  gatewayNotificationClient: GatewayNotificationClient,
   lifecycleManager?: TournamentLifecycleManager
 ): Promise<void> {
 
@@ -105,6 +107,12 @@ export async function registerTournamentRoutes(
 
       // Schedule registration end timer
       lifecycleManager?.onTournamentCreated(tournament);
+
+      // Broadcast to all connected users so they can update the tournament list
+      gatewayNotificationClient.broadcastEvent({
+        type: 'TOURNAMENT_CREATED',
+        tournament
+      });
 
       return reply.status(201).send({
         success: true,

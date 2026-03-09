@@ -19,7 +19,7 @@ export const DEFAULT_ACK_DEADLINE_MIN = 20;
  * Registration window in minutes from the time the tournament
  * creation request is received.
  */
-export const DEFAULT_REGISTRATION_DURATION_MIN = 60;
+export const DEFAULT_REGISTRATION_DURATION_MIN = 2;
 
 /**
  * Input data for creating a tournament
