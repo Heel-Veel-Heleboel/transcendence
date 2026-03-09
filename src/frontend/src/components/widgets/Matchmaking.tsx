@@ -38,6 +38,7 @@ export interface ITournamentStatus {
 
 export function JoinTournamentGames(): JSX.Element {
     const [tournament, setTournament] = useState<ITournamentStatus | null>(null);
+    const [hasCreated, setHasCreated] = useState<boolean>(false);
     const [details, setDetails] = useState<ITournament | null>(null);
     const [isConnecting, setIsConnecting] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -51,6 +52,7 @@ export function JoinTournamentGames(): JSX.Element {
                 headers: CONFIG.REQUEST_TOURNAMENT_HEADERS,
                 data: JSON.stringify({ name: 'champions_league', gameMode: 'classic' })
             });
+            setHasCreated(true);
         } catch (e: any) {
             console.error(e);
             setError(ERRORS.TOURNAMENT_CREATE_FAILED);
@@ -65,6 +67,7 @@ export function JoinTournamentGames(): JSX.Element {
                 headers: CONFIG.REQUEST_TOURNAMENT_HEADERS,
                 data: JSON.stringify({ name: 'olympics', gameMode: 'powerup' })
             });
+            setHasCreated(true);
         } catch (e: any) {
             console.error(e);
             setError(ERRORS.TOURNAMENT_CREATE_FAILED);
@@ -74,17 +77,14 @@ export function JoinTournamentGames(): JSX.Element {
 
     useEffect(() => {
         async function getTournament() {
+            setHasCreated(false);
             try {
                 const status = await api({
                     url: CONFIG.REQUEST_TOURNAMENT_STATUS,
                 })
                 console.log('tournament');
                 console.log(status);
-                const tournamentDetails = await api({
-                    url: CONFIG.REQUEST_TOURNAMENT_INFO(status.data.activeTournamentId)
-                })
                 setTournament(status.data)
-                setDetails(tournamentDetails.data);
             } catch (e: any) {
                 console.error(e);
                 // setError(e);
@@ -95,7 +95,29 @@ export function JoinTournamentGames(): JSX.Element {
         }
 
         getTournament();
-    }, [])
+    }, [hasCreated])
+
+    useEffect(() => {
+        async function getDetails() {
+            if (!tournament) {
+                setDetails(null);
+                return;
+            }
+            try {
+                const tournamentDetails = await api({
+                    url: CONFIG.REQUEST_TOURNAMENT_INFO(tournament.activeTournamentId)
+                })
+                console.log('details');
+                console.log(tournamentDetails);
+                setDetails(tournamentDetails.data.tournament);
+            } catch (e: any) {
+                console.error(e);
+                // setError(e);
+            }
+        }
+
+        getDetails();
+    }, [tournament])
 
     if (isConnecting) return <p>Connecting...</p>;
     if (error) return <p>Error</p>;
@@ -104,7 +126,7 @@ export function JoinTournamentGames(): JSX.Element {
     return (
         <div className="min-h-full flex w-full">
             {
-                tournament ? TournamentStatus(details) :
+                details ? TournamentStatus(tournament, details, setTournament) :
                     <div className="min-h-full flex w-full">
                         <div className="min-h-full flex w-1/2 justify-between border border-black">
                             <div />
@@ -122,9 +144,51 @@ export function JoinTournamentGames(): JSX.Element {
     )
 }
 
-export function TournamentStatus(details: ITournament | null): JSX.Element {
+export function TournamentStatus(tournament: ITournamentStatus | null, details: ITournament | null, setTournament: Dispatch<SetStateAction<ITournamentStatus | null>>): JSX.Element {
+
+    if (tournament === null || details === null) return <p>Error</p>;
+
+
+    async function handleCancel() {
+        try {
+            if (details?.id) {
+                await api({
+                    url: CONFIG.REQUEST_TOURNAMENT_CANCEL(String(details.id)),
+                    method: CONFIG.REQUEST_TOURNAMENT_METHOD
+                })
+            }
+        } catch (e: any) {
+            console.error(e);
+        } finally {
+            setTournament(null);
+        }
+    }
+
+    async function handleLeave() {
+        try {
+            if (details?.id) {
+                await api({
+                    url: CONFIG.REQUEST_TOURNAMENT_UNREGISTER(String(details.id)),
+                    method: CONFIG.REQUEST_TOURNAMENT_METHOD
+                })
+            }
+        } catch (e: any) {
+            console.error(e);
+        }
+        finally {
+            setTournament(null);
+        }
+    }
+
     return (
-        <div>{details?.name}</div>
+        <div id='TournamentStatus' className="w-full flex flex-col justify-between">
+            <div />
+            <div className="flex justify-around">
+                <div>current Tournament <br /> {details?.name}</div>
+                <div>{tournament.isCreator ? <button onClick={() => { handleCancel() }}>cancel</button> : <button onClick={() => { handleLeave() }}>leave</button>}</div>
+            </div>
+            <div />
+        </div>
     )
 
 }
@@ -282,11 +346,24 @@ function OpenTournaments(): JSX.Element {
     if (isConnecting) return <p>Connecting...</p>;
     if (error) return <p>Error: {error.message}</p>;
 
+    async function register(id: string) {
+        try {
+            await api({
+                url: CONFIG.REQUEST_TOURNAMENT_REGISTER(id),
+                method: CONFIG.REQUEST_TOURNAMENT_METHOD,
+            })
+        } catch (e: any) {
+            console.error(e);
+        }
+
+    }
+
     return (
         <ul>
             {tournaments.map((tournament) => (
                 <li key={tournament.id}>
-                    {tournament.name} | {tournament.gameMode} | {tournament.participantCount} | {tournament.status} | {tournament.createdBy}
+                    {tournament.name} | {tournament.gameMode} | {tournament.participantCount} | {tournament.status} | {tournament.createdBy} | {' '}
+                    <button onClick={() => { register(String(tournament.id)) }}>join</button>
                 </li>
             ))}
         </ul>

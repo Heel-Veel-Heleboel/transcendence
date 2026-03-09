@@ -110,6 +110,12 @@ export const CONFIG = {
   REQUEST_TOURNAMENT_CANCEL: (tournamentId: string) => {
     return `matchmaking/tournament/${tournamentId}/cancel`;
   },
+  REQUEST_TOURNAMENT_REGISTER: (tournamentId: string) => {
+    return `matchmaking/tournament/${tournamentId}/register`;
+  },
+  REQUEST_TOURNAMENT_UNREGISTER: (tournamentId: string) => {
+    return `matchmaking/tournament/${tournamentId}/unregister`;
+  },
 
   REQUEST_CHANNEL_ALL: 'chat/channels',
   REQUEST_CHANNEL_ALL_METHOD: 'GET',
