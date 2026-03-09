@@ -14,7 +14,7 @@ export function Toolbar(): JSX.Element {
             <div className="px-2 py-2" onClick={() => navigate(CONFIG.MENU_NAVIGATION)}>logo</div>
             <div className="py-2">{`${time.date} - ${time.time}`}</div>
             <div id="toolbarOptionsContainer" className="flex ">
-                <ToolbarOption id='profile' src={CONFIG.PROFILE_LOGO} callback={() => navigate(CONFIG.PROFILE_NAVIGATION)} />
+                <ToolbarOption id='profile' src={CONFIG.PROFILE_LOGO} callback={() => navigate(CONFIG.USER_PROFILE_NAVIGATION)} />
                 <ToolbarOption id='logout' src={CONFIG.LOGOUT_LOGO} callback={() => auth.logOut()} />
             </div>
         </div>

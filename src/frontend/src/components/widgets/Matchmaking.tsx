@@ -6,6 +6,7 @@ import { useLobbyRoom } from "@colyseus/react";
 import api from "../../api";
 import { CONFIG } from "../../constants/AppConfig";
 import { ERRORS } from "../../constants/Errors";
+import { useNavigate } from "react-router-dom";
 
 const client = new Client("ws://localhost:2567");
 
@@ -322,6 +323,7 @@ export interface ITournament {
 }
 
 function OpenTournaments(): JSX.Element {
+    const navigate = useNavigate();
     const [tournaments, setTournaments] = useState<Array<ITournament>>([]);
     const [isConnecting, setIsConnecting] = useState<boolean>(true);
     const [error, setError] = useState<Error | null>(null);
@@ -362,7 +364,7 @@ function OpenTournaments(): JSX.Element {
         <ul>
             {tournaments.map((tournament) => (
                 <li key={tournament.id}>
-                    {tournament.name} | {tournament.gameMode} | {tournament.participantCount} | {tournament.status} | {tournament.createdBy} | {' '}
+                    <button onClick={() => { navigate(CONFIG.TOURNAMENT_NAVIGATION_REDIRECT(String(tournament.id))) }}>{tournament.name}</button> | {tournament.gameMode} | {tournament.participantCount} | {tournament.status} | {tournament.createdBy} | {' '}
                     <button onClick={() => { register(String(tournament.id)) }}>join</button>
                 </li>
             ))}

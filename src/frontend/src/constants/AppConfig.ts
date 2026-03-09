@@ -5,7 +5,10 @@ export const CONFIG = {
   USER_PROFILE_NAVIGATION: '/profile/me',
   VISITOR_PROFILE_NAVIGATION: '/profile/:userId',
   GAME_NAVIGATION: '/game/:gameMode/:matchId/:roomId',
-  TOURNAMENT_NAVIGATION: '/tournament',
+  TOURNAMENT_NAVIGATION: '/tournament/:tournamentId',
+  TOURNAMENT_NAVIGATION_REDIRECT: (tournamentId: string) => {
+    return `/tournament/${tournamentId}`;
+  },
 
   // NOTE: DefaultStartMenu
   MENU_OPTION_LOGIN_TEXT: 'LOGIN',
