@@ -7,7 +7,6 @@ import { IChat } from "../../types/types.ts";
 
 /* v8 ignore start */
 export function LiveChat(): JSX.Element {
-    // NOTE: causes errors check why
     const notif = useNotifications();
     const [channels, setChannels] = useState<Array<string>>([]);
     const [chat, setChat] = useState<string | null>(null);

@@ -7,6 +7,7 @@ import api from "../../api";
 import { CONFIG } from "../../constants/AppConfig";
 import { ERRORS } from "../../constants/Errors";
 import { useNavigate } from "react-router-dom";
+import { useNotifications } from "../hooks/Notifications";
 
 const client = new Client("ws://localhost:2567");
 
@@ -324,6 +325,7 @@ export interface ITournament {
 
 function OpenTournaments(): JSX.Element {
     const navigate = useNavigate();
+    const notif = useNotifications();
     const [tournaments, setTournaments] = useState<Array<ITournament>>([]);
     const [isConnecting, setIsConnecting] = useState<boolean>(true);
     const [error, setError] = useState<Error | null>(null);
@@ -343,7 +345,7 @@ function OpenTournaments(): JSX.Element {
         }
 
         getTournaments()
-    }, [])
+    }, [notif.tournamentUpdate])
 
     if (isConnecting) return <p>Connecting...</p>;
     if (error) return <p>Error: {error.message}</p>;
