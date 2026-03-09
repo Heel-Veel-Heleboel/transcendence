@@ -9,6 +9,7 @@ import { CONFIG } from '../constants/AppConfig.ts';
 import { ErrorBoundary } from 'react-error-boundary';
 import { GeneralErrorFallback } from '../components/errors/GeneralErrorFallBack.tsx';
 import { Profile, VisitorProfile } from '../pages/Profile.tsx';
+import { Tournament } from '../pages/Tournament.tsx';
 
 /* v8 ignore start */
 export const Router = () => {
@@ -34,6 +35,7 @@ export const Router = () => {
                         <Route path={CONFIG.MENU_NAVIGATION} element={<Menu />} />
                         <Route path={CONFIG.USER_PROFILE_NAVIGATION} element={<Profile />} />
                         <Route path={CONFIG.VISITOR_PROFILE_NAVIGATION} element={<VisitorProfile />} />
+                        <Route path={CONFIG.TOURNAMENT_NAVIGATION} element={<Tournament />} />
                         <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />
                     </Routes>
                 </RoomProvider>

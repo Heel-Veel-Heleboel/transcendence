@@ -1,10 +1,11 @@
 export const CONFIG = {
   // NOTE: NAVIGATION
   START_MENU_NAVIGATION: '/',
-  MENU_NAVIGATION: '/menu',
+  MENU_NAVIGATION: '/home',
   USER_PROFILE_NAVIGATION: '/profile/me',
   VISITOR_PROFILE_NAVIGATION: '/profile/:userId',
   GAME_NAVIGATION: '/game/:gameMode/:matchId/:roomId',
+  TOURNAMENT_NAVIGATION: '/tournament',
 
   // NOTE: DefaultStartMenu
   MENU_OPTION_LOGIN_TEXT: 'LOGIN',
