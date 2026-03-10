@@ -16,6 +16,7 @@ const client = new Client("ws://localhost:2567");
 
 
 /* v8 ignore start */
+// TODO: reorganize joinTournamentGames by having seperate 
 export function Matchmaking(): JSX.Element {
     return (
         <div id={CONFIG.MATCHMAKING_CONTAINER_ID} className="h-9/10 flex flex-col">
@@ -190,7 +191,7 @@ export function TournamentStatus(tournament: ITournamentStatus | null, details: 
             <div />
             <div className="flex justify-around">
                 <button onClick={() => { navigate(CONFIG.TOURNAMENT_NAVIGATION_REDIRECT(String(details.id))) }}>current: {details.name} </button>
-                <div>{tournament.isCreator ? <button onClick={() => { handleCancel() }}>cancel</button> : <button onClick={() => { handleLeave() }}>leave</button>}</div>
+                <div>{details.status === 'IN_PROGRESS' ? null : tournament.isCreator ? <button onClick={() => { handleCancel() }}>cancel</button> : <button onClick={() => { handleLeave() }}>leave</button>}</div>
             </div>
             <div />
         </div>
@@ -281,17 +282,6 @@ export function JoinSingleGames(): JSX.Element {
         </div>
     )
 }
-
-function MatchMakingError({ setState }: { setState: Dispatch<SetStateAction<string | null>> }): JSX.Element {
-
-    return (
-        <div>
-            <div>{ERRORS.MATCHMAKING_JOIN_FAILED}</div>
-            <button onClick={() => setState(null)}> reset</button>
-        </div>
-    )
-}
-
 
 function CurrentGames(): JSX.Element {
     const { rooms, error, isConnecting } = useLobbyRoom(
