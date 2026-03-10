@@ -6,9 +6,10 @@ import { useLobbyRoom } from "@colyseus/react";
 import api from "../../api";
 import { CONFIG } from "../../constants/AppConfig";
 import { ERRORS } from "../../constants/Errors";
-import { useNavigate } from "react-router-dom";
+import { NavigateFunction, useNavigate } from "react-router-dom";
 import { useNotifications } from "../hooks/Notifications";
 import * as timer from 'react-timer-hook';
+import { getCookie } from "../utils/cookies";
 
 
 const client = new Client("ws://localhost:2567");
@@ -46,6 +47,8 @@ export function JoinTournamentGames(): JSX.Element {
     const [details, setDetails] = useState<ITournament | null>(null);
     const [isConnecting, setIsConnecting] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
+    const notif = useNotifications();
 
     async function handleDefault() {
         try {
@@ -99,7 +102,7 @@ export function JoinTournamentGames(): JSX.Element {
         }
 
         getTournament();
-    }, [hasCreated])
+    }, [hasCreated, notif.tournamentUpdate])
 
     useEffect(() => {
         async function getDetails() {
@@ -130,7 +133,7 @@ export function JoinTournamentGames(): JSX.Element {
     return (
         <div className="min-h-full flex w-full">
             {
-                details ? TournamentStatus(tournament, details, setTournament) :
+                details ? TournamentStatus(tournament, details, setTournament, navigate) :
                     <div className="min-h-full flex w-full">
                         <div className="min-h-full flex w-1/2 justify-between border border-black">
                             <div />
@@ -148,10 +151,8 @@ export function JoinTournamentGames(): JSX.Element {
     )
 }
 
-export function TournamentStatus(tournament: ITournamentStatus | null, details: ITournament | null, setTournament: Dispatch<SetStateAction<ITournamentStatus | null>>): JSX.Element {
-
+export function TournamentStatus(tournament: ITournamentStatus | null, details: ITournament | null, setTournament: Dispatch<SetStateAction<ITournamentStatus | null>>, navigate: NavigateFunction): JSX.Element {
     if (tournament === null || details === null) return <p>Error</p>;
-
 
     async function handleCancel() {
         try {
@@ -188,7 +189,7 @@ export function TournamentStatus(tournament: ITournamentStatus | null, details: 
         <div id='TournamentStatus' className="w-full flex flex-col justify-between">
             <div />
             <div className="flex justify-around">
-                <div>current Tournament <br /> {details?.name}</div>
+                <button onClick={() => { navigate(CONFIG.TOURNAMENT_NAVIGATION_REDIRECT(String(details.id))) }}>current: {details.name} </button>
                 <div>{tournament.isCreator ? <button onClick={() => { handleCancel() }}>cancel</button> : <button onClick={() => { handleLeave() }}>leave</button>}</div>
             </div>
             <div />
@@ -339,6 +340,51 @@ function Timer({ expiryTimestamp }: { expiryTimestamp: Date }): JSX.Element {
 
 }
 
+function JoinTournament({ tournament }: { tournament: ITournament }): JSX.Element {
+    const [isJoining, setIsJoining] = useState<boolean>(false);
+    const [userId, setUserId] = useState<string>('');
+
+    async function register(id: string) {
+        try {
+            await api({
+                url: CONFIG.REQUEST_TOURNAMENT_REGISTER(id),
+                method: CONFIG.REQUEST_TOURNAMENT_METHOD,
+            })
+            setIsJoining(true);
+        } catch (e: any) {
+            console.error(e);
+        }
+
+    }
+
+    async function unregister(id: string) {
+        try {
+            await api({
+                url: CONFIG.REQUEST_TOURNAMENT_UNREGISTER(id),
+                method: CONFIG.REQUEST_TOURNAMENT_METHOD,
+            })
+            setIsJoining(false);
+        } catch (e: any) {
+            console.error(e);
+        }
+    }
+
+    useEffect(() => {
+        const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
+        setUserId(user_id);
+    }, [])
+
+    return (
+        <div>
+            {userId === String(tournament.createdBy) ? <div>registered</div> : isJoining ?
+                <button onClick={() => { unregister(String(tournament.id)) }}>leave</button> :
+                <button onClick={() => { register(String(tournament.id)) }}>join</button>
+            }
+        </div>
+
+    )
+}
+
 function OpenTournaments(): JSX.Element {
     const navigate = useNavigate();
     const notif = useNotifications();
@@ -367,25 +413,19 @@ function OpenTournaments(): JSX.Element {
     if (isConnecting) return <p>Connecting...</p>;
     if (error) return <p>Error: {error.message}</p>;
 
-    async function register(id: string) {
-        try {
-            await api({
-                url: CONFIG.REQUEST_TOURNAMENT_REGISTER(id),
-                method: CONFIG.REQUEST_TOURNAMENT_METHOD,
-            })
-        } catch (e: any) {
-            console.error(e);
-        }
-
-    }
 
     return (
         <ul>
             {tournaments.map((tournament) => (
                 <li key={tournament.id}>
                     <div className="flex justify-around">
-                        <button onClick={() => { navigate(CONFIG.TOURNAMENT_NAVIGATION_REDIRECT(String(tournament.id))) }}>{tournament.name}</button> | <Timer expiryTimestamp={new Date(tournament.registrationEnd)} /> | {' '}
-                        <button onClick={() => { register(String(tournament.id)) }}>join</button>
+                        <button onClick={() => { navigate(CONFIG.TOURNAMENT_NAVIGATION_REDIRECT(String(tournament.id))) }}>{tournament.name} </button>
+                        <div className="flex justify-around">
+                            <div>| {tournament.participantCount}  |</div>
+                            <Timer expiryTimestamp={new Date(tournament.registrationEnd)} />
+                            <div>| {' '}</div>
+                        </div>
+                        <JoinTournament tournament={tournament} />
                     </div>
                 </li>
             ))}
