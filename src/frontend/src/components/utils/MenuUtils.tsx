@@ -35,7 +35,7 @@ export function TitleBar({ logoPath, title }: { logoPath: string, title: string 
 export function Terminal({ title, child }: { title: string, child: JSX.Element }): JSX.Element {
     return (
         <div className="min-h-full max-h-full flex flex-col">
-            <div className="border border-black">{title}</div>
+            <div className="border border-black text-center">{title}</div>
             <div className="min-h-full max-h-full overflow-auto">{child}</div>
         </div>
     )

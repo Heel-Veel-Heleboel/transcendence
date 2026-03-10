@@ -8,6 +8,8 @@ import { CONFIG } from "../../constants/AppConfig";
 import { ERRORS } from "../../constants/Errors";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../hooks/Notifications";
+import * as timer from 'react-timer-hook';
+
 
 const client = new Client("ws://localhost:2567");
 
@@ -323,12 +325,27 @@ export interface ITournament {
     status: string
 }
 
+function Timer({ expiryTimestamp }: { expiryTimestamp: Date }): JSX.Element {
+    const {
+        seconds,
+        minutes,
+    } = timer.useTimer({ expiryTimestamp, onExpire: () => console.warn('onExpire called') });
+
+    return (
+        <div >
+            {minutes}:{seconds}
+        </div>
+    )
+
+}
+
 function OpenTournaments(): JSX.Element {
     const navigate = useNavigate();
     const notif = useNotifications();
     const [tournaments, setTournaments] = useState<Array<ITournament>>([]);
     const [isConnecting, setIsConnecting] = useState<boolean>(true);
     const [error, setError] = useState<Error | null>(null);
+
 
     useEffect(() => {
         async function getTournaments() {
@@ -366,8 +383,10 @@ function OpenTournaments(): JSX.Element {
         <ul>
             {tournaments.map((tournament) => (
                 <li key={tournament.id}>
-                    <button onClick={() => { navigate(CONFIG.TOURNAMENT_NAVIGATION_REDIRECT(String(tournament.id))) }}>{tournament.name}</button> | {tournament.gameMode} | {tournament.participantCount} | {tournament.status} | {tournament.createdBy} | {' '}
-                    <button onClick={() => { register(String(tournament.id)) }}>join</button>
+                    <div className="flex justify-around">
+                        <button onClick={() => { navigate(CONFIG.TOURNAMENT_NAVIGATION_REDIRECT(String(tournament.id))) }}>{tournament.name}</button> | <Timer expiryTimestamp={new Date(tournament.registrationEnd)} /> | {' '}
+                        <button onClick={() => { register(String(tournament.id)) }}>join</button>
+                    </div>
                 </li>
             ))}
         </ul>

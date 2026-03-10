@@ -37,6 +37,7 @@
         "react-dom": "^19.2.1",
         "react-error-boundary": "^6.1.0",
         "react-router-dom": "^6.30.2",
+        "react-timer-hook": "^4.0.5",
         "react-use-websocket": "^4.13.0",
         "sirv": "^3.0.2",
         "vitest": "^4.0.18"
