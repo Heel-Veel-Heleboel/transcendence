@@ -158,6 +158,13 @@ export class TournamentService {
       );
     }
 
+    if (tournament.createdBy === userId) {
+      throw new TournamentError(
+        'Tournament creator cannot unregister. Cancel the tournament instead.',
+        'CREATOR_CANNOT_LEAVE'
+      );
+    }
+
     const isRegistered = await this.participantDao.isRegistered(tournamentId, userId);
     if (!isRegistered) {
       throw new TournamentError('Not registered for this tournament', 'NOT_REGISTERED');
