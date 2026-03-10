@@ -102,6 +102,7 @@ describe('TournamentLifecycleManager', () => {
 
     mockGatewayNotificationClient = {
       notifyUsers: vi.fn(),
+      broadcastEvent: vi.fn(),
     } as unknown as GatewayNotificationClient;
 
     manager = new TournamentLifecycleManager(

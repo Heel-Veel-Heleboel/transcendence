@@ -284,8 +284,17 @@ export class TournamentLifecycleManager {
 
       if (tournament.status === 'CANCELLED') {
         this.log('info', `Tournament ${tournamentId} cancelled due to insufficient players`);
+        this.gatewayNotificationClient.broadcastEvent({
+          type: 'TOURNAMENT_UPDATE',
+          tournamentId
+        });
         return;
       }
+
+      this.gatewayNotificationClient.broadcastEvent({
+        type: 'TOURNAMENT_UPDATE',
+        tournamentId
+      });
 
       // If no startTime, start immediately
       if (!tournament.startTime) {

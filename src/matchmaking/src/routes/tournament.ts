@@ -110,8 +110,8 @@ export async function registerTournamentRoutes(
 
       // Broadcast to all connected users so they can update the tournament list
       gatewayNotificationClient.broadcastEvent({
-        type: 'TOURNAMENT_CREATED',
-        tournament
+        type: 'TOURNAMENT_UPDATE',
+        tournamentId: tournament.id
       });
 
       return reply.status(201).send({
@@ -245,6 +245,11 @@ export async function registerTournamentRoutes(
 
       request.log.info({ tournamentId, userId }, 'Tournament cancelled');
 
+      gatewayNotificationClient.broadcastEvent({
+        type: 'TOURNAMENT_UPDATE',
+        tournamentId
+      });
+
       return reply.status(200).send({
         success: true,
         tournament
@@ -310,6 +315,11 @@ export async function registerTournamentRoutes(
 
       request.log.info({ tournamentId, userId, full }, 'User registered for tournament');
 
+      gatewayNotificationClient.broadcastEvent({
+        type: 'TOURNAMENT_UPDATE',
+        tournamentId
+      });
+
       // If tournament is now full, trigger early registration close
       if (full) {
         lifecycleManager?.onRegistrationFull(tournamentId).catch(err => {
@@ -366,6 +376,11 @@ export async function registerTournamentRoutes(
       await tournamentService.unregister(tournamentId, userId);
 
       request.log.info({ tournamentId, userId }, 'User unregistered from tournament');
+
+      gatewayNotificationClient.broadcastEvent({
+        type: 'TOURNAMENT_UPDATE',
+        tournamentId
+      });
 
       return reply.status(200).send({
         success: true,
