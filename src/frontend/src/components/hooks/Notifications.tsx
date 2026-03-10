@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 export function useNotifications() {
-    const [chatUpdate, setChatUpdate] = useState<string>('');
-    const [tournamentUpdate, setTournamentUpdate] = useState<string>('');
+    const [chatUpdate, setChatUpdate] = useState<number>(0);
+    const [tournamentUpdate, setTournamentUpdate] = useState<number>(0);
     const auth = useAuth();
     const navigate = useNavigate();
     const notif =
@@ -24,10 +24,10 @@ export function useNotifications() {
                         navigate(`/game/${msg.gameMode}/${msg.matchId}/${msg.roomId}`)
                     }
                     if (msg.type === 'chat:match_ack_required') {
-                        setChatUpdate(msg.type);
+                        setChatUpdate(event.timeStamp);
                     }
-                    if (msg.type === 'TOURNAMENT_CREATED') {
-                        setTournamentUpdate(msg.type);
+                    if (msg.type === 'TOURNAMENT_UPDATE') {
+                        setTournamentUpdate(event.timeStamp);
                     }
                     // handle chat:message, chat:match_ack_required, etc.
                 },
