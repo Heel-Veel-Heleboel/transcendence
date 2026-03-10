@@ -375,6 +375,20 @@ export class MatchDao {
   }
 
   /**
+   * Find all queued (not yet activated) matches for a tournament.
+   */
+  async findAllQueuedMatches(tournamentId: number): Promise<Match[]> {
+    return await this.prisma.match.findMany({
+      where: {
+        tournamentId,
+        status: 'PENDING_ACKNOWLEDGEMENT',
+        deadline: null
+      },
+      orderBy: [{ round: 'asc' }, { bracketPosition: 'asc' }]
+    });
+  }
+
+  /**
    * Activate a queued match by setting its deadline.
    * Also resets acknowledgement flags in case this is a retry.
    */

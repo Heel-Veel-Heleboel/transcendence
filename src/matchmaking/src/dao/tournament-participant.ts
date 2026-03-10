@@ -87,6 +87,7 @@ export class TournamentParticipantDao {
     const participant = await this.prisma.tournamentParticipant.findFirst({
       where: {
         userId,
+        eliminatedIn: null,
         tournament: {
           status: { in: ['REGISTRATION', 'SCHEDULED', 'IN_PROGRESS'] }
         }

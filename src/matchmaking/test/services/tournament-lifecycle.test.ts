@@ -7,6 +7,7 @@ import { TournamentService } from '../../src/services/tournament.js';
 import { TournamentDao } from '../../src/dao/tournament.js';
 import { MatchDao } from '../../src/dao/match.js';
 import { GatewayNotificationClient } from '../../src/services/gateway-notification-client.js';
+import { ChatServiceClient } from '../../src/services/chat-service-client.js';
 import { Tournament, Match, TournamentStatus } from '../../generated/prisma/index.js';
 
 describe('TournamentLifecycleManager', () => {
@@ -86,7 +87,7 @@ describe('TournamentLifecycleManager', () => {
       closeRegistration: vi.fn(),
       startTournament: vi.fn(),
       processMatchResult: vi.fn(),
-      activateNextMatch: vi.fn(),
+      activateRoundMatches: vi.fn(),
     } as unknown as TournamentService;
 
     mockTournamentDao = {
@@ -105,11 +106,16 @@ describe('TournamentLifecycleManager', () => {
       broadcastEvent: vi.fn(),
     } as unknown as GatewayNotificationClient;
 
+    const mockChatServiceClient = {
+      sendMatchAck: vi.fn().mockResolvedValue(undefined),
+    } as unknown as ChatServiceClient;
+
     manager = new TournamentLifecycleManager(
       mockTournamentService,
       mockTournamentDao,
       mockMatchDao,
       mockGatewayNotificationClient,
+      mockChatServiceClient,
       mockTimerProvider
     );
   });
@@ -174,9 +180,9 @@ describe('TournamentLifecycleManager', () => {
         .mockResolvedValueOnce([]) // REGISTRATION
         .mockResolvedValueOnce([scheduledTournament]); // SCHEDULED
 
-      // startTournament now returns a single Match
+      // startTournament returns an array of matches
       vi.mocked(mockTournamentService.startTournament).mockResolvedValue(
-        createMockMatch({ id: 'match-1' })
+        [createMockMatch({ id: 'match-1' })]
       );
 
       await manager.initialize();
@@ -209,7 +215,7 @@ describe('TournamentLifecycleManager', () => {
         ...pastMatch,
         status: 'TIMEOUT'
       } as Match);
-      vi.mocked(mockTournamentService.activateNextMatch).mockResolvedValue(null);
+      vi.mocked(mockTournamentService.activateRoundMatches).mockResolvedValue([]);
 
       await manager.initialize();
 
@@ -243,7 +249,7 @@ describe('TournamentLifecycleManager', () => {
         createMockTournament({ status: 'SCHEDULED' })
       );
       vi.mocked(mockTournamentService.startTournament).mockResolvedValue(
-        createMockMatch({ id: 'match-1' })
+        [createMockMatch({ id: 'match-1' })]
       );
 
       manager.onTournamentCreated(tournament);
@@ -269,7 +275,7 @@ describe('TournamentLifecycleManager', () => {
         createMockTournament({ status: 'SCHEDULED' })
       );
       vi.mocked(mockTournamentService.startTournament).mockResolvedValue(
-        createMockMatch({ id: 'match-1' })
+        [createMockMatch({ id: 'match-1' })]
       );
 
       // Now trigger registration full
@@ -330,7 +336,7 @@ describe('TournamentLifecycleManager', () => {
       manager.onMatchCreated(match);
       expect(manager.getTimerCounts().matches).toBe(1);
 
-      vi.mocked(mockTournamentService.activateNextMatch).mockResolvedValue(null);
+      vi.mocked(mockTournamentService.activateRoundMatches).mockResolvedValue([]);
 
       await manager.onMatchCompleted(match);
 
@@ -351,7 +357,7 @@ describe('TournamentLifecycleManager', () => {
         createMockTournament({ status: 'SCHEDULED', startTime: null })
       );
       vi.mocked(mockTournamentService.startTournament).mockResolvedValue(
-        createMockMatch({ id: 'match-1' })
+        [createMockMatch({ id: 'match-1' })]
       );
 
       manager.onTournamentCreated(tournament);
@@ -430,7 +436,7 @@ describe('TournamentLifecycleManager', () => {
         status: 'TIMEOUT',
         winnerId: null
       } as Match);
-      vi.mocked(mockTournamentService.activateNextMatch).mockResolvedValue(null);
+      vi.mocked(mockTournamentService.activateRoundMatches).mockResolvedValue([]);
 
       manager.onMatchCreated(match);
 
@@ -463,7 +469,7 @@ describe('TournamentLifecycleManager', () => {
         status: 'TIMEOUT',
         winnerId: 100
       } as Match);
-      vi.mocked(mockTournamentService.activateNextMatch).mockResolvedValue(null);
+      vi.mocked(mockTournamentService.activateRoundMatches).mockResolvedValue([]);
 
       manager.onMatchCreated(match);
 

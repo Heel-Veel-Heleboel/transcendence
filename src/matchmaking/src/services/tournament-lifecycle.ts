@@ -3,6 +3,7 @@ import { TournamentService } from './tournament.js';
 import { TournamentDao } from '../dao/tournament.js';
 import { MatchDao } from '../dao/match.js';
 import { GatewayNotificationClient } from './gateway-notification-client.js';
+import { ChatServiceClient } from './chat-service-client.js';
 import { Logger } from '../types/logger.js';
 
 /**
@@ -55,6 +56,7 @@ export class TournamentLifecycleManager {
     private readonly tournamentDao: TournamentDao,
     private readonly matchDao: MatchDao,
     private readonly gatewayNotificationClient: GatewayNotificationClient,
+    private readonly chatServiceClient: ChatServiceClient,
     private readonly timerProvider: TimerProvider = defaultTimerProvider,
     private readonly logger?: Logger
   ) {}
@@ -187,7 +189,7 @@ export class TournamentLifecycleManager {
     // If this is a tournament match, process result and activate next match
     if (match.tournamentId) {
       await this.tournamentService.processMatchResult(match);
-      await this.activateNextTournamentMatch(match.tournamentId);
+      await this.activateNextRoundMatches(match.tournamentId);
     }
   }
 
@@ -313,15 +315,15 @@ export class TournamentLifecycleManager {
     this.tournamentTimers.delete(tournamentId);
 
     try {
-      const firstMatch = await this.tournamentService.startTournament(tournamentId);
+      const matches = await this.tournamentService.startTournament(tournamentId);
 
-      // The first activated match has a deadline — schedule its timer and notify players
-      if (firstMatch) {
-        this.scheduleMatchDeadline(firstMatch);
-        this.notifyMatchPlayers(firstMatch);
+      // Schedule deadlines and notify players for all round 1 matches
+      for (const match of matches) {
+        this.scheduleMatchDeadline(match);
+        this.notifyMatchPlayers(match);
       }
 
-      this.log('info', `Tournament ${tournamentId} started, first match activated: ${firstMatch?.id}`);
+      this.log('info', `Tournament ${tournamentId} started, ${matches.length} matches activated`);
     } catch (error) {
       this.log('error', `Failed to start tournament ${tournamentId}`, { error });
     }
@@ -371,7 +373,7 @@ export class TournamentLifecycleManager {
       // If this is a tournament match, process result and activate next match
       if (updatedMatch.tournamentId) {
         await this.tournamentService.processMatchResult(updatedMatch);
-        await this.activateNextTournamentMatch(updatedMatch.tournamentId);
+        await this.activateNextRoundMatches(updatedMatch.tournamentId);
       }
     } catch (error) {
       this.log('error', `Failed to handle match deadline for ${matchId}`, { error });
@@ -383,38 +385,46 @@ export class TournamentLifecycleManager {
   // ============================================================================
 
   /**
-   * Activate the next queued match in a tournament.
-   * Called after a match reaches a terminal state to keep the sequential flow going.
+   * Activate all queued matches for the next round in a tournament.
+   * Called after a match completes — only activates when all matches in the
+   * current round are done (processMatchResult generates next-round matches).
    */
-  private async activateNextTournamentMatch(tournamentId: number): Promise<void> {
+  private async activateNextRoundMatches(tournamentId: number): Promise<void> {
     try {
-      const nextMatch = await this.tournamentService.activateNextMatch(tournamentId);
-      if (nextMatch) {
-        this.scheduleMatchDeadline(nextMatch);
-        this.notifyMatchPlayers(nextMatch);
-        this.log('info', `Activated next match ${nextMatch.id} for tournament ${tournamentId}`);
+      const matches = await this.tournamentService.activateRoundMatches(tournamentId);
+      if (matches.length > 0) {
+        for (const match of matches) {
+          this.scheduleMatchDeadline(match);
+          this.notifyMatchPlayers(match);
+        }
+        this.log('info', `Activated ${matches.length} matches for tournament ${tournamentId}`);
       } else {
         this.log('info', `No more queued matches for tournament ${tournamentId}`);
       }
     } catch (error) {
-      this.log('error', `Failed to activate next match for tournament ${tournamentId}`, { error });
+      this.log('error', `Failed to activate next round for tournament ${tournamentId}`, { error });
     }
   }
 
   /**
-   * Notify both players that a match is ready for acknowledgement.
+   * Notify both players that a tournament match is ready for acknowledgement.
+   * Reuses the same match-ack flow as casual matches, with tournament info included.
    */
-  private notifyMatchPlayers(match: Match): void {
-    this.gatewayNotificationClient.notifyUsers(
+  private async notifyMatchPlayers(match: Match): Promise<void> {
+    if (!match.tournamentId || !match.deadline) return;
+
+    const tournament = await this.tournamentDao.findById(match.tournamentId);
+    if (!tournament) return;
+
+    this.chatServiceClient.sendMatchAck(
+      match.id,
       [match.player1Id, match.player2Id],
-      {
-        type: 'TOURNAMENT_MATCH_PENDING',
-        matchId: match.id,
-        tournamentId: match.tournamentId,
-        deadline: match.deadline?.toISOString() ?? null,
-        gameMode: match.gameMode
-      }
-    );
+      match.gameMode,
+      match.deadline,
+      { id: tournament.id, name: tournament.name }
+    ).catch(err => {
+      this.log('error', `Failed to send match-ack for tournament match ${match.id}`, { error: err });
+    });
   }
 
   // ============================================================================
