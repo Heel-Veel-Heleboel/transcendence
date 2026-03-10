@@ -30,3 +30,11 @@ model RefreshToken {
   revoked_at   DateTime?
   @@index([revoked_at])
 }
+
+model TwoFactorAuth {
+  user_id      Int @id
+  secret       String
+  is_enabled   Boolean @default(false)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+}
