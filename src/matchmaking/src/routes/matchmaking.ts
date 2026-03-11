@@ -45,54 +45,69 @@ export async function registerMatchmakingRoutes(
       return reply.status(401).send({ error: 'Unauthorized', message: 'Missing x-user-id header' });
     }
 
-    // Check pool membership first (in-memory, fast)
-    const poolGameMode = poolRegistry.getCurrentPool(userId) ?? null;
-    if (poolGameMode) {
+    try {
+      // Check for an active match first — pool unregistering happens asynchronously
+      // around pairing, so there's a window where a match exists in DB but the user
+      // is still registered in-memory. DB is the source of truth.
+      const activeMatch = await matchDao.findActiveMatchForUser(userId);
+      if (activeMatch) {
+        const matchState = activeMatch.status === 'PENDING_ACKNOWLEDGEMENT'
+          ? 'match_pending_ack'
+          : activeMatch.status === 'SCHEDULED'
+            ? 'match_scheduled'
+            : 'match_in_progress';
+        return reply.status(200).send({
+          state: matchState,
+          poolGameMode: null,
+          activeMatchId: activeMatch.id,
+          activeTournamentId: activeMatch.tournamentId ?? null,
+          tournamentStatus: null,
+          isCreator: false
+        });
+      }
+
+      // Check pool membership (in-memory, only meaningful when no active match)
+      const poolGameMode = poolRegistry.getCurrentPool(userId) ?? null;
+      if (poolGameMode) {
+        return reply.status(200).send({
+          state: 'in_pool',
+          poolGameMode,
+          activeMatchId: null,
+          activeTournamentId: null,
+          tournamentStatus: null,
+          isCreator: false
+        });
+      }
+
+      // Check tournament participation
+      const activeTournament = await participantDao.getActiveTournament(userId);
+      if (activeTournament) {
+        const isRegistration = activeTournament.tournamentStatus === 'REGISTRATION';
+        return reply.status(200).send({
+          state: isRegistration ? 'in_tournament_registration' : 'in_tournament_active',
+          poolGameMode: null,
+          activeMatchId: null,
+          activeTournamentId: activeTournament.tournamentId,
+          tournamentStatus: activeTournament.tournamentStatus,
+          isCreator: activeTournament.createdBy === userId
+        });
+      }
+
       return reply.status(200).send({
-        state: 'in_pool',
-        poolGameMode,
+        state: 'free',
+        poolGameMode: null,
         activeMatchId: null,
         activeTournamentId: null,
         tournamentStatus: null,
         isCreator: false
       });
-    }
-
-    // Check for an active match (pending ack / scheduled / in progress)
-    const activeMatch = await matchDao.findActiveMatchForUser(userId);
-    if (activeMatch) {
-      return reply.status(200).send({
-        state: 'match_pending_ack',
-        poolGameMode: null,
-        activeMatchId: activeMatch.id,
-        activeTournamentId: activeMatch.tournamentId ?? null,
-        tournamentStatus: null,
-        isCreator: false
+    } catch (error) {
+      request.log.error({ error, userId }, 'Error fetching matchmaking status');
+      return reply.status(500).send({
+        error: 'Internal Server Error',
+        message: 'Failed to fetch matchmaking status'
       });
     }
-
-    // Check tournament participation
-    const activeTournament = await participantDao.getActiveTournament(userId);
-    if (activeTournament) {
-      const isRegistration = activeTournament.tournamentStatus === 'REGISTRATION';
-      return reply.status(200).send({
-        state: isRegistration ? 'in_tournament_registration' : 'in_tournament_active',
-        poolGameMode: null,
-        activeMatchId: null,
-        activeTournamentId: activeTournament.tournamentId,
-        tournamentStatus: activeTournament.tournamentStatus,
-        isCreator: activeTournament.createdBy === userId
-      });
-    }
-
-    return reply.status(200).send({
-      state: 'free',
-      poolGameMode: null,
-      activeMatchId: null,
-      activeTournamentId: null,
-      tournamentStatus: null,
-      isCreator: false
-    });
   });
 
   /**
