@@ -83,7 +83,7 @@ export class TournamentParticipantDao {
    * Active = REGISTRATION, SCHEDULED, or IN_PROGRESS.
    * Returns tournament ID and createdBy, or null.
    */
-  async getActiveTournament(userId: number): Promise<{ tournamentId: number; createdBy: number } | null> {
+  async getActiveTournament(userId: number): Promise<{ tournamentId: number; createdBy: number; tournamentStatus: string } | null> {
     const participant = await this.prisma.tournamentParticipant.findFirst({
       where: {
         userId,
@@ -94,13 +94,14 @@ export class TournamentParticipantDao {
       },
       select: {
         tournamentId: true,
-        tournament: { select: { createdBy: true } }
+        tournament: { select: { createdBy: true, status: true } }
       }
     });
     if (!participant) return null;
     return {
       tournamentId: participant.tournamentId,
-      createdBy: participant.tournament.createdBy
+      createdBy: participant.tournament.createdBy,
+      tournamentStatus: participant.tournament.status
     };
   }
 

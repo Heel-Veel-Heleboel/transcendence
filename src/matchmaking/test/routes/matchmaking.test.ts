@@ -4,6 +4,8 @@ import { registerMatchmakingRoutes } from '../../src/routes/matchmaking.js';
 import { MatchmakingService } from '../../src/services/casual-matchmaking.js';
 import { PoolRegistry } from '../../src/services/pool-registry.js';
 import { ChatServiceClient } from '../../src/services/chat-service-client.js';
+import { MatchDao } from '../../src/dao/match.js';
+import { TournamentParticipantDao } from '../../src/dao/tournament-participant.js';
 import { GameMode } from '../../src/types/match.js';
 
 describe('Matchmaking Routes', () => {
@@ -45,7 +47,15 @@ describe('Matchmaking Routes', () => {
       createGameSessionChannel: vi.fn().mockResolvedValue(undefined),
     } as any;
 
-    await registerMatchmakingRoutes(server, pools, poolRegistry, mockChatServiceClient);
+    const mockMatchDao = {
+      findActiveMatchForUser: vi.fn().mockResolvedValue(null)
+    } as unknown as MatchDao;
+
+    const mockParticipantDao = {
+      getActiveTournament: vi.fn().mockResolvedValue(null)
+    } as unknown as TournamentParticipantDao;
+
+    await registerMatchmakingRoutes(server, pools, poolRegistry, mockChatServiceClient, mockMatchDao, mockParticipantDao);
     await server.ready();
   });
 
