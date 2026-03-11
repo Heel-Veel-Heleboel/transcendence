@@ -36,6 +36,62 @@ export function Matchmaking(): JSX.Element {
     );
 }
 
+
+// NOTE: interface IStatus {
+//      active: boolean
+//      isTournament: boolean
+//      onGoing: boolean;
+//      activity: ITournament | IMatch | null;
+// }
+//
+// NOTE: 
+// Matchmaking()
+//  const = [status, setStatus] = useState<IStatus>(false, false, false, null);
+//  const = useNotification();
+//  .
+//  useEffect(()=>{
+//      async fn getStatus(){
+//          const result = await api.get('/status/me')
+//          setActive(result.data);
+//      }
+//  .
+//      getStatus()
+//  }, [notif.tournamentUpdate, notif.matchUpdate]);
+//  .
+//  .
+//  return(
+//      <div>{status.active ? currentActivity(status) : GameModeMenu()}</div>
+//      <div>GameLobbyRoom</div>
+//      <div>TournamentLobbyRoom(active)</div>
+//  )
+//
+// NOTE: 
+// GameModeMenu()
+//  handleX()
+//  handleY()
+//  handleZ()
+//  handleW()
+//  .
+// return(
+//      <button onClick={handleX}>join 1v1 classic</button>
+//      <button onClick={handleY}>join 1v1 powerup</button>
+//      <button onClick={handleZ}>join tournament classic</button>
+//      <button onClick={handleW}>join tournament powerup</button>
+// )
+// 
+// NOTE:
+// currentActivity(status: IStatus)
+//         if (status.onGoing && status.isTournament)
+//              return onGoingTournament(status);
+//         else if (!status.onGoing && status.isTournament)
+//              return pendingTournament(status);
+//         else if (status.onGoing && !status.isTournament)
+//              return onGoingMatch(status);
+//         else if (!status.onGoing && !status.isTournament)
+//              return pendingMatch
+//
+
+
 export interface ITournamentStatus {
     activeTournamentId: number | null;
     isCreator: boolean;

@@ -65,9 +65,9 @@ export const CONFIG = {
 
   // NOTE: MATCHMAKING
   SINGLE_CLASSIC_GAME: 'join classic 1v1',
-  TOURNAMENT_CLASSIC_GAME: 'join classic tournament',
+  TOURNAMENT_CLASSIC_GAME: 'create classic tournament',
   SINGLE_POWERUP_GAME: 'join powerup 1v1',
-  TOURNAMENT_POWERUP_GAME: 'join powerup tournament',
+  TOURNAMENT_POWERUP_GAME: 'create powerup tournament',
   CANCEL_JOIN_BUTTON: 'cancel',
 
   // NOTE: AXIOS
