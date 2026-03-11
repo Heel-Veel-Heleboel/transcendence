@@ -25,6 +25,8 @@ export interface MatchAckMetadata {
   acknowledgedBy: number[];
   expiresAt: string;
   status: 'pending' | 'acknowledged' | 'declined' | 'expired';
+  tournamentId?: number;
+  tournamentName?: string;
 }
 
 export interface RespondToMatchAckRequest {
@@ -47,6 +49,8 @@ export interface SendMatchAckRequest {
   playerIds: number[];
   gameMode: string;
   expiresAt: string;
+  tournamentId?: number;
+  tournamentName?: string;
 }
 
 export interface SystemMessageRequest {

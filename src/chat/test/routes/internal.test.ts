@@ -45,7 +45,8 @@ describe('Internal Routes', () => {
 
       expect(response.statusCode).toBe(201);
       expect(mockChatService.sendMatchAck).toBeCalledWith(
-        'match-1', [1, 2], 'classic', '2026-01-01T12:05:00Z'
+        'match-1', [1, 2], 'classic', '2026-01-01T12:05:00Z',
+        undefined, undefined
       );
     });
 

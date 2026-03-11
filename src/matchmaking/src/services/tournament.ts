@@ -363,12 +363,8 @@ export class TournamentService {
     if (queuedMatches.length === 0) return [];
 
     const deadline = new Date(Date.now() + tournament.ackDeadlineMin * 60 * 1000);
-    const activated: Match[] = [];
-
-    for (const match of queuedMatches) {
-      const m = await this.matchDao.activateMatch(match.id, deadline);
-      activated.push(m);
-    }
+    const matchIds = queuedMatches.map(m => m.id);
+    const activated = await this.matchDao.activateMatches(matchIds, deadline);
 
     this.log('info', `Activated ${activated.length} matches for tournament ${tournamentId}`, {
       round: activated[0]?.round

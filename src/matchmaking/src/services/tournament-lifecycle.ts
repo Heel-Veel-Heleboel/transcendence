@@ -317,10 +317,13 @@ export class TournamentLifecycleManager {
     try {
       const matches = await this.tournamentService.startTournament(tournamentId);
 
+      // Look up tournament once for all notifications
+      const tournament = await this.tournamentDao.findById(tournamentId);
+
       // Schedule deadlines and notify players for all round 1 matches
       for (const match of matches) {
         this.scheduleMatchDeadline(match);
-        this.notifyMatchPlayers(match);
+        this.notifyMatchPlayers(match, tournament);
       }
 
       this.log('info', `Tournament ${tournamentId} started, ${matches.length} matches activated`);
@@ -393,9 +396,10 @@ export class TournamentLifecycleManager {
     try {
       const matches = await this.tournamentService.activateRoundMatches(tournamentId);
       if (matches.length > 0) {
+        const tournament = await this.tournamentDao.findById(tournamentId);
         for (const match of matches) {
           this.scheduleMatchDeadline(match);
-          this.notifyMatchPlayers(match);
+          this.notifyMatchPlayers(match, tournament);
         }
         this.log('info', `Activated ${matches.length} matches for tournament ${tournamentId}`);
       } else {
@@ -410,11 +414,8 @@ export class TournamentLifecycleManager {
    * Notify both players that a tournament match is ready for acknowledgement.
    * Reuses the same match-ack flow as casual matches, with tournament info included.
    */
-  private async notifyMatchPlayers(match: Match): Promise<void> {
-    if (!match.tournamentId || !match.deadline) return;
-
-    const tournament = await this.tournamentDao.findById(match.tournamentId);
-    if (!tournament) return;
+  private notifyMatchPlayers(match: Match, tournament: Tournament | null): void {
+    if (!match.deadline || !tournament) return;
 
     this.chatServiceClient.sendMatchAck(
       match.id,

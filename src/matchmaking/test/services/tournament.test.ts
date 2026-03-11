@@ -67,6 +67,7 @@ describe('TournamentService', () => {
       findActiveMatchForUser: vi.fn(),
       findNextQueuedMatch: vi.fn(),
       findAllQueuedMatches: vi.fn(),
+      activateMatches: vi.fn(),
       activateMatch: vi.fn(),
       resetToPendingAck: vi.fn(),
       findCompletedInRound: vi.fn(),
@@ -555,14 +556,17 @@ describe('TournamentService', () => {
 
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockMatchDao.findAllQueuedMatches).mockResolvedValueOnce(queuedMatches as any);
-      vi.mocked(mockMatchDao.activateMatch)
-        .mockResolvedValueOnce({ ...queuedMatches[0], deadline: new Date() } as any)
-        .mockResolvedValueOnce({ ...queuedMatches[1], deadline: new Date() } as any);
+      vi.mocked(mockMatchDao.activateMatches).mockResolvedValueOnce(
+        queuedMatches.map(m => ({ ...m, deadline: new Date() })) as any
+      );
 
       const result = await service.activateRoundMatches(1);
 
       expect(result).toHaveLength(2);
-      expect(mockMatchDao.activateMatch).toHaveBeenCalledTimes(2);
+      expect(mockMatchDao.activateMatches).toHaveBeenCalledWith(
+        ['match-2', 'match-3'],
+        expect.any(Date)
+      );
     });
 
     it('should return empty array when no queued matches remain', async () => {

@@ -405,6 +405,25 @@ export class MatchDao {
   }
 
   /**
+   * Activate multiple queued matches atomically by setting their deadlines.
+   */
+  async activateMatches(matchIds: string[], deadline: Date): Promise<Match[]> {
+    return await this.prisma.$transaction(
+      matchIds.map(id =>
+        this.prisma.match.update({
+          where: { id },
+          data: {
+            deadline,
+            status: 'PENDING_ACKNOWLEDGEMENT',
+            player1Acknowledged: false,
+            player2Acknowledged: false
+          }
+        })
+      )
+    );
+  }
+
+  /**
    * Reset a match to PENDING_ACKNOWLEDGEMENT for retry (e.g., game server failure).
    * Clears acknowledgement flags, game session, and sets a new deadline.
    */
