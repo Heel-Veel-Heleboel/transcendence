@@ -28,7 +28,9 @@ export async function registerInternalRoutes(
         body.matchId,
         body.playerIds,
         body.gameMode,
-        body.expiresAt
+        body.expiresAt,
+        body.tournamentId,
+        body.tournamentName
       );
       return reply.status(201).send(result);
     } catch (error) {

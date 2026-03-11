@@ -229,10 +229,10 @@ export class TournamentService {
   }
 
   /**
-   * Start the tournament — generate the knockout bracket and activate the first match.
-   * Returns the first-round match that was activated (has a deadline set).
+   * Start the tournament — generate the knockout bracket and activate all first-round matches.
+   * Returns all activated first-round matches.
    */
-  async startTournament(tournamentId: number): Promise<Match> {
+  async startTournament(tournamentId: number): Promise<Match[]> {
     const tournament = await this.tournamentDao.findById(tournamentId);
 
     if (!tournament) {
@@ -252,7 +252,7 @@ export class TournamentService {
     await this.tournamentDao.updateStatus(tournamentId, 'IN_PROGRESS');
 
     try {
-      const firstMatch = await this.generateBracket(
+      const matches = await this.generateBracket(
         tournamentId,
         participants,
         tournament.ackDeadlineMin
@@ -261,7 +261,7 @@ export class TournamentService {
       this.log('info', `Tournament ${tournamentId} started (knockout)`, {
         playerCount: participants.length
       });
-      return firstMatch;
+      return matches;
     } catch (error) {
       await this.tournamentDao.updateStatus(tournamentId, 'SCHEDULED');
       this.log('error', `Failed to generate bracket for tournament ${tournamentId}, reverted to SCHEDULED`);
@@ -279,15 +279,15 @@ export class TournamentService {
    * - Shuffles participants randomly for seeding
    * - If player count is not a power of 2, some players get byes into round 2
    * - Only creates round 1 matches (later rounds are created as winners advance)
-   * - Activates the first match (sets deadline), rest are queued
+   * - Activates all round 1 matches simultaneously (sets deadline on all)
    *
-   * Returns the first activated match.
+   * Returns all activated round 1 matches.
    */
   private async generateBracket(
     tournamentId: number,
     participants: Array<{ userId: number; username: string }>,
     ackDeadlineMin: number
-  ): Promise<Match> {
+  ): Promise<Match[]> {
     // Fisher-Yates shuffle for unbiased random seeding
     const shuffled = [...participants];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -319,7 +319,7 @@ export class TournamentService {
     for (let i = 0; i < matchPlayers.length; i += 2) {
       const p1 = matchPlayers[i];
       const p2 = matchPlayers[i + 1];
-      const isFirst = matches.length === 0;
+      const deadline = new Date(Date.now() + ackDeadlineMin * 60 * 1000);
 
       const match = await this.matchDao.create({
         player1Id: p1.userId,
@@ -329,7 +329,7 @@ export class TournamentService {
         tournamentId,
         round: 1,
         bracketPosition,
-        deadline: isFirst ? new Date(Date.now() + ackDeadlineMin * 60 * 1000) : null
+        deadline
       });
 
       matches.push(match);
@@ -344,7 +344,7 @@ export class TournamentService {
       byePlayerIds: byePlayers.map(p => p.userId)
     });
 
-    return matches[0];
+    return matches;
   }
 
   // ============================================================================
@@ -352,22 +352,22 @@ export class TournamentService {
   // ============================================================================
 
   /**
-   * Activate the next queued match in the current round.
-   * Returns the activated match, or null if no more queued matches.
+   * Activate all queued matches for the next round.
+   * Returns the activated matches, or empty array if none.
    */
-  async activateNextMatch(tournamentId: number): Promise<Match | null> {
+  async activateRoundMatches(tournamentId: number): Promise<Match[]> {
     const tournament = await this.tournamentDao.findById(tournamentId);
-    if (!tournament) return null;
+    if (!tournament) return [];
 
-    const nextMatch = await this.matchDao.findNextQueuedMatch(tournamentId);
-    if (!nextMatch) return null;
+    const queuedMatches = await this.matchDao.findAllQueuedMatches(tournamentId);
+    if (queuedMatches.length === 0) return [];
 
     const deadline = new Date(Date.now() + tournament.ackDeadlineMin * 60 * 1000);
-    const activated = await this.matchDao.activateMatch(nextMatch.id, deadline);
+    const matchIds = queuedMatches.map(m => m.id);
+    const activated = await this.matchDao.activateMatches(matchIds, deadline);
 
-    this.log('info', `Activated match ${activated.id} for tournament ${tournamentId}`, {
-      round: activated.round,
-      bracketPosition: activated.bracketPosition
+    this.log('info', `Activated ${activated.length} matches for tournament ${tournamentId}`, {
+      round: activated[0]?.round
     });
 
     return activated;

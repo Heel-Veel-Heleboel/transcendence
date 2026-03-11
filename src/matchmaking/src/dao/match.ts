@@ -375,6 +375,20 @@ export class MatchDao {
   }
 
   /**
+   * Find all queued (not yet activated) matches for a tournament.
+   */
+  async findAllQueuedMatches(tournamentId: number): Promise<Match[]> {
+    return await this.prisma.match.findMany({
+      where: {
+        tournamentId,
+        status: 'PENDING_ACKNOWLEDGEMENT',
+        deadline: null
+      },
+      orderBy: [{ round: 'asc' }, { bracketPosition: 'asc' }]
+    });
+  }
+
+  /**
    * Activate a queued match by setting its deadline.
    * Also resets acknowledgement flags in case this is a retry.
    */
@@ -388,6 +402,25 @@ export class MatchDao {
         player2Acknowledged: false
       }
     });
+  }
+
+  /**
+   * Activate multiple queued matches atomically by setting their deadlines.
+   */
+  async activateMatches(matchIds: string[], deadline: Date): Promise<Match[]> {
+    return await this.prisma.$transaction(
+      matchIds.map(id =>
+        this.prisma.match.update({
+          where: { id },
+          data: {
+            deadline,
+            status: 'PENDING_ACKNOWLEDGEMENT',
+            player1Acknowledged: false,
+            player2Acknowledged: false
+          }
+        })
+      )
+    );
   }
 
   /**

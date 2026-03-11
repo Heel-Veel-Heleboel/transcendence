@@ -231,7 +231,9 @@ export class ChatService {
     matchId: string,
     playerIds: number[],
     gameMode: string,
-    expiresAt: string
+    expiresAt: string,
+    tournamentId?: number,
+    tournamentName?: string
   ) {
     const uniqueIds = Array.from(new Set(playerIds));
     if (uniqueIds.length !== 2) {
@@ -268,7 +270,9 @@ export class ChatService {
       playerIds: [playerA, playerB],
       acknowledgedBy: [],
       expiresAt,
-      status: 'pending'
+      status: 'pending',
+      ...(tournamentId != null && { tournamentId }),
+      ...(tournamentName != null && { tournamentName })
     };
 
     const message = await this.messageDao.create({
@@ -285,7 +289,9 @@ export class ChatService {
       messageId: message.id,
       matchId,
       gameMode,
-      expiresAt
+      expiresAt,
+      ...(tournamentId != null && { tournamentId }),
+      ...(tournamentName != null && { tournamentName })
     });
 
     return { channel, message };

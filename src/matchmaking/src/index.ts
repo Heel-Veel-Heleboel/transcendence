@@ -109,6 +109,7 @@ const lifecycleManager = new TournamentLifecycleManager(
   tournamentDao,
   matchDao,
   gatewayNotificationClient,
+  chatServiceClient,
   undefined, // use default timer provider
   server.log
 );
