@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import api from "../api";
 import { CONFIG } from "../constants/AppConfig";
 import { ITournament } from "../components/widgets/Matchmaking";
+import { Terminal } from "../components/utils/MenuUtils";
 
 
 export function Tournament(): JSX.Element {
@@ -43,6 +44,37 @@ export function TournamentContent({ tournament }: { tournament: ITournament | nu
         return <div></div>
     }
     return (
-        <div>{tournament.name} | {tournament.createdBy} | {tournament.participantCount}</div>
+
+        <div className="w-full min-h-full flex flex-col">
+            <div className="h-1/2 flex justify-around">
+                <div className="flex flex-col justify-between">
+                    <div></div>
+                    <div>name</div>
+                    <div>mode</div>
+                    <div>status</div>
+                    <div></div>
+                </div>
+                <div className="flex flex-col">
+                    <div className="h-1/10"></div>
+                    <div className="h-8/10">
+                        <Terminal title="participants" child={<div> content</div>} />
+                    </div>
+                    <div className="h-1/10"></div>
+                </div>
+                <div className="flex flex-col">
+                    <div className="h-1/10"></div>
+                    <div className="h-8/10">
+                        <Terminal title="participants" child={<div> content</div>} />
+                    </div>
+                    <div className="h-1/10"></div>
+                </div>
+            </div>
+            <div className="h-1/2">bracket rendering</div>
+
+        </div>
+
     )
 }
+
+
+

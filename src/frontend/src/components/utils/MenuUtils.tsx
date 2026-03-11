@@ -34,8 +34,8 @@ export function TitleBar({ logoPath, title }: { logoPath: string, title: string 
 
 export function Terminal({ title, child }: { title: string, child: JSX.Element }): JSX.Element {
     return (
-        <div className="min-h-full max-h-full flex flex-col">
-            <div className="border border-black text-center">{title}</div>
+        <div id={`terminal-${title}`} className="border border-black min-h-full max-h-full flex flex-col">
+            <div className="border border-black border-t border-l border-r text-center">{title}</div>
             <div className="min-h-full max-h-full overflow-auto">{child}</div>
         </div>
     )
@@ -44,7 +44,7 @@ export function Terminal({ title, child }: { title: string, child: JSX.Element }
 export function Widget({ logoPath, title, width, child }: { logoPath: string, title: string, width: string, child: JSX.Element }): JSX.Element {
     const outerContainerCss = `${width} flex flex-col min-h-full`
     return (
-        <div className={outerContainerCss}>
+        <div className={outerContainerCss} id={`widget-${title}`}>
             <TitleBar logoPath={logoPath} title={title} />
 
             {child}

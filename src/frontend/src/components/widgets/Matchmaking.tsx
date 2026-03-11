@@ -36,7 +36,6 @@ export function Matchmaking(): JSX.Element {
     );
 }
 
-
 // NOTE: interface IStatus {
 //      active: boolean
 //      isTournament: boolean
