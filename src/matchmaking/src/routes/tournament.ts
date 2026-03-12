@@ -135,33 +135,6 @@ export async function registerTournamentRoutes(
   });
 
   /**
-   * GET /matchmaking/tournament/status/me
-   * Check if user can create or join a tournament
-   */
-  server.get('/matchmaking/tournament/status/me', async (request: FastifyRequest, reply: FastifyReply) => {
-    const userId = getUserIdFromHeader(request);
-
-    if (userId === null) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Missing x-user-id header'
-      });
-    }
-
-    try {
-      const status = await tournamentService.getUserTournamentStatus(userId);
-
-      return reply.status(200).send(status);
-    } catch (error) {
-      request.log.error({ error, userId }, 'Error getting user tournament status');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to get tournament status'
-      });
-    }
-  });
-
-  /**
    * GET /matchmaking/tournament/:id
    * Get tournament details
    */
