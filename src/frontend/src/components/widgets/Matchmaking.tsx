@@ -55,11 +55,15 @@ export function Matchmaking(): JSX.Element {
                 if (status === null) {
                     return;
                 }
-                console.log('status')
-                console.log(status);
                 const result = await api({
                     url: CONFIG.REQUEST_MATCH_INFO(status.activeMatchId),
                 })
+                const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
+                if (String(result.data.player1Id) === user_id) {
+                    setActivityName(result.data.player2Username);
+                } else if (String(result.data.player2Id) === user_id) {
+                    setActivityName(result.data.player1Username);
+                }
                 console.log('getmatch')
                 console.log(result);
             } catch (e: any) {
@@ -170,7 +174,7 @@ export function CurrentActivity(status: IMatchmakingStatus | null, name: string)
     else if (status.state === 'in_tournament_registration' && status.activeTournamentId && !status.isCreator)
         return Activity(`Pending tournament: ${name}`, () => handleTournamentLeave(String(status.activeTournamentId)), 'leave');
     else if (status.state === 'match_pending_ack' && status.activeMatchId)
-        return Activity(`Current match: ${name}`, null, null);
+        return Activity(`Current match vs ${name}`, null, null);
     else if (status.state === 'in_pool' && !status.activeMatchId) {
         if (status.poolGameMode === 'classic') {
             return Activity(`in classic match pool`, () => handleSingleClassicLeave(), 'leave');
