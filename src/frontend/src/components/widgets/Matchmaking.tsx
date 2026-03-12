@@ -15,7 +15,6 @@ const client = new Client("ws://localhost:2567");
 
 
 /* v8 ignore start */
-// TODO: reorganize joinTournamentGames by having seperate 
 export function Matchmaking(): JSX.Element {
     const [status, setStatus] = useState<IMatchmakingStatus | null>(null);
     const [tournaments, setTournaments] = useState<Array<ITournament>>([]);
@@ -56,14 +55,18 @@ export function Matchmaking(): JSX.Element {
                 if (status === null) {
                     return;
                 }
+                console.log('status')
+                console.log(status);
                 const result = await api({
                     url: CONFIG.REQUEST_MATCH_INFO(status.activeMatchId),
                 })
+                console.log('getmatch')
                 console.log(result);
             } catch (e: any) {
                 console.error(e);
             }
         }
+
 
         if (status === null) {
             return;

@@ -137,7 +137,7 @@ export const CONFIG = {
     'Content-Type': 'application/json'
   },
   REQUEST_MATCH_INFO: (matchId: string | null) => {
-    return `matchmaking/${matchId}`;
+    return `matchmaking/match/${matchId}`;
   },
 
   // NOTE: HTML ID
