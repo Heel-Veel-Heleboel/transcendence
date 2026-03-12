@@ -1,16 +1,15 @@
-import { Dispatch, JSX, SetStateAction, useEffect, useState } from "react"
+import { JSX, useEffect, useState } from "react"
 import { LobbyRoom } from "../utils/MenuUtils"
 
 import { Client } from "@colyseus/sdk";
 import { useLobbyRoom } from "@colyseus/react";
 import api from "../../api";
 import { CONFIG } from "../../constants/AppConfig";
-import { ERRORS } from "../../constants/Errors";
-import { NavigateFunction, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../hooks/Notifications";
 import * as timer from 'react-timer-hook';
 import { getCookie } from "../utils/cookies";
-
+import { IMatchmakingStatus, ITournament } from "../../types/matchmaking";
 
 const client = new Client("ws://localhost:2567");
 
@@ -18,95 +17,197 @@ const client = new Client("ws://localhost:2567");
 /* v8 ignore start */
 // TODO: reorganize joinTournamentGames by having seperate 
 export function Matchmaking(): JSX.Element {
+    const [status, setStatus] = useState<IMatchmakingStatus | null>(null);
+    const [tournaments, setTournaments] = useState<Array<ITournament>>([]);
+    const [activityName, setActivityName] = useState<string>('');
+    const notif = useNotifications();
+
+    useEffect(() => {
+        async function getStatus() {
+            try {
+                const result = await api({
+                    url: CONFIG.REQUEST_MATCHMAKING_STATUS
+                })
+                setStatus(result.data);
+            } catch (e: any) {
+                console.error(e);
+            }
+        }
+        setActivityName('');
+        getStatus()
+    }, [notif.tournamentUpdate, notif.matchUpdate]);
+
+    useEffect(() => {
+        async function getTournament() {
+            try {
+                if (status === null) {
+                    return;
+                }
+                const result = await api({
+                    url: CONFIG.REQUEST_TOURNAMENT_INFO(status?.activeTournamentId),
+                })
+                setActivityName(result.data.tournament.name);
+            } catch (e: any) {
+                console.error(e);
+            }
+        }
+        async function getMatch() {
+            try {
+                if (status === null) {
+                    return;
+                }
+                const result = await api({
+                    url: CONFIG.REQUEST_MATCH_INFO(status.activeMatchId),
+                })
+                console.log(result);
+            } catch (e: any) {
+                console.error(e);
+            }
+        }
+
+        if (status === null) {
+            return;
+        } else if (status.activeMatchId && !status.activeTournamentId) {
+            getMatch();
+
+        } else if (!status.activeMatchId && status.activeTournamentId) {
+            getTournament()
+        }
+
+    }, [status])
+
+    useEffect(() => {
+        async function getTournaments() {
+            try {
+                const result = await api({
+                    url: CONFIG.REQUEST_TOURNAMENTS
+                });
+                setTournaments(result.data.tournaments);
+            } catch (e: any) {
+                console.error(e);
+            }
+        }
+
+        getTournaments()
+    }, [notif.tournamentUpdate])
+
     return (
-        <div id={CONFIG.MATCHMAKING_CONTAINER_ID} className="h-9/10 flex flex-col">
-            <div className="min-h-1/4 flex">
-                <JoinSingleGames />
-                <JoinTournamentGames />
+        <div id='MatchmakingContainer' className="min-h-full w-full">
+            <div className="h-1/4 w-full">
+                {status && status?.state !== 'free' ? CurrentActivity(status, activityName) : GameModeMenu()}
             </div>
             <div id='GamesPanel' className="w-full min-h-3/4 flex">
                 <div className="min-h-full w-1/2">
                     <LobbyRoom title="Current Games" gamesContent={CurrentGames()} />
                 </div>
                 <div className="min-h-full w-1/2">
-                    <LobbyRoom title="Open Tournaments" gamesContent={OpenTournaments()} />
+                    <LobbyRoom title="Open Tournaments" gamesContent={OpenTournaments(tournaments, status?.state)} />
                 </div>
             </div>
         </div>
-    );
+    )
 }
 
-// NOTE: interface IStatus {
-//      active: boolean
-//      isTournament: boolean
-//      onGoing: boolean;
-//      activity: ITournament | IMatch | null;
-// }
-//
-// NOTE: 
-// Matchmaking()
-//  const = [status, setStatus] = useState<IStatus>(false, false, false, null);
-//  const = useNotification();
-//  .
-//  useEffect(()=>{
-//      async fn getStatus(){
-//          const result = await api.get('/status/me')
-//          setActive(result.data);
-//      }
-//  .
-//      getStatus()
-//  }, [notif.tournamentUpdate, notif.matchUpdate]);
-//  .
-//  .
-//  return(
-//      <div>{status.active ? currentActivity(status) : GameModeMenu()}</div>
-//      <div>GameLobbyRoom</div>
-//      <div>TournamentLobbyRoom(active)</div>
-//  )
-//
-// NOTE: 
-// GameModeMenu()
-//  handleX()
-//  handleY()
-//  handleZ()
-//  handleW()
-//  .
-// return(
-//      <button onClick={handleX}>join 1v1 classic</button>
-//      <button onClick={handleY}>join 1v1 powerup</button>
-//      <button onClick={handleZ}>join tournament classic</button>
-//      <button onClick={handleW}>join tournament powerup</button>
-// )
-// 
-// NOTE:
-// currentActivity(status: IStatus)
-//         if (status.onGoing && status.isTournament)
-//              return onGoingTournament(status);
-//         else if (!status.onGoing && status.isTournament)
-//              return pendingTournament(status);
-//         else if (status.onGoing && !status.isTournament)
-//              return onGoingMatch(status);
-//         else if (!status.onGoing && !status.isTournament)
-//              return pendingMatch
-//
+export function CurrentActivity(status: IMatchmakingStatus | null, name: string) {
+    if (status === null) {
+        throw new Error('currentActivity fail');
+    }
 
+    async function handleTournamentCancel(tournamentId: string) {
+        try {
+            await api({
+                url: CONFIG.REQUEST_TOURNAMENT_CANCEL(tournamentId),
+                method: CONFIG.REQUEST_TOURNAMENT_METHOD
+            })
+        } catch (e: any) {
+            console.error(e);
+        }
+    }
 
-export interface ITournamentStatus {
-    activeTournamentId: number | null;
-    isCreator: boolean;
+    async function handleTournamentLeave(tournamentId: string) {
+        try {
+            await api({
+                url: CONFIG.REQUEST_TOURNAMENT_UNREGISTER(tournamentId),
+                method: CONFIG.REQUEST_TOURNAMENT_METHOD
+            })
+        } catch (e: any) {
+            console.error(e);
+        }
+    }
+
+    async function handleSingleClassicLeave() {
+        try {
+            await api({
+                url: CONFIG.REQUEST_MATCHMAKING_CLASSIC_CANCEL,
+
+                method: CONFIG.REQUEST_MATCHMAKING_METHOD
+            });
+        } catch (e: any) {
+            console.error(e);
+            return;
+        }
+    }
+    async function handleSinglePowerupLeave() {
+        try {
+            await api({
+                url: CONFIG.REQUEST_MATCHMAKING_POWERUP_CANCEL,
+
+                method: CONFIG.REQUEST_MATCHMAKING_METHOD
+            });
+        } catch (e: any) {
+            console.error(e);
+            return;
+        }
+    }
+
+    if (status.state === 'in_tournament_active' && status.activeTournamentId)
+        return Activity(`Current tournament: ${name}`, null, null);
+    else if (status.state === 'in_tournament_registration' && status.activeTournamentId && status.isCreator)
+        return Activity(`Pending tournament: ${name}`, () => handleTournamentCancel(String(status.activeTournamentId)), 'cancel');
+    else if (status.state === 'in_tournament_registration' && status.activeTournamentId && !status.isCreator)
+        return Activity(`Pending tournament: ${name}`, () => handleTournamentLeave(String(status.activeTournamentId)), 'leave');
+    else if (status.state === 'match_pending_ack' && status.activeMatchId)
+        return Activity(`Current match: ${name}`, null, null);
+    else if (status.state === 'in_pool' && !status.activeMatchId) {
+        if (status.poolGameMode === 'classic') {
+            return Activity(`in classic match pool`, () => handleSingleClassicLeave(), 'leave');
+        } else if (status.poolGameMode === 'powerup') {
+            return Activity(`in powerup match pool`, () => handleSinglePowerupLeave(), 'leave');
+        }
+    }
+    else
+        throw new Error('currentActivity fail');
 }
 
 
-export function JoinTournamentGames(): JSX.Element {
-    const [tournament, setTournament] = useState<ITournamentStatus | null>(null);
-    const [hasCreated, setHasCreated] = useState<boolean>(false);
-    const [details, setDetails] = useState<ITournament | null>(null);
-    const [isConnecting, setIsConnecting] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-    const navigate = useNavigate();
-    const notif = useNotifications();
+export function Activity(label: string, callback: (() => void) | null, callbackTitle: string | null) {
+    return (
+        <div className="min-h-full w-full flex flex-col justify-between">
+            <div />
+            <div className="flex justify-between">
+                <div />
+                <div>{label}</div>
+                {callback ? <button onClick={callback}>{callbackTitle}</button> : null}
+                <div />
+            </div>
+            <div />
+        </div>
+    )
 
-    async function handleDefault() {
+}
+
+export function GameModeMenuButton({ callback, title }: { callback: () => void, title: string }) {
+    return (
+        <div className="min-h-full flex w-1/4 justify-between border border-black">
+            <div />
+            <button onClick={callback}>{title}</button>
+            <div />
+        </div >
+    )
+}
+
+export function GameModeMenu() {
+    async function createClassicTournament() {
         try {
             await api({
                 url: CONFIG.REQUEST_TOURNAMENT_CREATION,
@@ -115,14 +216,12 @@ export function JoinTournamentGames(): JSX.Element {
                 headers: CONFIG.REQUEST_TOURNAMENT_HEADERS,
                 data: JSON.stringify({ name: 'champions_league', gameMode: 'classic' })
             });
-            setHasCreated(true);
         } catch (e: any) {
             console.error(e);
-            setError(ERRORS.TOURNAMENT_CREATE_FAILED);
             return;
         }
     }
-    async function handleCustomized() {
+    async function createPowerUpTournament() {
         try {
             await api({
                 url: CONFIG.REQUEST_TOURNAMENT_CREATION,
@@ -130,212 +229,46 @@ export function JoinTournamentGames(): JSX.Element {
                 headers: CONFIG.REQUEST_TOURNAMENT_HEADERS,
                 data: JSON.stringify({ name: 'olympics', gameMode: 'powerup' })
             });
-            setHasCreated(true);
         } catch (e: any) {
             console.error(e);
-            setError(ERRORS.TOURNAMENT_CREATE_FAILED);
             return;
         }
     }
 
-    useEffect(() => {
-        async function getTournament() {
-            setHasCreated(false);
-            try {
-                const status = await api({
-                    url: CONFIG.REQUEST_TOURNAMENT_STATUS,
-                })
-                console.log('tournament');
-                console.log(status);
-                setTournament(status.data)
-            } catch (e: any) {
-                console.error(e);
-                // setError(e);
-            }
-            finally {
-                setIsConnecting(false);
-            }
+    async function joinClassicSingle() {
+        try {
+            await api({
+                url: CONFIG.REQUEST_MATCHMAKING_CLASSIC,
+
+                method: CONFIG.REQUEST_MATCHMAKING_METHOD
+            });
+        } catch (e: any) {
+            console.error(e);
         }
-
-        getTournament();
-    }, [hasCreated, notif.tournamentUpdate])
-
-    useEffect(() => {
-        async function getDetails() {
-            if (!tournament) {
-                setDetails(null);
-                return;
-            }
-            try {
-                const tournamentDetails = await api({
-                    url: CONFIG.REQUEST_TOURNAMENT_INFO(tournament.activeTournamentId)
-                })
-                console.log('details');
-                console.log(tournamentDetails);
-                setDetails(tournamentDetails.data.tournament);
-            } catch (e: any) {
-                console.error(e);
-                // setError(e);
-            }
+    }
+    async function joinPowerupSingle() {
+        try {
+            await api({
+                url: CONFIG.REQUEST_MATCHMAKING_POWERUP,
+                method: CONFIG.REQUEST_MATCHMAKING_METHOD
+            });
+        } catch (e: any) {
+            console.error(e);
         }
-
-        getDetails();
-    }, [tournament])
-
-    if (isConnecting) return <p>Connecting...</p>;
-    if (error) return <p>Error</p>;
+    }
 
 
     return (
         <div className="min-h-full flex w-full">
-            {
-                details ? TournamentStatus(tournament, details, setTournament, navigate) :
-                    <div className="min-h-full flex w-full">
-                        <div className="min-h-full flex w-1/2 justify-between border border-black">
-                            <div />
-                            <button onClick={handleDefault}>{CONFIG.TOURNAMENT_CLASSIC_GAME}</button>
-                            <div />
-                        </div >
-                        <div className="min-h-full flex w-1/2 justify-between border border-black">
-                            <div />
-                            <button onClick={handleCustomized}>{CONFIG.TOURNAMENT_POWERUP_GAME}</button>
-                            <div />
-                        </div>
-                    </div >
-            }
-        </div>
-    )
-}
-
-export function TournamentStatus(tournament: ITournamentStatus | null, details: ITournament | null, setTournament: Dispatch<SetStateAction<ITournamentStatus | null>>, navigate: NavigateFunction): JSX.Element {
-    if (tournament === null || details === null) return <p>Error</p>;
-
-    async function handleCancel() {
-        try {
-            if (details?.id) {
-                await api({
-                    url: CONFIG.REQUEST_TOURNAMENT_CANCEL(String(details.id)),
-                    method: CONFIG.REQUEST_TOURNAMENT_METHOD
-                })
-            }
-        } catch (e: any) {
-            console.error(e);
-        } finally {
-            setTournament(null);
-        }
-    }
-
-    async function handleLeave() {
-        try {
-            if (details?.id) {
-                await api({
-                    url: CONFIG.REQUEST_TOURNAMENT_UNREGISTER(String(details.id)),
-                    method: CONFIG.REQUEST_TOURNAMENT_METHOD
-                })
-            }
-        } catch (e: any) {
-            console.error(e);
-        }
-        finally {
-            setTournament(null);
-        }
-    }
-
-    return (
-        <div id='TournamentStatus' className="w-full flex flex-col justify-between">
-            <div />
-            <div className="flex justify-around">
-                <button onClick={() => { navigate(CONFIG.TOURNAMENT_NAVIGATION_REDIRECT(String(details.id))) }}>current: {details.name} </button>
-                <div>{details.status === 'IN_PROGRESS' ? null : tournament.isCreator ? <button onClick={() => { handleCancel() }}>cancel</button> : <button onClick={() => { handleLeave() }}>leave</button>}</div>
+            <div className="min-h-full flex w-full">
+                <GameModeMenuButton callback={joinClassicSingle} title={CONFIG.SINGLE_CLASSIC_GAME} />
+                <GameModeMenuButton callback={joinPowerupSingle} title={CONFIG.SINGLE_POWERUP_GAME} />
+                <GameModeMenuButton callback={createClassicTournament} title={CONFIG.TOURNAMENT_CLASSIC_GAME} />
+                <GameModeMenuButton callback={createPowerUpTournament} title={CONFIG.TOURNAMENT_POWERUP_GAME} />
             </div>
-            <div />
-        </div>
+        </div >
     )
 
-}
-
-export function JoinSingleGames(): JSX.Element {
-    const [joiningDefault, SetJoiningDefault] = useState<boolean>(false);
-    const [joiningCustomized, SetJoiningCustomized] = useState<boolean>(false);
-    const [isConnecting, setIsConnecting] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
-
-    async function handleDefault() {
-        if (!joiningDefault) {
-            try {
-                await api({
-                    url: CONFIG.REQUEST_MATCHMAKING_CLASSIC,
-
-                    method: CONFIG.REQUEST_MATCHMAKING_METHOD
-                });
-            } catch (e: any) {
-                console.error(e);
-                setError(ERRORS.MATCHMAKING_CLASSIC_FAILED);
-                return;
-            }
-        } else {
-            try {
-                await api({
-                    url: CONFIG.REQUEST_MATCHMAKING_CLASSIC_CANCEL,
-
-                    method: CONFIG.REQUEST_MATCHMAKING_METHOD
-                });
-            } catch (e: any) {
-                console.error(e);
-                setError(ERRORS.MATCHMAKING_LEAVE_FAILED);
-                return;
-            }
-        }
-        SetJoiningDefault(!joiningDefault);
-    }
-    async function handleCustomized() {
-        if (!joiningCustomized) {
-            try {
-                await api({
-                    url: CONFIG.REQUEST_MATCHMAKING_POWERUP,
-                    method: CONFIG.REQUEST_MATCHMAKING_METHOD
-                });
-            } catch (e: any) {
-                console.error(e);
-                setError(ERRORS.MATCHMAKING_POWERUP_FAILED);
-                return;
-            }
-        } else {
-            try {
-                await api({
-                    url: CONFIG.REQUEST_MATCHMAKING_POWERUP_CANCEL,
-
-                    method: CONFIG.REQUEST_MATCHMAKING_METHOD
-                });
-            } catch (e: any) {
-                console.error(e);
-                setError(ERRORS.MATCHMAKING_LEAVE_FAILED);
-                return;
-
-            }
-            SetJoiningCustomized(!joiningCustomized);
-        }
-    }
-
-    if (isConnecting) return <p>Connecting...</p>;
-    if (error) return <p>Error: {error}</p>;
-
-    return (
-        <div className="min-h-full w-full" id="SingleJoinGames">
-            <div className="flex w-full min-h-full">
-                <div className="min-h-full flex w-1/2 justify-between border border-black">
-                    <div />
-                    <button onClick={handleDefault}>{joiningDefault ? CONFIG.CANCEL_JOIN_BUTTON : CONFIG.SINGLE_CLASSIC_GAME}</button>
-                    <div />
-                </div>
-                <div className="min-h-full flex w-1/2 justify-between border border-black">
-                    <div />
-                    <button onClick={handleCustomized}>{joiningCustomized ? CONFIG.CANCEL_JOIN_BUTTON : CONFIG.SINGLE_POWERUP_GAME}</button>
-                    <div />
-                </div>
-            </div>
-        </div>
-    )
 }
 
 function CurrentGames(): JSX.Element {
@@ -357,19 +290,6 @@ function CurrentGames(): JSX.Element {
     );
 }
 
-export interface ITournament {
-    createdAt: string
-    createdBy: number
-    gameMode: string
-    id: number
-    maxPlayers: number
-    minPlayers: number
-    name: string
-    participantCount: number
-    registrationEnd: string
-    startTime: string | null
-    status: string
-}
 
 function Timer({ expiryTimestamp }: { expiryTimestamp: Date }): JSX.Element {
     const {
@@ -385,7 +305,7 @@ function Timer({ expiryTimestamp }: { expiryTimestamp: Date }): JSX.Element {
 
 }
 
-function JoinTournament({ tournament }: { tournament: ITournament }): JSX.Element {
+function JoinTournament({ tournament, state }: { tournament: ITournament, state: string | undefined }): JSX.Element {
     const [isJoining, setIsJoining] = useState<boolean>(false);
     const [userId, setUserId] = useState<string>('');
 
@@ -402,18 +322,6 @@ function JoinTournament({ tournament }: { tournament: ITournament }): JSX.Elemen
 
     }
 
-    async function unregister(id: string) {
-        try {
-            await api({
-                url: CONFIG.REQUEST_TOURNAMENT_UNREGISTER(id),
-                method: CONFIG.REQUEST_TOURNAMENT_METHOD,
-            })
-            setIsJoining(false);
-        } catch (e: any) {
-            console.error(e);
-        }
-    }
-
     useEffect(() => {
         const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
         setUserId(user_id);
@@ -421,43 +329,16 @@ function JoinTournament({ tournament }: { tournament: ITournament }): JSX.Elemen
 
     return (
         <div>
-            {userId === String(tournament.createdBy) ? <div>registered</div> : isJoining ?
-                <button onClick={() => { unregister(String(tournament.id)) }}>leave</button> :
-                <button onClick={() => { register(String(tournament.id)) }}>join</button>
+            {userId === String(tournament.createdBy) ? <div>registered</div> : state && state === 'free' ?
+                <button onClick={() => { register(String(tournament.id)) }}>join</button> : null
             }
         </div>
 
     )
 }
 
-function OpenTournaments(): JSX.Element {
+function OpenTournaments(tournaments: Array<ITournament>, state: string | undefined): JSX.Element {
     const navigate = useNavigate();
-    const notif = useNotifications();
-    const [tournaments, setTournaments] = useState<Array<ITournament>>([]);
-    const [isConnecting, setIsConnecting] = useState<boolean>(true);
-    const [error, setError] = useState<Error | null>(null);
-
-
-    useEffect(() => {
-        async function getTournaments() {
-            try {
-                const result = await api({
-                    url: CONFIG.REQUEST_TOURNAMENTS
-                });
-                setTournaments(result.data.tournaments);
-                setIsConnecting(false);
-            } catch (e: any) {
-                console.error(e);
-                setError(e);
-            }
-        }
-
-        getTournaments()
-    }, [notif.tournamentUpdate])
-
-    if (isConnecting) return <p>Connecting...</p>;
-    if (error) return <p>Error: {error.message}</p>;
-
 
     return (
         <ul>
@@ -470,7 +351,7 @@ function OpenTournaments(): JSX.Element {
                             <Timer expiryTimestamp={new Date(tournament.registrationEnd)} />
                             <div>| {' '}</div>
                         </div>
-                        <JoinTournament tournament={tournament} />
+                        <JoinTournament tournament={tournament} state={state} />
                     </div>
                 </li>
             ))}

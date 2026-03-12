@@ -6,6 +6,7 @@ import { MatchDao } from '../dao/match.js';
 import { TournamentParticipantDao } from '../dao/tournament-participant.js';
 import { isValidGameMode, GameMode } from '../types/match.js';
 import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
+import { GatewayNotificationClient } from '../services/gateway-notification-client.js';
 
 /**
  * Pool lookup map - maps gameMode to MatchmakingService instance
@@ -24,6 +25,7 @@ export async function registerMatchmakingRoutes(
   pools: PoolMap,
   poolRegistry: PoolRegistry,
   chatServiceClient: ChatServiceClient,
+  gatewayNotificationClient: GatewayNotificationClient,
   matchDao: MatchDao,
   participantDao: TournamentParticipantDao
 ): Promise<void> {
@@ -156,6 +158,12 @@ export async function registerMatchmakingRoutes(
 
       if (result.success) {
         poolRegistry.registerUser(userId, gameMode);
+        gatewayNotificationClient.notifyUsers(
+          [userId],
+          {
+            type: 'MATCH_JOINED_POOL'
+          }
+        );
       }
 
       request.log.info({ userId, gameMode, success: result.success }, 'User join pool attempt');
@@ -240,6 +248,12 @@ export async function registerMatchmakingRoutes(
 
       if (result.success) {
         poolRegistry.unregisterUser(userId);
+        gatewayNotificationClient.notifyUsers(
+          [userId],
+          {
+            type: 'MATCH_LEAVED_POOL'
+          }
+        );
       }
 
       request.log.info({ userId, gameMode, success: result.success }, 'User leave pool attempt');

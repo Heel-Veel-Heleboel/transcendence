@@ -6,6 +6,7 @@ import { useState } from "react";
 
 export function useNotifications() {
     const [chatUpdate, setChatUpdate] = useState<number>(0);
+    const [matchUpdate, setMatchUpdate] = useState<number>(0);
     const [tournamentUpdate, setTournamentUpdate] = useState<number>(0);
     const auth = useAuth();
     const navigate = useNavigate();
@@ -23,8 +24,15 @@ export function useNotifications() {
                     if (msg.type === 'MATCH_READY') {
                         navigate(`/game/${msg.gameMode}/${msg.matchId}/${msg.roomId}`)
                     }
+                    if (msg.type === 'MATCH_JOINED_POOL' || msg.type === 'MATCH_LEAVED_POOL') {
+                        setMatchUpdate(event.timeStamp)
+                    }
                     if (msg.type === 'chat:match_ack_required') {
+                        setMatchUpdate(event.timeStamp)
                         setChatUpdate(event.timeStamp);
+                    }
+                    if (msg.type === 'chat:match_ack_response') {
+                        setMatchUpdate(event.timeStamp)
                     }
                     if (msg.type === 'TOURNAMENT_UPDATE') {
                         setTournamentUpdate(event.timeStamp);
@@ -38,5 +46,5 @@ export function useNotifications() {
                     }
                 }
             });
-    return { ws: notif, chatUpdate: chatUpdate, tournamentUpdate: tournamentUpdate }
+    return { ws: notif, chatUpdate: chatUpdate, tournamentUpdate: tournamentUpdate, matchUpdate: matchUpdate }
 }

@@ -97,13 +97,13 @@ export const CONFIG = {
   REQUEST_REFRESH_UNAUTHORIZED: 401,
   REQUEST_USER: 'users/find-by-id/',
 
+  REQUEST_MATCHMAKING_STATUS: 'matchmaking/status/me',
   REQUEST_MATCHMAKING_CLASSIC: 'matchmaking/classic/join',
   REQUEST_MATCHMAKING_CLASSIC_CANCEL: 'matchmaking/classic/leave',
   REQUEST_MATCHMAKING_METHOD: 'POST',
   REQUEST_MATCHMAKING_POWERUP: 'matchmaking/powerup/join',
   REQUEST_MATCHMAKING_POWERUP_CANCEL: 'matchmaking/powerup/leave',
 
-  REQUEST_TOURNAMENT_STATUS: 'matchmaking/tournament/status/me',
   REQUEST_TOURNAMENT_INFO: (tournamentId: number | null) => {
     return `matchmaking/tournament/${String(tournamentId)}`;
   },
@@ -135,6 +135,9 @@ export const CONFIG = {
   REQUEST_MATCH_METHOD: 'POST',
   REQUEST_MATCH_HEADERS: {
     'Content-Type': 'application/json'
+  },
+  REQUEST_MATCH_INFO: (matchId: string | null) => {
+    return `matchmaking/${matchId}`;
   },
 
   // NOTE: HTML ID
