@@ -56,10 +56,6 @@ describe('Tournament Routes', () => {
         { id: 1, player1Id: 101, player2Id: 102, tournamentId: 1, status: 'PENDING' }
       ]),
       getParticipantIds: vi.fn().mockResolvedValue([101, 102, 103]),
-      getUserTournamentStatus: vi.fn().mockResolvedValue({
-        activeTournamentId: null,
-        isCreator: false
-      })
     } as any;
 
     const mockGatewayNotificationClient = {
@@ -249,84 +245,6 @@ describe('Tournament Routes', () => {
       expect(response.statusCode).toBe(500);
       const body = JSON.parse(response.body);
       expect(body.error).toBe('Internal Server Error');
-    });
-  });
-
-  // ============================================================================
-  // GET /matchmaking/tournament/status/me - User Tournament Status
-  // ============================================================================
-
-  describe('GET /matchmaking/tournament/status/me', () => {
-    it('should return null activeTournamentId when user is free', async () => {
-      const response = await server.inject({
-        method: 'GET',
-        url: '/matchmaking/tournament/status/me',
-        headers: { 'x-user-id': '100' },
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body);
-      expect(body.activeTournamentId).toBeNull();
-      expect(body.isCreator).toBe(false);
-    });
-
-    it('should return activeTournamentId and isCreator=true when user created a tournament', async () => {
-      vi.mocked(mockTournamentService.getUserTournamentStatus).mockResolvedValueOnce({
-        activeTournamentId: 5,
-        isCreator: true
-      });
-
-      const response = await server.inject({
-        method: 'GET',
-        url: '/matchmaking/tournament/status/me',
-        headers: { 'x-user-id': '100' },
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body);
-      expect(body.activeTournamentId).toBe(5);
-      expect(body.isCreator).toBe(true);
-    });
-
-    it('should return activeTournamentId and isCreator=false when user is a participant', async () => {
-      vi.mocked(mockTournamentService.getUserTournamentStatus).mockResolvedValueOnce({
-        activeTournamentId: 7,
-        isCreator: false
-      });
-
-      const response = await server.inject({
-        method: 'GET',
-        url: '/matchmaking/tournament/status/me',
-        headers: { 'x-user-id': '100' },
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body);
-      expect(body.activeTournamentId).toBe(7);
-      expect(body.isCreator).toBe(false);
-    });
-
-    it('should return 401 when x-user-id header is missing', async () => {
-      const response = await server.inject({
-        method: 'GET',
-        url: '/matchmaking/tournament/status/me',
-      });
-
-      expect(response.statusCode).toBe(401);
-    });
-
-    it('should return 500 on unexpected error', async () => {
-      vi.mocked(mockTournamentService.getUserTournamentStatus).mockRejectedValueOnce(
-        new Error('Database error')
-      );
-
-      const response = await server.inject({
-        method: 'GET',
-        url: '/matchmaking/tournament/status/me',
-        headers: { 'x-user-id': '100' },
-      });
-
-      expect(response.statusCode).toBe(500);
     });
   });
 

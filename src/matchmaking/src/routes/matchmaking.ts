@@ -2,6 +2,8 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { MatchmakingService } from '../services/casual-matchmaking.js';
 import { PoolRegistry } from '../services/pool-registry.js';
 import { ChatServiceClient } from '../services/chat-service-client.js';
+import { MatchDao } from '../dao/match.js';
+import { TournamentParticipantDao } from '../dao/tournament-participant.js';
 import { isValidGameMode, GameMode } from '../types/match.js';
 import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
 
@@ -21,8 +23,92 @@ export async function registerMatchmakingRoutes(
   server: FastifyInstance,
   pools: PoolMap,
   poolRegistry: PoolRegistry,
-  chatServiceClient: ChatServiceClient
+  chatServiceClient: ChatServiceClient,
+  matchDao: MatchDao,
+  participantDao: TournamentParticipantDao
 ): Promise<void> {
+
+  /**
+   * GET /matchmaking/status/me
+   * Unified status check — returns the user's current matchmaking state.
+   *
+   * Possible states:
+   *   'free'                       - not in pool, not in tournament, no active match
+   *   'in_pool'                    - waiting in a matchmaking queue
+   *   'match_pending_ack'          - match found, waiting for acknowledgement (casual or tournament)
+   *   'in_tournament_registration' - registered in a tournament still accepting players
+   *   'in_tournament_active'       - in an ongoing tournament (SCHEDULED or IN_PROGRESS)
+   */
+  server.get('/matchmaking/status/me', async (request: FastifyRequest, reply: FastifyReply) => {
+    const userId = getUserIdFromHeader(request);
+    if (userId === null) {
+      return reply.status(401).send({ error: 'Unauthorized', message: 'Missing x-user-id header' });
+    }
+
+    try {
+      // Check for an active match first — pool unregistering happens asynchronously
+      // around pairing, so there's a window where a match exists in DB but the user
+      // is still registered in-memory. DB is the source of truth.
+      const activeMatch = await matchDao.findActiveMatchForUser(userId);
+      if (activeMatch) {
+        const matchState = activeMatch.status === 'PENDING_ACKNOWLEDGEMENT'
+          ? 'match_pending_ack'
+          : activeMatch.status === 'SCHEDULED'
+            ? 'match_scheduled'
+            : 'match_in_progress';
+        return reply.status(200).send({
+          state: matchState,
+          poolGameMode: null,
+          activeMatchId: activeMatch.id,
+          activeTournamentId: activeMatch.tournamentId ?? null,
+          tournamentStatus: null,
+          isCreator: false
+        });
+      }
+
+      // Check pool membership (in-memory, only meaningful when no active match)
+      const poolGameMode = poolRegistry.getCurrentPool(userId) ?? null;
+      if (poolGameMode) {
+        return reply.status(200).send({
+          state: 'in_pool',
+          poolGameMode,
+          activeMatchId: null,
+          activeTournamentId: null,
+          tournamentStatus: null,
+          isCreator: false
+        });
+      }
+
+      // Check tournament participation
+      const activeTournament = await participantDao.getActiveTournament(userId);
+      if (activeTournament) {
+        const isRegistration = activeTournament.tournamentStatus === 'REGISTRATION';
+        return reply.status(200).send({
+          state: isRegistration ? 'in_tournament_registration' : 'in_tournament_active',
+          poolGameMode: null,
+          activeMatchId: null,
+          activeTournamentId: activeTournament.tournamentId,
+          tournamentStatus: activeTournament.tournamentStatus,
+          isCreator: activeTournament.createdBy === userId
+        });
+      }
+
+      return reply.status(200).send({
+        state: 'free',
+        poolGameMode: null,
+        activeMatchId: null,
+        activeTournamentId: null,
+        tournamentStatus: null,
+        isCreator: false
+      });
+    } catch (error) {
+      request.log.error({ error, userId }, 'Error fetching matchmaking status');
+      return reply.status(500).send({
+        error: 'Internal Server Error',
+        message: 'Failed to fetch matchmaking status'
+      });
+    }
+  });
 
   /**
    * POST /matchmaking/:gameMode/join

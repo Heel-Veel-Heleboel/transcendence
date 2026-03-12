@@ -4,6 +4,8 @@ import { registerMatchmakingRoutes } from '../../src/routes/matchmaking.js';
 import { MatchmakingService } from '../../src/services/casual-matchmaking.js';
 import { PoolRegistry } from '../../src/services/pool-registry.js';
 import { ChatServiceClient } from '../../src/services/chat-service-client.js';
+import { MatchDao } from '../../src/dao/match.js';
+import { TournamentParticipantDao } from '../../src/dao/tournament-participant.js';
 import { GameMode } from '../../src/types/match.js';
 
 describe('Matchmaking Routes', () => {
@@ -45,7 +47,15 @@ describe('Matchmaking Routes', () => {
       createGameSessionChannel: vi.fn().mockResolvedValue(undefined),
     } as any;
 
-    await registerMatchmakingRoutes(server, pools, poolRegistry, mockChatServiceClient);
+    const mockMatchDao = {
+      findActiveMatchForUser: vi.fn().mockResolvedValue(null)
+    } as unknown as MatchDao;
+
+    const mockParticipantDao = {
+      getActiveTournament: vi.fn().mockResolvedValue(null)
+    } as unknown as TournamentParticipantDao;
+
+    await registerMatchmakingRoutes(server, pools, poolRegistry, mockChatServiceClient, mockMatchDao, mockParticipantDao);
     await server.ready();
   });
 
@@ -383,6 +393,267 @@ describe('Matchmaking Routes', () => {
       expect(body.success).toBe(true);
       expect(body.gameMode).toBe('powerup');
       expect(poolRegistry.getCurrentPool(100)).toBe('powerup');
+    });
+  });
+
+  describe('GET /matchmaking/status/me', () => {
+    it('should return 401 when x-user-id header is missing', async () => {
+      const response = await server.inject({
+        method: 'GET',
+        url: '/matchmaking/status/me',
+      });
+
+      expect(response.statusCode).toBe(401);
+      const body = JSON.parse(response.body);
+      expect(body.message).toContain('x-user-id');
+    });
+
+    it('should return state: free when user has no match, pool, or tournament', async () => {
+      const response = await server.inject({
+        method: 'GET',
+        url: '/matchmaking/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.state).toBe('free');
+      expect(body.poolGameMode).toBeNull();
+      expect(body.activeMatchId).toBeNull();
+      expect(body.activeTournamentId).toBeNull();
+    });
+
+    it('should return state: in_pool when user is in a pool and has no active match', async () => {
+      await server.inject({
+        method: 'POST',
+        url: '/matchmaking/classic/join',
+        headers: { 'x-user-id': '100', 'x-user-name': 'player1' },
+      });
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/matchmaking/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.state).toBe('in_pool');
+      expect(body.poolGameMode).toBe('classic');
+      expect(body.activeMatchId).toBeNull();
+    });
+
+    it('should return state: match_pending_ack when user has a PENDING_ACKNOWLEDGEMENT match', async () => {
+      const mockMatchDao2 = {
+        findActiveMatchForUser: vi.fn().mockResolvedValue({
+          id: 'match-123',
+          status: 'PENDING_ACKNOWLEDGEMENT',
+          tournamentId: null
+        })
+      } as any;
+      const mockParticipantDao2 = {
+        getActiveTournament: vi.fn().mockResolvedValue(null)
+      } as any;
+
+      const server2 = Fastify();
+      const poolRegistry2 = new PoolRegistry();
+      await registerMatchmakingRoutes(server2, pools, poolRegistry2, mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await server2.ready();
+
+      const response = await server2.inject({
+        method: 'GET',
+        url: '/matchmaking/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      await server2.close();
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.state).toBe('match_pending_ack');
+      expect(body.activeMatchId).toBe('match-123');
+      expect(body.poolGameMode).toBeNull();
+    });
+
+    it('should return state: match_scheduled when user has a SCHEDULED match', async () => {
+      const mockMatchDao2 = {
+        findActiveMatchForUser: vi.fn().mockResolvedValue({
+          id: 'match-456',
+          status: 'SCHEDULED',
+          tournamentId: null
+        })
+      } as any;
+      const mockParticipantDao2 = {
+        getActiveTournament: vi.fn().mockResolvedValue(null)
+      } as any;
+
+      const server2 = Fastify();
+      const poolRegistry2 = new PoolRegistry();
+      await registerMatchmakingRoutes(server2, pools, poolRegistry2, mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await server2.ready();
+
+      const response = await server2.inject({
+        method: 'GET',
+        url: '/matchmaking/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      await server2.close();
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.state).toBe('match_scheduled');
+      expect(body.activeMatchId).toBe('match-456');
+    });
+
+    it('should return state: match_in_progress when user has an IN_PROGRESS match', async () => {
+      const mockMatchDao2 = {
+        findActiveMatchForUser: vi.fn().mockResolvedValue({
+          id: 'match-789',
+          status: 'IN_PROGRESS',
+          tournamentId: null
+        })
+      } as any;
+      const mockParticipantDao2 = {
+        getActiveTournament: vi.fn().mockResolvedValue(null)
+      } as any;
+
+      const server2 = Fastify();
+      const poolRegistry2 = new PoolRegistry();
+      await registerMatchmakingRoutes(server2, pools, poolRegistry2, mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await server2.ready();
+
+      const response = await server2.inject({
+        method: 'GET',
+        url: '/matchmaking/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      await server2.close();
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.state).toBe('match_in_progress');
+      expect(body.activeMatchId).toBe('match-789');
+    });
+
+    it('should prioritise active match over pool membership', async () => {
+      const mockMatchDao2 = {
+        findActiveMatchForUser: vi.fn().mockResolvedValue({
+          id: 'match-123',
+          status: 'PENDING_ACKNOWLEDGEMENT',
+          tournamentId: null
+        })
+      } as any;
+      const mockParticipantDao2 = {
+        getActiveTournament: vi.fn().mockResolvedValue(null)
+      } as any;
+
+      const server2 = Fastify();
+      const poolRegistry2 = new PoolRegistry();
+      poolRegistry2.registerUser(100, 'classic');
+      await registerMatchmakingRoutes(server2, pools, poolRegistry2, mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await server2.ready();
+
+      const response = await server2.inject({
+        method: 'GET',
+        url: '/matchmaking/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      await server2.close();
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.state).toBe('match_pending_ack');
+    });
+
+    it('should return state: in_tournament_registration when user is in REGISTRATION tournament', async () => {
+      const mockMatchDao2 = {
+        findActiveMatchForUser: vi.fn().mockResolvedValue(null)
+      } as any;
+      const mockParticipantDao2 = {
+        getActiveTournament: vi.fn().mockResolvedValue({
+          tournamentId: 5,
+          createdBy: 100,
+          tournamentStatus: 'REGISTRATION'
+        })
+      } as any;
+
+      const server2 = Fastify();
+      await registerMatchmakingRoutes(server2, pools, new PoolRegistry(), mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await server2.ready();
+
+      const response = await server2.inject({
+        method: 'GET',
+        url: '/matchmaking/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      await server2.close();
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.state).toBe('in_tournament_registration');
+      expect(body.activeTournamentId).toBe(5);
+      expect(body.isCreator).toBe(true);
+      expect(body.tournamentStatus).toBe('REGISTRATION');
+    });
+
+    it('should return state: in_tournament_active when user is in IN_PROGRESS tournament', async () => {
+      const mockMatchDao2 = {
+        findActiveMatchForUser: vi.fn().mockResolvedValue(null)
+      } as any;
+      const mockParticipantDao2 = {
+        getActiveTournament: vi.fn().mockResolvedValue({
+          tournamentId: 7,
+          createdBy: 999,
+          tournamentStatus: 'IN_PROGRESS'
+        })
+      } as any;
+
+      const server2 = Fastify();
+      await registerMatchmakingRoutes(server2, pools, new PoolRegistry(), mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await server2.ready();
+
+      const response = await server2.inject({
+        method: 'GET',
+        url: '/matchmaking/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      await server2.close();
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.state).toBe('in_tournament_active');
+      expect(body.activeTournamentId).toBe(7);
+      expect(body.isCreator).toBe(false);
+    });
+
+    it('should return 500 when a DAO throws', async () => {
+      const mockMatchDao2 = {
+        findActiveMatchForUser: vi.fn().mockRejectedValue(new Error('DB outage'))
+      } as any;
+      const mockParticipantDao2 = {
+        getActiveTournament: vi.fn().mockResolvedValue(null)
+      } as any;
+
+      const server2 = Fastify();
+      await registerMatchmakingRoutes(server2, pools, new PoolRegistry(), mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await server2.ready();
+
+      const response = await server2.inject({
+        method: 'GET',
+        url: '/matchmaking/status/me',
+        headers: { 'x-user-id': '100' },
+      });
+
+      await server2.close();
+
+      expect(response.statusCode).toBe(500);
+      const body = JSON.parse(response.body);
+      expect(body.error).toBe('Internal Server Error');
     });
   });
 
