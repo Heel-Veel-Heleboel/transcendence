@@ -39,6 +39,12 @@ export const  EnvSchema = z.object({
     .startsWith('http', 'API_GATEWAY_URL must start with http:// or https://'),
 
   UPLOAD_DIR: z.string().default('uploads'),
-  PREFIX: z.string().default('/uploads/')
+  PREFIX: z.string().default('/uploads/'),
+  FILE_SIZE_LIMIT: z.string()
+    .regex(/^\d+$/, 'FILE_SIZE_LIMIT must be a number')
+    .transform(Number)
+    .refine((size) => size > 0, {
+      message: 'FILE_SIZE_LIMIT must be a positive number'
+    })
 
 });
