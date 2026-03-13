@@ -65,7 +65,7 @@ export class FriendshipController {
   async findAllByStatusForUser(req: FastifyRequest<{ Params: { userId: number; status: FriendshipStatus } }>, res: FastifyReply): Promise<void> {
     const { userId, status } = req.params;
     req.log.info(`Retrieving all friendships with status ${status} for user ${userId}`);
-    const friendships = await this.friendshipService.getUserFriendships({ userId });
+    const friendships = await this.friendshipService.getAllByStatusForUser({ userId, status });
     req.log.info(`Retrieved ${friendships.length} friendships with status ${status} for user ${userId}`);
     res.status(200).send(friendships);
   }
