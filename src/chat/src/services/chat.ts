@@ -329,18 +329,15 @@ export class ChatService {
 
       // Forward decline to matchmaking (cancels the match)
       if (this.matchmakingClient) {
-        try {
-          await this.matchmakingClient.decline(metadata.matchId, playerId);
-        } catch (err) {
-          this.logger?.error({ err, matchId: metadata.matchId, playerId }, 'Failed to forward decline to matchmaking');
-        }
+        await this.matchmakingClient.decline(metadata.matchId, playerId);
       }
 
       await this.notificationService.notifyUsers(metadata.playerIds, {
         type: 'chat:match_ack_response',
         matchId: metadata.matchId,
         playerId,
-        acknowledged: false
+        acknowledged: false,
+        matchCancelled: true
       });
       return { acknowledged: false, matchId: metadata.matchId, gameMode: metadata.gameMode };
     }

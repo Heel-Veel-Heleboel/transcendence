@@ -150,6 +150,10 @@ export async function registerMatchRoutes(
       if (!match) {
         return reply.status(404).send({ error: 'Not Found', message: 'Match not found' });
       }
+      if (match.status === 'CANCELLED' || match.status === 'FORFEITED') {
+        // Already declined/cancelled — idempotent, return current state
+        return reply.status(200).send({ success: true, matchId: match.id, status: match.status });
+      }
       if (match.status !== 'PENDING_ACKNOWLEDGEMENT') {
         return reply.status(400).send({ error: 'Bad Request', message: `Match is ${match.status}, cannot decline` });
       }
