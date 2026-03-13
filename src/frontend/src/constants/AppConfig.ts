@@ -96,6 +96,9 @@ export const CONFIG = {
   },
   REQUEST_REFRESH_UNAUTHORIZED: 401,
   REQUEST_USER: 'users/find-by-id/',
+  REQUEST_PROFILE: 'users/profile/find-by-id/',
+  REQUEST_PROFILE_PICTURE: 'users',
+  REQUEST_PROFILE_PICTURE_UPLOAD: 'users/profile/upload-avatar/',
 
   REQUEST_MATCHMAKING_STATUS: 'matchmaking/status/me',
   REQUEST_MATCHMAKING_CLASSIC: 'matchmaking/classic/join',
