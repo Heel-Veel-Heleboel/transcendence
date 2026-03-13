@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import { ClientError } from '../error/user-management.js';
 
 export interface WebSocketEvent {
   type: string;
@@ -12,10 +12,10 @@ export class ApiGatewayClient{
     private readonly timeout: number
   ) {}
 
-  async notifyAddressee(addressee_id: number, event: WebSocketEvent): Promise<void> {
+  async notifyAddressee(user2_id: number, event: WebSocketEvent): Promise<void> {
     try {
-      await axios.post(`${this.baseUrl}/notifications/friendship-request`, {
-        userIds: [addressee_id],
+      await axios.post(`${this.baseUrl}/internal/ws/notify `, {
+        userIds: [user2_id],
         event
       }, {
         timeout: this.timeout,
@@ -23,8 +23,8 @@ export class ApiGatewayClient{
           'Content-Type': 'application/json'
         }
       });
-    } catch (error) {
-      console.error('Error notifying addressee:', error);
+    } catch {
+      throw new ClientError('APIGatewayClient');
     }
   }
 }

@@ -29,6 +29,9 @@ export const CommonErrorMessages = {
   DATABASE_ERROR: 'Database error occurred',
   INTERNAL_SERVER_ERROR: 'An unexpected error occurred',
   VALIDATION_ERROR: 'Validation error occurred'
-  
+};
+
+export const ClientErrors = {
+  CLIENT_ERROR: (clientName: string) => `An error occurred while communicating with ${clientName}`
 };
 
