@@ -46,7 +46,7 @@ export class ProfileController {
 
   async uploadAvatar( request: FastifyRequest< {Params: { user_id: number }}>, reply: FastifyReply): Promise<FastifyReply> {
 
-    const file = await request.file({ limits: { fileSize: 1024 } });
+    const file = await request.file({ limits: { fileSize: 1024 * 1024* 2 } });
 
     if (!file) {
       return reply.status(400).send({ message: 'No file uploaded' });
@@ -85,7 +85,7 @@ export class ProfileController {
       return reply.code(413).send({ message: 'File too large' });
     }
 
-    const pub_url = `${process.env.PREFIX || '/uploads/'}${unique_filename}`;
+    const pub_url = `${process.env.PREFIX || '/users/uploads/'}${unique_filename}`;
     const result = await this.profileService.uploadUrl(user_id, pub_url);
 
     return reply.code(200).send({
