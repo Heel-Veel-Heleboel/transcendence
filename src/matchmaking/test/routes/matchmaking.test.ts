@@ -7,6 +7,7 @@ import { ChatServiceClient } from '../../src/services/chat-service-client.js';
 import { MatchDao } from '../../src/dao/match.js';
 import { TournamentParticipantDao } from '../../src/dao/tournament-participant.js';
 import { GameMode } from '../../src/types/match.js';
+import { GatewayNotificationClient } from '../../src/services/gateway-notification-client.js';
 
 describe('Matchmaking Routes', () => {
   let server: FastifyInstance;
@@ -15,6 +16,7 @@ describe('Matchmaking Routes', () => {
   let poolRegistry: PoolRegistry;
   let pools: Record<GameMode, MatchmakingService>;
   let mockChatServiceClient: ChatServiceClient;
+  let mockGatewayNotificationClient: GatewayNotificationClient;
 
   beforeEach(async () => {
     server = Fastify();
@@ -55,7 +57,11 @@ describe('Matchmaking Routes', () => {
       getActiveTournament: vi.fn().mockResolvedValue(null)
     } as unknown as TournamentParticipantDao;
 
-    await registerMatchmakingRoutes(server, pools, poolRegistry, mockChatServiceClient, mockMatchDao, mockParticipantDao);
+    mockGatewayNotificationClient = {
+      notifyUsers: vi.fn().mockResolvedValue(null)
+    } as unknown as GatewayNotificationClient;
+
+    await registerMatchmakingRoutes(server, pools, poolRegistry, mockChatServiceClient, mockGatewayNotificationClient, mockMatchDao, mockParticipantDao);
     await server.ready();
   });
 
@@ -457,7 +463,7 @@ describe('Matchmaking Routes', () => {
 
       const server2 = Fastify();
       const poolRegistry2 = new PoolRegistry();
-      await registerMatchmakingRoutes(server2, pools, poolRegistry2, mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await registerMatchmakingRoutes(server2, pools, poolRegistry2, mockChatServiceClient, mockGatewayNotificationClient, mockMatchDao2, mockParticipantDao2);
       await server2.ready();
 
       const response = await server2.inject({
@@ -489,7 +495,7 @@ describe('Matchmaking Routes', () => {
 
       const server2 = Fastify();
       const poolRegistry2 = new PoolRegistry();
-      await registerMatchmakingRoutes(server2, pools, poolRegistry2, mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await registerMatchmakingRoutes(server2, pools, poolRegistry2, mockChatServiceClient, mockGatewayNotificationClient, mockMatchDao2, mockParticipantDao2);
       await server2.ready();
 
       const response = await server2.inject({
@@ -520,7 +526,7 @@ describe('Matchmaking Routes', () => {
 
       const server2 = Fastify();
       const poolRegistry2 = new PoolRegistry();
-      await registerMatchmakingRoutes(server2, pools, poolRegistry2, mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await registerMatchmakingRoutes(server2, pools, poolRegistry2, mockChatServiceClient, mockGatewayNotificationClient, mockMatchDao2, mockParticipantDao2);
       await server2.ready();
 
       const response = await server2.inject({
@@ -552,7 +558,7 @@ describe('Matchmaking Routes', () => {
       const server2 = Fastify();
       const poolRegistry2 = new PoolRegistry();
       poolRegistry2.registerUser(100, 'classic');
-      await registerMatchmakingRoutes(server2, pools, poolRegistry2, mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await registerMatchmakingRoutes(server2, pools, poolRegistry2, mockChatServiceClient, mockGatewayNotificationClient, mockMatchDao2, mockParticipantDao2);
       await server2.ready();
 
       const response = await server2.inject({
@@ -581,7 +587,7 @@ describe('Matchmaking Routes', () => {
       } as any;
 
       const server2 = Fastify();
-      await registerMatchmakingRoutes(server2, pools, new PoolRegistry(), mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await registerMatchmakingRoutes(server2, pools, new PoolRegistry(), mockChatServiceClient, mockGatewayNotificationClient, mockMatchDao2, mockParticipantDao2);
       await server2.ready();
 
       const response = await server2.inject({
@@ -613,7 +619,7 @@ describe('Matchmaking Routes', () => {
       } as any;
 
       const server2 = Fastify();
-      await registerMatchmakingRoutes(server2, pools, new PoolRegistry(), mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await registerMatchmakingRoutes(server2, pools, new PoolRegistry(), mockChatServiceClient, mockGatewayNotificationClient, mockMatchDao2, mockParticipantDao2);
       await server2.ready();
 
       const response = await server2.inject({
@@ -640,7 +646,7 @@ describe('Matchmaking Routes', () => {
       } as any;
 
       const server2 = Fastify();
-      await registerMatchmakingRoutes(server2, pools, new PoolRegistry(), mockChatServiceClient, mockMatchDao2, mockParticipantDao2);
+      await registerMatchmakingRoutes(server2, pools, new PoolRegistry(), mockChatServiceClient, mockGatewayNotificationClient, mockMatchDao2, mockParticipantDao2);
       await server2.ready();
 
       const response = await server2.inject({
