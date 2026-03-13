@@ -5,7 +5,7 @@ import { Client } from "@colyseus/sdk";
 import { useLobbyRoom } from "@colyseus/react";
 import api from "../../api";
 import { CONFIG } from "../../constants/AppConfig";
-import { useNavigate } from "react-router-dom";
+import { NavigateFunction, useNavigate } from "react-router-dom";
 import { useNotifications } from "../hooks/Notifications";
 import * as timer from 'react-timer-hook';
 import { getCookie } from "../utils/cookies";
@@ -20,6 +20,7 @@ export function Matchmaking(): JSX.Element {
     const [tournaments, setTournaments] = useState<Array<ITournament>>([]);
     const [activityName, setActivityName] = useState<string>('');
     const notif = useNotifications();
+    const navigate = useNavigate();
 
     useEffect(() => {
         async function getStatus() {
@@ -101,7 +102,7 @@ export function Matchmaking(): JSX.Element {
     return (
         <div id='MatchmakingContainer' className="min-h-full w-full">
             <div className="h-1/4 w-full">
-                {status && status?.state !== 'free' ? CurrentActivity(status, activityName) : GameModeMenu()}
+                {status && status?.state !== 'free' ? CurrentActivity(status, activityName, navigate) : GameModeMenu()}
             </div>
             <div id='GamesPanel' className="w-full min-h-3/4 flex">
                 <div className="min-h-full w-1/2">
@@ -115,7 +116,7 @@ export function Matchmaking(): JSX.Element {
     )
 }
 
-export function CurrentActivity(status: IMatchmakingStatus | null, name: string) {
+export function CurrentActivity(status: IMatchmakingStatus | null, name: string, navigate: NavigateFunction) {
     if (status === null) {
         throw new Error('currentActivity fail');
     }
@@ -168,18 +169,18 @@ export function CurrentActivity(status: IMatchmakingStatus | null, name: string)
     }
 
     if (status.state === 'in_tournament_active' && status.activeTournamentId)
-        return Activity(`Current tournament: ${name}`, null, null);
+        return Activity(<div>Current tournament: <button onClick={() => { navigate(CONFIG.TOURNAMENT_NAVIGATION_REDIRECT(String(status.activeTournamentId))) }}>{name} </button></div>, null, null);
     else if (status.state === 'in_tournament_registration' && status.activeTournamentId && status.isCreator)
-        return Activity(`Pending tournament: ${name}`, () => handleTournamentCancel(String(status.activeTournamentId)), 'cancel');
+        return Activity(<div>Pending tournament: <button onClick={() => { navigate(CONFIG.TOURNAMENT_NAVIGATION_REDIRECT(String(status.activeTournamentId))) }}>{name} </button></div>, () => handleTournamentCancel(String(status.activeTournamentId)), 'cancel');
     else if (status.state === 'in_tournament_registration' && status.activeTournamentId && !status.isCreator)
-        return Activity(`Pending tournament: ${name}`, () => handleTournamentLeave(String(status.activeTournamentId)), 'leave');
+        return Activity(<div>Pending tournament: <button onClick={() => { navigate(CONFIG.TOURNAMENT_NAVIGATION_REDIRECT(String(status.activeTournamentId))) }}>{name} </button></div>, () => handleTournamentLeave(String(status.activeTournamentId)), 'leave');
     else if (status.state === 'match_pending_ack' && status.activeMatchId)
-        return Activity(`Current match vs ${name}`, null, null);
+        return Activity(<div>`Current match vs ${name}`</div>, null, null);
     else if (status.state === 'in_pool' && !status.activeMatchId) {
         if (status.poolGameMode === 'classic') {
-            return Activity(`in classic match pool`, () => handleSingleClassicLeave(), 'leave');
+            return Activity(<div>`in classic match pool`</div>, () => handleSingleClassicLeave(), 'leave');
         } else if (status.poolGameMode === 'powerup') {
-            return Activity(`in powerup match pool`, () => handleSinglePowerupLeave(), 'leave');
+            return Activity(<div>`in powerup match pool`</div>, () => handleSinglePowerupLeave(), 'leave');
         }
     }
     else
@@ -187,13 +188,13 @@ export function CurrentActivity(status: IMatchmakingStatus | null, name: string)
 }
 
 
-export function Activity(label: string, callback: (() => void) | null, callbackTitle: string | null) {
+export function Activity(label: JSX.Element, callback: (() => void) | null, callbackTitle: string | null) {
     return (
         <div className="min-h-full w-full flex flex-col justify-between">
             <div />
             <div className="flex justify-between">
                 <div />
-                <div>{label}</div>
+                {label}
                 {callback ? <button onClick={callback}>{callbackTitle}</button> : null}
                 <div />
             </div>
