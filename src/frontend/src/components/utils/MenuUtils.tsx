@@ -1,20 +1,18 @@
-import { JSX } from "react";
+import { JSX, ReactNode } from "react";
 import { CONFIG } from '../../constants/AppConfig.ts'
 
 /* v8 ignore start */
-export function GamesAvailable({ quickPlayContent, defaultContent, customizedContent }: { quickPlayContent: JSX.Element, defaultContent: JSX.Element, customizedContent: JSX.Element }): JSX.Element {
+export function LobbyRoom({ title, gamesContent }: { title: string, gamesContent: JSX.Element }): JSX.Element {
     return (
-        <div className="min-h-full flex flex-col">
-            <Terminal title={CONFIG.GAMES_QUICK_PLAY_TITLE} child={quickPlayContent} />
-            <Terminal title={CONFIG.GAMES_DEFAULT_PLAY_TITLE} child={defaultContent} />
-            <Terminal title={CONFIG.GAMES_CUSTOM_PLAY_TITLE} child={customizedContent} />
+        <div className="min-h-full flex flex-col border border-black">
+            <Terminal title={title} child={gamesContent} />
         </div>
     );
 }
 
 export function TitleBar({ logoPath, title }: { logoPath: string, title: string }): JSX.Element {
     return (
-        <div className="border-1 border-black bg-pink-800 flex justify-between px-1">
+        <div className="h-1/10 border-1 border-black bg-pink-800 flex justify-between px-1">
             <div className="w-5 py-1">
                 <img src={logoPath} alt='logo' />
             </div>
@@ -36,28 +34,27 @@ export function TitleBar({ logoPath, title }: { logoPath: string, title: string 
 
 export function Terminal({ title, child }: { title: string, child: JSX.Element }): JSX.Element {
     return (
-        <div className="grow flex flex-col">
-            <div className="border border-black">{title}</div>
-            <div className="grow">{child}</div>
+        <div id={`terminal-${title}`} className="border border-black min-h-full max-h-full flex flex-col">
+            <div className="border border-black border-t border-l border-r text-center">{title}</div>
+            <div className="min-h-full max-h-full overflow-auto">{child}</div>
         </div>
     )
 }
 
 export function Widget({ logoPath, title, width, child }: { logoPath: string, title: string, width: string, child: JSX.Element }): JSX.Element {
-    const outerContainerCss = `${width} flex flex-col grow`
+    const outerContainerCss = `${width} flex flex-col min-h-full`
     return (
-        <div className={outerContainerCss}>
+        <div className={outerContainerCss} id={`widget-${title}`}>
             <TitleBar logoPath={logoPath} title={title} />
-            <div className="border border-black grow">
-                {child}
-            </div>
+
+            {child}
         </div>
     )
 }
 
-export function MainWindowContainer({ children }: { children: JSX.Element }): JSX.Element {
+export function MainWindowContainer({ children }: { children: ReactNode }): JSX.Element {
     return (
-        <div className="p-2 min-w-full grow flex flex-col">
+        <div id='MainWindowContainer' className="min-w-full min-h-full flex flex-col">
             {children}
         </div>
     )

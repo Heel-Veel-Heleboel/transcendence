@@ -1,8 +1,14 @@
 export const CONFIG = {
   // NOTE: NAVIGATION
   START_MENU_NAVIGATION: '/',
-  MENU_NAVIGATION: '/menu',
-  GAME_NAVIGATION: '/game',
+  MENU_NAVIGATION: '/home',
+  USER_PROFILE_NAVIGATION: '/profile/me',
+  VISITOR_PROFILE_NAVIGATION: '/profile/:userId',
+  GAME_NAVIGATION: '/game/:gameMode/:matchId/:roomId',
+  TOURNAMENT_NAVIGATION: '/tournament/:tournamentId',
+  TOURNAMENT_NAVIGATION_REDIRECT: (tournamentId: string) => {
+    return `/tournament/${tournamentId}`;
+  },
 
   // NOTE: DefaultStartMenu
   MENU_OPTION_LOGIN_TEXT: 'LOGIN',
@@ -12,51 +18,57 @@ export const CONFIG = {
   QUIT_REDIRECT: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
 
   // NOTE: LiveChat
-  LIVE_CHAT_LOGO: 'beehive.png', // accreditation: <a href="https://www.flaticon.com/free-icons/hive" title="hive icons">Hive icons created by gravisio - Flaticon</a>
+  LIVE_CHAT_LOGO: '/beehive.png', // accreditation: <a href="https://www.flaticon.com/free-icons/hive" title="hive icons">Hive icons created by gravisio - Flaticon</a>
   LIVE_CHAT_TITLE: 'UrlChat',
   LIVE_CHAT_ROOMS_TITLE: 'Rooms',
   LIVE_CHAT_CHAT_TITLE: 'Chat',
   LIVE_CHAT_USERS_TITLE: 'Users',
 
   // NOTE: TitleBar
-  MINIMIZE_LOGO: 'minimize.png', // accreditation: <a href="https://www.flaticon.com/free-icons/minus-button" title="minus button icons">Minus button icons created by Circlon Tech - Flaticon</a>
+  MINIMIZE_LOGO: '/minimize.png', // accreditation: <a href="https://www.flaticon.com/free-icons/minus-button" title="minus button icons">Minus button icons created by Circlon Tech - Flaticon</a>
   MINIMIZE_ALT: 'minimize',
-  MAXIMIZE_LOGO: 'maximize.png', // accreditation: <a href="https://www.flaticon.com/free-icons/maximize" title="maximize icons">Maximize icons created by Ranah Pixel Studio - Flaticon</a>
-  MAXIMIZE_ALT: 'maximize',
-  CLOSE_LOGO: 'close.png', // accreditation: <a href="https://www.flaticon.com/free-icons/close" title="close icons">Close icons created by Pixel perfect - Flaticon</a>
+  MAXIMIZE_LOGO: '/maximize.png', // accreditation: <a href="https://www.flaticon.com/free-icons/maximize" title="maximize icons">Maximize icons created by Ranah Pixel Studio - Flaticon</a>
+  MAXIMIZE_ALT: '/maximize',
+  CLOSE_LOGO: '/close.png', // accreditation: <a href="https://www.flaticon.com/free-icons/close" title="close icons">Close icons created by Pixel perfect - Flaticon</a>
   CLOSE_ALT: 'close',
 
-  // NOTE: GamesAvailable
-  GAMES_QUICK_PLAY_TITLE: 'Quick Play',
-  GAMES_DEFAULT_PLAY_TITLE: 'Default',
-  GAMES_CUSTOM_PLAY_TITLE: 'Customized',
+  // NOTE: LobbyRoom
+  LOBBYROOM: 'lobby',
+  LOBBYROOM_TITLE: 'Current Games',
 
   // NOTE: LOGIN PAGE
-  LOGIN_PAGE_LOGO: 'logo.png',
   LOGIN_PAGE_ALT: 'Login Page Logo',
+  LOGIN_PAGE_LOGO: '/logo.png',
   LOGIN_MENU_RETURN_TEXT: 'BACK TO MENU',
 
   // NOTE: CREDITS
   CREDITS_MENU_RETURN_TEXT: 'BACK TO MENU',
 
   // NOTE: ToolBar / Widgets
-  PROFILE_LOGO: 'profile.png',
+  PROFILE_LOGO: '/profile.png',
   PROFILE_TITLE: 'profile',
-  SETTINGS_LOGO: 'settings.png',
+  SETTINGS_LOGO: '/settings.png',
   SETTINGS_TITLE: 'settings',
-  LOGOUT_LOGO: 'logout.png',
+  LOGOUT_LOGO: '/logout.png',
   DEFAULT_LOCALE: 'en-GB',
   MATCHMAKING_TITLE: 'speedmatching',
-  MATCHMAKING_LOGO: 'speedmatching.png', // <a href="https://www.flaticon.com/free-icons/matchmaker" title="matchmaker icons">Matchmaker icons created by Smashicons - Flaticon</a>
+  MATCHMAKING_LOGO: '/speedmatching.png', // <a href="https://www.flaticon.com/free-icons/matchmaker" title="matchmaker icons">Matchmaker icons created by Smashicons - Flaticon</a>
   TOURNAMENT_TITLE: 'gymkhana',
-  TOURNAMENT_LOGO: 'gymkhana.png',
+  TOURNAMENT_LOGO: '/gymkhana.png',
   NEOFETCH_TITLE: 'trinityfetch',
-  NEOFETCH_LOGO: 'trinityfetch.png', // <a href="https://www.flaticon.com/free-icons/crocodile" title="crocodile icons">Crocodile icons created by Freepik - Flaticon</a>
+  NEOFETCH_LOGO: '/trinityfetch.png', // <a href="https://www.flaticon.com/free-icons/crocodile" title="crocodile icons">Crocodile icons created by Freepik - Flaticon</a>
   MUSICPLAYER_TITLE: 'mtvx',
-  MUSICPLAYER_LOGO: 'mtvx.png', // <a href="https://www.flaticon.com/free-icons/vinyl" title="vinyl icons">Vinyl icons created by Roundicons - Flaticon</a>
+  MUSICPLAYER_LOGO: '/mtvx.png', // <a href="https://www.flaticon.com/free-icons/vinyl" title="vinyl icons">Vinyl icons created by Roundicons - Flaticon</a>
 
   // NOTE: AUTH
   USERID_COOKIE_NAME: 'user_id',
+
+  // NOTE: MATCHMAKING
+  SINGLE_CLASSIC_GAME: 'join classic 1v1',
+  TOURNAMENT_CLASSIC_GAME: 'create classic tournament',
+  SINGLE_POWERUP_GAME: 'join powerup 1v1',
+  TOURNAMENT_POWERUP_GAME: 'create powerup tournament',
+  CANCEL_JOIN_BUTTON: 'cancel',
 
   // NOTE: AXIOS
   REQUEST_BASE_URL: 'http://localhost:3000/api/',
@@ -84,6 +96,61 @@ export const CONFIG = {
   },
   REQUEST_REFRESH_UNAUTHORIZED: 401,
   REQUEST_USER: 'users/find-by-id/',
+
+  REQUEST_MATCHMAKING_STATUS: 'matchmaking/status/me',
+  REQUEST_MATCHMAKING_CLASSIC: 'matchmaking/classic/join',
+  REQUEST_MATCHMAKING_CLASSIC_CANCEL: 'matchmaking/classic/leave',
+  REQUEST_MATCHMAKING_METHOD: 'POST',
+  REQUEST_MATCHMAKING_POWERUP: 'matchmaking/powerup/join',
+  REQUEST_MATCHMAKING_POWERUP_CANCEL: 'matchmaking/powerup/leave',
+
+  REQUEST_TOURNAMENT_INFO: (tournamentId: string | null) => {
+    return `matchmaking/tournament/${tournamentId}`;
+  },
+  REQUEST_TOURNAMENT_RANKING: (tournamentId: string | null) => {
+    return `matchmaking/tournament/${tournamentId}/rankings`;
+  },
+  REQUEST_TOURNAMENT_MATCHES: (tournamentId: string | null) => {
+    return `matchmaking/tournament/${tournamentId}/matches`;
+  },
+  REQUEST_TOURNAMENT_PARTICIPANTS: (tournamentId: string | null) => {
+    return `matchmaking/tournament/${tournamentId}/participants`;
+  },
+  REQUEST_TOURNAMENT_CREATION: 'matchmaking/tournament',
+  REQUEST_TOURNAMENTS: 'matchmaking/tournament',
+  REQUEST_TOURNAMENT_METHOD: 'POST',
+  REQUEST_TOURNAMENT_HEADERS: {
+    'Content-Type': 'application/json'
+  },
+  REQUEST_TOURNAMENT_CANCEL: (tournamentId: string) => {
+    return `matchmaking/tournament/${tournamentId}/cancel`;
+  },
+  REQUEST_TOURNAMENT_REGISTER: (tournamentId: string) => {
+    return `matchmaking/tournament/${tournamentId}/register`;
+  },
+  REQUEST_TOURNAMENT_UNREGISTER: (tournamentId: string) => {
+    return `matchmaking/tournament/${tournamentId}/unregister`;
+  },
+
+  REQUEST_CHANNEL_ALL: 'chat/channels',
+  REQUEST_CHANNEL_ALL_METHOD: 'GET',
+  REQUEST_CHAT: (channelId: string) => {
+    return `/chat/channels/${channelId}/messages`;
+  },
+  REQUEST_CHAT_METHOD: 'GET',
+  REQUEST_MATCH_ACK: (messageId: string) => {
+    return `/chat/match-ack/${messageId}/respond`;
+  },
+  REQUEST_MATCH_METHOD: 'POST',
+  REQUEST_MATCH_HEADERS: {
+    'Content-Type': 'application/json'
+  },
+  REQUEST_MATCH_INFO: (matchId: string | null) => {
+    return `matchmaking/match/${matchId}`;
+  },
+
+  // NOTE: HTML ID
+  MATCHMAKING_CONTAINER_ID: 'MatchmakingContainer',
 
   // NOTE: NOTIFICATIONS
   NOTIFICATION_URI: 'ws://localhost:3000/ws'

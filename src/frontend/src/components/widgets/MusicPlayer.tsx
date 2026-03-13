@@ -2,7 +2,7 @@ import { JSX, useState, useEffect } from "react";
 import { IAudioMetadata, IPicture, parseWebStream, selectCover } from 'music-metadata';
 
 /* v8 ignore start */
-export function Mtvx(): JSX.Element {
+export function MusicPlayer(): JSX.Element {
     const [metaData, setMetaData] = useState<IAudioMetadata | null>(null);
     const [cover, setCover] = useState<IPicture | null>(null);
     const [mp3, setMp3] = useState<string | undefined>('60681z.mp3');
@@ -60,7 +60,7 @@ export function Mtvx(): JSX.Element {
     }
 
     return (
-        <div className="flex min-h-full">
+        <div className="flex min-h-9/10">
             <div className='min-h-full w-1/2'>
                 <div className="min-h-full flex items-center justify-center">
                     <img className="w-1/2 h-1/2" alt="cover-art" id="cover-art" />

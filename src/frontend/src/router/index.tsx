@@ -6,7 +6,10 @@ import { StartMenu } from '../pages/StartMenu.tsx'
 import { AuthProvider } from '../components/providers/Auth.tsx';
 import { RoomProvider } from '../components/providers/Room.tsx';
 import { CONFIG } from '../constants/AppConfig.ts';
-import { NotificationProvider } from '../components/providers/Notifications.tsx';
+import { ErrorBoundary } from 'react-error-boundary';
+import { GeneralErrorFallback } from '../components/errors/GeneralErrorFallBack.tsx';
+import { Profile, VisitorProfile } from '../pages/Profile.tsx';
+import { Tournament } from '../pages/Tournament.tsx';
 
 /* v8 ignore start */
 export const Router = () => {
@@ -23,17 +26,22 @@ export const Router = () => {
     }, [])
 
     return (
-        <AuthProvider>
-            <NotificationProvider>
+        <ErrorBoundary FallbackComponent={GeneralErrorFallback} >
+            <AuthProvider>
+
                 <RoomProvider>
                     <Routes>
                         <Route path={CONFIG.START_MENU_NAVIGATION} element={<StartMenu />} />
                         <Route path={CONFIG.MENU_NAVIGATION} element={<Menu />} />
+                        <Route path={CONFIG.USER_PROFILE_NAVIGATION} element={<Profile />} />
+                        <Route path={CONFIG.VISITOR_PROFILE_NAVIGATION} element={<VisitorProfile />} />
+                        <Route path={CONFIG.TOURNAMENT_NAVIGATION} element={<Tournament />} />
                         <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />
                     </Routes>
                 </RoomProvider>
-            </NotificationProvider>
-        </AuthProvider>
+
+            </AuthProvider>
+        </ErrorBoundary >
     )
 }
 /* v8 ignore stop */

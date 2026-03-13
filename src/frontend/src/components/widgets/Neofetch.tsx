@@ -3,7 +3,7 @@ import platform from 'platform';
 import { browsers } from "../utils/browserLogos";
 
 /* v8 ignore start*/
-export function TrinityFetch(): JSX.Element {
+export function Neofetch(): JSX.Element {
     // TODO add user@alias above info
     const browser = (platform.name === null) ? '?' : platform.name;
     const browserVersion = (platform.version === null) ? '?' : platform.version;
@@ -15,7 +15,7 @@ export function TrinityFetch(): JSX.Element {
     // TODO update with p5 version
     const logo = (typeof platform.name === 'undefined') ? '?' : (browsers.get(platform.name)?.logo);
     return (
-        <div className="flex min-h-full">
+        <div className="flex min-h-9/10">
             <div className='min-h-full w-1/2'>
                 <div className="whitespace-pre-wrap text-[3px] min-h-full">{logo}</div>
 

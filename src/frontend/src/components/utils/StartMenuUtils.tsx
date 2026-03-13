@@ -12,7 +12,7 @@ export function CenterContainer({ children }: { children: JSX.Element }): JSX.El
     )
 }
 
-export function MainWindowContainer({ children }: { children: JSX.Element }): JSX.Element {
+export function StartMainWindowContainer({ children }: { children: JSX.Element }): JSX.Element {
     return (
         <div className="h-screen">
             {children}

@@ -28,7 +28,7 @@ export async function registerMatchRoutes(
    * When both players have acknowledged, a Colyseus room is created on the
    * game server and the roomId is stored as gameSessionId on the match.
    */
-  server.post('/match/:matchId/acknowledge', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.post('/matchmaking/match/:matchId/acknowledge', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
     const userId = getUserIdFromHeader(request);
 
@@ -134,7 +134,7 @@ export async function registerMatchRoutes(
    * POST /match/:matchId/decline
    * Player declines the match. Match is cancelled (no scores, no winner).
    */
-  server.post('/match/:matchId/decline', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.post('/matchmaking/match/:matchId/decline', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
     const userId = getUserIdFromHeader(request);
 
@@ -201,7 +201,7 @@ export async function registerMatchRoutes(
    * GET /match/:matchId
    * Get match details
    */
-  server.get('/match/:matchId', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.get('/matchmaking/match/:matchId', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
 
     try {
@@ -229,7 +229,7 @@ export async function registerMatchRoutes(
    * Report match result (called by game-service).
    * When isFinished is false the match is recorded as CANCELLED (premature end).
    */
-  server.post('/match/:matchId/result', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.post('/matchmaking/match/:matchId/result', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
     const { winnerId, player1Score, player2Score, isFinished } = request.body as {
       winnerId?: number;

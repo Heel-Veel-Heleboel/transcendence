@@ -5,7 +5,7 @@ export interface RoomContextType {
     isConnecting: boolean;
     isConnected: boolean;
     room: Room;
-    join: () => void;
+    join: (roomId: string) => void;
     joinError: boolean;
 }
 
@@ -27,7 +27,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
     const [isConnecting, setIsConnecting] = React.useState(false);
     const [isConnected, setIsConnected] = React.useState(false);
 
-    const join = async () => {
+    const join = async (roomId: string) => {
         if (hasActiveJoinRequest) { return; }
         if (isConnected) { return; }
         hasActiveJoinRequest = true;
@@ -36,7 +36,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
 
         try {
             room = await client
-                .joinOrCreate('game_room')
+                .joinById(roomId);
             console.log('Connected to roomId: ' + room.roomId);
         } catch (e) {
             setJoinError(true);
@@ -55,6 +55,7 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
             token: room.reconnectionToken,
             roomId: room.roomId,
         }));
+
 
         room.onLeave(() => setIsConnected(false));
 
