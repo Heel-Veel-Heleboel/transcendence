@@ -104,8 +104,17 @@ export const CONFIG = {
   REQUEST_MATCHMAKING_POWERUP: 'matchmaking/powerup/join',
   REQUEST_MATCHMAKING_POWERUP_CANCEL: 'matchmaking/powerup/leave',
 
-  REQUEST_TOURNAMENT_INFO: (tournamentId: number | null) => {
-    return `matchmaking/tournament/${String(tournamentId)}`;
+  REQUEST_TOURNAMENT_INFO: (tournamentId: string | null) => {
+    return `matchmaking/tournament/${tournamentId}`;
+  },
+  REQUEST_TOURNAMENT_RANKING: (tournamentId: string | null) => {
+    return `matchmaking/tournament/${tournamentId}/rankings`;
+  },
+  REQUEST_TOURNAMENT_MATCHES: (tournamentId: string | null) => {
+    return `matchmaking/tournament/${tournamentId}/matches`;
+  },
+  REQUEST_TOURNAMENT_PARTICIPANTS: (tournamentId: string | null) => {
+    return `matchmaking/tournament/${tournamentId}/participants`;
   },
   REQUEST_TOURNAMENT_CREATION: 'matchmaking/tournament',
   REQUEST_TOURNAMENTS: 'matchmaking/tournament',

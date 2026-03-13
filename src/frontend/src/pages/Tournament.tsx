@@ -3,7 +3,7 @@ import { MainContainer } from "../components/sections/MainContainer";
 import { useParams } from "react-router-dom";
 import api from "../api";
 import { CONFIG } from "../constants/AppConfig";
-import { ITournament } from "../components/widgets/Matchmaking";
+import { ITournament } from "../types/matchmaking.ts";
 import { Terminal } from "../components/utils/MenuUtils";
 
 
@@ -16,19 +16,68 @@ export function Tournament(): JSX.Element {
     const [isConnecting, setIsConnecting] = useState<boolean>(true);
     const [error, setError] = useState<Error | null>(null);
 
+    if (tournamentId === undefined) {
+        throw new Error('no param');
+    }
+
     useEffect(() => {
         async function getTournament() {
             try {
-                const result = await api({
-                    url: CONFIG.REQUEST_TOURNAMENT_INFO(Number(tournamentId))
-                })
-                setTournament(result.data.tournament);
-                setIsConnecting(false);
+                if (tournamentId) {
+                    const result = await api({
+                        url: CONFIG.REQUEST_TOURNAMENT_INFO(tournamentId)
+                    })
+                    setTournament(result.data.tournament);
+                    setIsConnecting(false);
+                }
+            } catch (e: any) {
+                console.error(e);
+            }
+        }
+        async function getRankings() {
+            try {
+                if (tournamentId) {
+                    const result = await api({
+                        url: CONFIG.REQUEST_TOURNAMENT_RANKING(tournamentId)
+                    })
+                    console.log('rankings');
+                    setIsConnecting(false);
+                }
+            } catch (e: any) {
+                console.error(e);
+            }
+        }
+        async function getMatches() {
+            try {
+                if (tournamentId) {
+                    const result = await api({
+                        url: CONFIG.REQUEST_TOURNAMENT_MATCHES(tournamentId)
+                    })
+                    console.log('matches');
+                    setIsConnecting(false);
+                }
+            } catch (e: any) {
+                console.error(e);
+            }
+        }
+        async function getParticipants() {
+            try {
+                if (tournamentId) {
+                    const result = await api({
+                        url: CONFIG.REQUEST_TOURNAMENT_PARTICIPANTS(tournamentId)
+                    })
+                    console.log('participants')
+                    console.log(result);
+                    setIsConnecting(false);
+                }
             } catch (e: any) {
                 console.error(e);
             }
         }
         getTournament();
+        getRankings();
+        getMatches();
+        getParticipants();
     }, [])
 
     if (isConnecting) return <p>Connecting...</p>;
