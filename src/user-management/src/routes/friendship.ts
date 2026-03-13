@@ -36,7 +36,7 @@ export async   function friendshipRoutes(fastify: FastifyInstance, options: { fr
 
 
 
-  fastify.get('/findById/:id', {
+  fastify.get('/find-by-id/:id', {
     schema: { params: GetFriendshipSchema },
     handler: friendController.getFriendship.bind(friendController)
   });
