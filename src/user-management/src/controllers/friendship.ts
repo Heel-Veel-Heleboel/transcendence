@@ -6,10 +6,10 @@ export class FriendshipController {
   constructor(private readonly friendshipService: FriendshipService) {}
 
   async createFriendship(req: FastifyRequest<{ Body: { user1_id: number; user2_id: number, status?:  FriendshipStatus } }>, res: FastifyReply): Promise<void> {
-    const { user1_id, user2_id, status } = req.body;
+    const { user1_id, user2_id } = req.body;
 
     req.log.info(`Creating friendship between user ${user1_id} and user ${user2_id}`);
-    await this.friendshipService.createFriendship({ user1_id, user2_id, status });
+    await this.friendshipService.createFriendship({ user1_id, user2_id });
     req.log.info(`Friendship request sent from user ${user1_id} to user ${user2_id}`);
     res.status(201).send({ message: 'Friendship request sent' });
   }

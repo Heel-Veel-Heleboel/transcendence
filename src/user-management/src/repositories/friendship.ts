@@ -28,7 +28,7 @@ export class FriendshipRepository implements IFriendshipRepository {
         data: {
           user1_id: data.user1_id,
           user2_id: data.user2_id,
-          status: data.status || 'PENDING'
+          status:'PENDING'
         }
       });
     } catch (error) {
