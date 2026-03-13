@@ -18,6 +18,19 @@ export class UserAlreadyExistsError extends Error {
     this.name = 'UserAlreadyExistsError';
   }
 }
+export class FriendshipAlreadyExistsError extends Error {
+  constructor() {
+    super();
+    this.name = 'FriendshipAlreadyExistsError';
+  }
+}
+
+export class FriendshipNotFoundError extends Error {
+  constructor() {
+    super();
+    this.name = 'FriendshipNotFoundError';
+  }
+}
 
 export class DatabaseError extends Error {
   constructor(msg?: string) {
@@ -31,5 +44,13 @@ export class ProfileNotFoundError extends Error {
   constructor() {
     super();
     this.name = 'ProfileNotFoundError';
+  }
+}
+
+
+export class ClientError extends Error {
+  constructor(name?: string) {
+    super();
+    this.name = name || 'ClientError';
   }
 }

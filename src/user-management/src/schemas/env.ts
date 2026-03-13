@@ -32,5 +32,13 @@ export const  EnvSchema = z.object({
   
   AUTH_SERVICE_URL: z.string()
     .url('AUTH_SERVICE_URL must be a valid URL')
-    .startsWith('http', 'AUTH_SERVICE_URL must start with http:// or https://')
+    .startsWith('http', 'AUTH_SERVICE_URL must start with http:// or https://'),
+
+  API_GATEWAY_URL: z.string()
+    .url('API_GATEWAY_URL must be a valid URL')
+    .startsWith('http', 'API_GATEWAY_URL must start with http:// or https://'),
+
+  UPLOAD_DIR: z.string().default('uploads'),
+  PREFIX: z.string().default('/uploads/')
+
 });

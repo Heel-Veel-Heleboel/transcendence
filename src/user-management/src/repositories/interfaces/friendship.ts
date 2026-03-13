@@ -4,11 +4,8 @@ import{
   DeleteFriendshipDto,
   GetFriendshipDto,
   UpdateFriendshipStatusDto,
-  FindByUsersDto,
   FindAllForUserDto,
-  FindAllPendingForUserDto,
-  FindAllAcceptedForUserDto,
-  FindAllBlockedForUserDto,
+  FindAllByStatusForUserDto,
   IsBlockedDto
 } from '../../dto/friendship.js';
 
@@ -17,11 +14,7 @@ export interface IFriendshipRepository {
   delete(data: DeleteFriendshipDto): Promise<void>;
   updateStatus(data: UpdateFriendshipStatusDto): Promise<Friendship>;
   findById(data: GetFriendshipDto): Promise<Friendship | null>;
-  findByUsers(data: FindByUsersDto): Promise<Friendship | null>;
   findAllForUser(data: FindAllForUserDto): Promise<Friendship[]>;
-  findAllPendingForUser(data: FindAllPendingForUserDto): Promise<Friendship[]>;
-  findAllAcceptedForUser(data: FindAllAcceptedForUserDto): Promise<Friendship[]>;
-  findAllBlockedForUser(data: FindAllBlockedForUserDto): Promise<Friendship[]>;
-  findAll(): Promise<Friendship[]>;
+  findAllByStatusForUser(data: FindAllByStatusForUserDto): Promise<Friendship[]>;
   isBlocked(data: IsBlockedDto): Promise<boolean>;
 }

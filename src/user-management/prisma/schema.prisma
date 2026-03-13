@@ -22,8 +22,8 @@ model User {
   created_at            DateTime @default(now())
   updated_at            DateTime @updatedAt
 
-  sent_friendships      Friendship[] @relation("sent_friendships")
-  received_friendships  Friendship[] @relation("received_friendships")
+  friendships_as_user1  Friendship[] @relation("sent_friendships")
+  friendships_as_user2  Friendship[] @relation("received_friendships")
 }
 
 model Profile {
@@ -41,20 +41,20 @@ model Profile {
 }
 
 model Friendship {
-  id                     Int  @id @default(autoincrement())
+  id                    Int  @id @default(autoincrement())
 
-  requester              User @relation("sent_friendships", fields: [requester_id], references: [id], onDelete: Cascade)
-  requester_id           Int
+  user1                 User @relation("sent_friendships", fields: [user1_id], references: [id], onDelete: Cascade)
+  user1_id              Int
 
-  addressee              User @relation("received_friendships", fields: [addressee_id], references: [id], onDelete: Cascade)
-  addressee_id           Int
+  user2                 User @relation("received_friendships", fields: [user2_id], references: [id], onDelete: Cascade)
+  user2_id              Int
 
-  status                 FriendshipStatus
+  status                FriendshipStatus
 
-  created_at             DateTime @default(now())
-  updated_at             DateTime @updatedAt
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
 
-  @@unique([requester_id, addressee_id])
+  @@unique([user1_id, user2_id])
 }
 
 enum FriendshipStatus {

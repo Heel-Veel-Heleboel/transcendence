@@ -1,19 +1,17 @@
 //server
 import fastify from 'fastify';
-
+import { env } from './config/env.js';
 //routes
 import { userRoutes } from './routes/user.js';
 import { profileRoutes } from './routes/profile.js';
-
+import { friendshipRoutes } from './routes/friendship.js';
 //hooks
 import { errorHandler } from './middleware/error-handler.js';
 import prismaDisconnectHook from './middleware/prisma-disconnect-hook.js';
-
 //for avatar
 import multipart from '@fastify/multipart';
 import fastifyStatic from '@fastify/static';
 import path from 'path';
-
 //controllers
 import { composeDependencies } from './config/set-up-controllers.js';
 
@@ -37,7 +35,7 @@ const app = fastify({
   }
 });
 
-const { userController, profController } = composeDependencies();
+const { userController, profController, friendController } = composeDependencies();
 
 app.setErrorHandler(errorHandler);
 app.addHook('onClose', prismaDisconnectHook);
@@ -47,15 +45,15 @@ app.get('/health', async () => {
 
 app.register(multipart);
 
-const upload_dir = process.env.UPLOAD_DIR || 'uploads';
-const prefix = process.env.PREFIX || '/uploads/';
+
 app.register(fastifyStatic, {
-  root: path.join(process.cwd(), upload_dir),
-  prefix: prefix
+  root: path.join(process.cwd(), env.UPLOAD_DIR),
+  prefix: env.PREFIX
 });
 
 app.register(userRoutes, { prefix: '/users', userController });
 app.register(profileRoutes, { prefix: '/profile', profController });
+app.register(friendshipRoutes, { prefix: '/friendship', friendController });
 app.ready((err) => {
   if (err) {
     app.log.error({ err }, 'Error during app readiness:');
@@ -63,6 +61,7 @@ app.ready((err) => {
   }
   app.log.info('User routes registered');
   app.log.info('Profile routes registered');
+  app.log.info('Friendship routes registered');
   app.log.info('User management service is ready');
 });
 

@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UserService } from '../services/user.js';
-import * as SchemaTypes from '../schemas/user.services.js';
+import * as SchemaTypes from '../schemas/user.js';
 import { UserDomainErrorMessages } from '../constants/error-messages.js';
 
 export class UserController {

@@ -1,6 +1,6 @@
 import { it, expect, describe, vi, beforeEach} from 'vitest';
 import { errorHandler } from '../../src/middleware/error-handler.js';
-import * as UserErrors from '../../src/error/user.js';
+import * as UserErrors from '../../src/error/user-management.js';
 import { UserDomainErrorMessages, CommonErrorMessages } from '../../src/constants/error-messages.js';
 
 describe('ErrorHandler', () => {

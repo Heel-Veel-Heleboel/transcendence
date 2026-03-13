@@ -19,10 +19,19 @@ export const ProfileDomainErrorMessages = {
   FAILED_TO_UPDATE_PROFILE_STATS: 'Failed to update profile stats'
 };
 
+export const FriendshipDomainErrorMessages = {
+  FRIENDSHIP_ALREADY_EXISTS: 'Friendship already exists',
+  FRIENDSHIP_NOT_FOUND: 'Friendship not found',
+  USERS_BLOCKED: 'One of the users has blocked the other'
+};
+
 export const CommonErrorMessages = {
   DATABASE_ERROR: 'Database error occurred',
   INTERNAL_SERVER_ERROR: 'An unexpected error occurred',
   VALIDATION_ERROR: 'Validation error occurred'
-  
+};
+
+export const ClientErrors = {
+  CLIENT_ERROR: (clientName: string) => `An error occurred while communicating with ${clientName}`
 };
 
