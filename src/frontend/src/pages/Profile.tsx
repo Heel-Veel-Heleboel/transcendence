@@ -1,12 +1,12 @@
-import { JSX, useEffect, useState } from "react"
+import { BaseSyntheticEvent, JSX, useEffect, useState } from "react"
 import api from "../api";
 import { CONFIG } from "../constants/AppConfig";
-import { IUserResponse } from "../types/types";
 import { getCookie } from "../components/utils/cookies";
 import { ERRORS } from "../constants/Errors";
 import { MainContainer } from "../components/sections/MainContainer";
 import { Widget } from "../components/utils/MenuUtils";
 import { useParams } from "react-router-dom";
+import { IProfile, IUser } from "../types/profile";
 
 /* v8 ignore start */
 
@@ -38,7 +38,7 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
     useEffect(() => {
         async function getUser() {
             try {
-                const user = await api<IUserResponse>({
+                const user = await api<IUser>({
                     url: CONFIG.REQUEST_USER + userId
                 })
                 setUsername(user.data.name);
@@ -94,18 +94,68 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
 }
 
 export function UserProfileContent(): JSX.Element {
-    const [username, setUsername] = useState<string>();
-    const [email, setEmail] = useState<string>();
+    const [profile, setProfile] = useState<IProfile | null>(null);
+    const [user, setUser] = useState<IUser | null>(null);
+    const [picture, setPicture] = useState<boolean>(false);
+    const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+
+    async function uploadFiles(formData: FormData) {
+        try {
+            const response = await api.post(CONFIG.REQUEST_PROFILE_PICTURE_UPLOAD + user?.id, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            console.log("Upload successful:", response.data);
+            alert("Files uploaded!");
+        } catch (error) {
+            console.error("Error uploading files:", error);
+            alert("Upload failed.");
+        }
+    };
+
+    async function handleFileChange(event: BaseSyntheticEvent) {
+        setSelectedFiles(event.target.files);
+    };
+
+    async function handleSubmit(event: BaseSyntheticEvent) {
+        event.preventDefault();
+
+        if (!selectedFiles) {
+            alert("Please select files first!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("images", selectedFiles[0]);
+
+        await uploadFiles(formData);
+    };
 
     useEffect(() => {
         async function getUser() {
             const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
             try {
-                const user = await api<IUserResponse>({
+                const result = await api<IUser>({
                     url: CONFIG.REQUEST_USER + user_id
                 })
-                setUsername(user.data.name);
-                setEmail(user.data.email);
+                setUser(result.data);
+            }
+            catch (e: any) {
+                console.error(e);
+                throw new Error(ERRORS.PROFILE_USER_FAILED);
+            }
+        }
+        async function getProfile() {
+            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
+            try {
+                const result = await api<IProfile>({
+                    url: CONFIG.REQUEST_PROFILE + user_id
+                })
+                console.log('getprofile');
+                console.log(result);
+                setProfile(result.data);
             }
             catch (e: any) {
                 console.error(e);
@@ -113,18 +163,53 @@ export function UserProfileContent(): JSX.Element {
             }
         }
 
-        getUser()
+        getProfile()
+        getUser();
     }, [])
+
+    useEffect(() => {
+        async function getPicture() {
+            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
+            try {
+                if (profile?.avatar_url === null) {
+                    setPicture(false);
+                    return;
+                }
+                const result = await api({
+                    url: profile?.avatar_url
+                })
+                setPicture(true);
+                console.log('picture')
+                console.log(result);
+            }
+            catch (e: any) {
+                console.error(e);
+                throw new Error(ERRORS.PROFILE_USER_FAILED);
+            }
+        }
+
+        if (profile) {
+            getPicture()
+        }
+    }, [profile])
 
     return (
         <div id='avatar' className="flex min-w-full min-h-full bg-emerald-500/50 text-center">
             <div className="w-1/2 min-h-full flex flex-col justify-around text-xl">
                 <div>
-                    <div>{username}</div>
+                    <div>{user?.name}</div>
                     <div className=" flex justify-center">
-                        {/*TODO: Change with actual profile pic of user*/}
-                        <img src="/snake_codec.png" alt="profile_pic" className="w-1/4 min-h-1/2" />
+                        {/*TODO: Change with actual profile pic of profile*/}
+                        {picture ? <div>found pic</div> : <img src="/snake_codec.png" alt="profile_pic" className="w-1/4 min-h-1/2" />}
                     </div>
+                    <form onSubmit={handleSubmit}>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                        />
+                        <button type="submit">Upload Images</button>
+                    </form>
                 </div>
                 <div></div>
             </div>
@@ -135,8 +220,8 @@ export function UserProfileContent(): JSX.Element {
                     <div className="text-left w-3/5 flex flex-col justify-between">
                         <div />
                         <div className="flex flex-col justify-around min-h-3/5">
-                            <ProfileProperty title="Username" property={username} dropDown={DropDown()} />
-                            <ProfileProperty title="Email" property={email} dropDown={DropDown()} />
+                            <ProfileProperty title="Username" property={user?.name} dropDown={DropDown()} />
+                            <ProfileProperty title="Email" property={user?.email} dropDown={DropDown()} />
                             <div>Change password</div>
                             <div>Delete user</div>
                         </div>

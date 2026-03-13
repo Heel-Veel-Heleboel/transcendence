@@ -5,7 +5,7 @@ import * as ProfileSchema from '../schemas/profile.js';
 export async function profileRoutes(fastify: FastifyInstance, options: { profController: ProfileController }) {
   const { profController } = options;
 
-  fastify.get('/find-by-user-id/:user_id', {
+  fastify.get('/find-by-id/:user_id', {
     schema: { params: ProfileSchema.FindProfileSchema },
     handler: profController.getProfileByUserId.bind(profController)
   });
