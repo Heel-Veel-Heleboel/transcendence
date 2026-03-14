@@ -52,8 +52,8 @@ export async function registerMatchmakingRoutes(
       const activeMatch = await matchDao.findActiveMatchForUser(userId);
       const isExpiredPendingAck =
         activeMatch?.status === 'PENDING_ACKNOWLEDGEMENT' &&
-        activeMatch.deadline !== null &&
-        activeMatch.deadline < new Date();
+        activeMatch?.deadline !== null &&
+        activeMatch?.deadline < new Date();
       if (activeMatch && !isExpiredPendingAck) {
         const matchState = activeMatch.status === 'PENDING_ACKNOWLEDGEMENT'
           ? 'match_pending_ack'
