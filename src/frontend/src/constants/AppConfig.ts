@@ -101,6 +101,7 @@ export const CONFIG = {
   REQUEST_PROFILE: 'users/profile/find-by-id/',
   REQUEST_PROFILE_PICTURE: 'users',
   REQUEST_PROFILE_PICTURE_UPLOAD: 'users/profile/upload-avatar/',
+  REQUEST_PROFILE_USERNAME_CHANGE: 'users/update-name',
 
   REQUEST_MATCHMAKING_STATUS: 'matchmaking/status/me',
   REQUEST_MATCHMAKING_CLASSIC: 'matchmaking/classic/join',

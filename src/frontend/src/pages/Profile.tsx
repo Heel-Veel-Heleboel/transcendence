@@ -248,10 +248,10 @@ export function UserProfileContent(): JSX.Element {
                     <div className="text-left w-3/5 flex flex-col justify-between">
                         <div />
                         <div className="flex flex-col justify-around min-h-3/5">
-                            <ProfileProperty title="Username" property={user?.name} dropDown={DropDown()} />
+                            <ProfileProperty title="Username" property={user?.name} dropDown={ChangeUserName()} />
                             <ProfileProperty title="Email" property={user?.email} dropDown={DropDown()} />
-                            <div>Change password</div>
-                            <div>Delete user</div>
+                            <div className="truncate">Change password</div>
+                            <div className="truncate">Delete user</div>
                         </div>
                         <div />
                     </div>
@@ -275,6 +275,61 @@ function DropDown(): JSX.Element {
     );
 }
 
+function ChangeUserName(): JSX.Element {
+    const [input, setInput] = useState<string>();
+
+    async function handleChange(event: BaseSyntheticEvent) {
+        setInput(event.target.value);
+    };
+
+
+    async function handleSubmit(event: BaseSyntheticEvent) {
+        event.preventDefault();
+
+        if (!input) {
+            alert("Please give a username!");
+            return;
+        }
+
+        await requestChange();
+    };
+
+    async function requestChange() {
+        try {
+            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
+            console.log(JSON.stringify({ user_id: Number(user_id), user_name: input }))
+            await api.patch(CONFIG.REQUEST_PROFILE_USERNAME_CHANGE, {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ user_id: Number(user_id), user_name: input })
+            });
+            alert("Username changed!");
+        } catch (error) {
+            console.error("Error changing UserName:", error);
+            alert("Username change failed");
+        }
+    }
+    return (
+        <form onSubmit={handleSubmit} >
+
+            <div >
+                <div className="flex">
+                    <input
+                        className="border text-sm block w-full placeholder:text-body"
+                        id="changeUserName"
+                        type="text"
+                        onChange={handleChange}
+
+                    />
+                    <button className="text-sm border" type="submit">Change Username</button>
+                </div>
+            </div>
+        </form>
+
+    );
+}
+
 
 function ProfileProperty({ title, property, dropDown }: { title: string, property: string | undefined, dropDown: JSX.Element }): JSX.Element {
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
@@ -286,12 +341,12 @@ function ProfileProperty({ title, property, dropDown }: { title: string, propert
     return (
         <div>
             <div className="flex ">
-                <div className="w-1/5">{title}</div>
+                <div className="w-1/5 text-xl truncate">{title}</div>
                 <div className="w-1/10">•</div>
-                <div className="w-2/5 text-left">{property}</div>
+                <div className="w-2/5 text-left truncate">{property}</div>
                 <div className="w-1/10">•</div>
                 <div className="w-1/5">
-                    <button onClick={handleChange}>Change</button></div>
+                    <button onClick={handleChange}>{showDropdown ? "Cancel" : "Change"}</button></div>
             </div>
             {showDropdown && dropDown}
         </div>
