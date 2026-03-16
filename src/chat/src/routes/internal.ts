@@ -32,6 +32,10 @@ export async function registerInternalRoutes(
         body.tournamentId,
         body.tournamentName
       );
+      request.log.info(
+        { matchId: body.matchId, channelId: result.channel.id, messageId: result.message.id, playerIds: body.playerIds },
+        'Match ack created'
+      );
       return reply.status(201).send(result);
     } catch (error) {
       return handleError(request, reply, error);

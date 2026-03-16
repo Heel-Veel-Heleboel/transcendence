@@ -52,7 +52,11 @@ export async function registerMatchmakingRoutes(
       // around pairing, so there's a window where a match exists in DB but the user
       // is still registered in-memory. DB is the source of truth.
       const activeMatch = await matchDao.findActiveMatchForUser(userId);
-      if (activeMatch) {
+      const isExpiredPendingAck =
+        activeMatch?.status === 'PENDING_ACKNOWLEDGEMENT' &&
+        activeMatch?.deadline !== null &&
+        activeMatch?.deadline < new Date();
+      if (activeMatch && !isExpiredPendingAck) {
         const matchState = activeMatch.status === 'PENDING_ACKNOWLEDGEMENT'
           ? 'match_pending_ack'
           : activeMatch.status === 'SCHEDULED'
