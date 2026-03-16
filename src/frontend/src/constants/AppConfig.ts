@@ -44,6 +44,8 @@ export const CONFIG = {
   // NOTE: CREDITS
   CREDITS_MENU_RETURN_TEXT: 'BACK TO MENU',
 
+  PROFILE_DEFAULT_LOGO: '/snake_codec.png',
+
   // NOTE: ToolBar / Widgets
   PROFILE_LOGO: '/profile.png',
   PROFILE_TITLE: 'profile',

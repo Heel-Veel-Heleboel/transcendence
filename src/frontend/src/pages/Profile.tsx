@@ -96,7 +96,7 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
 export function UserProfileContent(): JSX.Element {
     const [profile, setProfile] = useState<IProfile | null>(null);
     const [user, setUser] = useState<IUser | null>(null);
-    const [picture, setPicture] = useState<boolean>(false);
+    const [image, setImage] = useState<string>(CONFIG.PROFILE_DEFAULT_LOGO);
     const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
     async function uploadFiles(formData: FormData) {
@@ -169,22 +169,21 @@ export function UserProfileContent(): JSX.Element {
 
     useEffect(() => {
         async function getPicture() {
-            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
             try {
                 if (profile?.avatar_url === null) {
-                    setPicture(false);
+                    setImage(CONFIG.PROFILE_DEFAULT_LOGO);
                     return;
                 }
                 const result = await api({
-                    url: profile?.avatar_url
+                    url: profile?.avatar_url,
+                    responseType: 'blob'
                 })
-                setPicture(true);
-                console.log('picture')
-                console.log(result);
+                const imageObjectUrl = URL.createObjectURL(result.data);
+                setImage(imageObjectUrl);
             }
             catch (e: any) {
                 console.error(e);
-                throw new Error(ERRORS.PROFILE_USER_FAILED);
+                throw new Error('getPicture failed');
             }
         }
 
@@ -196,20 +195,42 @@ export function UserProfileContent(): JSX.Element {
     return (
         <div id='avatar' className="flex min-w-full min-h-full bg-emerald-500/50 text-center">
             <div className="w-1/2 min-h-full flex flex-col justify-around text-xl">
-                <div>
+                <div></div>
+                <div id="ProfileAvatarContainer" className="h-3/5 flex flex-col justify-between">
                     <div>{user?.name}</div>
-                    <div className=" flex justify-center">
-                        {/*TODO: Change with actual profile pic of profile*/}
-                        {picture ? <div>found pic</div> : <img src="/snake_codec.png" alt="profile_pic" className="w-1/4 min-h-1/2" />}
+                    <div></div>
+                    <div id='profilePicture' className="flex justify-center">
+                        {<img src={image} alt="profile_pic" className="w-1/4 min-h-1/2" />}
                     </div>
-                    <form onSubmit={handleSubmit}>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                        />
-                        <button type="submit">Upload Images</button>
-                    </form>
+                    <div></div>
+                    <div id='SubmitPictureContainer' className="flex justify-between">
+                        <div />
+                        <div className="w-1/2">
+                            <form onSubmit={handleSubmit} >
+
+                                <div >
+                                    <div className="text-left text-base">Change Profile Picture</div>
+                                    <div className="flex">
+                                        <input
+                                            className="border text-sm block w-full placeholder:text-body
+                                            file:mr-5 file:py-4 file:px-2
+                                            file:text-sm file:font-medium
+                                            file:bg-gray-200 file:text-white-700
+                                            "
+                                            id="file_input"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+
+                                        />
+                                        <button className="text-sm border" type="submit">Upload Image</button>
+                                    </div>
+                                </div>
+
+                            </form>
+                        </div>
+                        <div />
+                    </div>
                 </div>
                 <div></div>
             </div>

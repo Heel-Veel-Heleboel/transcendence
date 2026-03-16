@@ -54,7 +54,7 @@ export class ProfileController {
 
     const user_id = request.params.user_id;
 
-    const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR || '/users/uploads');
+    const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR || '/uploads');
     fs.mkdirSync(uploadDir, { recursive: true });
 
     const file_extension = path.extname(file.filename).toLowerCase();
@@ -85,7 +85,7 @@ export class ProfileController {
       return reply.code(413).send({ message: 'File too large' });
     }
 
-    const pub_url = `${process.env.PREFIX || '/users/uploads/'}${unique_filename}`;
+    const pub_url = `${process.env.PREFIX || '/uploads/'}${unique_filename}`;
     const result = await this.profileService.uploadUrl(user_id, pub_url);
 
     return reply.code(200).send({
