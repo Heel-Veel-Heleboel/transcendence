@@ -35,3 +35,14 @@ export const ClientErrors = {
   CLIENT_ERROR: (clientName: string) => `An error occurred while communicating with ${clientName}`
 };
 
+
+
+
+export const ProfileErrors = {
+  UPDATE_PROFILE_STATS_FAILED: 'Failed to update profile stats',
+  UPLOAD_AVATAR_FAILED: 'Failed to upload avatar',
+  INVALID_FILE_TYPE: 'Invalid file type',
+  INVALID_FILE_EXTENSION: 'Invalid file extension',
+  FILE_TOO_LARGE: 'File too large',
+  NO_FILE_UPLOADED: 'No file uploaded'
+};

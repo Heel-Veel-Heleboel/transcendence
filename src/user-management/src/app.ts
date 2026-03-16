@@ -52,8 +52,8 @@ app.register(fastifyStatic, {
 });
 
 app.register(userRoutes, { prefix: '/users', userController });
-app.register(profileRoutes, { prefix: '/profile', profController });
-app.register(friendshipRoutes, { prefix: '/friendship', friendController });
+app.register(profileRoutes, { prefix: '/users/profile', profController });
+app.register(friendshipRoutes, { prefix: '/users/friendship', friendController });
 app.ready((err) => {
   if (err) {
     app.log.error({ err }, 'Error during app readiness:');
