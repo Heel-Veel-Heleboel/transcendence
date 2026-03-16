@@ -109,6 +109,13 @@ export function UserProfileContent(): JSX.Element {
 
             console.log("Upload successful:", response.data);
             alert("Files uploaded!");
+            for (const value of formData.values()) {
+                console.log(value);
+            }
+            if (selectedFiles) {
+                const imageObjectUrl = URL.createObjectURL(selectedFiles[0]);
+                setImage(imageObjectUrl);
+            }
         } catch (error) {
             console.error("Error uploading files:", error);
             alert("Upload failed.");
