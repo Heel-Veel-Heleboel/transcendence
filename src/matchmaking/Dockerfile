@@ -1,13 +1,14 @@
 FROM node:24-alpine AS build
 WORKDIR /app
+RUN apk add --no-cache python3 make g++
 COPY package*.json ./
 COPY prisma.config.ts ./
 COPY prisma ./prisma/
 RUN npm install
 COPY tsconfig.json ./
 COPY src ./src/
+RUN npm run db:generate && npm run db:push
 RUN npm run build
-RUN npx prisma generate
 
 EXPOSE 3005
-CMD ["sh", "-c", "npx prisma db push --schema=./prisma/schema.prisma && node dist/index.js"]
+CMD ["sh", "-c", "npm run db:push && npm start"]
