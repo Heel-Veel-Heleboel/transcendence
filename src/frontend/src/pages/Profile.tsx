@@ -248,9 +248,9 @@ export function UserProfileContent(): JSX.Element {
                     <div className="text-left w-3/5 flex flex-col justify-between">
                         <div />
                         <div className="flex flex-col justify-around min-h-3/5">
-                            <ProfileProperty title="Username" property={user?.name} dropDown={ChangeUserName()} />
-                            <ProfileProperty title="Email" property={user?.email} dropDown={DropDown()} />
-                            <div className="truncate">Change password</div>
+                            <Username username={user?.name} />
+                            <Email email={user?.email} />
+                            <Password />
                             <div className="truncate">Delete user</div>
                         </div>
                         <div />
@@ -269,13 +269,26 @@ export function UserProfileContent(): JSX.Element {
 
 }
 
-function DropDown(): JSX.Element {
+function SubmitPropertyChange(handleChange: (event: BaseSyntheticEvent) => void, handleSubmit: (event: BaseSyntheticEvent) => void, buttonText: string) {
     return (
-        <div>lol</div>
-    );
+        <form onSubmit={handleSubmit} >
+            <div >
+                <div className="flex">
+                    <input
+                        className="border text-sm block w-full placeholder:text-body"
+                        id={buttonText.replace(/\s/g, "") + 'Container'}
+                        type="text"
+                        onChange={handleChange}
+
+                    />
+                    <button className="text-sm border" type="submit">{buttonText}</button>
+                </div>
+            </div>
+        </form>
+    )
 }
 
-function ChangeUserName(): JSX.Element {
+function ChangeUserName(resetState: () => void): JSX.Element {
     const [input, setInput] = useState<string>();
 
     async function handleChange(event: BaseSyntheticEvent) {
@@ -297,47 +310,66 @@ function ChangeUserName(): JSX.Element {
     async function requestChange() {
         try {
             const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
-            console.log(JSON.stringify({ user_id: Number(user_id), user_name: input }))
-            await api.patch(CONFIG.REQUEST_PROFILE_USERNAME_CHANGE, {
+            await api({
+                url: CONFIG.REQUEST_PROFILE_CHANGE_USERNAME,
+                method: 'PATCH',
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ user_id: Number(user_id), user_name: input })
-            });
+                data: JSON.stringify({ user_id: Number(user_id), user_name: input }),
+            })
+            resetState();
             alert("Username changed!");
         } catch (error) {
             console.error("Error changing UserName:", error);
             alert("Username change failed");
         }
     }
-    return (
-        <form onSubmit={handleSubmit} >
-
-            <div >
-                <div className="flex">
-                    <input
-                        className="border text-sm block w-full placeholder:text-body"
-                        id="changeUserName"
-                        type="text"
-                        onChange={handleChange}
-
-                    />
-                    <button className="text-sm border" type="submit">Change Username</button>
-                </div>
-            </div>
-        </form>
-
-    );
+    return (SubmitPropertyChange(handleChange, handleSubmit, 'Change Username'));
 }
 
 
-function ProfileProperty({ title, property, dropDown }: { title: string, property: string | undefined, dropDown: JSX.Element }): JSX.Element {
-    const [showDropdown, setShowDropDown] = useState<boolean>(false);
+function ChangeEmail(resetState: () => void): JSX.Element {
+    const [input, setInput] = useState<string>();
 
-    function handleChange() {
-        setShowDropDown(!showDropdown);
+    async function handleChange(event: BaseSyntheticEvent) {
+        setInput(event.target.value);
+    };
+
+
+    async function handleSubmit(event: BaseSyntheticEvent) {
+        event.preventDefault();
+
+        if (!input) {
+            alert("Please give a email!");
+            return;
+        }
+        await requestChange();
+    };
+
+    async function requestChange() {
+        try {
+            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
+            await api({
+                url: CONFIG.REQUEST_PROFILE_CHANGE_EMAIL,
+                method: 'PATCH',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                data: JSON.stringify({ user_id: Number(user_id), user_email: input }),
+            })
+            resetState();
+            alert("Email changed!");
+        } catch (error) {
+            console.error("Error changing Email:", error);
+            alert("Email change failed");
+        }
     }
+    return (SubmitPropertyChange(handleChange, handleSubmit, 'Change Email'));
+}
 
+
+function DisplayedProfileProperty({ title, property, dropDown, toggleDropDown, showDropdown }: { title: string, property: string | undefined, dropDown: JSX.Element, toggleDropDown: () => void, showDropdown: boolean }): JSX.Element {
     return (
         <div>
             <div className="flex ">
@@ -346,10 +378,138 @@ function ProfileProperty({ title, property, dropDown }: { title: string, propert
                 <div className="w-2/5 text-left truncate">{property}</div>
                 <div className="w-1/10">•</div>
                 <div className="w-1/5">
-                    <button onClick={handleChange}>{showDropdown ? "Cancel" : "Change"}</button></div>
+                    <button onClick={toggleDropDown}>{showDropdown ? "Cancel" : "Change"}</button>
+                </div>
             </div>
             {showDropdown && dropDown}
         </div>
     )
 }
+
+function SubmitPropertyChangeOldNew(
+    handleChangeOld: (event: BaseSyntheticEvent) => void,
+    handleChangeNew: (event: BaseSyntheticEvent) => void,
+    handleSubmit: (event: BaseSyntheticEvent) => void,
+    buttonText: string,
+) {
+
+    return (
+        <form onSubmit={handleSubmit} >
+            <div >
+                <div className="flex flex-col">
+                    <input
+                        className="border text-sm block w-full placeholder:text-body"
+                        id="oldPropertyContainer"
+                        type="text"
+                        onChange={handleChangeOld}
+
+                    />
+                    <input
+                        className="border text-sm block w-full placeholder:text-body"
+                        id="newPropertyChange"
+                        type="text"
+                        onChange={handleChangeNew}
+
+                    />
+                    <button className="text-sm border" type="submit">{buttonText}</button>
+                </div>
+            </div>
+        </form>
+    )
+}
+
+function ChangePassword(resetState: () => void): JSX.Element {
+    const [oldPassword, setOldPassword] = useState<string>();
+    const [newPassword, setNewPassword] = useState<string>();
+
+    async function handleChangeOld(event: BaseSyntheticEvent) {
+        setOldPassword(event.target.value);
+    };
+
+    async function handleChangeNew(event: BaseSyntheticEvent) {
+        setNewPassword(event.target.value);
+    };
+
+
+    async function handleSubmit(event: BaseSyntheticEvent) {
+        event.preventDefault();
+
+        if (!oldPassword) {
+            alert("Please give your current password!");
+            return;
+        }
+        if (!newPassword) {
+            alert("Please give your new password!");
+            return;
+        }
+        await requestChange();
+    };
+
+    async function requestChange() {
+        try {
+            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
+            await api({
+                url: CONFIG.REQUEST_PROFILE_CHANGE_PASSWORD,
+                method: 'PUT',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                data: JSON.stringify({ user_id: Number(user_id), current_password: oldPassword, new_password: newPassword }),
+            })
+            resetState();
+            alert("Password changed!");
+        } catch (error) {
+            console.error("Error changing Password:", error);
+            alert("Password change failed");
+        }
+    }
+    return (SubmitPropertyChangeOldNew(handleChangeOld, handleChangeNew, handleSubmit, 'Change Password'));
+}
+function HiddenProfileProperty({ title, dropDown, toggleDropDown, showDropdown }: { title: string, dropDown: JSX.Element, toggleDropDown: () => void, showDropdown: boolean }): JSX.Element {
+    return (
+        <div>
+            <div className="flex ">
+                <div className="w-full text-xl truncate">
+                    <button onClick={toggleDropDown}>{showDropdown ? "Cancel " + title : title}</button>
+                </div>
+            </div>
+            {showDropdown && dropDown}
+        </div>
+    )
+}
+
+
+function Password() {
+    const [showDropdown, setShowDropDown] = useState<boolean>(false);
+
+    function handleChange() {
+        setShowDropDown(!showDropdown);
+    }
+    return (
+        <HiddenProfileProperty title="Change Password" dropDown={ChangePassword(handleChange)} toggleDropDown={handleChange} showDropdown={showDropdown} />
+    )
+}
+
+function Email({ email }: { email: string | undefined }) {
+    const [showDropdown, setShowDropDown] = useState<boolean>(false);
+
+    function handleChange() {
+        setShowDropDown(!showDropdown);
+    }
+    return (
+        <DisplayedProfileProperty title="Email" property={email} dropDown={ChangeEmail(handleChange)} toggleDropDown={handleChange} showDropdown={showDropdown} />
+    )
+}
+
+function Username({ username }: { username: string | undefined }) {
+    const [showDropdown, setShowDropDown] = useState<boolean>(false);
+
+    function handleChange() {
+        setShowDropDown(!showDropdown);
+    }
+    return (
+        <DisplayedProfileProperty title="Username" property={username} dropDown={ChangeUserName(handleChange)} toggleDropDown={handleChange} showDropdown={showDropdown} />
+    )
+}
+
 /* v8 ignore stop*/
