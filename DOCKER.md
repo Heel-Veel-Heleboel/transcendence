@@ -26,8 +26,14 @@ trees are downloaded simultaneously.
 
 ### Fix: limit BuildKit parallelism to 1
 
-A `buildkitd.toml` config is included at the root of the repo. Use it to create a custom builder
-that processes one image at a time:
+Create a `buildkitd.toml` config at the root of the repo with contents similar to:
+
+```toml
+[worker.oci]
+max-parallelism = 1
+```
+
+Then use it to create a custom builder that processes one image at a time:
 
 ```sh
 # One-time setup
@@ -47,8 +53,8 @@ docker buildx use default
 ```
 
 > **Note:** The first build will take longer because packages are downloaded sequentially.
-> Subsequent builds are fast because Docker layer caching and the npm cache mount
-> (`--mount=type=cache,target=/root/.npm`) skip unchanged layers.
+> Subsequent builds are faster because Docker layer caching and npm's cached dependencies
+> allow unchanged layers to be reused instead of reinstalling everything from scratch.
 
 ## Volumes
 
