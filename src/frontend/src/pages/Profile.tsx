@@ -5,13 +5,21 @@ import { getCookie } from "../components/utils/cookies";
 import { ERRORS } from "../constants/Errors";
 import { MainContainer } from "../components/sections/MainContainer";
 import { Widget } from "../components/utils/MenuUtils";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { IProfile, IUser } from "../types/profile";
+import { useAuth } from "../components/providers/Auth";
 
 /* v8 ignore start */
 
 
 export function Profile(): JSX.Element {
+    const auth = useAuth();
+    const navigate = useNavigate();
+
+    if (!auth.token) {
+        navigate('/');
+    }
+
     return (
         <MainContainer children={
             <Widget logoPath={CONFIG.PROFILE_LOGO} title={CONFIG.PROFILE_TITLE} width="w-full" child={<UserProfileContent />} />
@@ -245,13 +253,13 @@ export function UserProfileContent(): JSX.Element {
 
                 <div className="flex justify-around min-h-1/2">
                     <div />
-                    <div className="text-left w-3/5 flex flex-col justify-between">
+                    <div className="text-left w-3/5 flex flex-col justify-between min-h-full">
                         <div />
                         <div className="flex flex-col justify-around min-h-3/5">
                             <Username username={user?.name} />
                             <Email email={user?.email} />
                             <Password />
-                            <div className="truncate">Delete user</div>
+                            <DeleteAccount />
                         </div>
                         <div />
                     </div>
@@ -478,15 +486,14 @@ function HiddenProfileProperty({ title, dropDown, toggleDropDown, showDropdown }
     )
 }
 
-
-function Password() {
+function Username({ username }: { username: string | undefined }) {
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
 
     function handleChange() {
         setShowDropDown(!showDropdown);
     }
     return (
-        <HiddenProfileProperty title="Change Password" dropDown={ChangePassword(handleChange)} toggleDropDown={handleChange} showDropdown={showDropdown} />
+        <DisplayedProfileProperty title="Username" property={username} dropDown={ChangeUserName(handleChange)} toggleDropDown={handleChange} showDropdown={showDropdown} />
     )
 }
 
@@ -501,15 +508,70 @@ function Email({ email }: { email: string | undefined }) {
     )
 }
 
-function Username({ username }: { username: string | undefined }) {
+
+function Password() {
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
 
     function handleChange() {
         setShowDropDown(!showDropdown);
     }
     return (
-        <DisplayedProfileProperty title="Username" property={username} dropDown={ChangeUserName(handleChange)} toggleDropDown={handleChange} showDropdown={showDropdown} />
+        <HiddenProfileProperty title="Change Password" dropDown={ChangePassword(handleChange)} toggleDropDown={handleChange} showDropdown={showDropdown} />
     )
 }
+
+function DeleteAccount() {
+    const [showDropdown, setShowDropDown] = useState<boolean>(false);
+    const navigate = useNavigate();
+    const auth = useAuth();
+
+    function handleDropDown() {
+        setShowDropDown(!showDropdown);
+    }
+
+    async function requestDelete() {
+        try {
+            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
+            await api({
+                url: CONFIG.REQUEST_PROFILE_DELETE,
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                data: JSON.stringify({ user_id: Number(user_id) }),
+            })
+            handleDropDown();
+            alert("Delete account!");
+            navigate('/');
+            auth.logOut();
+        } catch (error) {
+            console.error("Error deleting Account:", error);
+            alert("Deleting account failed");
+        }
+    }
+    return (
+        <div id="DeleteAccountContainer">
+            <div className="flex flex-col">
+                <div className="w-full">
+                    <button onClick={handleDropDown}>Delete User</button>
+                </div>
+            </div>
+            {
+                showDropdown &&
+                <div className="w-full border flex py-2">
+                    <div className="w-2/5">
+                        <span>Are you sure?: </span>
+
+                    </div>
+                    <div className="flex w-3/5">
+                        <button className="border w-1/2" onClick={requestDelete}>Yes</button>
+                        <button className="border w-1/2" onClick={handleDropDown}>No</button>
+                    </div>
+                </div>
+            }
+        </div>
+    )
+}
+
 
 /* v8 ignore stop*/
