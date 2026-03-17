@@ -11,4 +11,4 @@ RUN npm run db:generate
 RUN npm run build
 
 EXPOSE 3006
-CMD ["sh", "-c", "npm run db:push && npm start"]
+CMD ["sh", "-c", "npm run db:push && node dist/src/index.js"]
