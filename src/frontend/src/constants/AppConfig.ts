@@ -104,7 +104,7 @@ export const CONFIG = {
   REQUEST_PROFILE_CHANGE_USERNAME: 'users/update-name',
   REQUEST_PROFILE_CHANGE_EMAIL: 'users/update-email',
   REQUEST_PROFILE_CHANGE_PASSWORD: 'auth/change-password',
-  REQUEST_PROFILE_DELETE: 'auth/delete-auth-data',
+  REQUEST_PROFILE_DELETE: 'users/delete',
 
   REQUEST_MATCHMAKING_STATUS: 'matchmaking/status/me',
   REQUEST_MATCHMAKING_CLASSIC: 'matchmaking/classic/join',
