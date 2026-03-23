@@ -3,7 +3,7 @@ NAME	:= .docker_compose_started
 all: $(NAME)
 
 clean:
-	docker compose down
+	docker compose down -v
 	rm -rf $(NAME)
 
 fclean: clean
@@ -15,9 +15,9 @@ fclean: clean
 re: fclean all
 
 dev:
-	docker compose up --watch frontend-dev
+	docker compose -f docker-compose-dev.yml up --watch 
 	touch $(NAME)
 
 $(NAME):
-	docker compose up --detach frontend
+	docker compose up --build 
 	touch $(NAME)

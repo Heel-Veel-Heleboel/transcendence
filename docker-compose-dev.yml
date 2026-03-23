@@ -1,0 +1,194 @@
+services:
+
+  # ─── API Gateway ────────────────────────────────────────────────────────────
+  api-gateway:
+    container_name: api-gateway
+    build:
+      context: src/api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+      - JWT_PUBLIC_KEY_PATH=/app/keys/jwt_public.pem
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+      - SERVICES=[{"name":"auth","upstream":"http://auth:3003","prefix":"/api/auth","requiresAuth":false},{"name":"user-management","upstream":"http://user-management:3004","prefix":"/api/user-management","requiresAuth":true},{"name":"chat","upstream":"http://chat:3006","prefix":"/api/chat","requiresAuth":true},{"name":"matchmaking","upstream":"http://matchmaking:3005","prefix":"/api/matchmaking","requiresAuth":true},{"name":"game-server","upstream":"http://game-server:2567","prefix":"/api/game-server","requiresAuth":false,"websocket":true}]
+    depends_on:
+      auth:
+        condition: service_started
+      user-management:
+        condition: service_started
+      chat:
+        condition: service_started
+      matchmaking:
+        condition: service_started
+      game-server:
+        condition: service_started
+    networks:
+      - app-net
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 15s
+
+  # ─── Frontend ───────────────────────────────────────────────────────────────
+  frontend:
+    container_name: frontend
+    build:
+      context: src/frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - api-gateway
+    networks:
+      - app-net
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: ./src/frontend/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - ./src/frontend/node_modules/
+        - action: rebuild
+          path: ./src/frontend/package.json
+
+  # ─── Auth ───────────────────────────────────────────────────────────────────
+  auth:
+    container_name: auth
+    build:
+      context: src/auth
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+      - DATABASE_URL=file:/data/auth.db
+      - JWT_PRIVATE_KEY_PATH=/app/keys/jwt_private.pem
+      - JWT_PUBLIC_KEY_PATH=/app/keys/jwt_public.pem
+      - USER_MANAGEMENT_URL=http://user-management:3004
+    volumes:
+      - auth-data:/data
+    networks:
+      - app-net
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 15s
+
+  # ─── User Management ────────────────────────────────────────────────────────
+  user-management:
+    container_name: user-management
+    build:
+      context: src/user-management
+      dockerfile: Dockerfile
+    ports:
+      - "3004:3004"
+    environment:
+      - PORT=3004
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+      - DATABASE_URL=file:/data/user-management.db
+      - AUTH_SERVICE_URL=http://auth:3003
+    volumes:
+      - user-management-data:/data
+    networks:
+      - app-net
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 15s
+
+  # ─── Matchmaking ────────────────────────────────────────────────────────────
+  matchmaking:
+    container_name: matchmaking
+    build:
+      context: src/matchmaking
+      dockerfile: Dockerfile
+    ports:
+      - "3005:3005"
+    environment:
+      - PORT=3005
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+      - DATABASE_URL=file:/data/matchmaking.db
+      - GAME_SERVER_URL=http://game-server:2567
+      - CHAT_SERVICE_URL=http://chat:3006
+      - USER_MANAGEMENT_URL=http://user-management:3004
+    volumes:
+      - matchmaking-data:/data
+    networks:
+      - app-net
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 15s
+
+  # ─── Chat ───────────────────────────────────────────────────────────────────
+  chat:
+    container_name: chat
+    build:
+      context: src/chat
+      dockerfile: Dockerfile
+    ports:
+      - "3006:3006"
+    environment:
+      - PORT=3006
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+      - DATABASE_URL=file:/data/chat.db
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3002
+    volumes:
+      - chat-data:/data
+    networks:
+      - app-net
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 15s
+
+  # ─── Game Server ─────────────────────────────────────────────────────────────
+  game-server:
+    container_name: game-server
+    build:
+      context: src/game-server
+      dockerfile: Dockerfile
+    ports:
+      - "2567:2567"
+    environment:
+      - PORT=2567
+      - NODE_ENV=production
+    networks:
+      - app-net
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 15s
+
+volumes:
+  auth-data:
+  user-management-data:
+  matchmaking-data:
+  chat-data:
+
+networks:
+  app-net:
+    driver: bridge
