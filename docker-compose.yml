@@ -7,9 +7,9 @@ services:
       context: src/api-gateway
       dockerfile: Dockerfile
     ports:
-      - "3002:3002"
+      - "3000:3000"
     environment:
-      - PORT=3002
+      - PORT=3000
       - HOST=0.0.0.0
       - NODE_ENV=production
       - JWT_PUBLIC_KEY_PATH=/app/keys/jwt_public.pem
