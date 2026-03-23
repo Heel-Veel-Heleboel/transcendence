@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
     useEffect(() => {
         async function fetchAccess() {
-            refreshAttempt();
+            refresh();
         }
 
         fetchAccess();
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             return config;
         }, async (error) => {
             if (error.response.status === 403) {
-                refreshAttempt();
+                refresh();
                 // TODO: check if following if statement works when access_token is actually implemented
                 if (token === null)
                     return Promise.reject(error);
@@ -154,17 +154,9 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             setToken(response.data.access_token);
         } catch (e: any) {
             console.error(e);
-            setToken(null);
+            gotoLogin();
         } finally {
             isFetching.current = false;
-        }
-    }
-
-    function refreshAttempt() {
-        try {
-            refresh();
-        } catch {
-            gotoLogin();
         }
     }
 
