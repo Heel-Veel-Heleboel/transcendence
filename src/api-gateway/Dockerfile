@@ -5,7 +5,7 @@ COPY tsconfig.json ./
 COPY keys ./keys/
 RUN npm install
 COPY src ./src/
-RUN npx tsc -p tsconfig.json --outDir dist
+RUN npm run build
 
 EXPOSE 3002
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

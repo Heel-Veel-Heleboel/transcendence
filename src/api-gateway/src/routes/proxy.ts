@@ -4,11 +4,11 @@ import {
   FastifyReply
 } from 'fastify';
 import httpProxy from '@fastify/http-proxy';
-import { config } from '../config';
-import { authGuard, authMiddleware } from '../middleware/auth';
-import { setupProxyErrorHandler } from './errorHandler';
-import { ServiceConfig } from '../entity/common';
-import type { ExtendedHttpProxyOptions } from '../entity/types';
+import { config } from '../config/index.js';
+import { authGuard, authMiddleware } from '../middleware/auth.js';
+import { setupProxyErrorHandler } from './errorHandler.js';
+import { ServiceConfig } from '../entity/common.js';
+import type { ExtendedHttpProxyOptions } from '../entity/types.js';
 
 /**
  * Main function to register all proxy routes

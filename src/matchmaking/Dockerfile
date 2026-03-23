@@ -9,6 +9,7 @@ COPY tsconfig.json ./
 COPY src ./src/
 RUN npm run db:generate
 RUN npm run build
+RUN cp -r generated dist/generated
 
 EXPOSE 3005
 CMD ["sh", "-c", "npm run db:push && node dist/src/index.js"]

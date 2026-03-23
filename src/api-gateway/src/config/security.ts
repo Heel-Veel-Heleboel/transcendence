@@ -1,7 +1,7 @@
 import type { FastifyHelmetOptions } from '@fastify/helmet';
 import type { FastifyCorsOptions } from '@fastify/cors';
-import { SECURITY_CONSTANTS } from '../entity/common';
-import { validateIntegerRange } from '../utils/validation';
+import { SECURITY_CONSTANTS } from '../entity/common.js';
+import { validateIntegerRange } from '../utils/validation.js';
 
 /**
  * Security configuration for API Gateway

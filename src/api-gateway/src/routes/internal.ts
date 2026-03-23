@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { sendToUsers, broadcastToAll } from '../websocket/connections';
+import { sendToUsers, broadcastToAll } from '../websocket/connections.js';
 
 interface NotifyBody {
   userIds: string[];
