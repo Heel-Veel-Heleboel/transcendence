@@ -135,61 +135,87 @@ export function UserProfileContent(): JSX.Element {
     }, [profile])
 
     return (
-        <ProfileContainer picture={
-            <div className="flex flex-col justify-between">
+        <ProfileContainer >
+            <ProfileAvatarContainer >
                 <ProfilePicture username={user?.name} image={image} />
                 <SubmitContainer handleSubmit={handleSubmit} handleFileChange={handleFileChange} />
-            </div>
-        } properties={
-            <ProfileProperties user={user} />
-        } />
+            </ProfileAvatarContainer >
+
+            <ProfileProperties>
+                <ProfilePropertiesPrimary>
+                    <Username username={user?.name} />
+                    <Email email={user?.email} />
+                    <Password />
+                    <DeleteAccount />
+                </ProfilePropertiesPrimary>
+                <ProfilePropertiesSecundary>
+                    <div className="w-4/10">statistics</div>
+                    <div className="w-2/10" />
+                    <div className='w-4/10'>friends list</div>
+                </ProfilePropertiesSecundary>
+            </ProfileProperties>
+
+        </ProfileContainer >
     )
 }
 
 
-function ProfileContainer({ picture, properties }: { picture: ReactNode, properties: ReactNode }) {
+export function ProfileContainer({ children }: { children: ReactNode }) {
     return (
         <div id='avatar' className="flex min-w-full min-h-full bg-emerald-500/50 text-center">
-            <div className="w-1/2 min-h-full flex flex-col justify-around text-xl">
-                <div id="ProfileAvatarContainer" className="h-3/5">
-                    {picture}
-                </div>
-            </div>
-            {properties}
+            {children}
         </div>
     )
 }
 
-function ProfileProperties({ user }: { user: IUser | null }) {
+export function ProfileAvatarContainer({ children }: { children: ReactNode }) {
+    return (
+        <div className="w-1/2 min-h-full flex flex-col justify-around text-xl">
+            <div id="ProfileAvatarContainer" className="h-3/5">
+                <div className="flex flex-col justify-between">
+                    {children}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+
+export function ProfilePropertiesPrimary({ children }: { children: ReactNode }) {
+    return (
+        <div className="flex justify-around min-h-1/2">
+            <div />
+            <div className="text-left w-3/5 flex flex-col justify-between min-h-full">
+                <div />
+                <div className="flex flex-col justify-around min-h-3/5">
+                    {children}
+                </div>
+                <div />
+            </div>
+            <div />
+        </div>
+    )
+}
+
+export function ProfilePropertiesSecundary({ children }: { children: ReactNode }) {
+    return (
+        <div className="flex min-h-1/2">
+            {children}
+        </div>
+
+    )
+}
+
+export function ProfileProperties({ children }: { children: ReactNode }) {
     return (
         <div id='profileProperties' className="w-1/2 min-h-full flex flex-col text-xl">
-
-            <div className="flex justify-around min-h-1/2">
-                <div />
-                <div className="text-left w-3/5 flex flex-col justify-between min-h-full">
-                    <div />
-                    <div className="flex flex-col justify-around min-h-3/5">
-                        <Username username={user?.name} />
-                        <Email email={user?.email} />
-                        <Password />
-                        <DeleteAccount />
-                    </div>
-                    <div />
-                </div>
-                <div />
-            </div>
-            <div className="flex min-h-1/2">
-                <div className="w-4/10">statistics</div>
-                <div className="w-2/10" />
-                <div className='w-4/10'>friends list</div>
-            </div>
-
+            {children}
         </div>
     )
 
 }
 
-function ProfilePicture({ username, image }: { username: string | undefined, image: string }) {
+export function ProfilePicture({ username, image }: { username: string | undefined, image: string }) {
     return (
         <div>
             <div>{username}</div>
@@ -200,7 +226,7 @@ function ProfilePicture({ username, image }: { username: string | undefined, ima
     )
 }
 
-function SubmitContainer({ handleSubmit, handleFileChange }: { handleSubmit: (event: BaseSyntheticEvent) => void, handleFileChange: (event: BaseSyntheticEvent) => void }) {
+export function SubmitContainer({ handleSubmit, handleFileChange }: { handleSubmit: (event: BaseSyntheticEvent) => void, handleFileChange: (event: BaseSyntheticEvent) => void }) {
     return (
         <div id='SubmitPictureContainer' className="flex justify-between">
             <div />

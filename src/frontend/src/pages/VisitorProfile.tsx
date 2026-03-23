@@ -7,6 +7,7 @@ import { MainContainer } from "../components/sections/MainContainer";
 import { Widget } from "../components/utils/MenuUtils";
 import { useNavigate, useParams } from "react-router-dom";
 import { IProfile, IUser } from "../types/profile";
+import { ProfileAvatarContainer, ProfileContainer, ProfilePicture, ProfileProperties, ProfilePropertiesPrimary, ProfilePropertiesSecundary } from "./Profile";
 import { useAuth } from "../components/providers/Auth";
 
 export function VisitorProfile(): JSX.Element {
@@ -71,12 +72,21 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
     }, [profile])
 
     return (
-        <ProfileContainer picture={
-            <div className="flex flex-col justify-between">
-                <ProfilePicture username={profile?.user.name} image={image} />
-            </div>
-        } properties={
-            <ProfileProperties user={profile?.user} />
-        } />
+        <ProfileContainer >
+            <ProfileAvatarContainer >
+                <ProfilePicture username={profile?.user?.name} image={image} />
+            </ProfileAvatarContainer >
+
+            <ProfileProperties>
+                <ProfilePropertiesPrimary>
+                    <div>lol</div>
+                </ProfilePropertiesPrimary>
+                <ProfilePropertiesSecundary>
+                    <div className="w-4/10">statistics</div>
+                    <div className="w-2/10" />
+                    <div className='w-4/10'>friends list</div>
+                </ProfilePropertiesSecundary>
+            </ProfileProperties>
+        </ProfileContainer >
     )
 }
