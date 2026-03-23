@@ -1,4 +1,4 @@
-import { SECURITY_CONSTANTS } from '../entity/common';
+import { SECURITY_CONSTANTS } from '../entity/common.js';
 
 /**
  * Validation utilities for configuration parsing

@@ -1,4 +1,4 @@
-import type { JWTPayload, ServiceConfig } from './common';
+import type { JWTPayload, ServiceConfig } from './common.js';
 import type fastifyHttpProxy from '@fastify/http-proxy';
 
 // Extend FastifyRequest with application-specific fields

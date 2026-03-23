@@ -1,10 +1,10 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { GatewayConfig } from '../entity/common';
-import { getServicesConfig } from './service';
-import { getRateLimitConfig } from './rateLimit';
-import { logger } from './logger';
-import { validatePort } from '../utils/validation';
+import { GatewayConfig } from '../entity/common.js';
+import { getServicesConfig } from './service.js';
+import { getRateLimitConfig } from './rateLimit.js';
+import { logger } from './logger.js';
+import { validatePort } from '../utils/validation.js';
 
 // Load JWT public key for RS256 verification
 const nodeEnv = process.env.NODE_ENV || 'development';

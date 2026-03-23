@@ -5,8 +5,8 @@ import {
   FastifyInstance
 } from 'fastify';
 import { STATUS_CODES } from 'http';
-import type { StandardError, ServiceConfig } from '../entity/common';
-import { findServiceByUrl } from './proxy';
+import type { StandardError, ServiceConfig } from '../entity/common.js';
+import { findServiceByUrl } from './proxy.js';
 
 /**
  * Log error details with correlation ID for tracing
