@@ -210,14 +210,11 @@ export function UserProfileContent(): JSX.Element {
     return (
         <div id='avatar' className="flex min-w-full min-h-full bg-emerald-500/50 text-center">
             <div className="w-1/2 min-h-full flex flex-col justify-around text-xl">
-                <div></div>
                 <div id="ProfileAvatarContainer" className="h-3/5 flex flex-col justify-between">
                     <div>{user?.name}</div>
-                    <div></div>
                     <div id='profilePicture' className="flex justify-center">
                         {<img src={image} alt="profile_pic" className="w-1/4 min-h-1/2" />}
                     </div>
-                    <div></div>
                     <div id='SubmitPictureContainer' className="flex justify-between">
                         <div />
                         <div className="w-1/2">
@@ -247,7 +244,6 @@ export function UserProfileContent(): JSX.Element {
                         <div />
                     </div>
                 </div>
-                <div></div>
             </div>
             <div id='profileProperties' className="w-1/2 min-h-full flex flex-col text-xl">
 
