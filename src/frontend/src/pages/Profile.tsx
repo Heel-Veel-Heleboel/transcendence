@@ -522,7 +522,6 @@ function Password() {
 
 function DeleteAccount() {
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
-    const navigate = useNavigate();
     const auth = useAuth();
 
     function handleDropDown() {
@@ -541,9 +540,8 @@ function DeleteAccount() {
                 data: JSON.stringify({ user_id: Number(user_id) }),
             })
             handleDropDown();
-            alert("Delete account!");
-            navigate('/');
-            auth.logOut();
+            alert("Deleted account!");
+            auth.gotoLogin();
         } catch (error) {
             console.error("Error deleting Account:", error);
             alert("Deleting account failed");
