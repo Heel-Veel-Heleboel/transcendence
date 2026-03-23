@@ -1,4 +1,4 @@
-import { BaseSyntheticEvent, JSX, useEffect, useState } from "react"
+import { BaseSyntheticEvent, JSX, ReactNode, useEffect, useState } from "react"
 import api from "../api";
 import { CONFIG } from "../constants/AppConfig";
 import { getCookie } from "../components/utils/cookies";
@@ -37,68 +37,6 @@ export function VisitorProfile(): JSX.Element {
             <Widget logoPath={CONFIG.PROFILE_LOGO} title={CONFIG.PROFILE_TITLE} width="w-full" child={<VisitorProfileContent userId={userId} />} />
         } />
     )
-}
-
-export function VisitorProfileContent({ userId }: { userId: string }): JSX.Element {
-    const [username, setUsername] = useState<string>();
-    const [email, setEmail] = useState<string>();
-
-    useEffect(() => {
-        async function getUser() {
-            try {
-                const user = await api<IUser>({
-                    url: CONFIG.REQUEST_USER + userId
-                })
-                setUsername(user.data.name);
-                setEmail(user.data.email);
-            }
-            catch (e: any) {
-                console.error(e);
-                throw new Error(ERRORS.PROFILE_USER_FAILED);
-            }
-        }
-
-        getUser()
-    }, [])
-
-    return (
-        <div id='avatar' className="flex min-w-full min-h-full bg-emerald-500/50 text-center">
-            <div className="w-1/2 min-h-full flex flex-col justify-around text-xl">
-                <div>
-                    <div>{username}</div>
-                    <div className=" flex justify-center">
-                        {/*TODO: Change with actual profile pic of user*/}
-                        <img src="/snake_codec.png" alt="profile_pic" className="w-1/4 min-h-1/2" />
-                    </div>
-                </div>
-                <div></div>
-            </div>
-            <div id='profileProperties' className="w-1/2 min-h-full flex flex-col text-xl">
-
-                <div className="flex justify-around min-h-1/2">
-                    <div />
-                    <div className="text-left w-3/5 flex flex-col justify-between">
-                        <div />
-                        <div className="flex flex-col justify-around min-h-3/5">
-                            <ProfileProperty title="Username" property={username} dropDown={DropDown()} />
-                            <ProfileProperty title="Email" property={email} dropDown={DropDown()} />
-                            <div>Change password</div>
-                            <div>Delete user</div>
-                        </div>
-                        <div />
-                    </div>
-                    <div />
-                </div>
-                <div className="flex min-h-1/2">
-                    <div className="w-4/10">statistics</div>
-                    <div className="w-2/10" />
-                    <div className='w-4/10'>friends list</div>
-                </div>
-
-            </div>
-        </div>
-    )
-
 }
 
 export function UserProfileContent(): JSX.Element {
@@ -208,69 +146,101 @@ export function UserProfileContent(): JSX.Element {
     }, [profile])
 
     return (
+        <ProfileContainer picture={
+            <div className="flex flex-col justify-between">
+                <ProfilePicture username={user?.name} image={image} />
+                <SubmitContainer handleSubmit={handleSubmit} handleFileChange={handleFileChange} />
+            </div>
+        } properties={
+            <ProfileProperties user={user} />
+        } />
+    )
+}
+
+
+function ProfileContainer({ picture, properties }: { picture: ReactNode, properties: ReactNode }) {
+    return (
         <div id='avatar' className="flex min-w-full min-h-full bg-emerald-500/50 text-center">
             <div className="w-1/2 min-h-full flex flex-col justify-around text-xl">
-                <div id="ProfileAvatarContainer" className="h-3/5 flex flex-col justify-between">
-                    <div>{user?.name}</div>
-                    <div id='profilePicture' className="flex justify-center">
-                        {<img src={image} alt="profile_pic" className="w-1/4 min-h-1/2" />}
-                    </div>
-                    <div id='SubmitPictureContainer' className="flex justify-between">
-                        <div />
-                        <div className="w-1/2">
-                            <form onSubmit={handleSubmit} >
-
-                                <div >
-                                    <div className="text-left text-base">Change Profile Picture</div>
-                                    <div className="flex">
-                                        <input
-                                            className="border text-sm block w-full placeholder:text-body
-                                            file:mr-5 file:py-4 file:px-2
-                                            file:text-sm file:font-medium
-                                            file:bg-gray-200 file:text-white-700
-                                            "
-                                            id="file_input"
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleFileChange}
-
-                                        />
-                                        <button className="text-sm border" type="submit">Upload Image</button>
-                                    </div>
-                                </div>
-
-                            </form>
-                        </div>
-                        <div />
-                    </div>
+                <div id="ProfileAvatarContainer" className="h-3/5">
+                    {picture}
                 </div>
             </div>
-            <div id='profileProperties' className="w-1/2 min-h-full flex flex-col text-xl">
+            {properties}
+        </div>
+    )
+}
 
-                <div className="flex justify-around min-h-1/2">
+function ProfileProperties({ user }: { user: IUser | null }) {
+    return (
+        <div id='profileProperties' className="w-1/2 min-h-full flex flex-col text-xl">
+
+            <div className="flex justify-around min-h-1/2">
+                <div />
+                <div className="text-left w-3/5 flex flex-col justify-between min-h-full">
                     <div />
-                    <div className="text-left w-3/5 flex flex-col justify-between min-h-full">
-                        <div />
-                        <div className="flex flex-col justify-around min-h-3/5">
-                            <Username username={user?.name} />
-                            <Email email={user?.email} />
-                            <Password />
-                            <DeleteAccount />
-                        </div>
-                        <div />
+                    <div className="flex flex-col justify-around min-h-3/5">
+                        <Username username={user?.name} />
+                        <Email email={user?.email} />
+                        <Password />
+                        <DeleteAccount />
                     </div>
                     <div />
                 </div>
-                <div className="flex min-h-1/2">
-                    <div className="w-4/10">statistics</div>
-                    <div className="w-2/10" />
-                    <div className='w-4/10'>friends list</div>
-                </div>
-
+                <div />
             </div>
+            <div className="flex min-h-1/2">
+                <div className="w-4/10">statistics</div>
+                <div className="w-2/10" />
+                <div className='w-4/10'>friends list</div>
+            </div>
+
         </div>
     )
 
+}
+
+function ProfilePicture({ username, image }: { username: string | undefined, image: string }) {
+    return (
+        <div>
+            <div>{username}</div>
+            <div id='profilePicture' className="flex justify-center">
+                {<img src={image} alt="profile_pic" className="w-1/4 min-h-1/2" />}
+            </div>
+        </div>
+    )
+}
+
+function SubmitContainer({ handleSubmit, handleFileChange }: { handleSubmit: (event: BaseSyntheticEvent) => void, handleFileChange: (event: BaseSyntheticEvent) => void }) {
+    return (
+        <div id='SubmitPictureContainer' className="flex justify-between">
+            <div />
+            <div className="w-1/2">
+                <form onSubmit={handleSubmit} >
+
+                    <div >
+                        <div className="text-left text-base">Change Profile Picture</div>
+                        <div className="flex">
+                            <input
+                                className="border text-sm block w-full placeholder:text-body
+                                           file:mr-5 file:py-4 file:px-2
+                                           file:text-sm file:font-medium
+                                           file:bg-gray-200 file:text-white-700"
+                                id="file_input"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+
+                            />
+                            <button className="text-sm border" type="submit">Upload Image</button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div />
+        </div>
+    )
 }
 
 function SubmitPropertyChange(handleChange: (event: BaseSyntheticEvent) => void, handleSubmit: (event: BaseSyntheticEvent) => void, buttonText: string) {
