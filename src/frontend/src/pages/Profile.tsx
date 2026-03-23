@@ -5,7 +5,7 @@ import { getCookie } from "../components/utils/cookies";
 import { ERRORS } from "../constants/Errors";
 import { MainContainer } from "../components/sections/MainContainer";
 import { Widget } from "../components/utils/MenuUtils";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { IProfile, IUser } from "../types/profile";
 import { useAuth } from "../components/providers/Auth";
 
@@ -27,17 +27,6 @@ export function Profile(): JSX.Element {
     )
 }
 
-export function VisitorProfile(): JSX.Element {
-    const { userId } = useParams();
-    if (typeof userId === 'undefined') {
-        return <div>error</div>
-    }
-    return (
-        <MainContainer children={
-            <Widget logoPath={CONFIG.PROFILE_LOGO} title={CONFIG.PROFILE_TITLE} width="w-full" child={<VisitorProfileContent userId={userId} />} />
-        } />
-    )
-}
 
 export function UserProfileContent(): JSX.Element {
     const [profile, setProfile] = useState<IProfile | null>(null);
