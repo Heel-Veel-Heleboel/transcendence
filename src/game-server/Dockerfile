@@ -6,6 +6,7 @@ COPY tsconfig*.json ./
 COPY src ./src/
 COPY public ./public/
 RUN npm run build
+COPY .env* ./
 
 EXPOSE 2567
-CMD ["node", "./build/src/index.js"]
+CMD ["node", "--env-file-if-exists=.env", "./build/src/index.js"]

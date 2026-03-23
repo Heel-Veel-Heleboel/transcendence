@@ -9,6 +9,7 @@ COPY tsconfig.json ./
 COPY src ./src/
 RUN npm run db:generate
 RUN npm run build
+COPY .env* ./
 
 EXPOSE 3006
-CMD ["sh", "-c", "npm run db:push && node dist/src/index.js"]
+CMD ["sh", "-c", "npm run db:push && node --env-file-if-exists=.env dist/src/index.js"]
