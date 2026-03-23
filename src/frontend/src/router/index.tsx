@@ -8,8 +8,9 @@ import { RoomProvider } from '../components/providers/Room.tsx';
 import { CONFIG } from '../constants/AppConfig.ts';
 import { ErrorBoundary } from 'react-error-boundary';
 import { GeneralErrorFallback } from '../components/errors/GeneralErrorFallBack.tsx';
-import { Profile, VisitorProfile } from '../pages/Profile.tsx';
+import { Profile } from '../pages/Profile.tsx';
 import { Tournament } from '../pages/Tournament.tsx';
+import { VisitorProfile } from '../pages/VisitorProfile.tsx';
 
 /* v8 ignore start */
 export const Router = () => {
