@@ -7,14 +7,14 @@ services:
       context: src/api-gateway
       dockerfile: Dockerfile
     ports:
-      - "3002:3002"
+      - "3000:3000"
     environment:
-      - PORT=3002
+      - PORT=3000
       - HOST=0.0.0.0
       - NODE_ENV=production
       - JWT_PUBLIC_KEY_PATH=/app/keys/jwt_public.pem
       - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3002
-      - SERVICES=[{"name":"auth","upstream":"http://auth:3003","prefix":"/api/auth","requiresAuth":false},{"name":"user-management","upstream":"http://user-management:3004","prefix":"/api/user-management","requiresAuth":true},{"name":"chat","upstream":"http://chat:3006","prefix":"/api/chat","requiresAuth":true},{"name":"matchmaking","upstream":"http://matchmaking:3005","prefix":"/api/matchmaking","requiresAuth":true},{"name":"game-server","upstream":"http://game-server:2567","prefix":"/api/game-server","requiresAuth":false,"websocket":true}]
+      - SERVICES_FILE=/app/config/services.json
     depends_on:
       auth:
         condition: service_started

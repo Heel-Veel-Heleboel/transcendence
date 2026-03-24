@@ -9,6 +9,7 @@ COPY tsconfig.json ./
 COPY keys ./keys/
 COPY src ./src/
 RUN npm run build
+COPY .env* ./
 
 EXPOSE 3003
-CMD ["sh", "-c", "npx prisma migrate deploy --schema=./prisma/schema.prisma && node dist/src/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=./prisma/schema.prisma && node --env-file-if-exists=.env dist/src/index.js"]

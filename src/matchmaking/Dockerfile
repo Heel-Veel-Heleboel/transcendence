@@ -10,6 +10,7 @@ COPY src ./src/
 RUN npm run db:generate
 RUN npm run build
 RUN cp -r generated dist/generated
+COPY .env* ./
 
 EXPOSE 3005
-CMD ["sh", "-c", "npm run db:push && node dist/src/index.js"]
+CMD ["sh", "-c", "npm run db:push && node --env-file-if-exists=.env dist/src/index.js"]
