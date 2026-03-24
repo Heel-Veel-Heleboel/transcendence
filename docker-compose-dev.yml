@@ -42,8 +42,6 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "5173:5173"
-    environment:
-      - NODE_ENV=production
     depends_on:
       - api-gateway
     networks:
@@ -56,13 +54,13 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./src/frontend/src
+          path: src/frontend/src
           target: /app/src/
           initial_sync: true
           ignore:
-            - ./src/frontend/node_modules/
+            - src/frontend/node_modules/
         - action: rebuild
-          path: ./src/frontend/package.json
+          path: src/frontend/package.json
 
   # ─── Auth ───────────────────────────────────────────────────────────────────
   auth:
