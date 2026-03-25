@@ -105,6 +105,11 @@ export const CONFIG = {
   REQUEST_PROFILE_CHANGE_EMAIL: 'users/update-email',
   REQUEST_PROFILE_CHANGE_PASSWORD: 'auth/change-password',
   REQUEST_PROFILE_DELETE: 'users/delete',
+  REQUEST_FRIEND_ADD: 'users/friendship/create',
+  REQUEST_FRIEND_LIST: 'users/friendship/find-all-for-user/',
+  REQUEST_FRIEND_REQUESTS: (userId: string) => {
+    return `users/friendship/find-all-by-status-for-user/${userId}/pending`;
+  },
 
   REQUEST_MATCHMAKING_STATUS: 'matchmaking/status/me',
   REQUEST_MATCHMAKING_CLASSIC: 'matchmaking/classic/join',

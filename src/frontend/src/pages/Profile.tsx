@@ -117,7 +117,7 @@ export function UserProfileContent(): JSX.Element {
                     return;
                 }
                 const result = await api({
-                    url: profile?.avatar_url,
+                    url: CONFIG.REQUEST_PROFILE_PICTURE + profile?.avatar_url,
                     responseType: 'blob'
                 })
                 const imageObjectUrl = URL.createObjectURL(result.data);
@@ -149,9 +149,11 @@ export function UserProfileContent(): JSX.Element {
                     <DeleteAccount />
                 </ProfilePropertiesPrimary>
                 <ProfilePropertiesSecundary>
-                    <div className="w-4/10">statistics</div>
-                    <div className="w-2/10" />
-                    <div className='w-4/10'>friends list</div>
+                    <div className="w-3/10">statistics</div>
+                    <div className="w-1/20"></div>
+                    <div className='w-3/10'><FriendshipList /></div>
+                    <div className="w-1/20"></div>
+                    <div className='w-3/10'><FriendshipRequests /></div>
                 </ProfilePropertiesSecundary>
             </ProfileProperties>
 
@@ -159,6 +161,70 @@ export function UserProfileContent(): JSX.Element {
     )
 }
 
+export function FriendshipRequests() {
+    const [requests, setRequests] = useState<Array<string>>([])
+    useEffect(() => {
+        async function getFriendsRequests() {
+            try {
+                const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
+                const result = await api({
+                    url: CONFIG.REQUEST_FRIEND_REQUESTS(user_id)
+                })
+                const mappedRequests = result.data.map(request => request.id);
+                setRequests(mappedRequests);
+                console.log(result.data);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        getFriendsRequests();
+    }, [])
+
+    const FriendshipRequestsContent = (): JSX.Element => {
+        function List(list: Array<string>) {
+            const listItems = list.map(item =>
+                <li key={item}>{item}</li>
+            );
+            return <ul>{listItems}</ul>;
+        }
+
+        return (
+            <div>
+                {List(requests)}
+            </div>
+        )
+    }
+
+    return (
+        <div>
+            <Terminal title={CONFIG.LIVE_CHAT_ROOMS_TITLE} child={roomsContent()} />
+        </div>
+    )
+}
+
+export function FriendshipList() {
+    const [friends, setFriends] = useState<Array<string>>([])
+    useEffect(() => {
+        async function getFriends() {
+            try {
+                const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
+                const result = await api({
+                    url: CONFIG.REQUEST_FRIEND_LIST + user_id,
+                })
+                console.log(result.data);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        getFriends();
+    }, [])
+
+    return (
+        <div>friends</div>
+    )
+}
 
 export function ProfileContainer({ children }: { children: ReactNode }) {
     return (
