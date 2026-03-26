@@ -33,7 +33,7 @@ export function DeleteAccount() {
         }
     }
     return (
-        <div id="DeleteAccountContainer">
+        <div id="delete-account">
             <div className="flex flex-col">
                 <div className="w-full">
                     <button onClick={handleDropDown}>Delete User</button>
@@ -44,7 +44,6 @@ export function DeleteAccount() {
                 <div className="w-full border flex py-2">
                     <div className="w-2/5">
                         <span>Are you sure?: </span>
-
                     </div>
                     <div className="flex w-3/5">
                         <button className="border w-1/2" onClick={requestDelete}>Yes</button>

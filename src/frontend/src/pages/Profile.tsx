@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { IProfile, IUser } from "../types/profile";
 import { useAuth } from "../components/providers/Auth";
 import { ProfileContainer } from "../features/profile/ProfileContainer";
-import { ProfileAvatarContainer, ProfilePicture, SubmitContainer } from "../features/profile/ProfileAvatar";
+import { ProfileAvatarContainer, ProfileName, ProfilePicture, ProfilePictureForm } from "../features/profile/ProfileAvatar";
 import { ProfileProperties, ProfilePropertiesPrimary, ProfilePropertiesSecundary } from "../features/profile/ProfileProperties";
 import { FriendshipList } from "../features/relationships/FriendshipList";
 import { FriendshipRequests } from "../features/relationships/FriendshipRequests";
@@ -40,6 +40,8 @@ export function Profile(): JSX.Element {
 export function UserProfileContent(): JSX.Element {
     const [profile, setProfile] = useState<IProfile | null>(null);
     const [user, setUser] = useState<IUser | null>(null);
+    const [name, setName] = useState<string>('mysterio');
+    const [email, setEmail] = useState<string>('mysterio@myster.io');
     const [image, setImage] = useState<string>(CONFIG.PROFILE_DEFAULT_LOGO);
     const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
@@ -92,6 +94,8 @@ export function UserProfileContent(): JSX.Element {
                     url: CONFIG.REQUEST_USER + user_id
                 })
                 setUser(result.data);
+                setName(result.data.name);
+                setEmail(result.data.email);
             }
             catch (e: any) {
                 console.error(e);
@@ -146,13 +150,14 @@ export function UserProfileContent(): JSX.Element {
     return (
         <ProfileContainer >
             <ProfileAvatarContainer >
-                <ProfilePicture username={user?.name} image={image} />
-                <SubmitContainer handleSubmit={handleSubmit} handleFileChange={handleFileChange} />
+                <ProfileName name={name} />
+                <ProfilePicture image={image} />
+                <ProfilePictureForm handleSubmit={handleSubmit} handleFileChange={handleFileChange} />
             </ProfileAvatarContainer >
             <ProfileProperties>
                 <ProfilePropertiesPrimary>
-                    <Username username={user?.name} />
-                    <Email email={user?.email} />
+                    <Username username={name} />
+                    <Email email={email} />
                     <Password />
                     <DeleteAccount />
                 </ProfilePropertiesPrimary>

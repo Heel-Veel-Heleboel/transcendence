@@ -91,7 +91,7 @@ export function FriendshipList() {
             return <ul>{listItems}</ul>;
         }
         return (
-            <div className="text-left" id="friends">
+            <div id="friendship-list" className="text-left">
                 {List(friendsProfiles)}
             </div>
         )

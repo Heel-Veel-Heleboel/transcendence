@@ -3,7 +3,7 @@ import { ReactNode } from "react"
 
 export function ProfilePropertiesPrimary({ children }: { children: ReactNode }) {
     return (
-        <div className="flex justify-around min-h-1/2">
+        <div id="primary-profile-properties" className="flex justify-around min-h-1/2">
             <div />
             <div className="text-left w-3/5 flex flex-col justify-between min-h-full">
                 <div />
@@ -19,7 +19,7 @@ export function ProfilePropertiesPrimary({ children }: { children: ReactNode }) 
 
 export function ProfilePropertiesSecundary({ children }: { children: ReactNode }) {
     return (
-        <div className="flex min-h-1/2">
+        <div id="secundary-profile-properties" className="flex min-h-1/2">
             {children}
         </div>
 
@@ -28,7 +28,7 @@ export function ProfilePropertiesSecundary({ children }: { children: ReactNode }
 
 export function ProfileProperties({ children }: { children: ReactNode }) {
     return (
-        <div id='profileProperties' className="w-1/2 min-h-full flex flex-col text-xl">
+        <div id='profile-properties' className="w-1/2 min-h-full flex flex-col text-xl">
             {children}
         </div>
     )

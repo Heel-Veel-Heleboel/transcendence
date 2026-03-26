@@ -2,9 +2,9 @@ import { BaseSyntheticEvent, ReactNode } from "react";
 
 export function ProfileAvatarContainer({ children }: { children: ReactNode }) {
     return (
-        <div className="w-1/2 min-h-full flex flex-col justify-around text-xl">
-            <div id="ProfileAvatarContainer" className="h-3/5">
-                <div className="flex flex-col justify-between">
+        <div id="profile-avatar" className="w-1/2 min-h-full flex flex-col justify-around text-xl">
+            <div className="h-3/5">
+                <div className="min-h-full flex flex-col justify-between">
                     {children}
                 </div>
             </div>
@@ -12,20 +12,25 @@ export function ProfileAvatarContainer({ children }: { children: ReactNode }) {
     )
 }
 
-export function ProfilePicture({ username, image }: { username: string | undefined, image: string }) {
+export function ProfileName({ name }: { name: string }) {
     return (
-        <div>
-            <div>{username}</div>
-            <div id='profilePicture' className="flex justify-center">
-                {<img src={image} alt="profile_pic" className="w-1/4 min-h-1/2" />}
-            </div>
+        <div id="profile-name">
+            {name}
         </div>
     )
 }
 
-export function SubmitContainer({ handleSubmit, handleFileChange }: { handleSubmit: (event: BaseSyntheticEvent) => void, handleFileChange: (event: BaseSyntheticEvent) => void }) {
+export function ProfilePicture({ image }: { image: string }) {
     return (
-        <div id='SubmitPictureContainer' className="flex justify-between">
+        <div id='profile-picture' className="flex justify-center">
+            {<img src={image} alt="profile_pic" className="w-1/4 min-h-1/2" />}
+        </div>
+    )
+}
+
+export function ProfilePictureForm({ handleSubmit, handleFileChange }: { handleSubmit: (event: BaseSyntheticEvent) => void, handleFileChange: (event: BaseSyntheticEvent) => void }) {
+    return (
+        <div id='profile-picture-form' className="flex justify-between">
             <div />
             <div className="w-1/2">
                 <form onSubmit={handleSubmit} >

@@ -89,7 +89,7 @@ export function FriendshipRequests() {
         console.log(requests);
 
         return (
-            <div className="text-left" id="requests">
+            <div id="friendship-requests" className="text-left">
                 {List(requestProfiles)}
             </div>
         )

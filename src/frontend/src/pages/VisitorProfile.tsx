@@ -5,7 +5,7 @@ import { MainContainer } from "../components/sections/MainContainer";
 import { Widget } from "../components/utils/MenuUtils";
 import { useParams } from "react-router-dom";
 import { IProfile } from "../types/profile";
-import { ProfileAvatarContainer, ProfilePicture } from "../features/profile/ProfileAvatar";
+import { ProfileAvatarContainer, ProfileName, ProfilePicture } from "../features/profile/ProfileAvatar";
 import { ProfileContainer } from "../features/profile/ProfileContainer";
 import { ProfileProperties, ProfilePropertiesPrimary, ProfilePropertiesSecundary } from "../features/profile/ProfileProperties";
 import { AddFriend } from "../features/profile/AddFriend";
@@ -27,6 +27,8 @@ export function VisitorProfile(): JSX.Element {
 
 export function VisitorProfileContent({ userId }: { userId: string }): JSX.Element {
     const [profile, setProfile] = useState<IProfile | null>(null);
+    const [name, setName] = useState<string>('mysterio');
+    const [status, setStatus] = useState<string>('OFFLINE');
     const [image, setImage] = useState<string>(CONFIG.PROFILE_DEFAULT_LOGO);
 
     useEffect(() => {
@@ -38,6 +40,8 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
                 console.log('getprofile');
                 console.log(result);
                 setProfile(result.data);
+                setName(result.data.user.name)
+                setStatus(result.data.user.activity_status)
             }
             catch (e: any) {
                 console.error(e);
@@ -77,12 +81,13 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
     return (
         <ProfileContainer >
             <ProfileAvatarContainer >
-                <ProfilePicture username={profile?.user?.name} image={image} />
+                <ProfileName name={name} />
+                <ProfilePicture image={image} />
             </ProfileAvatarContainer >
 
             <ProfileProperties>
                 <ProfilePropertiesPrimary>
-                    <Status status={profile?.user.activity_status} />
+                    <Status status={status} />
                     <AddFriend userId={userId} />
                 </ProfilePropertiesPrimary>
                 <ProfilePropertiesSecundary>
