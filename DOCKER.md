@@ -4,7 +4,7 @@
 
 | Service | Port | Description |
 |---|---|---|
-| api-gateway | 3002 | Entry point — proxies all requests to downstream services |
+| api-gateway | 3000 | Entry point — proxies all requests to downstream services |
 | frontend | 5173 | Vite frontend |
 | auth | 3003 | Authentication, JWT issuance |
 | user-management | 3004 | User profiles and stats |
@@ -55,6 +55,25 @@ docker buildx use default
 > **Note:** The first build will take longer because packages are downloaded sequentially.
 > Subsequent builds are faster because Docker layer caching and npm's cached dependencies
 > allow unchanged layers to be reused instead of reinstalling everything from scratch.
+
+## Service URLs
+
+Inter-service URLs (Docker internal hostnames) are defined once in [`docker/urls.env`](docker/urls.env)
+and loaded by every service via `env_file`. To change a service's address — e.g. when deploying
+to a different host — edit that file instead of hunting through the compose file.
+
+```env
+AUTH_SERVICE_URL=http://auth:3003
+USER_MANAGEMENT_URL=http://user-management:3004
+CHAT_SERVICE_URL=http://chat:3006
+MATCHMAKING_URL=http://matchmaking:3005
+GAME_SERVER_URL=http://game-server:2567
+API_GATEWAY_URL=http://api-gateway:3000
+GATEWAY_URL=http://api-gateway:3000
+```
+
+App-specific config (NODE_ENV, CORS origins, JWT key paths, log levels, etc.) belongs in each
+service's own `.env` file — not in the compose file or `urls.env`.
 
 ## Volumes
 

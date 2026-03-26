@@ -13,6 +13,7 @@ build/
 coverage/
 
 # Environment variables
+urls.env
 .env
 .env.local
 .env.development.local
