@@ -56,9 +56,9 @@ docker buildx use default
 > Subsequent builds are faster because Docker layer caching and npm's cached dependencies
 > allow unchanged layers to be reused instead of reinstalling everything from scratch.
 
-## Service URLs
+## Shared Service Environmental Vars
 
-Inter-service URLs (Docker internal hostnames) are defined once in [`docker/urls.env`](docker/urls.env)
+Shared Env Var (e.g. Inter-service URLs (Docker internal hostnames)) are defined once in [`docker/shared.env`](docker/shread.env)
 and loaded by every service via `env_file`. To change a service's address — e.g. when deploying
 to a different host — edit that file instead of hunting through the compose file.
 
@@ -70,9 +70,11 @@ MATCHMAKING_URL=http://matchmaking:3005
 GAME_SERVER_URL=http://game-server:2567
 API_GATEWAY_URL=http://api-gateway:3000
 GATEWAY_URL=http://api-gateway:3000
+
+NODE_ENV=production
 ```
 
-App-specific config (NODE_ENV, CORS origins, JWT key paths, log levels, etc.) belongs in each
+App-specific config (CORS origins, JWT key paths, log levels, etc.) belongs in each
 service's own `.env` file — not in the compose file or `urls.env`.
 
 ## Volumes
