@@ -4,7 +4,7 @@ import { CONFIG } from "../constants/AppConfig";
 import { getCookie } from "../components/utils/cookies";
 import { ERRORS } from "../constants/Errors";
 import { MainContainer } from "../components/sections/MainContainer";
-import { Widget } from "../components/utils/MenuUtils";
+import { Terminal, Widget } from "../components/utils/MenuUtils";
 import { useNavigate } from "react-router-dom";
 import { IProfile, IUser } from "../types/profile";
 import { useAuth } from "../components/providers/Auth";
@@ -161,8 +161,19 @@ export function UserProfileContent(): JSX.Element {
     )
 }
 
+export interface IFriendship {
+    created_at: string;
+    id: number;
+    status: string;
+    updated_at: string;
+    user1_id: number;
+    user2_id: number;
+}
+
 export function FriendshipRequests() {
-    const [requests, setRequests] = useState<Array<string>>([])
+    const [requests, setRequests] = useState<Array<IFriendship>>([])
+    const [requestProfiles, setRequestProfiles] = useState<Map<number, string>>();
+
     useEffect(() => {
         async function getFriendsRequests() {
             try {
@@ -170,8 +181,8 @@ export function FriendshipRequests() {
                 const result = await api({
                     url: CONFIG.REQUEST_FRIEND_REQUESTS(user_id)
                 })
-                const mappedRequests = result.data.map(request => request.id);
-                setRequests(mappedRequests);
+                setRequests(result.data);
+                console.log('getFriendsRequests')
                 console.log(result.data);
             } catch (error) {
                 console.error(error);
@@ -181,24 +192,75 @@ export function FriendshipRequests() {
         getFriendsRequests();
     }, [])
 
-    const FriendshipRequestsContent = (): JSX.Element => {
-        function List(list: Array<string>) {
-            const listItems = list.map(item =>
-                <li key={item}>{item}</li>
-            );
-            return <ul>{listItems}</ul>;
+    useEffect(() => {
+        async function getRequestProfiles() {
+            const profiles = new Map<number, string>()
+            requests.forEach(async (request) => {
+                try {
+                    const result = await api<IProfile>({
+                        url: CONFIG.REQUEST_PROFILE + request.user2_id
+                    })
+                    console.log('getRequestProfiles:\n')
+                    console.log(result.data);
+                    profiles.set(result.data.user_id, result.data.user.name);
+                    setRequestProfiles(profiles);
+                } catch (error) {
+                    console.error(error);
+                }
+            });
         }
 
+        getRequestProfiles()
+    }, [requests])
+
+    async function handleFriendship(id: number, accept: boolean) {
+        try {
+            const status = accept ? 'ACCEPTED' : 'REJECTED'
+            await api({
+                url: CONFIG.REQUEST_FRIEND_UPDATE,
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify({ id: String(id), status: status }),
+            })
+
+        } catch (error) {
+            console.error(error);
+            alert('handling friendship request failed!')
+        }
+    }
+
+    const FriendshipRequestsContent = (): JSX.Element => {
+        function List(list: Map<number, string> | undefined) {
+            if (!list)
+                return
+            const listItems = [...list].map(([key, value]) =>
+                <li key={key}>
+                    <div className="flex justify-between" id={value + 'FriendshipContainer'}>
+                        {value}
+                        <button className="bg-green-500" onClick={() => handleFriendship(key, true)}>accept</button>
+                        <button className="bg-red-500" onClick={() => handleFriendship(key, false)}>reject</button>
+                    </div>
+                </li>
+            );
+            console.log('listitems')
+            console.log(listItems);
+            return <ul>{listItems}</ul>;
+        }
+        console.log('requests')
+        console.log(requests);
+
         return (
-            <div>
-                {List(requests)}
+            <div className="text-left" id="requests">
+                {List(requestProfiles)}
             </div>
         )
     }
 
     return (
         <div>
-            <Terminal title={CONFIG.LIVE_CHAT_ROOMS_TITLE} child={roomsContent()} />
+            <Terminal title={'friendshipRequests'} child={FriendshipRequestsContent()} />
         </div>
     )
 }

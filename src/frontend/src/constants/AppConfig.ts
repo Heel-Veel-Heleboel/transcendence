@@ -106,9 +106,10 @@ export const CONFIG = {
   REQUEST_PROFILE_CHANGE_PASSWORD: 'auth/change-password',
   REQUEST_PROFILE_DELETE: 'users/delete',
   REQUEST_FRIEND_ADD: 'users/friendship/create',
+  REQUEST_FRIEND_UPDATE: 'users/friendship/update-status',
   REQUEST_FRIEND_LIST: 'users/friendship/find-all-for-user/',
   REQUEST_FRIEND_REQUESTS: (userId: string) => {
-    return `users/friendship/find-all-by-status-for-user/${userId}/pending`;
+    return `users/friendship/find-all-by-status-for-user/${userId}/PENDING`;
   },
 
   REQUEST_MATCHMAKING_STATUS: 'matchmaking/status/me',
