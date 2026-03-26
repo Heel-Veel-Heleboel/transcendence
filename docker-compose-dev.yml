@@ -70,6 +70,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3003:3003"
+      - "51213:51213" # prisma studio
     environment:
       - PORT=3003
       - HOST=0.0.0.0
@@ -88,24 +89,6 @@ services:
         delay: 5s
         window: 15s
 
-  auth-prisma-studio:
-    container_name: auth-prisma-studio
-    image: node:24-alpine
-    working_dir: /usr/src/app
-    volumes:
-      - auth-data:/data
-    command: npx prisma studio --port 5555 --browser none --url='postgresql://data/auth.db'
-    # command: tail -f /dev/null
-    ports:
-      - "5555:5555"
-    # env_file: 
-    #   - .env.prod 
-    networks:
-      - app-net
-    depends_on:
-      auth:
-        condition: service_started
-
   # ─── User Management ────────────────────────────────────────────────────────
   user-management:
     container_name: user-management
@@ -114,6 +97,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3004:3004"
+      - "51212:51212" # prisma studio
     environment:
       - PORT=3004
       - HOST=0.0.0.0
