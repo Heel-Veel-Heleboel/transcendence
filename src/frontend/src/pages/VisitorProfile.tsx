@@ -1,14 +1,17 @@
-import { BaseSyntheticEvent, JSX, ReactNode, useEffect, useState } from "react"
+import { JSX, useEffect, useState } from "react"
 import api from "../api";
 import { CONFIG } from "../constants/AppConfig";
-import { getCookie } from "../components/utils/cookies";
-import { ERRORS } from "../constants/Errors";
 import { MainContainer } from "../components/sections/MainContainer";
 import { Widget } from "../components/utils/MenuUtils";
-import { useNavigate, useParams } from "react-router-dom";
-import { IProfile, IUser } from "../types/profile";
-import { ProfileAvatarContainer, ProfileContainer, ProfilePicture, ProfileProperties, ProfilePropertiesPrimary, ProfilePropertiesSecundary } from "./Profile";
-import { useAuth } from "../components/providers/Auth";
+import { useParams } from "react-router-dom";
+import { IProfile } from "../types/profile";
+import { ProfileAvatarContainer, ProfilePicture } from "../features/profile/ProfileAvatar";
+import { ProfileContainer } from "../features/profile/ProfileContainer";
+import { ProfileProperties, ProfilePropertiesPrimary, ProfilePropertiesSecundary } from "../features/profile/ProfileProperties";
+import { AddFriend } from "../features/profile/AddFriend";
+import { Status } from "../features/profile/Status";
+import { ERRORS } from "../constants/Errors";
+
 
 export function VisitorProfile(): JSX.Element {
     const { userId } = useParams();
@@ -92,40 +95,3 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
     )
 }
 
-export function AddFriend({ userId }: { userId: string }) {
-
-    async function handleFriendshipRequest() {
-        const currentUserId = getCookie(CONFIG.USERID_COOKIE_NAME);
-        try {
-            await api({
-                url: CONFIG.REQUEST_FRIEND_ADD,
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                data: JSON.stringify({ user1_id: currentUserId, user2_id: userId }),
-            })
-        }
-        catch (e: any) {
-            console.error(e);
-            alert('friendship request failed');
-        }
-
-    }
-
-    return (
-        <div id="FriendshipContainer">
-            <button onClick={handleFriendshipRequest}>Add friend</button>
-        </div>
-
-    )
-}
-
-export function Status({ status }: { status: string | undefined }) {
-    return (
-        <div id="StatusContainer">
-            {status === 'ONLINE' ? '🟢' : '🔴'} {status?.toLowerCase()}
-        </div>
-
-    )
-}
