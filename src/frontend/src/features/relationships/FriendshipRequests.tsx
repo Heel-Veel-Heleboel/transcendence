@@ -6,6 +6,7 @@ import api from "../../api";
 import { CONFIG } from "../../constants/AppConfig";
 import { IProfile } from "../../types/profile";
 import { Terminal } from "../../components/utils/MenuUtils";
+import { RelationsColumn } from "./RelationsColumn";
 
 export function FriendshipRequests() {
     const [requests, setRequests] = useState<Array<IFriendship>>([])
@@ -74,7 +75,7 @@ export function FriendshipRequests() {
                 return
             const listItems = [...list].map(([friendshipId, friendName]) =>
                 <li key={friendshipId}>
-                    <div className="flex justify-between" id={friendName + 'FriendshipContainer'}>
+                    <div className="flex justify-between" id={friendName + '-container'}>
                         {friendName}
                         <button className="bg-green-500" onClick={() => handleFriendship(friendshipId, true)}>accept</button>
                         <button className="bg-red-500" onClick={() => handleFriendship(friendshipId, false)}>reject</button>
@@ -96,8 +97,8 @@ export function FriendshipRequests() {
     }
 
     return (
-        <div>
-            <Terminal title={'friendshipRequests'} child={FriendshipRequestsContent()} />
-        </div>
+        <RelationsColumn>
+            <Terminal title={'friendship-requests'} child={FriendshipRequestsContent()} />
+        </RelationsColumn>
     )
 }

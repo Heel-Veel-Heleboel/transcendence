@@ -3,6 +3,7 @@ export const CONFIG = {
   START_MENU_NAVIGATION: '/',
   MENU_NAVIGATION: '/home',
   USER_PROFILE_NAVIGATION: '/profile/me',
+  USER_RELATIONSHIPS_NAVIGATION: '/profile/me/relationships',
   VISITOR_PROFILE_NAVIGATION: '/profile/:userId',
   GAME_NAVIGATION: '/game/:gameMode/:matchId/:roomId',
   TOURNAMENT_NAVIGATION: '/tournament/:tournamentId',

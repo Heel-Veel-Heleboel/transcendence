@@ -17,6 +17,7 @@ import { Username } from "../features/profile/Username";
 import { Email } from "../features/profile/Email";
 import { Password } from "../features/profile/Password";
 import { DeleteAccount } from "../features/profile/DeleteAccount";
+import { ProfileRelationships } from "../features/profile/ProfileRelationships";
 
 /* v8 ignore start */
 
@@ -156,17 +157,16 @@ export function UserProfileContent(): JSX.Element {
             </ProfileAvatarContainer >
             <ProfileProperties>
                 <ProfilePropertiesPrimary>
+                    <ProfileRelationships />
                     <Username username={name} />
                     <Email email={email} />
                     <Password />
                     <DeleteAccount />
                 </ProfilePropertiesPrimary>
                 <ProfilePropertiesSecundary>
-                    <div className="w-3/10">statistics</div>
                     <div className="w-1/20"></div>
-                    <div className='w-3/10'><FriendshipList /></div>
+                    <div className="w-8/10">statistics</div>
                     <div className="w-1/20"></div>
-                    <div className='w-3/10'><FriendshipRequests /></div>
                 </ProfilePropertiesSecundary>
             </ProfileProperties>
         </ProfileContainer >

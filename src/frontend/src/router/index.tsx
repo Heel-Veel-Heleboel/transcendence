@@ -11,6 +11,7 @@ import { GeneralErrorFallback } from '../components/errors/GeneralErrorFallBack.
 import { Profile } from '../pages/Profile.tsx';
 import { Tournament } from '../pages/Tournament.tsx';
 import { VisitorProfile } from '../pages/VisitorProfile.tsx';
+import { Relationships } from '../pages/Relationships.tsx';
 
 /* v8 ignore start */
 export const Router = () => {
@@ -35,6 +36,7 @@ export const Router = () => {
                         <Route path={CONFIG.START_MENU_NAVIGATION} element={<StartMenu />} />
                         <Route path={CONFIG.MENU_NAVIGATION} element={<Menu />} />
                         <Route path={CONFIG.USER_PROFILE_NAVIGATION} element={<Profile />} />
+                        <Route path={CONFIG.USER_RELATIONSHIPS_NAVIGATION} element={<Relationships />} />
                         <Route path={CONFIG.VISITOR_PROFILE_NAVIGATION} element={<VisitorProfile />} />
                         <Route path={CONFIG.TOURNAMENT_NAVIGATION} element={<Tournament />} />
                         <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />

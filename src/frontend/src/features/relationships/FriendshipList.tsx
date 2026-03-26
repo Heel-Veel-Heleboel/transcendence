@@ -6,6 +6,7 @@ import api from "../../api";
 import { CONFIG } from "../../constants/AppConfig";
 import { IProfile } from "../../types/profile";
 import { Terminal } from "../../components/utils/MenuUtils";
+import { RelationsColumn } from "./RelationsColumn";
 
 export function FriendshipList() {
     const [friends, setFriends] = useState<Array<IFriendship>>([])
@@ -98,8 +99,8 @@ export function FriendshipList() {
     }
 
     return (
-        <div>
+        <RelationsColumn>
             <Terminal title={'friends'} child={FriendsContent()} />
-        </div>
+        </RelationsColumn>
     )
 }
