@@ -29,9 +29,9 @@ export class FriendshipService {
 
   async createFriendship(data: CreateFriendshipDto): Promise<void> {
     const { user1_id, user2_id } = data;
-    const [userId1, userId2] = await this.normalizeUserIds(user1_id, user2_id);
+    // const [userId1, userId2] = await this.normalizeUserIds(user1_id, user2_id);
 
-    const friendship = await this.friendshipRepository.create({ user1_id: userId1, user2_id: userId2 });
+    const friendship = await this.friendshipRepository.create({ user1_id: user1_id, user2_id: user2_id });
 
     const event: WebSocketEvent = {
       type: 'FRIENDSHIP_REQUEST',
