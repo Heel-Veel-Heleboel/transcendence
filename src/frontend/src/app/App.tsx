@@ -14,7 +14,7 @@ import { VisitorProfile } from '../pages/VisitorProfile.tsx';
 import { Relationships } from '../pages/Relationships.tsx';
 
 /* v8 ignore start */
-export const Router = () => {
+export function App() {
     const location = useLocation();
     const currentLocation = location.pathname.split("/")[1];
     useLayoutEffect(() => {
