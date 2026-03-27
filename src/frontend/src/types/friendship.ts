@@ -1,4 +1,4 @@
-import { IUser } from "./profile";
+import { IUser } from './profile';
 
 export interface IFriendship {
   created_at: string;
@@ -21,12 +21,12 @@ export interface IFriendshipResponse {
 }
 
 export function responseToFriendship(response: IFriendshipResponse, userId: number) {
-    return {
-        created_at: response.created_at,
-        id: response.id,
-        status: response.status,
-        updated_at: response.updated_at,
-        userId: userId === response.user1_id ? response.user2_id : response.user1_id,
-        userName: userId === response.user1_id ? response.user2.name : response.user1.name,
-   }
+  return {
+    created_at: response.created_at,
+    id: response.id,
+    status: response.status,
+    updated_at: response.updated_at,
+    userId: userId === response.user1_id ? response.user2_id : response.user1_id,
+    userName: userId === response.user1_id ? response.user2.name : response.user1.name
+  };
 }
