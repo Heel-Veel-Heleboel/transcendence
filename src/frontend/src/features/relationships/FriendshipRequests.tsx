@@ -1,55 +1,11 @@
-
-import { JSX, useEffect, useState } from "react";
+import { JSX } from "react";
 import { IFriendship } from "../../types/friendship";
-import { getCookie } from "../../components/utils/cookies";
 import api from "../../api";
 import { CONFIG } from "../../constants/AppConfig";
-import { IProfile } from "../../types/profile";
 import { Terminal } from "../../components/utils/MenuUtils";
 import { RelationsColumn } from "./RelationsColumn";
 
-export function FriendshipRequests() {
-    const [requests, setRequests] = useState<Array<IFriendship>>([])
-    const [requestProfiles, setRequestProfiles] = useState<Map<number, string>>();
-
-    useEffect(() => {
-        async function getFriendsRequests() {
-            try {
-                const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
-                const result = await api({
-                    url: CONFIG.REQUEST_FRIEND_REQUESTS(user_id)
-                })
-                setRequests(result.data);
-                console.log('getFriendsRequests')
-                console.log(result.data);
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
-        getFriendsRequests();
-    }, [])
-
-    useEffect(() => {
-        async function getRequestProfiles() {
-            const profiles = new Map<number, string>()
-            requests.forEach(async (request) => {
-                try {
-                    const result = await api<IProfile>({
-                        url: CONFIG.REQUEST_PROFILE + request.user2_id
-                    })
-                    console.log('getRequestProfiles:\n')
-                    console.log(result.data);
-                    profiles.set(request.id, result.data.user.name);
-                    setRequestProfiles(profiles);
-                } catch (error) {
-                    console.error(error);
-                }
-            });
-        }
-
-        getRequestProfiles()
-    }, [requests])
+export function FriendshipRequests({ requests }: { requests: IFriendship[] }) {
 
     async function handleFriendship(id: number, accept: boolean) {
         try {
@@ -69,29 +25,26 @@ export function FriendshipRequests() {
         }
     }
 
-    const FriendshipRequestsContent = (): JSX.Element => {
-        function List(list: Map<number, string> | undefined) {
+    function FriendshipRequestsContent(): JSX.Element {
+        function List(list: IFriendship[]) {
             if (!list)
                 return
-            const listItems = [...list].map(([friendshipId, friendName]) =>
-                <li key={friendshipId}>
-                    <div className="flex justify-between" id={friendName + '-container'}>
-                        {friendName}
-                        <button className="bg-green-500" onClick={() => handleFriendship(friendshipId, true)}>accept</button>
-                        <button className="bg-red-500" onClick={() => handleFriendship(friendshipId, false)}>reject</button>
+            const listItems = list.map((request) =>
+                <li key={request.userId}>
+                    <div className="flex justify-between" id={request.userName + '-container'}>
+                        {request.userName}
+                        <button className="bg-green-500" onClick={() => handleFriendship(request.id, true)}>accept</button>
+                        <button className="bg-red-500" onClick={() => handleFriendship(request.id, false)}>reject</button>
                     </div>
                 </li>
             );
-            console.log('listitems')
+            console.log('requests')
             console.log(listItems);
             return <ul>{listItems}</ul>;
         }
-        console.log('requests')
-        console.log(requests);
-
         return (
             <div id="friendship-requests" className="text-left">
-                {List(requestProfiles)}
+                {List(requests)}
             </div>
         )
     }

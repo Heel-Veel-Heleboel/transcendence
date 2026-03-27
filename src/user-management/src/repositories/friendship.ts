@@ -89,6 +89,10 @@ export class FriendshipRepository implements IFriendshipRepository {
 
   async findBetween(data: FriendshipDto): Promise<Friendship | null> {
     return await this.prisma.friendship.findFirst({
+      include: {
+          user1: true,
+          user2: true
+      },
       where: {
         OR: [
           { user1_id: data.userId1, user2_id: data.userId2 },
@@ -102,6 +106,10 @@ export class FriendshipRepository implements IFriendshipRepository {
 
   async findAllForUser(data: FindAllForUserDto): Promise<Friendship[]> {
     return await this.prisma.friendship.findMany({
+      include: {
+          user1: true,
+          user2: true
+      },
       where: {
         OR: [
           { user1_id: data.userId },

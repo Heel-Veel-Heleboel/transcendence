@@ -3,6 +3,7 @@ import { useAuth } from "../../components/providers/Auth";
 import { getCookie } from "../../components/utils/cookies";
 import api from "../../api";
 import { CONFIG } from "../../constants/AppConfig";
+import { SubmitPropertyChangeYesNo } from "./Submit";
 
 
 export function DeleteAccount() {
@@ -33,24 +34,6 @@ export function DeleteAccount() {
         }
     }
     return (
-        <div id="delete-account">
-            <div className="flex flex-col">
-                <div className="w-full">
-                    <button onClick={handleDropDown}>Delete User</button>
-                </div>
-            </div>
-            {
-                showDropdown &&
-                <div className="w-full border flex py-2">
-                    <div className="w-2/5">
-                        <span>Are you sure?: </span>
-                    </div>
-                    <div className="flex w-3/5">
-                        <button className="border w-1/2" onClick={requestDelete}>Yes</button>
-                        <button className="border w-1/2" onClick={handleDropDown}>No</button>
-                    </div>
-                </div>
-            }
-        </div>
+        <SubmitPropertyChangeYesNo title='Delete User' handleDropDown={handleDropDown} showDropdown={showDropdown} yes={requestDelete} no={handleDropDown} />
     )
 }

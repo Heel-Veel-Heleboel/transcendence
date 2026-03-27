@@ -2,32 +2,10 @@ import { useEffect, useState } from "react";
 import api from "../../api";
 import { getCookie } from "../../components/utils/cookies";
 import { CONFIG } from "../../constants/AppConfig";
+import { IFriendship } from "../../types/friendship";
 
 
-async function friendshipBetween(userId1: string, userId2: string) {
-    try {
-        await api({
-            url: CONFIG.REQUEST_FRIENDS_BETWEEN(userId1, userId2)
-        })
-        return true;
-    } catch (e: any) {
-        console.error(e);
-        return false;
-    }
-}
-
-export function AddFriend({ userId }: { userId: string }) {
-    const [friendship, setFriendship] = useState<boolean>(false);
-
-    useEffect(() => {
-        const currentUserId = getCookie(CONFIG.USERID_COOKIE_NAME);
-        async function getFriendshipBetween() {
-            const result = await friendshipBetween(currentUserId, userId);
-            console.log(result);
-            setFriendship(result);
-        }
-        getFriendshipBetween();
-    }, [])
+export function AddFriend({ friendship, userId }: { friendship: IFriendship | null, userId: string }) {
 
     async function handleFriendshipRequest() {
         const currentUserId = getCookie(CONFIG.USERID_COOKIE_NAME);
@@ -50,10 +28,13 @@ export function AddFriend({ userId }: { userId: string }) {
 
     return (
         <div id="FriendshipContainer">
-            {friendship ?
+            {friendship && friendship.status === 'ACCEPTED' ?
                 <div className="bg-green-500">Friend</div>
-                :
-                <button onClick={handleFriendshipRequest}>Add friend</button>
+                : friendship && friendship?.status === 'PENDING' ?
+                    <div className="bg-blue-500">Pending</div>
+                    : friendship && friendship?.status === 'BLOCKED' ?
+                        null :
+                        <button onClick={handleFriendshipRequest}>Add friend</button>
             }
         </div>
 

@@ -11,6 +11,10 @@ import { ProfileProperties, ProfilePropertiesPrimary, ProfilePropertiesSecundary
 import { AddFriend } from "../features/profile/AddFriend";
 import { Status } from "../features/profile/Status";
 import { ERRORS } from "../constants/Errors";
+import { IFriendship, IFriendshipResponse, responseToFriendship } from "../types/friendship";
+import { getCookie } from "../components/utils/cookies";
+import { Blocked } from "../features/relationships/Blocked";
+import { BlockUser } from "../features/profile/BlockUser";
 
 
 export function VisitorProfile(): JSX.Element {
@@ -25,11 +29,33 @@ export function VisitorProfile(): JSX.Element {
     )
 }
 
+async function friendshipBetween(currentUserId: string, otherUserId: string): Promise<IFriendship> {
+    try {
+        const result = await api<IFriendshipResponse>({
+            url: CONFIG.REQUEST_FRIENDS_BETWEEN(currentUserId, otherUserId)
+        })
+        return (responseToFriendship(result.data, Number(currentUserId)));
+    } catch (e: any) {
+        console.error(e);
+        return Promise.reject('friendship does not exist');
+    }
+}
+
 export function VisitorProfileContent({ userId }: { userId: string }): JSX.Element {
     const [profile, setProfile] = useState<IProfile | null>(null);
     const [name, setName] = useState<string>('mysterio');
     const [status, setStatus] = useState<string>('OFFLINE');
     const [image, setImage] = useState<string>(CONFIG.PROFILE_DEFAULT_LOGO);
+    const [friendship, setFriendship] = useState<IFriendship | null>(null);
+
+    useEffect(() => {
+        const currentUserId = getCookie(CONFIG.USERID_COOKIE_NAME);
+        async function getfriendshipbetween() {
+            const result = await friendshipBetween(currentUserId, userId);
+            setFriendship(result);
+        }
+        getfriendshipbetween();
+    }, [])
 
     useEffect(() => {
         async function getProfile() {
@@ -83,13 +109,14 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
             <ProfileAvatarContainer >
                 <ProfileName name={name} />
                 <ProfilePicture image={image} />
-                <div/>
+                <div />
             </ProfileAvatarContainer >
 
             <ProfileProperties>
                 <ProfilePropertiesPrimary>
                     <Status status={status} />
-                    <AddFriend userId={userId} />
+                    <AddFriend friendship={friendship} userId={userId} />
+                    <BlockUser friendship={friendship} />
                 </ProfilePropertiesPrimary>
                 <ProfilePropertiesSecundary>
                     <div className="w-full">statistics</div>
