@@ -91,9 +91,7 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
                     <AddFriend userId={userId} />
                 </ProfilePropertiesPrimary>
                 <ProfilePropertiesSecundary>
-                    <div className="w-4/10">statistics</div>
-                    <div className="w-2/10" />
-                    <div className='w-4/10'>friends list</div>
+                    <div className="w-full">statistics</div>
                 </ProfilePropertiesSecundary>
             </ProfileProperties>
         </ProfileContainer >

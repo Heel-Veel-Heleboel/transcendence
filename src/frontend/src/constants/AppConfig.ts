@@ -116,6 +116,9 @@ export const CONFIG = {
   REQUEST_FRIENDS: (userId: string) => {
     return `users/friendship/find-all-by-status-for-user/${userId}/ACCEPTED`;
   },
+  REQUEST_FRIENDS_BETWEEN: (userId1: string, userId2: string) => {
+    return `users/friendship/between/${userId1}/${userId2}`;
+  },
 
   REQUEST_MATCHMAKING_STATUS: 'matchmaking/status/me',
   REQUEST_MATCHMAKING_CLASSIC: 'matchmaking/classic/join',

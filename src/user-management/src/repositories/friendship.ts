@@ -12,7 +12,8 @@ import {
   // FindAllAcceptedForUserDto,
   // FindAllBlockedForUserDto,
   FindAllByStatusForUserDto,
-  IsBlockedDto
+  IsBlockedDto,
+  FriendshipDto
 } from '../dto/friendship.js';
 
 
@@ -83,6 +84,17 @@ export class FriendshipRepository implements IFriendshipRepository {
   async findById(data: GetFriendshipDto): Promise<Friendship | null> {
     return await this.prisma.friendship.findUnique({
       where: { id: data.id }
+    });
+  }
+
+  async findBetween(data: FriendshipDto): Promise<Friendship | null> {
+    return await this.prisma.friendship.findFirst({
+      where: {
+        OR: [
+          { user1_id: data.userId1, user2_id: data.userId2 },
+          { user1_id: data.userId2, user2_id: data.userId1 }
+        ]
+      }
     });
   }
 
