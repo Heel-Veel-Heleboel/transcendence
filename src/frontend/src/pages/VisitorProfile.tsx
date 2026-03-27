@@ -83,6 +83,7 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
             <ProfileAvatarContainer >
                 <ProfileName name={name} />
                 <ProfilePicture image={image} />
+                <div/>
             </ProfileAvatarContainer >
 
             <ProfileProperties>
