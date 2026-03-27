@@ -1,9 +1,9 @@
 import { JSX } from "react";
-import { IFriendship } from "../../types/friendship";
-import api from "../../api";
-import { CONFIG } from "../../constants/AppConfig";
-import { Terminal } from "../../components/utils/MenuUtils";
+import api from "../../shared/api/api";
+import { CONFIG } from "../../shared/config/AppConfig";
 import { RelationsColumn } from "./RelationsColumn";
+import { Terminal } from "../../components/layout/Terminal";
+import { IFriendship } from "../../shared/types/friendship";
 
 export function Blocked({ blocks }: { blocks: IFriendship[] }) {
 
@@ -50,7 +50,9 @@ export function Blocked({ blocks }: { blocks: IFriendship[] }) {
 
     return (
         <RelationsColumn>
-            <Terminal title={'blocks'} child={BlockContent()} />
+            <Terminal title={'blocks'}  >
+                <BlockContent />
+            </Terminal>
         </RelationsColumn>
     )
 }

@@ -1,15 +1,14 @@
 import { JSX, useEffect, useState } from "react"
-import { LobbyRoom } from "../utils/MenuUtils"
-
 import { Client } from "@colyseus/sdk";
 import { useLobbyRoom } from "@colyseus/react";
-import api from "../../api";
-import { CONFIG } from "../../constants/AppConfig";
 import { NavigateFunction, useNavigate } from "react-router-dom";
-import { useNotifications } from "../hooks/Notifications";
 import * as timer from 'react-timer-hook';
-import { getCookie } from "../utils/cookies";
-import { IMatchmakingStatus, ITournament } from "../../types/matchmaking";
+import { LobbyRoom } from "./LobbyRoom";
+import api from "../../shared/api/api";
+import { CONFIG } from "../../shared/config/AppConfig";
+import { useNotifications } from "../../components/hooks/Notifications";
+import { getCookie } from "../../shared/utils/cookies";
+import { IMatchmakingStatus, ITournament } from "../../shared/types/matchmaking";
 
 const client = new Client("ws://localhost:2567");
 
@@ -44,7 +43,7 @@ export function Matchmaking(): JSX.Element {
                     return;
                 }
                 const result = await api({
-                    url: CONFIG.REQUEST_TOURNAMENT_INFO(status?.activeTournamentId),
+                    url: CONFIG.REQUEST_TOURNAMENT_INFO(String(status?.activeTournamentId)),
                 })
                 setActivityName(result.data.tournament.name);
             } catch (e: any) {
@@ -106,13 +105,17 @@ export function Matchmaking(): JSX.Element {
             </div>
             <div id='GamesPanel' className="w-full min-h-3/4 flex">
                 <div className="min-h-full w-1/2">
-                    <LobbyRoom title="Current Games" gamesContent={CurrentGames()} />
+                    <LobbyRoom title="Current Games" >
+                        <CurrentGames />
+                    </LobbyRoom >
                 </div>
                 <div className="min-h-full w-1/2">
-                    <LobbyRoom title="Open Tournaments" gamesContent={OpenTournaments(tournaments, status?.state)} />
+                    <LobbyRoom title="Open Tournaments"  >
+                        <OpenTournaments tournaments={tournaments} state={status?.state} />
+                    </LobbyRoom>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 
@@ -345,7 +348,7 @@ function JoinTournament({ tournament, state }: { tournament: ITournament, state:
     )
 }
 
-function OpenTournaments(tournaments: Array<ITournament>, state: string | undefined): JSX.Element {
+function OpenTournaments({ tournaments, state }: { tournaments: Array<ITournament>, state: string | undefined }): JSX.Element {
     const navigate = useNavigate();
 
     return (

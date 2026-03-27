@@ -1,9 +1,10 @@
 import { Dispatch, JSX, SetStateAction, useEffect, useState } from "react"
-import { TitleBar, Terminal } from "../utils/MenuUtils"
-import { CONFIG } from "../../constants/AppConfig"
-import api from "../../api";
-import { useNotifications } from "../hooks/Notifications.tsx";
-import { IChat } from "../../types/types.ts";
+import { Terminal } from "../../components/layout/Terminal.tsx";
+import { useNotifications } from "../../components/hooks/Notifications.tsx";
+import api from "../../shared/api/api.ts";
+import { CONFIG } from "../../shared/config/AppConfig.ts";
+import { TitleBar } from "../../components/layout/TitleBar.tsx";
+import { IChat } from "../../shared/types/types.ts";
 
 /* v8 ignore start */
 export function LiveChat(): JSX.Element {
@@ -58,7 +59,7 @@ export function LiveChat(): JSX.Element {
 // 
 //
 export function LiveChatRooms({ error, channels, setChat }: { error: Error | null, channels: Array<string>, setChat: Dispatch<SetStateAction<string | null>> }): JSX.Element {
-    const roomsContent = (): JSX.Element => {
+    function RoomsContent(): JSX.Element {
         function List(list: Array<string>) {
             const listItems = list.map(item =>
                 <li onClick={() => { setChat(item) }} key={item}>{item}</li>
@@ -74,7 +75,9 @@ export function LiveChatRooms({ error, channels, setChat }: { error: Error | nul
     }
     return (
         <div className="w-1/6 border border-black">
-            <Terminal title={CONFIG.LIVE_CHAT_ROOMS_TITLE} child={roomsContent()} />
+            <Terminal title={CONFIG.LIVE_CHAT_ROOMS_TITLE} >
+                <RoomsContent />
+            </Terminal>
         </div>
     )
 }
@@ -151,7 +154,7 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
         return <ul>{listItems}</ul>;
     }
 
-    const chatContent = (): JSX.Element => {
+    function ChatContent(): JSX.Element {
         return (
             <div id="ChatContent" >
                 {
@@ -162,7 +165,9 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
     }
     return (
         <div className="w-4/6 min-h-full border border-black">
-            <Terminal title={CONFIG.LIVE_CHAT_CHAT_TITLE} child={chatContent()} />
+            <Terminal title={CONFIG.LIVE_CHAT_CHAT_TITLE} >
+                <ChatContent />
+            </Terminal>
         </div>
     )
 }
@@ -176,14 +181,16 @@ export function LiveChatUsers(): JSX.Element {
     //      + message
     //      + groupchat
     //      + block
-    const userContent = (): JSX.Element => {
+    function UserContent(): JSX.Element {
         return (
             <div>user content</div>
         )
     }
     return (
         <div className="w-1/6 border border-black">
-            <Terminal title={CONFIG.LIVE_CHAT_USERS_TITLE} child={userContent()} />
+            <Terminal title={CONFIG.LIVE_CHAT_USERS_TITLE} >
+                <UserContent />
+            </Terminal>
         </div>
     )
 }

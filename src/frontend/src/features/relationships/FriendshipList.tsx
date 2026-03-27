@@ -1,10 +1,10 @@
 import { JSX } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api";
-import { CONFIG } from "../../constants/AppConfig";
-import { Terminal } from "../../components/utils/MenuUtils";
+import api from "../../shared/api/api";
+import { CONFIG } from "../../shared/config/AppConfig";
 import { RelationsColumn } from "./RelationsColumn";
-import { IFriendship } from "../../types/friendship";
+import { Terminal } from "../../components/layout/Terminal";
+import { IFriendship } from "../../shared/types/friendship";
 
 export function FriendshipList({ friends }: { friends: IFriendship[] }) {
     const navigate = useNavigate();
@@ -27,7 +27,7 @@ export function FriendshipList({ friends }: { friends: IFriendship[] }) {
     }
 
 
-    const FriendsContent = (): JSX.Element => {
+    function FriendsContent(): JSX.Element {
         function List(list: IFriendship[]) {
             if (!list)
                 return
@@ -54,7 +54,9 @@ export function FriendshipList({ friends }: { friends: IFriendship[] }) {
 
     return (
         <RelationsColumn>
-            <Terminal title={'friends'} child={FriendsContent()} />
-        </RelationsColumn>
+            <Terminal title={'friends'}  >
+                <FriendsContent />
+            </Terminal>
+        </RelationsColumn >
     )
 }

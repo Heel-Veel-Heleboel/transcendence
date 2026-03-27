@@ -1,6 +1,5 @@
 import { ReactNode } from "react"
 
-
 export function ProfilePropertiesPrimary({ children }: { children: ReactNode }) {
     return (
         <div id="primary-profile-properties" className="flex justify-around min-h-1/2">

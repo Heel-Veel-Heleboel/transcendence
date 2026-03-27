@@ -1,6 +1,7 @@
 import { JSX } from "react";
 import { useNavigate } from "react-router-dom";
-import { CONFIG } from "../../constants/AppConfig";
+import { CONFIG } from "../../shared/config/AppConfig";
+
 export function GameCrash(): JSX.Element {
     const navigate = useNavigate();
     return (

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import api from "../../api";
-import { CONFIG } from "../../constants/AppConfig";
+import api from "../../shared/api/api";
+import { CONFIG } from "../../shared/config/AppConfig";
+import { IFriendship } from "../../shared/types/friendship";
 import { SubmitPropertyChangeYesNo } from "./Submit";
-import { IFriendship } from "../../types/friendship";
 
 export function BlockUser({ friendship }: { friendship: IFriendship | null }) {
     const [showDropdown, setShowDropDown] = useState<boolean>(false);

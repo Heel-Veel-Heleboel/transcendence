@@ -1,8 +1,8 @@
 import { JSX } from "react";
-import { FallbackErrorProps } from "../../types/types";
+import { IFallbackErrorProps } from "../../shared/types/types";
 
 
-export function GeneralErrorFallback({ error, resetErrorBoundary }: FallbackErrorProps): JSX.Element {
+export function GeneralErrorFallback({ error, resetErrorBoundary }: IFallbackErrorProps): JSX.Element {
     return (
         <div role="alert">
             <p>Oops! Something went wrong:</p>

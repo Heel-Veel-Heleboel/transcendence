@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import api from "../../api";
-import { getCookie } from "../../components/utils/cookies";
-import { CONFIG } from "../../constants/AppConfig";
-import { IFriendship } from "../../types/friendship";
+import api from "../../shared/api/api";
+import { getCookie } from "../../shared/utils/cookies";
+import { CONFIG } from "../../shared/config/AppConfig";
+import { IFriendship } from "../../shared/types/friendship";
 
 
 export function AddFriend({ friendship, userId }: { friendship: IFriendship | null, userId: string }) {

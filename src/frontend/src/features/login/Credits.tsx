@@ -1,7 +1,7 @@
 import { JSX } from "react";
-import { START_MENU_PAGE } from "../../constants/Constants";
-import { CONFIG } from "../../constants/AppConfig.ts";
-import { MenuOption } from "../utils/StartMenuUtils";
+import { START_MENU_PAGE } from "../../shared/constants/Constants.ts";
+import { MenuOption } from "./MenuOption.tsx";
+import { CONFIG } from "../../shared/config/AppConfig.ts";
 
 /* v8 ignore start */
 export function Credits({ redirect }: { redirect: (page: number) => void }): JSX.Element {

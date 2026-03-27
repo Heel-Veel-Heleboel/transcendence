@@ -8,11 +8,11 @@ import {
     ReactNode,
     JSX
 } from 'react'
-import { CONFIG } from '../../constants/AppConfig';
 import { useNavigate } from 'react-router-dom';
-import api from '../../api.ts';
-import { getCookie, createCookie } from '../utils/cookies';
-import { ERRORS } from '../../constants/Errors.ts';
+import { CONFIG } from '../../shared/config/AppConfig.ts';
+import api from '../../shared/api/api.ts';
+import { createCookie, getCookie } from '../../shared/utils/cookies.ts';
+import { ERRORS } from '../../shared/errors/Errors.ts';
 
 interface ICredentials {
     email: string;

@@ -1,6 +1,6 @@
 import { JSX, ReactNode } from "react";
 import { Toolbar } from "./Toolbar";
-import { MainWindowContainer } from "../utils/MenuUtils";
+import { MainWindowContainer } from "./MainWindowContainer";
 
 export function MainContainer({ children }: { children: ReactNode }): JSX.Element {
     return (
@@ -8,7 +8,9 @@ export function MainContainer({ children }: { children: ReactNode }): JSX.Elemen
             <Toolbar />
             {/*TODO: Change with p5 animation*/}
             <div className="flex flex-col h-19/20 bg-[url(/bg.jpg)] bg-cover">
-                <MainWindowContainer children={children} />
+                <MainWindowContainer >
+                    {children}
+                </MainWindowContainer >
             </div>
         </div>
     )

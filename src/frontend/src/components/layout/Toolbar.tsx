@@ -1,7 +1,7 @@
 import { JSX, useState, useEffect } from 'react';
-import { CONFIG } from '../../constants/AppConfig.ts'
 import { useAuth } from '../providers/Auth.tsx';
 import { useNavigate } from 'react-router-dom';
+import { CONFIG } from '../../shared/config/AppConfig.ts';
 
 /* v8 ignore start*/
 export function Toolbar(): JSX.Element {

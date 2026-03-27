@@ -1,23 +1,21 @@
 import { BaseSyntheticEvent, JSX, useEffect, useState } from "react"
-import api from "../api";
-import { CONFIG } from "../constants/AppConfig";
-import { getCookie } from "../components/utils/cookies";
-import { ERRORS } from "../constants/Errors";
-import { MainContainer } from "../components/sections/MainContainer";
-import { Widget } from "../components/utils/MenuUtils";
 import { useNavigate } from "react-router-dom";
-import { IProfile, IUser } from "../types/profile";
 import { useAuth } from "../components/providers/Auth";
 import { ProfileContainer } from "../features/profile/ProfileContainer";
 import { ProfileAvatarContainer, ProfileName, ProfilePicture, ProfilePictureForm } from "../features/profile/ProfileAvatar";
 import { ProfileProperties, ProfilePropertiesPrimary, ProfilePropertiesSecundary } from "../features/profile/ProfileProperties";
-import { FriendshipList } from "../features/relationships/FriendshipList";
-import { FriendshipRequests } from "../features/relationships/FriendshipRequests";
 import { Username } from "../features/profile/Username";
 import { Email } from "../features/profile/Email";
 import { Password } from "../features/profile/Password";
 import { DeleteAccount } from "../features/profile/DeleteAccount";
 import { ProfileRelationships } from "../features/profile/ProfileRelationships";
+import api from "../shared/api/api";
+import { CONFIG } from "../shared/config/AppConfig";
+import { getCookie } from "../shared/utils/cookies";
+import { ERRORS } from "../shared/errors/Errors";
+import { MainContainer } from "../components/layout/MainContainer";
+import { Widget } from "../components/layout/Widget";
+import { IProfile, IUser } from "../shared/types/profile";
 
 /* v8 ignore start */
 
@@ -32,11 +30,12 @@ export function Profile(): JSX.Element {
 
     return (
         <MainContainer children={
-            <Widget logoPath={CONFIG.PROFILE_LOGO} title={CONFIG.PROFILE_TITLE} width="w-full" child={<UserProfileContent />} />
+            <Widget logoPath={CONFIG.PROFILE_LOGO} title={CONFIG.PROFILE_TITLE} width="w-full" >
+                <UserProfileContent />
+            </Widget>
         } />
     )
 }
-
 
 export function UserProfileContent(): JSX.Element {
     const [profile, setProfile] = useState<IProfile | null>(null);

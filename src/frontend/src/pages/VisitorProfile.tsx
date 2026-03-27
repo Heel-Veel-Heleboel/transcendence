@@ -1,20 +1,19 @@
 import { JSX, useEffect, useState } from "react"
-import api from "../api";
-import { CONFIG } from "../constants/AppConfig";
-import { MainContainer } from "../components/sections/MainContainer";
-import { Widget } from "../components/utils/MenuUtils";
-import { useParams } from "react-router-dom";
-import { IProfile } from "../types/profile";
-import { ProfileAvatarContainer, ProfileName, ProfilePicture } from "../features/profile/ProfileAvatar";
 import { ProfileContainer } from "../features/profile/ProfileContainer";
+import { ProfileAvatarContainer, ProfileName, ProfilePicture } from "../features/profile/ProfileAvatar";
 import { ProfileProperties, ProfilePropertiesPrimary, ProfilePropertiesSecundary } from "../features/profile/ProfileProperties";
-import { AddFriend } from "../features/profile/AddFriend";
-import { Status } from "../features/profile/Status";
-import { ERRORS } from "../constants/Errors";
-import { IFriendship, IFriendshipResponse, responseToFriendship } from "../types/friendship";
-import { getCookie } from "../components/utils/cookies";
-import { Blocked } from "../features/relationships/Blocked";
+import api from "../shared/api/api";
+import { CONFIG } from "../shared/config/AppConfig";
+import { getCookie } from "../shared/utils/cookies";
+import { ERRORS } from "../shared/errors/Errors";
+import { MainContainer } from "../components/layout/MainContainer";
+import { Widget } from "../components/layout/Widget";
+import { IProfile } from "../shared/types/profile";
 import { BlockUser } from "../features/profile/BlockUser";
+import { IFriendship, IFriendshipResponse, responseToFriendship } from "../shared/types/friendship";
+import { useParams } from "react-router-dom";
+import { Status } from "../features/profile/Status";
+import { AddFriend } from "../features/profile/AddFriend";
 
 
 export function VisitorProfile(): JSX.Element {
@@ -24,7 +23,9 @@ export function VisitorProfile(): JSX.Element {
     }
     return (
         <MainContainer children={
-            <Widget logoPath={CONFIG.PROFILE_LOGO} title={CONFIG.PROFILE_TITLE} width="w-full" child={<VisitorProfileContent userId={userId} />} />
+            <Widget logoPath={CONFIG.PROFILE_LOGO} title={CONFIG.PROFILE_TITLE} width="w-full" >
+                <VisitorProfileContent userId={userId} />
+            </Widget>
         } />
     )
 }

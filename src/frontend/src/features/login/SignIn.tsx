@@ -1,14 +1,14 @@
 import { JSX, useState } from "react"
-import { START_MENU_PAGE, LOGIN_OPTION } from '../../constants/Constants.ts'
 import { ErrorBoundary } from "react-error-boundary";
 import { GeneralErrorFallback } from "../errors/GeneralErrorFallBack.tsx";
-import { MenuOption } from '../utils/StartMenuUtils.tsx'
-import { useAuth } from "../providers/Auth.tsx";
 import { useNavigate } from "react-router-dom";
-import { CONFIG } from "../../constants/AppConfig.ts";
+import { LOGIN_OPTION, START_MENU_PAGE } from "../../shared/constants/Constants.ts";
+import { MenuOption } from "./MenuOption.tsx";
+import { useAuth } from "../../components/providers/Auth.tsx";
+import { CONFIG } from "../../shared/config/AppConfig.ts";
 
 /* v8 ignore start */
-export function Login({ redirect }: { redirect: (page: number) => void }): JSX.Element {
+export function SignIn({ redirect }: { redirect: (page: number) => void }): JSX.Element {
     const [loginOption, setLoginOption] = useState<number>(LOGIN_OPTION.DEFAULT_LOGIN);
 
     let component;

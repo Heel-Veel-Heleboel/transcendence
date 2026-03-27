@@ -15,6 +15,6 @@ export interface IChat {
   type: string;
 }
 
-export type FallbackErrorProps = Omit<FallbackProps, 'error'> & {
+export type IFallbackErrorProps = Omit<FallbackProps, 'error'> & {
   error: any;
 };

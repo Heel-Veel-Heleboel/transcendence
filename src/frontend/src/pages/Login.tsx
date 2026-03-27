@@ -1,12 +1,15 @@
 import { JSX, useLayoutEffect, useState } from "react"
-import { Login } from '../components/sections/Login.tsx'
-import { Credits } from '../components/sections/Credits.tsx'
-import { CenterContainer, StartMainWindowContainer, Logo, MenuOption, Title, Animation } from "../components/utils/StartMenuUtils.tsx"
-import { START_MENU_PAGE } from '../constants/Constants.ts'
-import "../style.css"
-import { CONFIG } from "../constants/AppConfig.ts"
 import { useAuth } from "../components/providers/Auth.tsx"
 import { useNavigate } from "react-router-dom"
+import { SignIn } from "../features/login/SignIn.tsx"
+import { Credits } from "../features/login/Credits.tsx"
+import { START_MENU_PAGE } from "../shared/constants/Constants.ts"
+import { CONFIG } from "../shared/config/AppConfig.ts"
+import { Title } from "../features/login/Title.tsx"
+import { Logo } from "../features/login/Logo.tsx"
+import { MenuOption } from "../features/login/MenuOption.tsx"
+import { Animation } from "../features/login/Animation.tsx"
+import { CenterFlexContainer } from "../components/layout/CenteredFlexContainer.tsx"
 
 /* v8 ignore start */
 export function GetPage({ page, redirect }: { page: number, redirect: (page: number) => void }): JSX.Element {
@@ -14,15 +17,15 @@ export function GetPage({ page, redirect }: { page: number, redirect: (page: num
         case START_MENU_PAGE.MENU:
             return <DefaultStartMenu redirect={redirect} />
         case START_MENU_PAGE.LOGIN:
-            return <CenterContainer children={Login({ redirect })} />
+            return <CenterFlexContainer >{SignIn({ redirect })} </CenterFlexContainer>
         case START_MENU_PAGE.CREDITS:
-            return <CenterContainer children={Credits({ redirect })} />
+            return <CenterFlexContainer >{Credits({ redirect })} </CenterFlexContainer>
         default:
             return <DefaultStartMenu redirect={redirect} />
     }
 }
 
-export const StartMenu = (): JSX.Element => {
+export function Login(): JSX.Element {
     const [page, setPage] = useState<number>(START_MENU_PAGE.MENU);
     const navigate = useNavigate();
     const auth = useAuth();
@@ -37,9 +40,11 @@ export const StartMenu = (): JSX.Element => {
     }
 
     return (
-        <div id='StartMenu' className="min-h-full grow">
+        <div id='login-page' className="min-h-full grow">
             <Animation />
-            <StartMainWindowContainer children={<GetPage page={page} redirect={redirect} />} />
+            <div className="h-screen">
+                <GetPage page={page} redirect={redirect} />
+            </div >
         </div >
     )
 }
