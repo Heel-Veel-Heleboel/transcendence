@@ -12,8 +12,18 @@ if [ -z "${ELASTIC_PASSWORD:-}" ]; then
   exit 1
 fi
 
+if [ -z "${ELASTIC_USER:-}" ]; then
+  echo "ERROR: Set the ELASTIC_USER environment variable in the .env file"
+  exit 1
+fi
+
 if [ -z "${KIBANA_PASSWORD:-}" ]; then
   echo "ERROR: Set the KIBANA_PASSWORD environment variable in the .env file"
+  exit 1
+fi
+
+if [ -z "${KIBANA_USER:-}" ]; then
+  echo "ERROR: Set the KIBANA_USER environment variable in the .env file"
   exit 1
 fi
 
@@ -75,15 +85,15 @@ until curl -s --cacert config/certs/ca/ca.crt https://elasticsearch:9200 | grep 
 done
 echo "Elasticsearch is available!"
 
-# Set kibana_system user password
-echo "Configuring kibana_system user..."
+# Set kibana user password
+echo "Configuring ${KIBANA_USER} user..."
 until curl -s -X POST \
   --cacert config/certs/ca/ca.crt \
-  -u "elastic:${ELASTIC_PASSWORD}" \
+  -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
   -H "Content-Type: application/json" \
-  https://elasticsearch:9200/_security/user/kibana_system/_password \
+  "https://elasticsearch:9200/_security/user/${KIBANA_USER}/_password" \
   -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do
-  echo "  Failed to set kibana_system password, retrying..."
+  echo "  Failed to set ${KIBANA_USER} password, retrying..."
   sleep 10
 done
 

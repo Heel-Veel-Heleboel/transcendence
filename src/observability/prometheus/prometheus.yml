@@ -16,6 +16,9 @@ alerting:
           # Add Alertmanager targets here when configured
           # Example: - targets: ['alertmanager:9093']
 
+rule_files:
+  - /etc/prometheus/alerts.yml
+
 # Scrape configurations
 scrape_configs:
   # Prometheus itself
