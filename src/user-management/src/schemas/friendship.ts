@@ -9,6 +9,12 @@ export const CreateFriendshipSchema = Type.Object({
 
 export type CreateFriendshipSchemaType = Static<typeof CreateFriendshipSchema>;
 
+export const FriendshipSchema = Type.Object({
+  userId1: Type.Number(),
+  userId2: Type.Number()
+}); 
+
+export type FriendshipSchemaType = Static<typeof FriendshipSchema>;
 
 
 

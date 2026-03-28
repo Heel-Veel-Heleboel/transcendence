@@ -3,6 +3,7 @@ export const CONFIG = {
   START_MENU_NAVIGATION: '/',
   MENU_NAVIGATION: '/home',
   USER_PROFILE_NAVIGATION: '/profile/me',
+  USER_RELATIONSHIPS_NAVIGATION: '/profile/me/relationships',
   VISITOR_PROFILE_NAVIGATION: '/profile/:userId',
   GAME_NAVIGATION: '/game/:gameMode/:matchId/:roomId',
   TOURNAMENT_NAVIGATION: '/tournament/:tournamentId',
@@ -43,6 +44,8 @@ export const CONFIG = {
 
   // NOTE: CREDITS
   CREDITS_MENU_RETURN_TEXT: 'BACK TO MENU',
+
+  PROFILE_DEFAULT_LOGO: '/snake_codec.png',
 
   // NOTE: ToolBar / Widgets
   PROFILE_LOGO: '/profile.png',
@@ -96,6 +99,26 @@ export const CONFIG = {
   },
   REQUEST_REFRESH_UNAUTHORIZED: 401,
   REQUEST_USER: 'users/find-by-id/',
+  REQUEST_PROFILE: 'users/profile/find-by-id/',
+  REQUEST_PROFILE_PICTURE: 'users',
+  REQUEST_PROFILE_PICTURE_UPLOAD: 'users/profile/upload-avatar/',
+  REQUEST_PROFILE_CHANGE_USERNAME: 'users/update-name',
+  REQUEST_PROFILE_CHANGE_EMAIL: 'users/update-email',
+  REQUEST_PROFILE_CHANGE_PASSWORD: 'auth/change-password',
+  REQUEST_PROFILE_DELETE: 'users/delete',
+  REQUEST_FRIEND_ADD: 'users/friendship/create',
+  REQUEST_FRIEND_UPDATE: 'users/friendship/update-status',
+  REQUEST_FRIEND_DELETE: 'users/friendship/delete',
+  REQUEST_FRIEND_LIST: 'users/friendship/find-all-for-user/',
+  REQUEST_FRIEND_REQUESTS: (userId: string) => {
+    return `users/friendship/find-all-by-status-for-user/${userId}/PENDING`;
+  },
+  REQUEST_FRIENDS: (userId: string) => {
+    return `users/friendship/find-all-by-status-for-user/${userId}/ACCEPTED`;
+  },
+  REQUEST_FRIENDS_BETWEEN: (userId1: string, userId2: string) => {
+    return `users/friendship/between/${userId1}/${userId2}`;
+  },
 
   REQUEST_MATCHMAKING_STATUS: 'matchmaking/status/me',
   REQUEST_MATCHMAKING_CLASSIC: 'matchmaking/classic/join',
