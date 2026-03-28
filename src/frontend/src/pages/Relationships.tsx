@@ -1,21 +1,23 @@
 
 import { JSX, useEffect, useState } from "react"
-import { CONFIG } from "../constants/AppConfig";
-import { MainContainer } from "../components/sections/MainContainer";
-import { Widget } from "../components/utils/MenuUtils";
+import api from "../shared/api/api";
+import { CONFIG } from "../shared/config/AppConfig";
+import { getCookie } from "../shared/utils/cookies";
+import { MainContainer } from "../components/layout/MainContainer";
+import { Widget } from "../components/layout/Widget";
+import { IFriendship, IFriendshipResponse, responseToFriendship } from "../shared/types/friendship";
+import { RelationsContainer } from "../features/relationships/RelationsContainer";
 import { FriendshipList } from "../features/relationships/FriendshipList";
 import { FriendshipRequests } from "../features/relationships/FriendshipRequests";
-import { RelationsContainer } from "../features/relationships/RelationsContainer";
 import { Blocked } from "../features/relationships/Blocked";
-import { IFriendship, IFriendshipResponse, responseToFriendship } from "../types/friendship";
-import { getCookie } from "../components/utils/cookies";
-import api from "../api";
 
 
 export function Relationships(): JSX.Element {
     return (
         <MainContainer children={
-            <Widget logoPath={CONFIG.PROFILE_LOGO} title={CONFIG.PROFILE_TITLE} width="w-full" child={<RelationshipsContent />} />
+            <Widget logoPath={CONFIG.PROFILE_LOGO} title={CONFIG.PROFILE_TITLE} width="w-full" >
+                <RelationshipsContent />
+            </Widget>
         } />
     )
 }

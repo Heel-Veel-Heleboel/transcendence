@@ -1,7 +1,7 @@
 import { BaseSyntheticEvent, JSX, useState } from "react";
-import { getCookie } from "../../components/utils/cookies";
-import api from "../../api";
-import { CONFIG } from "../../constants/AppConfig";
+import api from "../../shared/api/api";
+import { getCookie } from "../../shared/utils/cookies";
+import { CONFIG } from "../../shared/config/AppConfig";
 import { DisplayedProfileProperty } from "./ProfileProperty";
 import { SubmitPropertyChange } from "./Submit";
 

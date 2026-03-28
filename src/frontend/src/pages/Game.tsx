@@ -5,8 +5,8 @@ import { GameClient } from '../game-client/systems/GameClient';
 import { useRoom } from '../components/providers/Room';
 import { Room } from '@colyseus/sdk';
 import { ErrorBoundary } from 'react-error-boundary';
-import { GameCrash } from '../components/errors/GameCrash';
 import { useParams } from 'react-router-dom';
+import { GameCrash } from '../features/errors/GameCrash';
 
 
 /* v8 ignore start */
