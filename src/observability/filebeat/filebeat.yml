@@ -2,6 +2,7 @@
 filebeat.autodiscover:
   providers:
     - type: docker
+      host: "unix:///var/run/docker.sock"
       hints.enabled: true
 
 # Add Docker metadata (container name, labels, etc.)
