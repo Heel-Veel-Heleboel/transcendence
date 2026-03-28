@@ -8,12 +8,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    env_file:
+      - docker/urls.env
     environment:
       - PORT=3000
       - HOST=0.0.0.0
-      - NODE_ENV=production
-      - JWT_PUBLIC_KEY_PATH=/app/keys/jwt_public.pem
-      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3002
       - SERVICES_FILE=/app/config/services.json
     depends_on:
       auth:
@@ -42,8 +41,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5173:5173"
-    environment:
-      - NODE_ENV=production
     depends_on:
       - api-gateway
     networks:
@@ -62,14 +59,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3003:3003"
+    env_file:
+      - docker/urls.env
     environment:
       - PORT=3003
       - HOST=0.0.0.0
-      - NODE_ENV=production
       - DATABASE_URL=file:/data/auth.db
-      - JWT_PRIVATE_KEY_PATH=/app/keys/jwt_private.pem
-      - JWT_PUBLIC_KEY_PATH=/app/keys/jwt_public.pem
-      - USER_MANAGEMENT_URL=http://user-management:3004
     volumes:
       - auth-data:/data
     networks:
@@ -88,12 +83,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3004:3004"
+    env_file:
+      - docker/urls.env
     environment:
       - PORT=3004
       - HOST=0.0.0.0
-      - NODE_ENV=production
       - DATABASE_URL=file:/data/user-management.db
-      - AUTH_SERVICE_URL=http://auth:3003
     volumes:
       - user-management-data:/data
     networks:
@@ -112,14 +107,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3005:3005"
+    env_file:
+      - docker/urls.env
     environment:
       - PORT=3005
       - HOST=0.0.0.0
-      - NODE_ENV=production
       - DATABASE_URL=file:/data/matchmaking.db
-      - GAME_SERVER_URL=http://game-server:2567
-      - CHAT_SERVICE_URL=http://chat:3006
-      - USER_MANAGEMENT_URL=http://user-management:3004
     volumes:
       - matchmaking-data:/data
     networks:
@@ -138,12 +131,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3006:3006"
+    env_file:
+      - docker/urls.env
     environment:
       - PORT=3006
       - HOST=0.0.0.0
-      - NODE_ENV=production
       - DATABASE_URL=file:/data/chat.db
-      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3002
     volumes:
       - chat-data:/data
     networks:
@@ -164,7 +157,6 @@ services:
       - "2567:2567"
     environment:
       - PORT=2567
-      - NODE_ENV=production
     networks:
       - app-net
     deploy:
