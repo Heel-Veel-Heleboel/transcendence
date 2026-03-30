@@ -16,6 +16,9 @@ import { ERRORS } from "../shared/errors/Errors";
 import { MainContainer } from "../components/layout/MainContainer";
 import { Widget } from "../components/layout/Widget";
 import { IProfile, IUser } from "../shared/types/profile";
+import { useApi } from "../components/hooks/Api";
+import { useUserService } from "../components/providers/User";
+import useAxios from "axios-hooks";
 
 /* v8 ignore start */
 
@@ -38,6 +41,9 @@ export function Profile(): JSX.Element {
 }
 
 export function UserProfileContent(): JSX.Element {
+    const userService = useUserService();
+    const [userResult] = useAxios(userService.getUser());
+    const [profileResult] = useAxios(userService.getProfile());
     const [profile, setProfile] = useState<IProfile | null>(null);
     const [user, setUser] = useState<IUser | null>(null);
     const [name, setName] = useState<string>('mysterio');
@@ -45,23 +51,25 @@ export function UserProfileContent(): JSX.Element {
     const [image, setImage] = useState<string>(CONFIG.PROFILE_DEFAULT_LOGO);
     const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
+    useEffect(() => {
+        if (userResult.data) {
+            setName(userResult.data.name)
+            setEmail(userResult.data.email)
+        }
+    }, [userResult.data])
+
     async function uploadFiles(formData: FormData) {
         try {
-            const response = await api.post(CONFIG.REQUEST_PROFILE_PICTURE_UPLOAD + user?.id, formData, {
+            await api.post(CONFIG.REQUEST_PROFILE_PICTURE_UPLOAD + user?.id, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
             });
-
-            console.log("Upload successful:", response.data);
-            alert("Files uploaded!");
-            for (const value of formData.values()) {
-                console.log(value);
-            }
             if (selectedFiles) {
                 const imageObjectUrl = URL.createObjectURL(selectedFiles[0]);
                 setImage(imageObjectUrl);
             }
+            alert("Files uploaded!");
         } catch (error) {
             console.error("Error uploading files:", error);
             alert("Upload failed.");
@@ -86,41 +94,6 @@ export function UserProfileContent(): JSX.Element {
         await uploadFiles(formData);
     };
 
-    useEffect(() => {
-        async function getUser() {
-            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
-            try {
-                const result = await api<IUser>({
-                    url: CONFIG.REQUEST_USER + user_id
-                })
-                setUser(result.data);
-                setName(result.data.name);
-                setEmail(result.data.email);
-            }
-            catch (e: any) {
-                console.error(e);
-                throw new Error(ERRORS.PROFILE_USER_FAILED);
-            }
-        }
-        async function getProfile() {
-            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
-            try {
-                const result = await api<IProfile>({
-                    url: CONFIG.REQUEST_PROFILE + user_id
-                })
-                console.log('getprofile');
-                console.log(result);
-                setProfile(result.data);
-            }
-            catch (e: any) {
-                console.error(e);
-                throw new Error(ERRORS.PROFILE_USER_FAILED);
-            }
-        }
-
-        getProfile()
-        getUser();
-    }, [])
 
     useEffect(() => {
         async function getPicture() {
@@ -157,7 +130,7 @@ export function UserProfileContent(): JSX.Element {
             <ProfileProperties>
                 <ProfilePropertiesPrimary>
                     <ProfileRelationships />
-                    <Username username={name} />
+                    <Username userResult={userResult} />
                     <Email email={email} />
                     <Password />
                     <DeleteAccount />

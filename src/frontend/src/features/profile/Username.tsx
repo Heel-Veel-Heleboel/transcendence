@@ -4,15 +4,25 @@ import { getCookie } from "../../shared/utils/cookies";
 import { CONFIG } from "../../shared/config/AppConfig";
 import { DisplayedProfileProperty } from "./ProfileProperty";
 import { SubmitPropertyChange } from "./Submit";
+import { IApiResult } from "../../shared/types/api";
+import { ResponseValues } from "axios-hooks";
 
-export function Username({ username }: { username: string | undefined }) {
+export function Username({ userResult }: { userResult: ResponseValues<any, any, any> }) {
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
+    console.log('data');
+    console.log(userResult);
 
     function handleChange() {
         setShowDropDown(!showDropdown);
     }
+    if (userResult.loading) {
+        <div>loading...</div>
+    }
+    if (userResult.data) {
+        <div>error...</div>
+    }
     return (
-        <DisplayedProfileProperty title="Username" property={username} dropDown={ChangeUserName(handleChange)} toggleDropDown={handleChange} showDropdown={showDropdown} />
+        <DisplayedProfileProperty title="Username" property={'lol'} dropDown={ChangeUserName(handleChange)} toggleDropDown={handleChange} showDropdown={showDropdown} />
     )
 }
 

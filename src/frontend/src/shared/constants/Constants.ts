@@ -16,3 +16,5 @@ export const LOGIN_OPTION = Object.freeze({
   REGISTER: 2,
   REGISTER_SUCCESFULL: 3
 });
+
+export const DEFAULT_AVATAR = '/snake_codec.png';
