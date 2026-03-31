@@ -10,7 +10,8 @@ const defaultUserService = {
     getProfile: () => instance.getProfile('0'),
     getProfileAvatar: (url: string) => instance.getProfileAvatar(url),
     postProfileAvatar: () => instance.postProfileAvatar('0'),
-    patchUsername: () => instance.patchUsername()
+    patchUsername: () => instance.patchUsername(),
+    patchEmail: () => instance.patchEmail()
 }
 
 
@@ -31,7 +32,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 getProfile: () => instance.getUser(auth.userId),
                 getProfileAvatar: (url: string) => instance.getProfileAvatar(url),
                 postProfileAvatar: () => instance.postProfileAvatar(auth.userId),
-                patchUsername: () => instance.patchUsername()
+                patchUsername: () => instance.patchUsername(),
+                patchEmail: () => instance.patchEmail()
             }
         )
     }, [auth.userId])

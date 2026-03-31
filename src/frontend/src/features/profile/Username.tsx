@@ -23,7 +23,7 @@ export function Username({ user }: { user: IUser }) {
         event.preventDefault();
 
         if (!input) {
-            alert("Please give a username!");
+            alert("Please give a Username!");
             return;
         }
         await requestChange();
@@ -37,7 +37,7 @@ export function Username({ user }: { user: IUser }) {
             handleDropdown();
             alert("Username changed!");
         } catch (error) {
-            console.error("Error changing UserName:", error);
+            console.error("Error changing Username:", error);
             alert("Username change failed");
         }
     }

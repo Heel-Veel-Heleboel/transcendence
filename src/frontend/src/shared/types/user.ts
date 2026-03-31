@@ -17,4 +17,5 @@ export interface IUserService {
   getProfileAvatar: (url: string) => AxiosRequestConfig;
   postProfileAvatar: () => AxiosRequestConfig;
   patchUsername: () => AxiosRequestConfig;
+  patchEmail: () => AxiosRequestConfig;
 }

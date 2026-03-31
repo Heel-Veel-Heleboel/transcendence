@@ -50,4 +50,15 @@ export class UserService {
     } as AxiosRequestConfig;
     return config;
   }
+
+  patchEmail() {
+    const config = {
+      url: this.base + 'update-email',
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    } as AxiosRequestConfig;
+    return config;
+  }
 }

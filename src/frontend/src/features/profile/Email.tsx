@@ -1,26 +1,21 @@
-import { BaseSyntheticEvent, JSX, useState } from "react";
-import api from "../../shared/api/api";
-import { getCookie } from "../../shared/utils/cookies";
-import { CONFIG } from "../../shared/config/AppConfig";
+import { BaseSyntheticEvent, useState } from "react";
 import { DisplayedProfileProperty } from "./ProfileProperty";
 import { SubmitPropertyChange } from "./Submit";
 import { IUser } from "../../shared/types/user";
+import { useUserService } from "../../components/providers/User";
+import useAxios from "axios-hooks";
 
 export function Email({ user }: { user: IUser }) {
+    const userService = useUserService();
+    const [, patchEmail] = useAxios(userService.patchEmail());
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
-
-    function handleChange() {
-        setShowDropDown(!showDropdown);
-    }
-    return (
-        <DisplayedProfileProperty title="Email" property={email} dropDown={ChangeEmail(handleChange)} toggleDropDown={handleChange} showDropdown={showDropdown} />
-    )
-}
-
-function ChangeEmail(resetState: () => void): JSX.Element {
     const [input, setInput] = useState<string>();
 
-    async function handleChange(event: BaseSyntheticEvent) {
+    function handleDropdown() {
+        setShowDropDown(!showDropdown);
+    }
+
+    async function handleInput(event: BaseSyntheticEvent) {
         setInput(event.target.value);
     };
 
@@ -28,7 +23,7 @@ function ChangeEmail(resetState: () => void): JSX.Element {
         event.preventDefault();
 
         if (!input) {
-            alert("Please give a email!");
+            alert("Please give a Email!");
             return;
         }
         await requestChange();
@@ -36,21 +31,21 @@ function ChangeEmail(resetState: () => void): JSX.Element {
 
     async function requestChange() {
         try {
-            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
-            await api({
-                url: CONFIG.REQUEST_PROFILE_CHANGE_EMAIL,
-                method: 'PATCH',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                data: JSON.stringify({ user_id: Number(user_id), user_email: input }),
+            await patchEmail({
+                data: JSON.stringify({ user_id: user.id, user_email: input }),
             })
-            resetState();
+            handleDropdown();
             alert("Email changed!");
         } catch (error) {
             console.error("Error changing Email:", error);
             alert("Email change failed");
         }
     }
-    return (SubmitPropertyChange(handleChange, handleSubmit, 'Change Email'));
+    return (
+        <DisplayedProfileProperty title="Email" property={user.name} toggleDropDown={handleDropdown} showDropdown={showDropdown} >
+            <SubmitPropertyChange handleChange={handleInput} handleSubmit={handleSubmit} buttonText={'Change Email'} />
+        </DisplayedProfileProperty >
+    )
 }
+
+
