@@ -4,8 +4,9 @@ import { getCookie } from "../../shared/utils/cookies";
 import { CONFIG } from "../../shared/config/AppConfig";
 import { HiddenProfileProperty } from "./ProfileProperty";
 import { SubmitPropertyChangeOldNew } from "./Submit";
+import { IUser } from "../../shared/types/user";
 
-export function Password() {
+export function Password({ user }: { user: IUser }) {
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
 
     function handleChange() {

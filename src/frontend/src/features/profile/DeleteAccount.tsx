@@ -4,9 +4,10 @@ import api from "../../shared/api/api";
 import { getCookie } from "../../shared/utils/cookies";
 import { CONFIG } from "../../shared/config/AppConfig";
 import { SubmitPropertyChangeYesNo } from "./Submit";
+import { IUser } from "../../shared/types/user";
 
 
-export function DeleteAccount() {
+export function DeleteAccount({ user }: { user: IUser }) {
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
     const auth = useAuth();
 

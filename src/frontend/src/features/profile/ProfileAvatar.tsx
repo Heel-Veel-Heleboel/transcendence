@@ -1,32 +1,106 @@
-import { BaseSyntheticEvent, useEffect, useState } from "react";
+import { BaseSyntheticEvent, Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react";
 import { useUserService } from "../../components/providers/User";
 import useAxios from "axios-hooks";
 import { IProfile } from "../../shared/types/profile";
-import { DEFAULT_AVATAR } from "../../shared/constants/Constants";
+import { DEFAULT_AVATAR, DEFAULT_PROFILE } from "../../shared/constants/defaults";
 
-export function ProfileAvatarContainer() {
+export function ProfileAvatar() {
     const userService = useUserService();
     const [profileResult] = useAxios(userService.getProfile());
-    const [imageResult, executeImage] = useAxios(userService.getProfile());
-    const [profile, setProfile] = useState<IProfile | null>(null);
-    const [name, setName] = useState<string>('mysterio');
-    const [image, setImage] = useState<string>(DEFAULT_AVATAR);
-    const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+    const [profile, setProfile] = useState<IProfile>(DEFAULT_PROFILE);
 
     useEffect(() => {
         if (profileResult.data) {
             setProfile(profileResult.data)
-            setName(profileResult.data.name)
         }
     }, [profileResult.data])
 
+    if (profileResult.loading) {
+        <ProfileAvatarContainer>
+            <div>loading</div>
+        </ProfileAvatarContainer>
+    }
+
+    if (profileResult.error) {
+        return (
+            <ProfileAvatarContainer>
+                <div>error</div>
+            </ProfileAvatarContainer>
+        )
+    }
+
+    return (
+        <ProfileAvatarContainer>
+            <ProfileName name={profile.user.name} />
+            <ProfilePicture profile={profile} />
+        </ProfileAvatarContainer>
+    )
+}
+
+export function ProfileAvatarContainer({ children }: { children: ReactNode }) {
+    return (
+        <div id="profile-avatar" className="w-1/2 min-h-full flex flex-col justify-around text-xl">
+            <div className="h-3/5">
+                <div className="min-h-full flex flex-col justify-between">
+                    {children}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export function ProfileName({ name }: { name: string }) {
+    return (
+        <div id="profile-name">
+            {name}
+        </div>
+    )
+}
+
+export function ProfilePicture({ profile }: { profile: IProfile }) {
+    const userService = useUserService();
+    const [avatarResult] = useAxios(userService.getProfileAvatar(profile.avatar_url));
+    const [image, setImage] = useState<string>(DEFAULT_AVATAR);
+
+    useEffect(() => {
+        if (avatarResult.data) {
+            const imageObjectUrl = URL.createObjectURL(avatarResult.data);
+            setImage(imageObjectUrl);
+        }
+
+    }, [avatarResult])
+
+    if (avatarResult.loading) {
+        <ProfilePictureContainer>
+            <div>loading</div>
+        </ProfilePictureContainer>
+    }
+
+    return (
+        <ProfilePictureContainer>
+            <img src={image} alt="profile_pic" className="w-1/4 min-h-1/2" />
+            <ProfilePictureForm setImage={setImage} />
+        </ProfilePictureContainer>
+    )
+}
+
+export function ProfilePictureContainer({ children }: { children: ReactNode }) {
+    return (
+        <div id='profile-picture' className="flex justify-center">
+            {children}
+        </div>
+    )
+
+}
+
+export function ProfilePictureForm({ setImage }: { setImage: Dispatch<SetStateAction<string>> }) {
+    const userService = useUserService();
+    const [, postAvatar] = useAxios(userService.postProfileAvatar(), { manual: true });
+    const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+
     async function uploadFiles(formData: FormData) {
         try {
-            await api.post(CONFIG.REQUEST_PROFILE_PICTURE_UPLOAD + profile?.user_id, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            await postAvatar({ data: formData },);
             if (selectedFiles) {
                 const imageObjectUrl = URL.createObjectURL(selectedFiles[0]);
                 setImage(imageObjectUrl);
@@ -57,60 +131,6 @@ export function ProfileAvatarContainer() {
     };
 
 
-    useEffect(() => {
-        async function getPicture() {
-            try {
-                if (profile?.avatar_url === null) {
-                    setImage(DEFAULT_AVATAR);
-                    return;
-                }
-                const result = await api({
-                    url: CONFIG.REQUEST_PROFILE_PICTURE + profile?.avatar_url,
-                    responseType: 'blob'
-                })
-                const imageObjectUrl = URL.createObjectURL(result.data);
-                setImage(imageObjectUrl);
-            }
-            catch (e: any) {
-                console.error(e);
-                throw new Error('getPicture failed');
-            }
-        }
-
-        if (profile) {
-            getPicture()
-        }
-    }, [profile])
-    return (
-        <div id="profile-avatar" className="w-1/2 min-h-full flex flex-col justify-around text-xl">
-            <div className="h-3/5">
-                <div className="min-h-full flex flex-col justify-between">
-                    <ProfileName name={name} />
-                    <ProfilePicture image={image} />
-                    <ProfilePictureForm handleSubmit={handleSubmit} handleFileChange={handleFileChange} />
-                </div>
-            </div>
-        </div>
-    )
-}
-
-export function ProfileName({ name }: { name: string }) {
-    return (
-        <div id="profile-name">
-            {name}
-        </div>
-    )
-}
-
-export function ProfilePicture({ image }: { image: string }) {
-    return (
-        <div id='profile-picture' className="flex justify-center">
-            {<img src={image} alt="profile_pic" className="w-1/4 min-h-1/2" />}
-        </div>
-    )
-}
-
-export function ProfilePictureForm({ handleSubmit, handleFileChange }: { handleSubmit: (event: BaseSyntheticEvent) => void, handleFileChange: (event: BaseSyntheticEvent) => void }) {
     return (
         <div id='profile-picture-form' className="flex justify-between">
             <div />

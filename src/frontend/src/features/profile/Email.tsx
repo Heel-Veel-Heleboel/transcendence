@@ -4,8 +4,9 @@ import { getCookie } from "../../shared/utils/cookies";
 import { CONFIG } from "../../shared/config/AppConfig";
 import { DisplayedProfileProperty } from "./ProfileProperty";
 import { SubmitPropertyChange } from "./Submit";
+import { IUser } from "../../shared/types/user";
 
-export function Email({ email }: { email: string | undefined }) {
+export function Email({ user }: { user: IUser }) {
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
 
     function handleChange() {

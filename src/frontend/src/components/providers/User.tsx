@@ -7,7 +7,10 @@ import { IUserService } from '../../shared/types/user';
 const instance = new UserService();
 const defaultUserService = {
     getUser: () => instance.getUser('0'),
-    getProfile: () => instance.getProfile('0')
+    getProfile: () => instance.getProfile('0'),
+    getProfileAvatar: (url: string) => instance.getProfileAvatar(url),
+    postProfileAvatar: () => instance.postProfileAvatar('0'),
+    patchUsername: () => instance.patchUsername()
 }
 
 
@@ -25,7 +28,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setUserService(
             {
                 getUser: () => instance.getUser(auth.userId),
-                getProfile: () => instance.getUser(auth.userId)
+                getProfile: () => instance.getUser(auth.userId),
+                getProfileAvatar: (url: string) => instance.getProfileAvatar(url),
+                postProfileAvatar: () => instance.postProfileAvatar(auth.userId),
+                patchUsername: () => instance.patchUsername()
             }
         )
     }, [auth.userId])

@@ -1,13 +1,14 @@
 import { BaseSyntheticEvent } from "react"
+import { htmlIdefier } from "../../shared/utils/html"
 
-export function SubmitPropertyChange(handleChange: (event: BaseSyntheticEvent) => void, handleSubmit: (event: BaseSyntheticEvent) => void, buttonText: string) {
+export function SubmitPropertyChange({ handleChange, handleSubmit, buttonText }: { handleChange: (event: BaseSyntheticEvent) => void, handleSubmit: (event: BaseSyntheticEvent) => void, buttonText: string }) {
     return (
         <form onSubmit={handleSubmit} >
             <div >
                 <div className="flex">
                     <input
                         className="border text-sm block w-full placeholder:text-body"
-                        id={buttonText.replace(/\s/g, "") + 'Container'}
+                        id={htmlIdefier(buttonText) + '-container'}
                         type="text"
                         onChange={handleChange}
 

@@ -1,6 +1,48 @@
-import { ReactNode } from "react"
+import { ReactNode, useEffect, useState } from "react"
+import { useUserService } from "../../components/providers/User";
+import useAxios from "axios-hooks";
+import { ProfileRelationships } from "./ProfileRelationships";
+import { Username } from "./Username";
+import { Email } from "./Email";
+import { Password } from "./Password";
+import { DeleteAccount } from "./DeleteAccount";
+import { IUser } from "../../shared/types/user";
+import { DEFAULT_USER } from "../../shared/constants/defaults";
 
-export function ProfilePropertiesPrimary({ children }: { children: ReactNode }) {
+export function ProfilePropertiesPrimary() {
+    const userService = useUserService();
+    const [userResult] = useAxios(userService.getUser());
+    const [user, setUser] = useState<IUser>(DEFAULT_USER);
+
+    useEffect(() => {
+        if (userResult.data) {
+            setUser(userResult.data)
+        }
+    }, [userResult])
+
+    if (userResult.loading) {
+        <ProfilePropertiesPrimaryContainer>
+            <div>loading</div>
+        </ProfilePropertiesPrimaryContainer>
+    }
+    if (userResult.error) {
+        <ProfilePropertiesPrimaryContainer>
+            <div>error</div>
+        </ProfilePropertiesPrimaryContainer>
+    }
+
+    return (
+        <ProfilePropertiesPrimaryContainer>
+            <ProfileRelationships />
+            <Username user={user} />
+            <Email user={user} />
+            <Password user={user} />
+            <DeleteAccount user={user} />
+        </ProfilePropertiesPrimaryContainer>
+    )
+}
+
+export function ProfilePropertiesPrimaryContainer({ children }: { children: ReactNode }) {
     return (
         <div id="primary-profile-properties" className="flex justify-around min-h-1/2">
             <div />
