@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { useAuth } from "../../components/providers/Auth";
 import { SubmitPropertyChangeYesNo } from "./Submit";
 import { IUser } from "../../shared/types/user";
 import useAxios from "axios-hooks";
+import { useUserService } from "../../components/providers/User";
+import { useAuth } from "../../components/providers/Auth";
 
 export function DeleteAccount({ user }: { user: IUser }) {
     const auth = useAuth();
-    const [, deleteAccount] = useAxios(auth.service.deleteAccount(), { manual: true });
+    const userService = useUserService();
+    const [, deleteAccount] = useAxios(userService.deleteUser(), { manual: true });
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
 
     function handleDropDown() {

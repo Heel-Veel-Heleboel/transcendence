@@ -33,7 +33,6 @@ export function useAuth() {
 
 const defaultAuthService = {
     putPassword: () => instance.putPassword(),
-    deleteAccount: () => instance.deleteAccount()
 }
 
 
@@ -190,7 +189,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         setAuthService(
             {
                 putPassword: () => instance.putPassword(),
-                deleteAccount: () => instance.deleteAccount()
             }
         )
     }, [userId])

@@ -19,5 +19,4 @@ export interface IAuthContext {
 
 export interface IAuthService {
   putPassword: () => AxiosRequestConfig;
-  deleteAccount: () => AxiosRequestConfig;
 }

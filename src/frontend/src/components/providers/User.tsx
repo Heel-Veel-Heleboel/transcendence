@@ -11,7 +11,8 @@ const defaultUserService = {
     getProfileAvatar: (url: string) => instance.getProfileAvatar(url),
     postProfileAvatar: () => instance.postProfileAvatar('0'),
     patchUsername: () => instance.patchUsername(),
-    patchEmail: () => instance.patchEmail()
+    patchEmail: () => instance.patchEmail(),
+    deleteUser: () => instance.deleteUser()
 }
 
 
@@ -34,6 +35,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 postProfileAvatar: () => instance.postProfileAvatar(auth.userId),
                 patchUsername: () => instance.patchUsername(),
                 patchEmail: () => instance.patchEmail(),
+                deleteUser: () => instance.deleteUser(),
             }
         )
     }, [auth.userId])

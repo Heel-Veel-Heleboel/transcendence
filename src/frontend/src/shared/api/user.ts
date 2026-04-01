@@ -4,19 +4,19 @@ export class UserService {
   private base: string;
 
   constructor() {
-    this.base = 'users/';
+    this.base = 'users';
   }
 
   getUser(userId: string) {
     const config = {
-      url: this.base + 'find-by-id/' + userId
+      url: this.base + '/find-by-id/' + userId
     } as AxiosRequestConfig;
     return config;
   }
 
   getProfile(userId: string) {
     const config = {
-      url: this.base + 'profile/find-by-id/' + userId
+      url: this.base + '/profile/find-by-id/' + userId
     } as AxiosRequestConfig;
     return config;
   }
@@ -31,7 +31,7 @@ export class UserService {
 
   postProfileAvatar(userId: string) {
     const config = {
-      url: this.base + 'profile/upload-avatar/' + userId,
+      url: this.base + '/profile/upload-avatar/' + userId,
       method: 'POST',
       headers: {
         'Content-Type': 'multipart/form-data'
@@ -42,7 +42,7 @@ export class UserService {
 
   patchUsername() {
     const config = {
-      url: this.base + 'update-name',
+      url: this.base + '/update-name',
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -53,8 +53,19 @@ export class UserService {
 
   patchEmail() {
     const config = {
-      url: this.base + 'update-email',
+      url: this.base + '/update-email',
       method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    } as AxiosRequestConfig;
+    return config;
+  }
+
+  deleteUser() {
+    const config = {
+      url: this.base + '/delete',
+      method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
       }
