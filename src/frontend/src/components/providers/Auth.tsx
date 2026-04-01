@@ -9,13 +9,13 @@ import {
     JSX
 } from 'react'
 import { useNavigate } from 'react-router-dom';
-import { CONFIG } from '../../shared/config/AppConfig.ts';
 import api from '../../shared/api/api.ts';
 import { createCookie, getCookie } from '../../shared/utils/cookies.ts';
-import { ERRORS } from '../../shared/errors/Errors.ts';
-import { IAuthContext, IAuthService, ICredentials } from '../../shared/types/auth.ts';
+import { IAuthContext, ICredentials } from '../../shared/types/auth.ts';
 import { AuthService } from '../../shared/api/auth.ts';
 import { UseAxios } from 'axios-hooks';
+import { START_MENU_NAVIGATION } from '../../shared/constants/navigation.ts';
+import { AxiosRequestConfig } from 'axios';
 
 const instance = new AuthService();
 const AuthContext = createContext<IAuthContext | undefined>(undefined);
@@ -26,30 +26,31 @@ export function useAuth() {
     const authContext = useContext(AuthContext);
 
     if (authContext === undefined) {
-        throw new Error(ERRORS.AUTH_INVALID_SCOPE);
+        throw new Error('useAuth has to be used within AuthProvider');
     }
 
     return authContext;
 }
 
-const defaultAuthService = {
-    putPassword: () => instance.putPassword(),
-    postRegister: () => instance.postRegister(),
-}
-
-
 export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, children: ReactNode }): JSX.Element {
     const [token, setToken] = useState<string | null>(null);
     const [userId, setUserId] = useState<string>('');
-    const [authService, setAuthService] = useState<IAuthService>(defaultAuthService)
     const navigate = useNavigate();
     const isFetching = useRef(false);
-    const [registerResult, postRegister] = useAxios(
+    const [, postRegister] = useAxios(
         instance.postRegister(),
         { manual: true }
     );
-    const [loginResult, postLogIn] = useAxios(
+    const [, postLogIn] = useAxios(
         instance.postLogIn(),
+        { manual: true }
+    );
+    const [, postLogOut] = useAxios(
+        instance.postLogOut(),
+        { manual: true }
+    );
+    const [, exePutPassword] = useAxios(
+        instance.putPassword(),
         { manual: true }
     );
 
@@ -119,10 +120,10 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
                     data: JSON.stringify({ email: credentials.email, user_name: credentials.user_name, password: credentials.password }),
                 }
             )
-            return (registerResult);
         } catch (e: any) {
             console.error(e)
-            return ({ data: undefined, loading: false, error: e });
+            // TODO: error handling
+            throw e
         }
     }
 
@@ -136,75 +137,75 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
             const accessToken = response.data.access_token;
             const userId = response.data.id;
             setUser(accessToken, userId, 7)
-            return ({ data: undefined, loading: loginResult.loading, error: loginResult.error })
         } catch (e: any) {
             console.error(e)
-            return ({ data: undefined, loading: false, error: e });
+            // TODO: error handling
+            throw e
         }
     }
 
     async function logOut() {
         try {
-            const user = getUser();
-            if (!user) {
-                throw new Error('no user found');
-            }
-            const response = await api({
-                url: CONFIG.REQUEST_LOGOUT,
-                method: CONFIG.REQUEST_LOGOUT_METHOD,
-                headers: CONFIG.REQUEST_LOGOUT_HEADERS,
-                data: JSON.stringify({ user_id: user }),
+            const response = await postLogOut({
+                data: JSON.stringify({ user_id: userId })
             })
-            if (response.status === CONFIG.REQUEST_LOGOUT_SUCCESFULL) {
+            if (response.status === 204) {
                 logOutUser();
             } else {
-                throw new Error(`Response status: ${response.status}`);
+                throw new Error(` ${response.status}`);
             }
         } catch (e: any) {
-            throw new Error(`unknown error: ${e.message}`);
+            console.error(e);
+            // TODO: error handling
+            throw e
         }
     }
 
     async function refresh() {
-        if (isFetching.current) return; // Prevent duplicate requests
+        if (isFetching.current) return; // INFO: Prevent duplicate requests
         isFetching.current = true;
         try {
-            const user = getUser();
-            if (!user) {
-                throw new Error(ERRORS.AUTH_NO_USER);
-            }
-            const response = await api({
-                url: CONFIG.REQUEST_REFRESH,
-                method: CONFIG.REQUEST_REFRESH_METHOD,
-                headers: CONFIG.REQUEST_REFRESH_HEADERS,
-                data: JSON.stringify({ user_id: user }),
+            const response = await postLogOut({
+                data: JSON.stringify({ user_id: userId })
             })
             setToken(response.data.access_token);
         } catch (e: any) {
             console.error(e);
+            // TODO: error handling
             gotoLogin();
+            throw e
         } finally {
             isFetching.current = false;
+        }
+    }
+
+    async function putPassword(config: AxiosRequestConfig) {
+        try {
+            const user = getUser();
+            if (!user) {
+                throw new Error('no user found');
+            }
+            const response = await exePutPassword(config)
+            if (response.status === 204) {
+                logOutUser();
+            } else {
+                throw new Error(` ${response.status}`);
+            }
+        } catch (e: any) {
+            console.error(e);
+            // TODO: error handling
+            throw e
         }
     }
 
 
     function gotoLogin() {
         setToken(null);
-        navigate(CONFIG.START_MENU_NAVIGATION);
+        navigate(START_MENU_NAVIGATION);
     }
 
-    useEffect(() => {
-        setAuthService(
-            {
-                putPassword: () => instance.putPassword(),
-                postRegister: () => instance.postRegister(),
-            }
-        )
-    }, [userId])
-
     return (
-        <AuthContext.Provider value={{ token, userId, register, logIn, logOut, refresh, gotoLogin, service: authService }} >
+        <AuthContext.Provider value={{ token, userId, register, logIn, logOut, refresh, gotoLogin, putPassword }} >
             {children}
         </ AuthContext.Provider>
     )

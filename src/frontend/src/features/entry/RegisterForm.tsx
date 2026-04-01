@@ -23,10 +23,7 @@ export function RegisterForm(): JSX.Element {
         }
 
         try {
-            const result = await auth.register({ email, user_name, password });
-            if (result.error) {
-                throw result.error
-            }
+            await auth.register({ email, user_name, password });
         } catch (e: any) {
             alert('registration failed');
             return;

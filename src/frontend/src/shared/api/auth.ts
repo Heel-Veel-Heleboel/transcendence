@@ -7,6 +7,17 @@ export class AuthService {
     this.base = 'auth';
   }
 
+  postRegister() {
+    const config = {
+      url: this.base + '/register',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    } as AxiosRequestConfig;
+    return config;
+  }
+
   postLogIn() {
     const config = {
       url: this.base + '/login',
@@ -18,9 +29,20 @@ export class AuthService {
     return config;
   }
 
-  postRegister() {
+  postLogOut() {
     const config = {
-      url: this.base + '/register',
+      url: this.base + '/logout',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    } as AxiosRequestConfig;
+    return config;
+  }
+
+  postRefresh() {
+    const config = {
+      url: this.base + '/refresh',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

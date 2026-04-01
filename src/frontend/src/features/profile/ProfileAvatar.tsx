@@ -1,6 +1,5 @@
 import { BaseSyntheticEvent, Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react";
 import { useUserService } from "../../components/providers/User";
-import useAxios from "axios-hooks";
 import { IProfile } from "../../shared/types/profile";
 import { DEFAULT_AVATAR, DEFAULT_PROFILE } from "../../shared/constants/defaults";
 

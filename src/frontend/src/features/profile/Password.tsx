@@ -1,13 +1,11 @@
 import { BaseSyntheticEvent, useState } from "react";
 import { IUser } from "../../shared/types/user";
-import useAxios from "axios-hooks";
 import { SubmitPropertyChangeOldNew } from "./Submit";
 import { HiddenProfileProperty } from "./ProfileProperty";
 import { useAuth } from "../../components/providers/Auth";
 
 export function Password({ user }: { user: IUser }) {
     const auth = useAuth();
-    const [, putPassword] = useAxios(auth.service.putPassword(), { manual: true });
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
     const [currentPassword, setOldPassword] = useState<string>();
     const [newPassword, setNewPassword] = useState<string>();
@@ -41,7 +39,7 @@ export function Password({ user }: { user: IUser }) {
 
     async function requestChange() {
         try {
-            await putPassword({
+            await auth.putPassword({
                 data: JSON.stringify({ user_id: user.id, current_password: currentPassword, new_password: newPassword }),
             })
             handleDropdown();
