@@ -19,15 +19,15 @@ export function DisplayedProfileProperty({ title, property, toggleDropDown, show
     )
 }
 
-export function HiddenProfileProperty({ title, dropDown, toggleDropDown, showDropdown }: { title: string, dropDown: JSX.Element, toggleDropDown: () => void, showDropdown: boolean }): JSX.Element {
+export function HiddenProfileProperty({ title, toggleDropDown, showDropdown, children }: { title: string, toggleDropDown: () => void, showDropdown: boolean, children: ReactNode }): JSX.Element {
     return (
-        <div id={title.toLowerCase().replace(' ', '-') + '-property'}>
+        <div id={htmlIdefier(title) + '-property'}>
             <div className="flex">
                 <div className="w-full text-xl truncate">
                     <button onClick={toggleDropDown}>{showDropdown ? "Cancel " + title : title}</button>
                 </div>
             </div>
-            {showDropdown && dropDown}
+            {showDropdown && children}
         </div>
     )
 }

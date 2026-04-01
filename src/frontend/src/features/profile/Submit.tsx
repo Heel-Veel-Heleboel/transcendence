@@ -1,51 +1,45 @@
-import { BaseSyntheticEvent } from "react"
 import { htmlIdefier } from "../../shared/utils/html"
+import { IPropertyChange, IPropertyChangeOldNew } from "../../shared/types/property"
 
-export function SubmitPropertyChange({ handleChange, handleSubmit, buttonText }: { handleChange: (event: BaseSyntheticEvent) => void, handleSubmit: (event: BaseSyntheticEvent) => void, buttonText: string }) {
+export function SubmitPropertyChange({ props }: { props: IPropertyChange }) {
     return (
-        <form onSubmit={handleSubmit} >
+        <form onSubmit={props.handleSubmit} >
             <div >
                 <div className="flex">
                     <input
                         className="border text-sm block w-full placeholder:text-body"
-                        id={htmlIdefier(buttonText) + '-container'}
+                        id={htmlIdefier(props.buttonText) + '-container'}
                         type="text"
-                        onChange={handleChange}
+                        onChange={props.handleChange}
 
                     />
-                    <button className="text-sm border" type="submit">{buttonText}</button>
+                    <button className="text-sm border" type="submit">{props.buttonText}</button>
                 </div>
             </div>
         </form>
     )
 }
 
-export function SubmitPropertyChangeOldNew(
-    handleChangeOld: (event: BaseSyntheticEvent) => void,
-    handleChangeNew: (event: BaseSyntheticEvent) => void,
-    handleSubmit: (event: BaseSyntheticEvent) => void,
-    buttonText: string,
-) {
-
+export function SubmitPropertyChangeOldNew({ props }: { props: IPropertyChangeOldNew }) {
     return (
-        <form onSubmit={handleSubmit} >
+        <form onSubmit={props.handleSubmit} >
             <div >
                 <div className="flex flex-col">
                     <input
                         className="border text-sm block w-full placeholder:text-body"
-                        id="oldPropertyContainer"
+                        id="old-property-container"
                         type="text"
-                        onChange={handleChangeOld}
+                        onChange={props.handleChangeOld}
 
                     />
                     <input
                         className="border text-sm block w-full placeholder:text-body"
-                        id="newPropertyChange"
+                        id="new-property-container"
                         type="text"
-                        onChange={handleChangeNew}
+                        onChange={props.handleChangeNew}
 
                     />
-                    <button className="text-sm border" type="submit">{buttonText}</button>
+                    <button className="text-sm border" type="submit">{props.buttonText}</button>
                 </div>
             </div>
         </form>

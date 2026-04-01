@@ -61,4 +61,15 @@ export class UserService {
     } as AxiosRequestConfig;
     return config;
   }
+
+  putPassword() {
+    const config = {
+      url: this.base + 'update-password',
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    } as AxiosRequestConfig;
+    return config;
+  }
 }

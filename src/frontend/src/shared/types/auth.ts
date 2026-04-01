@@ -13,3 +13,7 @@ export interface IAuthContext {
   refresh: Function;
   gotoLogin: Function;
 }
+
+export interface IAuthService {
+  putPassword: () => AxiosRequestConfig;
+}

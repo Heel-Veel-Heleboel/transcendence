@@ -7,7 +7,7 @@ import useAxios from "axios-hooks";
 
 export function Email({ user }: { user: IUser }) {
     const userService = useUserService();
-    const [, patchEmail] = useAxios(userService.patchEmail());
+    const [, patchEmail] = useAxios(userService.patchEmail(), { manual: true });
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
     const [input, setInput] = useState<string>();
 
@@ -42,8 +42,8 @@ export function Email({ user }: { user: IUser }) {
         }
     }
     return (
-        <DisplayedProfileProperty title="Email" property={user.name} toggleDropDown={handleDropdown} showDropdown={showDropdown} >
-            <SubmitPropertyChange handleChange={handleInput} handleSubmit={handleSubmit} buttonText={'Change Email'} />
+        <DisplayedProfileProperty title="Email" property={user.email} toggleDropDown={handleDropdown} showDropdown={showDropdown} >
+            <SubmitPropertyChange props={{ handleChange: handleInput, handleSubmit, buttonText: 'Change Email' }} />
         </DisplayedProfileProperty >
     )
 }

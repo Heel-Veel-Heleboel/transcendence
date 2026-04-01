@@ -7,7 +7,7 @@ import useAxios from "axios-hooks";
 
 export function Username({ user }: { user: IUser }) {
     const userService = useUserService();
-    const [, patchName] = useAxios(userService.patchUsername());
+    const [, patchName] = useAxios(userService.patchUsername(), { manual: true });
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
     const [input, setInput] = useState<string>();
 
@@ -43,7 +43,7 @@ export function Username({ user }: { user: IUser }) {
     }
     return (
         <DisplayedProfileProperty title="Username" property={user.name} toggleDropDown={handleDropdown} showDropdown={showDropdown} >
-            <SubmitPropertyChange handleChange={handleInput} handleSubmit={handleSubmit} buttonText={'Change Username'} />
+            <SubmitPropertyChange props={{ handleChange: handleInput, handleSubmit, buttonText: 'Change Username' }} />
         </DisplayedProfileProperty >
     )
 }

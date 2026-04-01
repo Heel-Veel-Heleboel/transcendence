@@ -37,7 +37,11 @@ export function ProfilePropertiesPrimary() {
             <Username user={user} />
             <Email user={user} />
             <Password user={user} />
-            <DeleteAccount user={user} />
+            {
+                /*
+                <DeleteAccount user={user} />
+                */
+            }
         </ProfilePropertiesPrimaryContainer>
     )
 }

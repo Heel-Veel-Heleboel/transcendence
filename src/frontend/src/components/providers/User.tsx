@@ -29,11 +29,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setUserService(
             {
                 getUser: () => instance.getUser(auth.userId),
-                getProfile: () => instance.getUser(auth.userId),
+                getProfile: () => instance.getProfile(auth.userId),
                 getProfileAvatar: (url: string) => instance.getProfileAvatar(url),
                 postProfileAvatar: () => instance.postProfileAvatar(auth.userId),
                 patchUsername: () => instance.patchUsername(),
-                patchEmail: () => instance.patchEmail()
+                patchEmail: () => instance.patchEmail(),
             }
         )
     }, [auth.userId])

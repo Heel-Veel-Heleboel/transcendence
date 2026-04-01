@@ -58,16 +58,17 @@ export function ProfileName({ name }: { name: string }) {
 }
 
 export function ProfilePicture({ profile }: { profile: IProfile }) {
+    const [image, setImage] = useState<string>(DEFAULT_AVATAR);
     const userService = useUserService();
     const [avatarResult] = useAxios(userService.getProfileAvatar(profile.avatar_url));
-    const [image, setImage] = useState<string>(DEFAULT_AVATAR);
 
     useEffect(() => {
+        console.log('avatarResult')
+        console.log(avatarResult);
         if (avatarResult.data) {
             const imageObjectUrl = URL.createObjectURL(avatarResult.data);
             setImage(imageObjectUrl);
         }
-
     }, [avatarResult])
 
     if (avatarResult.loading) {
@@ -76,9 +77,17 @@ export function ProfilePicture({ profile }: { profile: IProfile }) {
         </ProfilePictureContainer>
     }
 
+    if (avatarResult.error) {
+        console.log(avatarResult.error);
+    }
+
     return (
         <ProfilePictureContainer>
-            <img src={image} alt="profile_pic" className="w-1/4 min-h-1/2" />
+            <div className="flex justify-between">
+                <div />
+                <img src={image} alt="profile_pic" className="w-1/4 min-h-1/2" />
+                <div />
+            </div>
             <ProfilePictureForm setImage={setImage} />
         </ProfilePictureContainer>
     )
@@ -87,7 +96,9 @@ export function ProfilePicture({ profile }: { profile: IProfile }) {
 export function ProfilePictureContainer({ children }: { children: ReactNode }) {
     return (
         <div id='profile-picture' className="flex justify-center">
-            {children}
+            <div className="flex flex-col">
+                {children}
+            </div>
         </div>
     )
 

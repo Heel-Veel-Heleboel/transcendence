@@ -14,8 +14,12 @@ import api from '../../shared/api/api.ts';
 import { createCookie, getCookie } from '../../shared/utils/cookies.ts';
 import { ERRORS } from '../../shared/errors/Errors.ts';
 import { IAuthContext, ICredentials } from '../../shared/types/auth.ts';
+import { AuthService } from '../../shared/api/auth.ts';
+import useAxios from 'axios-hooks';
 
+const instance = new AuthService();
 const AuthContext = createContext<IAuthContext | undefined>(undefined);
+
 const userCookieName = 'user_id';
 
 export function useAuth() {
@@ -32,6 +36,7 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
     const [token, setToken] = useState<string | null>(null);
     const [userId, setUserId] = useState<string>('');
+    // const [passwordResult, putPassword] = useAxios(instance.putPassword(), { manual: true });
     const navigate = useNavigate();
     const isFetching = useRef(false);
 
@@ -170,6 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             isFetching.current = false;
         }
     }
+
 
     function gotoLogin() {
         setToken(null);
