@@ -1,4 +1,5 @@
 import { AxiosRequestConfig } from 'axios';
+import { UseAxiosResult } from 'axios-hooks';
 
 export interface IUserStatus {
   activity_status: string;
@@ -12,11 +13,11 @@ export interface IUser {
 }
 
 export interface IUserService {
-  getUser: () => AxiosRequestConfig;
-  getProfile: () => AxiosRequestConfig;
-  getProfileAvatar: (url: string) => AxiosRequestConfig;
-  postProfileAvatar: () => AxiosRequestConfig;
-  patchUsername: () => AxiosRequestConfig;
-  patchEmail: () => AxiosRequestConfig;
-  deleteUser: () => AxiosRequestConfig;
+  getUser: () => any;
+  getProfile: () => any;
+  getProfileAvatar: (url: string) => any;
+  postProfileAvatar: () => any;
+  patchUsername: () => any;
+  patchEmail: () => any;
+  deleteUser: () => any;
 }

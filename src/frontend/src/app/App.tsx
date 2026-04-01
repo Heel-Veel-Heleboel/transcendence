@@ -39,7 +39,7 @@ export function App() {
     return (
         <ErrorBoundary FallbackComponent={GeneralErrorFallback} >
             <AuthProvider useAxios={useAxiosInstance}>
-                <UserProvider>
+                <UserProvider useAxios={useAxiosInstance}>
                     <RoomProvider>
                         <Routes>
                             <Route path={START_MENU_NAVIGATION} element={<StartMenu />} />

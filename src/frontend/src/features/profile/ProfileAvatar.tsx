@@ -6,7 +6,7 @@ import { DEFAULT_AVATAR, DEFAULT_PROFILE } from "../../shared/constants/defaults
 
 export function ProfileAvatar() {
     const userService = useUserService();
-    const [profileResult] = useAxios(userService.getProfile());
+    const [profileResult] = userService.getProfile();
     const [profile, setProfile] = useState<IProfile>(DEFAULT_PROFILE);
 
     useEffect(() => {

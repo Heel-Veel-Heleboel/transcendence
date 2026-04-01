@@ -1,48 +1,45 @@
 
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useContext, } from 'react';
 import { UserService } from '../../shared/api/user';
 import { useAuth } from './Auth';
 import { IUserService } from '../../shared/types/user';
+import { UseAxios } from 'axios-hooks';
 
 const instance = new UserService();
-const defaultUserService = {
-    getUser: () => instance.getUser('0'),
-    getProfile: () => instance.getProfile('0'),
-    getProfileAvatar: (url: string) => instance.getProfileAvatar(url),
-    postProfileAvatar: () => instance.postProfileAvatar('0'),
-    patchUsername: () => instance.patchUsername(),
-    patchEmail: () => instance.patchEmail(),
-    deleteUser: () => instance.deleteUser()
-}
-
 
 const UserServiceContext = createContext<IUserService>(
-    defaultUserService
+    {
+        getProfile: () => { return null },
+        getUser: () => () => { return null },
+        getProfileAvatar: (url: string) => { return null },
+        postProfileAvatar: () => () => { return null },
+        patchUsername: () => () => { return null },
+        patchEmail: () => () => { return null },
+        deleteUser: () => () => { return null },
+    }
 );
 
 export function useUserService() { return useContext(UserServiceContext); }
 
-export function UserProvider({ children }: { children: ReactNode }) {
-    const [userService, setUserService] = useState<IUserService>(defaultUserService)
+export function UserProvider({ useAxios, children }: { useAxios: UseAxios, children: ReactNode }) {
     const auth = useAuth();
 
-    useEffect(() => {
-        setUserService(
-            {
-                getUser: () => instance.getUser(auth.userId),
-                getProfile: () => instance.getProfile(auth.userId),
-                getProfileAvatar: (url: string) => instance.getProfileAvatar(url),
-                postProfileAvatar: () => instance.postProfileAvatar(auth.userId),
-                patchUsername: () => instance.patchUsername(),
-                patchEmail: () => instance.patchEmail(),
-                deleteUser: () => instance.deleteUser(),
-            }
-        )
-    }, [auth.userId])
+    function getProfile() {
+        const result = useAxios(instance.getProfile(auth.userId));
+        return (result);
+    }
 
     return (
-        <UserServiceContext.Provider value={userService}>
+        <UserServiceContext.Provider value={{
+            getProfile,
+            getUser: () => instance.getUser(auth.userId),
+            getProfileAvatar: (url: string) => instance.getProfileAvatar(url),
+            postProfileAvatar: () => instance.postProfileAvatar(auth.userId),
+            patchUsername: () => instance.patchUsername(),
+            patchEmail: () => instance.patchEmail(),
+            deleteUser: () => instance.deleteUser(),
+        }}>
             {children}
-        </UserServiceContext.Provider>
+        </UserServiceContext.Provider >
     );
 }
