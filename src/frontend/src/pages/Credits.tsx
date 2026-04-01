@@ -1,12 +1,12 @@
 import { JSX } from "react"
 import { LoginContainer } from "../features/login/LoginContainer.tsx"
-import { DefaultLogin } from "../features/login/DefaultLogin.tsx"
+import { CreditsContainer } from "../features/login/Credits.tsx"
 
 /* v8 ignore start */
-export function Login(): JSX.Element {
+export function Credits(): JSX.Element {
     return (
         <LoginContainer>
-            <DefaultLogin />
+            <CreditsContainer />
 
         </LoginContainer>
     )
