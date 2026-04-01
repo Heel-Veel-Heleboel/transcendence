@@ -5,10 +5,10 @@ import useAxios from "axios-hooks";
 import { useUserService } from "../../components/providers/User";
 import { useAuth } from "../../components/providers/Auth";
 
-export function DeleteAccount({ user }: { user: IUser }) {
+export function DeleteUser({ user }: { user: IUser }) {
     const auth = useAuth();
     const userService = useUserService();
-    const [, deleteAccount] = useAxios(userService.deleteUser(), { manual: true });
+    const [, deleteUser] = useAxios(userService.deleteUser(), { manual: true });
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
 
     function handleDropDown() {
@@ -17,7 +17,7 @@ export function DeleteAccount({ user }: { user: IUser }) {
 
     async function requestDelete() {
         try {
-            await deleteAccount({
+            await deleteUser({
                 data: JSON.stringify({ user_id: Number(user.id) })
             });
             handleDropDown();

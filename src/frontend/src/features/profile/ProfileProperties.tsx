@@ -5,7 +5,7 @@ import { ProfileRelationships } from "./ProfileRelationships";
 import { Username } from "./Username";
 import { Email } from "./Email";
 import { Password } from "./Password";
-import { DeleteAccount } from "./DeleteAccount";
+import { DeleteUser } from "./DeleteUser";
 import { IUser } from "../../shared/types/user";
 import { DEFAULT_USER } from "../../shared/constants/defaults";
 
@@ -37,7 +37,7 @@ export function ProfilePropertiesPrimary() {
             <Username user={user} />
             <Email user={user} />
             <Password user={user} />
-            <DeleteAccount user={user} />
+            <DeleteUser user={user} />
         </ProfilePropertiesPrimaryContainer>
     )
 }
