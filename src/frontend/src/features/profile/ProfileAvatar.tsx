@@ -60,11 +60,9 @@ export function ProfileName({ name }: { name: string }) {
 export function ProfilePicture({ profile }: { profile: IProfile }) {
     const [image, setImage] = useState<string>(DEFAULT_AVATAR);
     const userService = useUserService();
-    const [avatarResult] = useAxios(userService.getProfileAvatar(profile.avatar_url));
+    const [avatarResult] = userService.getProfileAvatar(profile.avatar_url);
 
     useEffect(() => {
-        console.log('avatarResult')
-        console.log(avatarResult);
         if (avatarResult.data) {
             const imageObjectUrl = URL.createObjectURL(avatarResult.data);
             setImage(imageObjectUrl);
@@ -72,13 +70,15 @@ export function ProfilePicture({ profile }: { profile: IProfile }) {
     }, [avatarResult])
 
     if (avatarResult.loading) {
-        <ProfilePictureContainer>
-            <div>loading</div>
-        </ProfilePictureContainer>
+        return (
+            <ProfilePictureContainer>
+                <div>loading</div>
+            </ProfilePictureContainer>
+        )
     }
 
     if (avatarResult.error) {
-        console.log(avatarResult.error);
+        console.error(avatarResult.error);
     }
 
     return (
@@ -106,12 +106,11 @@ export function ProfilePictureContainer({ children }: { children: ReactNode }) {
 
 export function ProfilePictureForm({ setImage }: { setImage: Dispatch<SetStateAction<string>> }) {
     const userService = useUserService();
-    const [, postAvatar] = useAxios(userService.postProfileAvatar(), { manual: true });
     const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
     async function uploadFiles(formData: FormData) {
         try {
-            await postAvatar({ data: formData },);
+            await userService.postProfileAvatar({ data: formData },);
             if (selectedFiles) {
                 const imageObjectUrl = URL.createObjectURL(selectedFiles[0]);
                 setImage(imageObjectUrl);

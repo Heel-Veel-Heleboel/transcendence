@@ -1,6 +1,5 @@
 import { ReactNode, useEffect, useState } from "react"
 import { useUserService } from "../../components/providers/User";
-import useAxios from "axios-hooks";
 import { ProfileRelationships } from "./ProfileRelationships";
 import { Username } from "./Username";
 import { Email } from "./Email";
@@ -11,7 +10,7 @@ import { DEFAULT_USER } from "../../shared/constants/defaults";
 
 export function ProfilePropertiesPrimary() {
     const userService = useUserService();
-    const [userResult] = useAxios(userService.getUser());
+    const [userResult] = userService.getUser();
     const [user, setUser] = useState<IUser>(DEFAULT_USER);
 
     useEffect(() => {

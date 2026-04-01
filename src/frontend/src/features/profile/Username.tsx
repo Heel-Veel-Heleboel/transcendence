@@ -3,11 +3,9 @@ import { DisplayedProfileProperty } from "./ProfileProperty";
 import { SubmitPropertyChange } from "./Submit";
 import { IUser } from "../../shared/types/user";
 import { useUserService } from "../../components/providers/User";
-import useAxios from "axios-hooks";
 
 export function Username({ user }: { user: IUser }) {
     const userService = useUserService();
-    const [, patchName] = useAxios(userService.patchUsername(), { manual: true });
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
     const [input, setInput] = useState<string>();
 
@@ -31,7 +29,7 @@ export function Username({ user }: { user: IUser }) {
 
     async function requestChange() {
         try {
-            await patchName({
+            await userService.patchUsername({
                 data: JSON.stringify({ user_id: user.id, user_name: input }),
             })
             handleDropdown();
