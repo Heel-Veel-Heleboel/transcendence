@@ -1,38 +1,40 @@
 import { JSX, useState } from "react"
-import { ErrorBoundary } from "react-error-boundary";
-import { GeneralErrorFallback } from "../errors/GeneralErrorFallBack.tsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/providers/Auth.tsx";
-import { LOGIN_NAVIGATION, SIGNIN_NAVIGATION } from "../../shared/constants/navigation.ts";
+import { ENTRY_NAVIGATION, LOGIN_NAVIGATION } from "../../shared/constants/navigation.ts";
 
 export function RegisterForm(): JSX.Element {
     const auth = useAuth();
     const navigate = useNavigate();
-    const [registered, setRegisterd] = useState<boolean>(false);
+    const [registered, setRegistered] = useState<boolean>(false);
 
     async function submit(form: FormData) {
-        const email = form.get("email");
-        const username = form.get("username");
-        const password = form.get("password");
+        const email = form.get("email") as string;
+        const user_name = form.get("username") as string;
+        const password = form.get("password") as string;
 
-        if (username === null) {
-            throw Error('non-valid user-name')
+        if (user_name === null) {
+            alert('non-valid user-name')
+            return;
         }
         if (password === null) {
-            throw Error('non-valid password')
+            alert('non-valid password')
+            return;
         }
 
         try {
-            await auth.register({ email, username, password });
+            const result = await auth.register({ email, user_name, password });
+            if (result.error) {
+                throw result.error
+            }
         } catch (e: any) {
-            throw e;
+            alert('registration failed');
+            return;
         }
-        setRegisterd(true);
-
+        setRegistered(true);
     };
     return (
-
-        <ErrorBoundary FallbackComponent={GeneralErrorFallback}>
+        <div id="registration-container">
             {!registered ?
                 <div id="register-form">
                     <form action={submit}>
@@ -44,11 +46,11 @@ export function RegisterForm(): JSX.Element {
                         <input type="text" name="password" className="border" /> <br /><br />
                         <button type="submit" className="border w-1/4" >REGISTER</button>
                     </form>
-                    <button onClick={() => navigate(LOGIN_NAVIGATION)} className="m-10">GO BACK</button>
+                    <button onClick={() => navigate(ENTRY_NAVIGATION)} className="m-10">GO BACK</button>
                 </div> :
-                <RegisterSuccesfull callback={() => navigate(SIGNIN_NAVIGATION)} />
+                <RegisterSuccesfull callback={() => navigate(LOGIN_NAVIGATION)} />
             }
-        </ErrorBoundary>
+        </div>
     )
 }
 

@@ -12,11 +12,13 @@ import { VisitorProfile } from '../pages/VisitorProfile.tsx';
 import { Relationships } from '../pages/Relationships.tsx';
 import { GeneralErrorFallback } from '../features/errors/GeneralErrorFallBack.tsx';
 import { UserProvider } from '../components/providers/User.tsx';
-import { CREDITS_NAVIGATION, GAME_NAVIGATION, HOME_NAVIGATION, LOGIN_NAVIGATION, REGISTER_NAVIGATION, SIGNIN_NAVIGATION, START_MENU_NAVIGATION, TOURNAMENT_NAVIGATION, USER_PROFILE_NAVIGATION, USER_RELATIONSHIPS_NAVIGATION, VISITOR_PROFILE_NAVIGATION } from '../shared/constants/navigation.ts';
-import { Login } from '../pages/Login.tsx';
+import { CREDITS_NAVIGATION, GAME_NAVIGATION, HOME_NAVIGATION, ENTRY_NAVIGATION, REGISTER_NAVIGATION, LOGIN_NAVIGATION, START_MENU_NAVIGATION, TOURNAMENT_NAVIGATION, USER_PROFILE_NAVIGATION, USER_RELATIONSHIPS_NAVIGATION, VISITOR_PROFILE_NAVIGATION } from '../shared/constants/navigation.ts';
+import { Entry } from '../pages/Entry.tsx';
 import { Register } from '../pages/Register.tsx';
-import { SignIn } from '../pages/SignIn.tsx';
 import { Credits } from '../pages/Credits.tsx';
+import { configureApi } from '../shared/api/configure.ts';
+import api from '../shared/api/api.ts';
+import { Login } from '../pages/Login.tsx';
 
 /* v8 ignore start */
 export function App() {
@@ -32,16 +34,18 @@ export function App() {
         document.title = `Transcendance | ${name}`
     }, [])
 
+    const useAxiosInstance = configureApi(api);
+
     return (
         <ErrorBoundary FallbackComponent={GeneralErrorFallback} >
-            <AuthProvider>
+            <AuthProvider useAxios={useAxiosInstance}>
                 <UserProvider>
                     <RoomProvider>
                         <Routes>
                             <Route path={START_MENU_NAVIGATION} element={<StartMenu />} />
-                            <Route path={LOGIN_NAVIGATION} element={<Login />} />
+                            <Route path={ENTRY_NAVIGATION} element={<Entry />} />
                             <Route path={REGISTER_NAVIGATION} element={<Register />} />
-                            <Route path={SIGNIN_NAVIGATION} element={<SignIn />} />
+                            <Route path={LOGIN_NAVIGATION} element={<Login />} />
                             <Route path={CREDITS_NAVIGATION} element={<Credits />} />
                             <Route path={HOME_NAVIGATION} element={<Home />} />
                             <Route path={USER_PROFILE_NAVIGATION} element={<Profile />} />

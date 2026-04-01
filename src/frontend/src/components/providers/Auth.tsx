@@ -15,6 +15,7 @@ import { createCookie, getCookie } from '../../shared/utils/cookies.ts';
 import { ERRORS } from '../../shared/errors/Errors.ts';
 import { IAuthContext, IAuthService, ICredentials } from '../../shared/types/auth.ts';
 import { AuthService } from '../../shared/api/auth.ts';
+import { UseAxios } from 'axios-hooks';
 
 const instance = new AuthService();
 const AuthContext = createContext<IAuthContext | undefined>(undefined);
@@ -33,15 +34,24 @@ export function useAuth() {
 
 const defaultAuthService = {
     putPassword: () => instance.putPassword(),
+    postRegister: () => instance.postRegister(),
 }
 
 
-export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
+export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, children: ReactNode }): JSX.Element {
     const [token, setToken] = useState<string | null>(null);
     const [userId, setUserId] = useState<string>('');
     const [authService, setAuthService] = useState<IAuthService>(defaultAuthService)
     const navigate = useNavigate();
     const isFetching = useRef(false);
+    const [registerResult, postRegister] = useAxios(
+        instance.postRegister(),
+        { manual: true }
+    );
+    const [loginResult, postLogIn] = useAxios(
+        instance.postLogIn(),
+        { manual: true }
+    );
 
     useEffect(() => {
         async function fetchAccess() {
@@ -104,33 +114,32 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
     async function register(credentials: ICredentials) {
         try {
-            await api({
-                url: CONFIG.REQUEST_REGISTER,
-                method: CONFIG.REQUEST_REGISTER_METHOD,
-                headers: CONFIG.REQUEST_REGISTER_HEADERS,
-                data: JSON.stringify({ email: credentials.email, user_name: credentials.username, password: credentials.password }),
-            })
+            await postRegister(
+                {
+                    data: JSON.stringify({ email: credentials.email, user_name: credentials.user_name, password: credentials.password }),
+                }
+            )
+            return (registerResult);
         } catch (e: any) {
-            if (e.response.status === CONFIG.REQUEST_REGISTER_CREDENTIALS_TAKEN) {
-                throw new Error(ERRORS.AUTH_CREDS_TAKEN);
-            }
-            throw new Error(`unknown error: ${e.message}`);
+            console.error(e)
+            return ({ data: undefined, loading: false, error: e });
         }
     }
 
     async function logIn(credentials: ICredentials) {
         try {
-            const response = await api({
-                url: CONFIG.REQUEST_SIGNIN,
-                method: CONFIG.REQUEST_SIGNIN_METHOD,
-                headers: CONFIG.REQUEST_SIGNIN_HEADERS,
-                data: JSON.stringify({ email: credentials.email, username: credentials.username, password: credentials.password }),
-            })
+            const response = await postLogIn(
+                {
+                    data: JSON.stringify({ email: credentials.email, user_name: credentials.user_name, password: credentials.password }),
+                }
+            )
             const accessToken = response.data.access_token;
             const userId = response.data.id;
             setUser(accessToken, userId, 7)
+            return ({ data: undefined, loading: loginResult.loading, error: loginResult.error })
         } catch (e: any) {
-            throw new Error(`unknown error: ${e.message}`);
+            console.error(e)
+            return ({ data: undefined, loading: false, error: e });
         }
     }
 
@@ -189,6 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         setAuthService(
             {
                 putPassword: () => instance.putPassword(),
+                postRegister: () => instance.postRegister(),
             }
         )
     }, [userId])

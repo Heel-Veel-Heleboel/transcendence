@@ -1,15 +1,15 @@
 import { JSX } from "react";
-import { LoginContainer } from "../features/login/LoginContainer";
-import { RegisterForm } from "../features/login/RegisterForm";
-import { FormContainer } from "../features/login/FormContainer";
+import { EntryContainer } from "../features/entry/LoginContainer";
+import { RegisterForm } from "../features/entry/RegisterForm";
+import { FormContainer } from "../features/entry/FormContainer";
 
 export function Register(): JSX.Element {
     return (
-        <LoginContainer>
+        <EntryContainer>
             <FormContainer>
                 <RegisterForm />
             </FormContainer>
-        </LoginContainer>
+        </EntryContainer>
     )
 }
 

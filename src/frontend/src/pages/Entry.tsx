@@ -1,13 +1,12 @@
 import { JSX } from "react"
 import { EntryContainer } from "../features/entry/LoginContainer.tsx"
-import { CreditsContainer } from "../features/entry/Credits.tsx"
+import { EntryMenu } from "../features/entry/Entry.tsx"
 
 /* v8 ignore start */
-export function Credits(): JSX.Element {
+export function Entry(): JSX.Element {
     return (
         <EntryContainer>
-            <CreditsContainer />
-
+            <EntryMenu />
         </EntryContainer>
     )
 }

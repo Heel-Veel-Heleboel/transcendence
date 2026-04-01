@@ -1,14 +1,16 @@
 import { JSX } from "react"
-import { LoginContainer } from "../features/login/LoginContainer.tsx"
-import { DefaultLogin } from "../features/login/DefaultLogin.tsx"
+import { EntryContainer } from "../features/entry/LoginContainer.tsx"
+import { LoginForm } from "../features/entry/LoginForm.tsx"
+import { FormContainer } from "../features/entry/FormContainer.tsx"
 
 /* v8 ignore start */
 export function Login(): JSX.Element {
     return (
-        <LoginContainer>
-            <DefaultLogin />
-
-        </LoginContainer>
+        <EntryContainer>
+            <FormContainer>
+                <LoginForm />
+            </FormContainer>
+        </EntryContainer>
     )
 }
 

@@ -1,8 +1,8 @@
 export const START_MENU_NAVIGATION = '/';
 export const CREDITS_NAVIGATION = '/credits';
-export const LOGIN_NAVIGATION = '/login';
-export const REGISTER_NAVIGATION = '/login/register';
-export const SIGNIN_NAVIGATION = '/login/signin';
+export const ENTRY_NAVIGATION = '/entry';
+export const REGISTER_NAVIGATION = '/entry/register';
+export const LOGIN_NAVIGATION = '/entry/login';
 export const HOME_NAVIGATION = '/home';
 export const USER_PROFILE_NAVIGATION = '/profile/me';
 export const USER_RELATIONSHIPS_NAVIGATION = '/profile/me/relationships';

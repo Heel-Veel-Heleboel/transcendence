@@ -1,16 +1,19 @@
 import { AxiosRequestConfig } from 'axios';
+import { ResponseValues } from 'axios-hooks';
 
 export interface ICredentials {
   email: string;
-  username: string;
+  user_name: string;
   password: string;
 }
 
 export interface IAuthContext {
   token: string | null;
   userId: string;
-  register: Function;
-  logIn: Function;
+  register: (
+    credentials: ICredentials
+  ) => Promise<ResponseValues<any, any, any>>;
+  logIn: (credentials: ICredentials) => Promise<ResponseValues<any, any, any>>;
   logOut: Function;
   refresh: Function;
   gotoLogin: Function;
@@ -19,4 +22,5 @@ export interface IAuthContext {
 
 export interface IAuthService {
   putPassword: () => AxiosRequestConfig;
+  postRegister: () => AxiosRequestConfig;
 }
