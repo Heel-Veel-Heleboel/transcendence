@@ -1,15 +1,15 @@
 import { BaseSyntheticEvent, useState } from "react";
 import { IUser } from "../../shared/types/user";
-import { useUserService } from "../../components/providers/User";
 import useAxios from "axios-hooks";
 import { SubmitPropertyChangeOldNew } from "./Submit";
 import { HiddenProfileProperty } from "./ProfileProperty";
+import { useAuth } from "../../components/providers/Auth";
 
 export function Password({ user }: { user: IUser }) {
-    const userService = useUserService();
-    const [, patchEmail] = useAxios(userService.patchEmail(), { manual: true });
+    const auth = useAuth();
+    const [, putPassword] = useAxios(auth.service.putPassword(), { manual: true });
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
-    const [oldPassword, setOldPassword] = useState<string>();
+    const [currentPassword, setOldPassword] = useState<string>();
     const [newPassword, setNewPassword] = useState<string>();
 
     async function handleChangeOld(event: BaseSyntheticEvent) {
@@ -28,7 +28,7 @@ export function Password({ user }: { user: IUser }) {
     async function handleSubmit(event: BaseSyntheticEvent) {
         event.preventDefault();
 
-        if (!oldPassword) {
+        if (!currentPassword) {
             alert("Please give your current password!");
             return;
         }
@@ -41,8 +41,8 @@ export function Password({ user }: { user: IUser }) {
 
     async function requestChange() {
         try {
-            await patchEmail({
-                data: JSON.stringify({ user_id: user.id, user_email: oldPassword }),
+            await putPassword({
+                data: JSON.stringify({ user_id: user.id, current_password: currentPassword, new_password: newPassword }),
             })
             handleDropdown();
             alert("Password changed!");
