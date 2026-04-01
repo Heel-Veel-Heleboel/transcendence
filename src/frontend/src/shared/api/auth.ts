@@ -17,4 +17,15 @@ export class AuthService {
     } as AxiosRequestConfig;
     return config;
   }
+
+  deleteAccount() {
+    const config = {
+      url: this.base + 'delete',
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    } as AxiosRequestConfig;
+    return config;
+  }
 }

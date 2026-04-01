@@ -1,5 +1,5 @@
 import { htmlIdefier } from "../../shared/utils/html"
-import { IPropertyChange, IPropertyChangeOldNew } from "../../shared/types/property"
+import { IPropertyChange, IPropertyChangeOldNew, IPropertyChangeYesNo } from "../../shared/types/property"
 
 export function SubmitPropertyChange({ props }: { props: IPropertyChange }) {
     return (
@@ -46,23 +46,23 @@ export function SubmitPropertyChangeOldNew({ props }: { props: IPropertyChangeOl
     )
 }
 
-export function SubmitPropertyChangeYesNo({ title, showDropdown, handleDropDown, yes, no }: { title: string, showDropdown: boolean, handleDropDown: () => void, yes: () => void, no: () => void }) {
+export function SubmitPropertyChangeYesNo({ props }: { props: IPropertyChangeYesNo }) {
     return (
-        <div id={title.toLowerCase().replace(' ', '-')}>
+        <div id={props.title.toLowerCase().replace(' ', '-')}>
             <div className="flex flex-col">
                 <div className="w-full">
-                    <button onClick={handleDropDown}>{title}</button>
+                    <button onClick={props.handleDropDown}>{props.title}</button>
                 </div>
             </div>
             {
-                showDropdown &&
+                props.showDropdown &&
                 <div className="w-full border flex py-2">
                     <div className="w-2/5">
                         <span>Are you sure?: </span>
                     </div>
                     <div className="flex w-3/5">
-                        <button className="border w-1/2" onClick={yes}>Yes</button>
-                        <button className="border w-1/2" onClick={no}>No</button>
+                        <button className="border w-1/2" onClick={props.yes}>Yes</button>
+                        <button className="border w-1/2" onClick={props.no}>No</button>
                     </div>
                 </div>
             }

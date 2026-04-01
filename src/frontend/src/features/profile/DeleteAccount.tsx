@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "../../components/providers/Auth";
-import api from "../../shared/api/api";
-import { getCookie } from "../../shared/utils/cookies";
-import { CONFIG } from "../../shared/config/AppConfig";
 import { SubmitPropertyChangeYesNo } from "./Submit";
 import { IUser } from "../../shared/types/user";
-
+import useAxios from "axios-hooks";
 
 export function DeleteAccount({ user }: { user: IUser }) {
-    const [showDropdown, setShowDropDown] = useState<boolean>(false);
     const auth = useAuth();
+    const [, deleteAccount] = useAxios(auth.service.deleteAccount(), { manual: true });
+    const [showDropdown, setShowDropDown] = useState<boolean>(false);
 
     function handleDropDown() {
         setShowDropDown(!showDropdown);
@@ -17,15 +15,9 @@ export function DeleteAccount({ user }: { user: IUser }) {
 
     async function requestDelete() {
         try {
-            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
-            await api({
-                url: CONFIG.REQUEST_PROFILE_DELETE,
-                method: 'DELETE',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                data: JSON.stringify({ user_id: Number(user_id) }),
-            })
+            await deleteAccount({
+                data: JSON.stringify({ user_id: Number(user.id) })
+            });
             handleDropDown();
             alert("Deleted account!");
             auth.gotoLogin();
@@ -35,6 +27,6 @@ export function DeleteAccount({ user }: { user: IUser }) {
         }
     }
     return (
-        <SubmitPropertyChangeYesNo title='Delete User' handleDropDown={handleDropDown} showDropdown={showDropdown} yes={requestDelete} no={handleDropDown} />
+        <SubmitPropertyChangeYesNo props={{ title: 'Delete User', handleDropDown, showDropdown, yes: requestDelete, no: handleDropDown }} />
     )
 }

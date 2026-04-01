@@ -1,3 +1,5 @@
+import { AxiosRequestConfig } from 'axios';
+
 export interface ICredentials {
   email: string;
   username: string;
@@ -12,8 +14,10 @@ export interface IAuthContext {
   logOut: Function;
   refresh: Function;
   gotoLogin: Function;
+  service: IAuthService;
 }
 
 export interface IAuthService {
   putPassword: () => AxiosRequestConfig;
+  deleteAccount: () => AxiosRequestConfig;
 }

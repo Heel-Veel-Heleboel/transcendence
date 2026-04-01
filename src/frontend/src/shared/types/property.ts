@@ -12,3 +12,10 @@ export interface IPropertyChangeOldNew {
   handleSubmit: (event: BaseSyntheticEvent) => void;
   buttonText: string;
 }
+export interface IPropertyChangeYesNo {
+  title: string;
+  showDropdown: boolean;
+  handleDropDown: () => void;
+  yes: () => void;
+  no: () => void;
+}

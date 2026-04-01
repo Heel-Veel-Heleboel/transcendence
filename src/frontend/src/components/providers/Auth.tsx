@@ -13,9 +13,8 @@ import { CONFIG } from '../../shared/config/AppConfig.ts';
 import api from '../../shared/api/api.ts';
 import { createCookie, getCookie } from '../../shared/utils/cookies.ts';
 import { ERRORS } from '../../shared/errors/Errors.ts';
-import { IAuthContext, ICredentials } from '../../shared/types/auth.ts';
+import { IAuthContext, IAuthService, ICredentials } from '../../shared/types/auth.ts';
 import { AuthService } from '../../shared/api/auth.ts';
-import useAxios from 'axios-hooks';
 
 const instance = new AuthService();
 const AuthContext = createContext<IAuthContext | undefined>(undefined);
@@ -32,11 +31,16 @@ export function useAuth() {
     return authContext;
 }
 
+const defaultAuthService = {
+    putPassword: () => instance.putPassword(),
+    deleteAccount: () => instance.deleteAccount()
+}
+
 
 export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
     const [token, setToken] = useState<string | null>(null);
     const [userId, setUserId] = useState<string>('');
-    // const [passwordResult, putPassword] = useAxios(instance.putPassword(), { manual: true });
+    const [authService, setAuthService] = useState<IAuthService>(defaultAuthService)
     const navigate = useNavigate();
     const isFetching = useRef(false);
 
@@ -182,8 +186,17 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         navigate(CONFIG.START_MENU_NAVIGATION);
     }
 
+    useEffect(() => {
+        setAuthService(
+            {
+                putPassword: () => instance.putPassword(),
+                deleteAccount: () => instance.deleteAccount()
+            }
+        )
+    }, [userId])
+
     return (
-        <AuthContext.Provider value={{ token, userId, register, logIn, logOut, refresh, gotoLogin }} >
+        <AuthContext.Provider value={{ token, userId, register, logIn, logOut, refresh, gotoLogin, service: authService }} >
             {children}
         </ AuthContext.Provider>
     )
