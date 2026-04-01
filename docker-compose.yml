@@ -9,7 +9,7 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - docker/urls.env
+      - docker/shared.env
     environment:
       - PORT=3000
       - HOST=0.0.0.0
@@ -60,7 +60,7 @@ services:
     ports:
       - "3003:3003"
     env_file:
-      - docker/urls.env
+      - docker/shared.env
     environment:
       - PORT=3003
       - HOST=0.0.0.0
@@ -84,7 +84,7 @@ services:
     ports:
       - "3004:3004"
     env_file:
-      - docker/urls.env
+      - docker/shared.env
     environment:
       - PORT=3004
       - HOST=0.0.0.0
@@ -108,7 +108,7 @@ services:
     ports:
       - "3005:3005"
     env_file:
-      - docker/urls.env
+      - docker/shared.env
     environment:
       - PORT=3005
       - HOST=0.0.0.0
@@ -132,7 +132,7 @@ services:
     ports:
       - "3006:3006"
     env_file:
-      - docker/urls.env
+      - docker/shared.env
     environment:
       - PORT=3006
       - HOST=0.0.0.0
