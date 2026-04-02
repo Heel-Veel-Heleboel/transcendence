@@ -24,11 +24,10 @@ export function RegisterForm(): JSX.Element {
 
         try {
             await auth.register({ email, user_name, password });
+            setRegistered(true);
         } catch (e: any) {
             alert('registration failed');
-            return;
         }
-        setRegistered(true);
     };
     return (
         <div id="registration-container">

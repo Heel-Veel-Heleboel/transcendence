@@ -29,11 +29,11 @@ export function LoginForm(): JSX.Element {
 
         try {
             await auth.logIn({ email, user_name, password });
+            navigate(CONFIG.MENU_NAVIGATION);
         } catch (e: any) {
             alert('log in failed')
             console.error(e);
         }
-        navigate(CONFIG.MENU_NAVIGATION);
     };
     return (
         <div id="login-form">
