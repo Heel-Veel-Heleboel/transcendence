@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "dev": "NODE_ENV=development node server | npx pino-pretty",
-        "prod": "NODE_ENV=production node server | npx pino-pretty",
+        "prod": "NODE_ENV=production node server",
         "build": "npm run build:client && npm run build:server",
         "build:client": "vite build --outDir dist/client",
         "build:server": "vite build --ssr src/app/entry-server.tsx --outDir dist/server",
