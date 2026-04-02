@@ -14,7 +14,7 @@ export function StartMenu(): JSX.Element {
     const auth = useAuth();
 
     useLayoutEffect(() => {
-        if (auth.token) {
+        if (auth.IsAuthenticated) {
             navigate(HOME_NAVIGATION);
         }
     }, [auth])

@@ -1,5 +1,4 @@
-import { JSX, useEffect } from "react"
-import { useAuth } from "../components/providers/Auth.tsx";
+import { JSX } from "react"
 import { CONFIG } from "../shared/config/AppConfig.ts";
 import { LiveChat } from "../features/live-chat/LiveChat.tsx";
 import { Matchmaking } from "../features/matchmaking/Matchmaking.tsx";
@@ -9,14 +8,6 @@ import { Widget } from "../components/layout/Widget.tsx";
 
 /* v8 ignore start */
 export function Home(): JSX.Element {
-    const auth = useAuth();
-
-    useEffect(() => {
-        if (auth.token === null) {
-            auth.gotoLogin();
-        }
-    }, [])
-
     return (
         <MainContainer children={<DefaultMenu />} />
     )
