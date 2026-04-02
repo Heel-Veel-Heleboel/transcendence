@@ -1,15 +1,30 @@
-export const START_MENU_NAVIGATION = '/';
-export const CREDITS_NAVIGATION = '/credits';
-export const ENTRY_NAVIGATION = '/entry';
-export const REGISTER_NAVIGATION = '/entry/register';
-export const LOGIN_NAVIGATION = '/entry/login';
-export const HOME_NAVIGATION = '/home';
-export const USER_PROFILE_NAVIGATION = '/profile/me';
-export const USER_RELATIONSHIPS_NAVIGATION = '/profile/me/relationships';
-export const VISITOR_PROFILE_NAVIGATION = '/profile/:userId';
-export const GAME_NAVIGATION = '/game/:gameMode/:matchId/:roomId';
-export const TOURNAMENT_NAVIGATION = '/tournament/:tournamentId';
+export const START_MENU_PAGE = '/';
+export const ENTRY_PAGE = '/entry';
+export const CREDITS_PAGE = '/credits';
+export const REGISTER_PAGE = '/register';
+export const LOGIN_PAGE = '/login';
+export const HOME_PAGE = '/home';
+export const PROFILE_PAGE = '/profile';
+export const USER_PAGE = '/me';
+export const RELATIONSHIPS_PAGE = '/relationships';
+export const VISITOR_PAGE = '/:userId';
+export const GAME_PAGE = '/game/:gameMode/:matchId/:roomId';
+export const TOURNAMENT_BASE = '/tournament';
+export const TOURNAMENT_PAGE = '/:tournamentId';
+
+export const START_MENU_NAVIGATION = START_MENU_PAGE;
+export const CREDITS_NAVIGATION = CREDITS_PAGE;
+export const ENTRY_NAVIGATION = ENTRY_PAGE;
+export const REGISTER_NAVIGATION = ENTRY_PAGE + REGISTER_PAGE;
+export const LOGIN_NAVIGATION = ENTRY_PAGE + LOGIN_PAGE;
+export const HOME_NAVIGATION = HOME_PAGE;
+export const USER_NAVIGATION = PROFILE_PAGE + USER_PAGE;
+export const RELATIONSHIPS_NAVIGATION =
+  PROFILE_PAGE + USER_PAGE + RELATIONSHIPS_PAGE;
+export const VISITOR_NAVIGATION = PROFILE_PAGE + VISITOR_PAGE;
+export const GAME_NAVIGATION = GAME_PAGE;
+export const TOURNAMENT_NAVIGATION = TOURNAMENT_BASE + TOURNAMENT_PAGE;
 export const TOURNAMENT_NAVIGATION_REDIRECT = (tournamentId: string) => {
-  return `/tournament/${tournamentId}`;
+  return `${TOURNAMENT_BASE}/${tournamentId}`;
 };
 export const QUIT_REDIRECT = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';

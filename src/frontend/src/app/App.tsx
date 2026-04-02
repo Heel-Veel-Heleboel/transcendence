@@ -12,7 +12,7 @@ import { VisitorProfile } from '../pages/VisitorProfile.tsx';
 import { Relationships } from '../pages/Relationships.tsx';
 import { GeneralErrorFallback } from '../features/errors/GeneralErrorFallBack.tsx';
 import { UserProvider } from '../components/providers/User.tsx';
-import { CREDITS_NAVIGATION, GAME_NAVIGATION, HOME_NAVIGATION, ENTRY_NAVIGATION, REGISTER_NAVIGATION, LOGIN_NAVIGATION, START_MENU_NAVIGATION, TOURNAMENT_NAVIGATION, USER_PROFILE_NAVIGATION, USER_RELATIONSHIPS_NAVIGATION, VISITOR_PROFILE_NAVIGATION } from '../shared/constants/navigation.ts';
+import { CREDITS_NAVIGATION, GAME_NAVIGATION, HOME_NAVIGATION, ENTRY_NAVIGATION, REGISTER_NAVIGATION, LOGIN_NAVIGATION, START_MENU_NAVIGATION, TOURNAMENT_NAVIGATION, USER_PROFILE_NAVIGATION, USER_RELATIONSHIPS_NAVIGATION, VISITOR_PROFILE_NAVIGATION, ENTRY_BASE, ENTRY_PAGE, REGISTER_PAGE, LOGIN_PAGE, START_MENU_PAGE, CREDITS_PAGE, HOME_PAGE, PROFILE_PAGE, USER_PAGE, RELATIONSHIPS_PAGE, VISITOR_PAGE, TOURNAMENT_BASE, TOURNAMENT_PAGE } from '../shared/constants/navigation.ts';
 import { Entry } from '../pages/Entry.tsx';
 import { Register } from '../pages/Register.tsx';
 import { Credits } from '../pages/Credits.tsx';
@@ -43,16 +43,23 @@ export function App() {
                 <UserProvider useAxios={useAxiosInstance}>
                     <RoomProvider>
                         <Routes>
-                            <Route path={START_MENU_NAVIGATION} element={<StartMenu />} />
-                            <Route path={ENTRY_NAVIGATION} element={<Entry />} />
-                            <Route path={REGISTER_NAVIGATION} element={<Register />} />
-                            <Route path={LOGIN_NAVIGATION} element={<Login />} />
-                            <Route path={CREDITS_NAVIGATION} element={<Credits />} />
-                            <Route path={HOME_NAVIGATION} element={<Home />} />
-                            <Route path={USER_PROFILE_NAVIGATION} element={<Profile />} />
-                            <Route path={USER_RELATIONSHIPS_NAVIGATION} element={<Relationships />} />
-                            <Route path={VISITOR_PROFILE_NAVIGATION} element={<VisitorProfile />} />
-                            <Route path={TOURNAMENT_NAVIGATION} element={<Tournament />} />
+                            <Route path={START_MENU_PAGE} element={<StartMenu />} />
+                            <Route path={ENTRY_PAGE}  >
+                                <Route index element={<Entry />} />
+                                <Route path={REGISTER_PAGE} element={<Register />} />
+                                <Route path={LOGIN_PAGE} element={<Login />} />
+                            </Route   >
+                            <Route path={CREDITS_PAGE} element={<Credits />} />
+                            <Route path={HOME_PAGE} element={<Home />} />
+                            <Route path={PROFILE_PAGE} element={<Profile />} >
+                                <Route path={USER_PAGE} element={<Profile />} >
+                                    <Route path={RELATIONSHIPS_PAGE} element={<Relationships />} />
+                                </Route>
+                                <Route path={VISITOR_PAGE} element={<VisitorProfile />} />
+                            </Route >
+                            <Route path={TOURNAMENT_BASE} element={<Tournament />} >
+                                <Route path={TOURNAMENT_PAGE} element={<Tournament />} />
+                            </Route  >
                             <Route path={GAME_NAVIGATION} element={<Game />} />
                             <Route path={'*'} element={<NotFound />} />
                         </Routes>
