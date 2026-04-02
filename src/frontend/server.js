@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import express from 'express';
+import { pino } from 'pino';
 
 /* v8 ignore start */
 // Constants
@@ -14,6 +15,7 @@ const templateHtml = isProduction
 
 // Create http server
 const app = express();
+const logger = pino();
 
 // Add Vite or respective production middlewares
 /** @type {import('vite').ViteDevServer | undefined} */
@@ -35,8 +37,9 @@ if (!isProduction) {
 
 // Serve HTML
 app.use('*all', async (req, res) => {
+  logger.info(req, 'request received');
   try {
-    const url = req.originalUrl.replace(base, '');
+    const url = req.url;
 
     /** @type {string} */
     let template;
@@ -52,23 +55,24 @@ app.use('*all', async (req, res) => {
       render = (await import('./dist/server/entry-server.js')).render;
     }
 
-    const rendered = await render(url);
+    logger.info({ url: url }, 'url to be rendered');
+    const rendered = await render({ url, logger });
 
     const html = template
       .replace(`<!--app-head-->`, rendered.head ?? '')
       .replace(`<!--app-html-->`, rendered.html ?? '');
-    console.log('html: \n' + html);
-
+    logger.info({ msg: 'final constructed html\n' + html });
     res.status(200).set({ 'Content-Type': 'text/html' }).send(html);
+    logger.info(res, 'response');
   } catch (e) {
     vite?.ssrFixStacktrace(e);
-    console.log(e.stack);
+    logger.error(e, 'error in request');
     res.status(500).end(e.stack);
   }
 });
 
 // Start http server
 app.listen(port, () => {
-  console.log(`Server started at http://localhost:${port}`);
+  logger.info(`Server started at http://localhost:${port}`);
 });
 /* v8 ignore stop */
