@@ -2,7 +2,7 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import { useLayoutEffect } from 'react';
 import { Game } from '../pages/Game.tsx'
 import { Home } from '../pages/Home.tsx'
-import { Login } from '../pages/Login.tsx'
+import { StartMenu } from '../pages/StartMenu.tsx'
 import { AuthProvider } from '../components/providers/Auth.tsx';
 import { RoomProvider } from '../components/providers/Room.tsx';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -10,8 +10,16 @@ import { Profile } from '../pages/Profile.tsx';
 import { Tournament } from '../pages/Tournament.tsx';
 import { VisitorProfile } from '../pages/VisitorProfile.tsx';
 import { Relationships } from '../pages/Relationships.tsx';
-import { CONFIG } from '../shared/config/AppConfig.ts';
 import { GeneralErrorFallback } from '../features/errors/GeneralErrorFallBack.tsx';
+import { UserProvider } from '../components/providers/User.tsx';
+import { CREDITS_NAVIGATION, GAME_NAVIGATION, HOME_NAVIGATION, ENTRY_NAVIGATION, REGISTER_NAVIGATION, LOGIN_NAVIGATION, START_MENU_NAVIGATION, TOURNAMENT_NAVIGATION, USER_PROFILE_NAVIGATION, USER_RELATIONSHIPS_NAVIGATION, VISITOR_PROFILE_NAVIGATION } from '../shared/constants/navigation.ts';
+import { Entry } from '../pages/Entry.tsx';
+import { Register } from '../pages/Register.tsx';
+import { Credits } from '../pages/Credits.tsx';
+import { configureApi } from '../shared/api/configure.ts';
+import api from '../shared/api/api.ts';
+import { Login } from '../pages/Login.tsx';
+import { NotFound } from '../features/errors/NotFound.tsx';
 
 /* v8 ignore start */
 export function App() {
@@ -27,22 +35,29 @@ export function App() {
         document.title = `Transcendance | ${name}`
     }, [])
 
+    const useAxiosInstance = configureApi(api);
+
     return (
         <ErrorBoundary FallbackComponent={GeneralErrorFallback} >
-            <AuthProvider>
-
-                <RoomProvider>
-                    <Routes>
-                        <Route path={CONFIG.START_MENU_NAVIGATION} element={<Login />} />
-                        <Route path={CONFIG.MENU_NAVIGATION} element={<Home />} />
-                        <Route path={CONFIG.USER_PROFILE_NAVIGATION} element={<Profile />} />
-                        <Route path={CONFIG.USER_RELATIONSHIPS_NAVIGATION} element={<Relationships />} />
-                        <Route path={CONFIG.VISITOR_PROFILE_NAVIGATION} element={<VisitorProfile />} />
-                        <Route path={CONFIG.TOURNAMENT_NAVIGATION} element={<Tournament />} />
-                        <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />
-                    </Routes>
-                </RoomProvider>
-
+            <AuthProvider useAxios={useAxiosInstance}>
+                <UserProvider useAxios={useAxiosInstance}>
+                    <RoomProvider>
+                        <Routes>
+                            <Route path={START_MENU_NAVIGATION} element={<StartMenu />} />
+                            <Route path={ENTRY_NAVIGATION} element={<Entry />} />
+                            <Route path={REGISTER_NAVIGATION} element={<Register />} />
+                            <Route path={LOGIN_NAVIGATION} element={<Login />} />
+                            <Route path={CREDITS_NAVIGATION} element={<Credits />} />
+                            <Route path={HOME_NAVIGATION} element={<Home />} />
+                            <Route path={USER_PROFILE_NAVIGATION} element={<Profile />} />
+                            <Route path={USER_RELATIONSHIPS_NAVIGATION} element={<Relationships />} />
+                            <Route path={VISITOR_PROFILE_NAVIGATION} element={<VisitorProfile />} />
+                            <Route path={TOURNAMENT_NAVIGATION} element={<Tournament />} />
+                            <Route path={GAME_NAVIGATION} element={<Game />} />
+                            <Route path={'*'} element={<NotFound />} />
+                        </Routes>
+                    </RoomProvider>
+                </UserProvider>
             </AuthProvider>
         </ErrorBoundary >
     )
