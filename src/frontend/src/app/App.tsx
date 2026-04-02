@@ -19,6 +19,7 @@ import { Credits } from '../pages/Credits.tsx';
 import { configureApi } from '../shared/api/configure.ts';
 import api from '../shared/api/api.ts';
 import { Login } from '../pages/Login.tsx';
+import { NotFound } from '../features/errors/NotFound.tsx';
 
 /* v8 ignore start */
 export function App() {
@@ -53,6 +54,7 @@ export function App() {
                             <Route path={VISITOR_PROFILE_NAVIGATION} element={<VisitorProfile />} />
                             <Route path={TOURNAMENT_NAVIGATION} element={<Tournament />} />
                             <Route path={GAME_NAVIGATION} element={<Game />} />
+                            <Route path={'*'} element={<NotFound />} />
                         </Routes>
                     </RoomProvider>
                 </UserProvider>
