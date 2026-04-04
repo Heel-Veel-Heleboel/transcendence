@@ -15,9 +15,11 @@ export function ProfileAvatar() {
     }, [profileResult.data])
 
     if (profileResult.loading) {
-        <ProfileAvatarContainer>
-            <div>loading</div>
-        </ProfileAvatarContainer>
+        return (
+            <ProfileAvatarContainer>
+                <div>loading</div>
+            </ProfileAvatarContainer>
+        )
     }
 
     if (profileResult.error) {
