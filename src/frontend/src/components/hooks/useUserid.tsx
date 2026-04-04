@@ -4,9 +4,9 @@ import { getCookie, setCookie } from '../../shared/utils/cookies';
 const userIdCookieName = 'user_id'
 
 export default function useUserId() {
-    const [userId, setUserId] = useState(getUserCookie());
+    const [userId, setUserId] = useState(getUserId());
 
-    function getUserCookie() {
+    function getUserId() {
         return (getCookie(userIdCookieName));
     };
 

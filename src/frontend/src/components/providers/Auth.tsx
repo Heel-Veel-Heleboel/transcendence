@@ -5,7 +5,8 @@ import {
     useLayoutEffect,
     useState,
     ReactNode,
-    JSX
+    JSX,
+    useEffect
 } from 'react'
 import { useNavigate } from 'react-router-dom';
 import api from '../../shared/api/api.ts';
@@ -32,8 +33,12 @@ export function useAuth() {
 export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, children: ReactNode }): JSX.Element {
     const isFetching = useRef(false);
     const [token, setToken] = useState<string>('');
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [authenticating, setAuthenicating] = useState<boolean>(false);
     const { userId, setUserId, removeUserId } = useUserId();
     const navigate = useNavigate();
+
     const [, postRegister] = useAxios(
         instance.postRegister(),
         { manual: true }
@@ -55,6 +60,8 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
         { manual: true }
     );
 
+
+
     async function register(credentials: ICredentials) {
         try {
             await postRegister(
@@ -65,7 +72,7 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
         } catch (e: any) {
             console.error(e)
             // TODO: error handling
-            throw e
+            // throw e
         }
     }
 
@@ -83,7 +90,7 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
         } catch (e: any) {
             console.error(e)
             // TODO: error handling
-            throw e
+            // throw e
         }
     }
 
@@ -100,26 +107,28 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
         } catch (e: any) {
             console.error(e);
             // TODO: error handling
-            throw e
+            // throw e
         }
     }
 
     async function refresh() {
-        if (isFetching.current) return; // INFO: Prevent duplicate requests
-        isFetching.current = true;
+        // if (isFetching.current) return; // INFO: Prevent duplicate requests
+        // isFetching.current = true;
         try {
             const response = await postRefresh({
                 data: JSON.stringify({ user_id: userId })
             })
+            console.log(response.data.access_token)
             setToken(response.data.access_token);
         } catch (e: any) {
             console.error(e);
             // TODO: error handling
-            gotoLogin();
-            throw e
-        } finally {
-            isFetching.current = false;
+            // throw e
+            setToken('fail');
         }
+        // finally {
+        //     isFetching.current = false;
+        // }
     }
 
     async function putPassword(config: AxiosRequestConfig) {
@@ -133,7 +142,7 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
         } catch (e: any) {
             console.error(e);
             // TODO: error handling
-            throw e
+            // throw e
         }
     }
 
@@ -142,14 +151,6 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
         setToken('');
         navigate(START_MENU_NAVIGATION);
     }
-
-    useLayoutEffect(() => {
-        async function exeRefresh() {
-            await refresh();
-        }
-
-        exeRefresh();
-    }, [])
 
     useLayoutEffect(() => {
         const authInterceptor = api.interceptors.request.use((config) => {
@@ -166,7 +167,7 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
         const refreshIntercept = api.interceptors.response.use((config) => {
             return config;
         }, async (error) => {
-            if (error.response.status === 403) {
+            if (error.response?.status === 403) {
                 refresh();
                 // TODO: check if following if statement works when access_token is actually implemented
                 if (token === null)
@@ -181,8 +182,29 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
         };
     }, [token]);
 
+    useEffect(() => {
+        async function autoLogin() {
+            if (userId && !token) {
+                setAuthenicating(true);
+                await refresh();
+            }
+        }
+        if (token) {
+            setIsAuthenticated(true);
+            setIsLoading(false);
+        }
+        if (!token && authenticating) {
+            setIsAuthenticated(false);
+            setIsLoading(false);
+        }
+
+        autoLogin();
+    }, [token])
+
+
+
     return (
-        <AuthContext.Provider value={{ IsAuthenticated: !!token, userId, token, register, logIn, logOut, refresh, putPassword }} >
+        <AuthContext.Provider value={{ isAuthenticated, isLoading, userId, token, register, logIn, logOut, refresh, putPassword }} >
             {children}
         </ AuthContext.Provider>
     )

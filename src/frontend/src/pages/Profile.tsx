@@ -1,6 +1,4 @@
 import { JSX } from "react"
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../components/providers/Auth";
 import { ProfileContainer } from "../features/profile/ProfileContainer";
 import { ProfileAvatar } from "../features/profile/ProfileAvatar";
 import { ProfileProperties, ProfilePropertiesPrimary, ProfilePropertiesSecundary } from "../features/profile/ProfileProperties";
@@ -12,13 +10,6 @@ import { Widget } from "../components/layout/Widget";
 
 
 export function Profile(): JSX.Element {
-    const auth = useAuth();
-    const navigate = useNavigate();
-
-    if (!auth.token) {
-        navigate('/');
-    }
-
     return (
         <MainContainer children={
             <Widget logoPath={CONFIG.PROFILE_LOGO} title={CONFIG.PROFILE_TITLE} width="w-full" >

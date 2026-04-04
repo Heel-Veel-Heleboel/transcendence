@@ -7,7 +7,8 @@ export interface ICredentials {
 }
 
 export interface IAuthContext {
-  IsAuthenticated: boolean;
+  isAuthenticated: boolean;
+  isLoading: boolean;
   userId: string;
   token: string;
   register: (credentials: ICredentials) => Promise<void>;

@@ -51,7 +51,7 @@ export function UserProvider({ useAxios, children }: { useAxios: UseAxios, child
         } catch (e: any) {
             console.error(e);
             // TODO: add error handling
-            throw e;
+            // throw e;
         }
     }
 
@@ -61,7 +61,7 @@ export function UserProvider({ useAxios, children }: { useAxios: UseAxios, child
         } catch (e: any) {
             console.error(e);
             // TODO: add error handling
-            throw e;
+            // throw e;
         }
     }
 
@@ -71,7 +71,7 @@ export function UserProvider({ useAxios, children }: { useAxios: UseAxios, child
         } catch (e: any) {
             console.error(e);
             // TODO: add error handling
-            throw e;
+            // throw e;
         }
     }
 
@@ -81,7 +81,7 @@ export function UserProvider({ useAxios, children }: { useAxios: UseAxios, child
         } catch (e: any) {
             console.error(e);
             // TODO: add error handling
-            throw e;
+            // throw e;
         }
     }
 
