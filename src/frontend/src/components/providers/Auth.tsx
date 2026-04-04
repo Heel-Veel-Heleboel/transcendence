@@ -139,9 +139,17 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
 
     function gotoLogin() {
         removeUserId();
-        setToken(null);
+        setToken('');
         navigate(START_MENU_NAVIGATION);
     }
+
+    useLayoutEffect(() => {
+        async function exeRefresh() {
+            await refresh();
+        }
+
+        exeRefresh();
+    }, [])
 
     useLayoutEffect(() => {
         const authInterceptor = api.interceptors.request.use((config) => {
