@@ -7,10 +7,15 @@ export function setCookie(name: string, value: string, days: number) {
   } else {
     expires = '';
   }
-  document.cookie = name + '=' + value + expires + '; path=/';
+  if (typeof document !== 'undefined') {
+    document.cookie = name + '=' + value + expires + '; path=/';
+  }
 }
 
 export function getCookie(name: string): string {
+  if (typeof document === 'undefined') {
+    return '';
+  }
   const nameEQ = name + '=';
   const ca = document.cookie.split(';');
   for (let i = 0; i < ca.length; i++) {
