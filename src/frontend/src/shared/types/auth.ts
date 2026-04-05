@@ -1,3 +1,5 @@
+import { AxiosResponse } from 'axios';
+
 export interface ICredentials {
   email: string;
   user_name: string;
@@ -9,7 +11,7 @@ export interface ILogin {
   password: string;
 }
 
-export interface IChangePassword {
+export interface ISetPassword {
   user_id: string;
   current_password: string;
   new_password: string;
@@ -20,9 +22,12 @@ export interface IAuthContext {
   isLoading: boolean;
   userId: string;
   token: string;
-  register: (data: ICredentials) => Promise<void>;
-  logIn: (data: ILogin) => Promise<void>;
-  logOut: Function;
-  refresh: Function;
-  changePassword: (data: IChangePassword) => Promise<void>;
+  register: (data: ICredentials) => Promise<AxiosResponse>;
+  logIn: (data: ILogin) => Promise<AxiosResponse>;
+  logOut: () => Promise<AxiosResponse>;
+  refresh: () => Promise<AxiosResponse>;
+  setPassword: (data: {
+    current_password: string;
+    new_password: string;
+  }) => Promise<AxiosResponse>;
 }

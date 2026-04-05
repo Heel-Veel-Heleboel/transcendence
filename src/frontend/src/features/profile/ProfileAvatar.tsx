@@ -5,16 +5,25 @@ import { DEFAULT_AVATAR, DEFAULT_PROFILE } from "../../shared/constants/defaults
 
 export function ProfileAvatar() {
     const userService = useUserService();
-    const [profileResult] = userService.getProfile();
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<boolean>(false);
     const [profile, setProfile] = useState<IProfile>(DEFAULT_PROFILE);
 
     useEffect(() => {
-        if (profileResult.data) {
-            setProfile(profileResult.data)
+        async function getProfile() {
+            try {
+                const result = await userService.getProfile();
+                setProfile(result.data);
+            } catch (e: any) {
+                setError(true);
+            } finally {
+                setLoading(false);
+            }
         }
-    }, [profileResult.data])
+        getProfile();
+    }, [])
 
-    if (profileResult.loading) {
+    if (loading) {
         return (
             <ProfileAvatarContainer>
                 <div>loading</div>
@@ -22,7 +31,7 @@ export function ProfileAvatar() {
         )
     }
 
-    if (profileResult.error) {
+    if (error) {
         return (
             <ProfileAvatarContainer>
                 <div>error</div>
@@ -61,16 +70,29 @@ export function ProfileName({ name }: { name: string }) {
 export function ProfilePicture({ profile }: { profile: IProfile }) {
     const [image, setImage] = useState<string>(DEFAULT_AVATAR);
     const userService = useUserService();
-    const [avatarResult] = userService.getProfileAvatar(profile.avatar_url);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<boolean>(false);
 
     useEffect(() => {
-        if (avatarResult.data) {
-            const imageObjectUrl = URL.createObjectURL(avatarResult.data);
-            setImage(imageObjectUrl);
+        async function getProfileAvatar() {
+            try {
+                if (profile.avatar_url === null) {
+                    throw new Error('no avatar');
+                }
+                const result = await userService.getProfileAvatar(profile.avatar_url);
+                const imageObjectUrl = URL.createObjectURL(result.data);
+                setImage(imageObjectUrl);
+            } catch (e: any) {
+                console.error(e);
+                setError(true);
+            } finally {
+                setLoading(false);
+            }
         }
-    }, [avatarResult])
+        getProfileAvatar();
+    }, [])
 
-    if (avatarResult.loading) {
+    if (loading) {
         return (
             <ProfilePictureContainer>
                 <div>loading</div>
@@ -78,8 +100,7 @@ export function ProfilePicture({ profile }: { profile: IProfile }) {
         )
     }
 
-    if (avatarResult.error) {
-        console.error(avatarResult.error);
+    if (error) {
     }
 
     return (
@@ -111,7 +132,7 @@ export function ProfilePictureForm({ setImage }: { setImage: Dispatch<SetStateAc
 
     async function uploadFiles(formData: FormData) {
         try {
-            await userService.postProfileAvatar({ data: formData },);
+            await userService.setProfileAvatar(formData);
             if (selectedFiles) {
                 const imageObjectUrl = URL.createObjectURL(selectedFiles[0]);
                 setImage(imageObjectUrl);

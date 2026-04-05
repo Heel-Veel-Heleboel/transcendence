@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { useNavigate } from 'react-router-dom';
 import api from '../../shared/api/api.ts';
-import { IAuthContext, IChangePassword, ICredentials, ILogin } from '../../shared/types/auth.ts';
+import { IAuthContext, ICredentials, ILogin } from '../../shared/types/auth.ts';
 import { AuthService } from '../../shared/api/auth.ts';
 import { START_MENU_NAVIGATION } from '../../shared/constants/navigation.ts';
 import useUserId from '../hooks/useUserid.tsx';
@@ -39,10 +39,12 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
     async function register(data: ICredentials) {
         try {
-            await service.register(data);
+            const response = await service.register(data);
+            return response
         } catch (e: any) {
             console.error(e)
             // TODO: error handling
+            throw e
         }
     }
 
@@ -55,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             setToken(accessToken);
             setUserId(userId);
             setIsAuthenticated(true);
+            return response;
         } catch (e: any) {
             console.error(e)
             setToken(failedToken);
@@ -71,9 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             } else {
                 throw new Error(`${response.status}`);
             }
+            return response
         } catch (e: any) {
             console.error(e);
             // TODO: error handling
+            throw e
         }
     }
 
@@ -85,24 +90,28 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             setToken(response.data.access_token);
             setIsAuthenticated(true);
             setIsLoading(false);
+            return response;
         } catch (e: any) {
             console.error(e);
             // TODO: error handling
             failedAuthentication();
+            throw e
         }
     }
 
-    async function changePassword(data: IChangePassword) {
+    async function setPassword(data: { current_password: string, new_password: string }) {
         try {
-            const response = await service.changePassword(data)
+            const response = await service.setPassword({ user_id: userId, current_password: data.current_password, new_password: data.new_password })
             if (response.status === 204) {
                 gotoLogin();
             } else {
                 throw new Error(`${response.status}`);
             }
+            return response
         } catch (e: any) {
             console.error(e);
             // TODO: error handling
+            throw e
         }
     }
 
@@ -165,7 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, isLoading, userId, token, register, logIn, logOut, refresh, changePassword }} >
+        <AuthContext.Provider value={{ isAuthenticated, isLoading, userId, token, register, logIn, logOut, refresh, setPassword }} >
             {children}
         </ AuthContext.Provider>
     )

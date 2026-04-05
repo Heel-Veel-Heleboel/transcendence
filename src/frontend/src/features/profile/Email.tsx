@@ -7,7 +7,7 @@ import { useUserService } from "../../components/providers/User";
 export function Email({ user }: { user: IUser }) {
     const userService = useUserService();
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
-    const [input, setInput] = useState<string>();
+    const [input, setInput] = useState<string>('');
 
     function handleDropdown() {
         setShowDropDown(!showDropdown);
@@ -29,9 +29,7 @@ export function Email({ user }: { user: IUser }) {
 
     async function requestChange() {
         try {
-            await userService.patchEmail({
-                data: JSON.stringify({ user_id: user.id, user_email: input }),
-            })
+            await userService.setEmail(input)
             handleDropdown();
             alert("Email changed!");
         } catch (error) {

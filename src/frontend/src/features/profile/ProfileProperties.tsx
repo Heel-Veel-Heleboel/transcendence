@@ -10,21 +10,30 @@ import { DEFAULT_USER } from "../../shared/constants/defaults";
 
 export function ProfilePropertiesPrimary() {
     const userService = useUserService();
-    const [userResult] = userService.getUser();
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<boolean>(false);
     const [user, setUser] = useState<IUser>(DEFAULT_USER);
 
     useEffect(() => {
-        if (userResult.data) {
-            setUser(userResult.data)
+        async function getUser() {
+            try {
+                const result = await userService.getUser();
+                setUser(result.data);
+            } catch (e: any) {
+                setError(true);
+            } finally {
+                setLoading(false);
+            }
         }
-    }, [userResult])
+        getUser();
+    }, [])
 
-    if (userResult.loading) {
+    if (loading) {
         <ProfilePropertiesPrimaryContainer>
             <div>loading</div>
         </ProfilePropertiesPrimaryContainer>
     }
-    if (userResult.error) {
+    if (error) {
         <ProfilePropertiesPrimaryContainer>
             <div>error</div>
         </ProfilePropertiesPrimaryContainer>
@@ -35,8 +44,8 @@ export function ProfilePropertiesPrimary() {
             <ProfileRelationships />
             <Username user={user} />
             <Email user={user} />
-            <Password user={user} />
-            <DeleteUser user={user} />
+            <Password />
+            <DeleteUser />
         </ProfilePropertiesPrimaryContainer>
     )
 }

@@ -1,14 +1,13 @@
 import { BaseSyntheticEvent, useState } from "react";
-import { IUser } from "../../shared/types/user";
 import { SubmitPropertyChangeOldNew } from "./Submit";
 import { HiddenProfileProperty } from "./ProfileProperty";
 import { useAuth } from "../../components/providers/Auth";
 
-export function Password({ user }: { user: IUser }) {
+export function Password() {
     const auth = useAuth();
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
-    const [currentPassword, setOldPassword] = useState<string>();
-    const [newPassword, setNewPassword] = useState<string>();
+    const [currentPassword, setOldPassword] = useState<string>('');
+    const [newPassword, setNewPassword] = useState<string>('');
 
     async function handleChangeOld(event: BaseSyntheticEvent) {
         setOldPassword(event.target.value);
@@ -39,9 +38,7 @@ export function Password({ user }: { user: IUser }) {
 
     async function requestChange() {
         try {
-            await auth.putPassword({
-                data: JSON.stringify({ user_id: user.id, current_password: currentPassword, new_password: newPassword }),
-            })
+            await auth.setPassword({ current_password: currentPassword, new_password: newPassword })
             handleDropdown();
             alert("Password changed!");
         } catch (error) {

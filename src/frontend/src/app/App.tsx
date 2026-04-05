@@ -19,6 +19,7 @@ import { Login } from '../pages/Login.tsx';
 import { NotFound } from '../features/errors/NotFound.tsx';
 import { PrivateRoutes } from '../components/routing/PrivateRoutes.tsx';
 import { AutoLogin } from '../components/routing/AutoLoginRoutes.tsx';
+import { UserProvider } from '../components/providers/User.tsx';
 
 /* v8 ignore start */
 export function App() {
@@ -37,33 +38,35 @@ export function App() {
     return (
         <ErrorBoundary FallbackComponent={GeneralErrorFallback} >
             <AuthProvider >
-                <RoomProvider>
-                    <Routes>
-                        <Route element={<AutoLogin />}>
-                            <Route path={START_MENU_PAGE} element={<StartMenu />} />
-                            <Route path={ENTRY_PAGE}  >
-                                <Route index element={<Entry />} />
-                                <Route path={REGISTER_PAGE} element={<Register />} />
-                                <Route path={LOGIN_PAGE} element={<Login />} />
-                            </Route   >
-                        </Route>
-                        <Route path={CREDITS_PAGE} element={<Credits />} />
-                        <Route element={<PrivateRoutes />}>
-                            <Route path={HOME_PAGE} element={<Home />} />
-                            <Route path={PROFILE_PAGE} element={<Profile />} >
-                                <Route path={USER_PAGE} element={<Profile />} >
-                                    <Route path={RELATIONSHIPS_PAGE} element={<Relationships />} />
-                                </Route>
-                                <Route path={VISITOR_PAGE} element={<VisitorProfile />} />
-                            </Route >
-                            <Route path={TOURNAMENT_BASE} element={<Tournament />} >
-                                <Route path={TOURNAMENT_PAGE} element={<Tournament />} />
-                            </Route  >
-                            <Route path={GAME_NAVIGATION} element={<Game />} />
-                        </Route>
-                        <Route path={'*'} element={<NotFound />} />
-                    </Routes>
-                </RoomProvider>
+                <UserProvider>
+                    <RoomProvider>
+                        <Routes>
+                            <Route element={<AutoLogin />}>
+                                <Route path={START_MENU_PAGE} element={<StartMenu />} />
+                                <Route path={ENTRY_PAGE}  >
+                                    <Route index element={<Entry />} />
+                                    <Route path={REGISTER_PAGE} element={<Register />} />
+                                    <Route path={LOGIN_PAGE} element={<Login />} />
+                                </Route   >
+                            </Route>
+                            <Route path={CREDITS_PAGE} element={<Credits />} />
+                            <Route element={<PrivateRoutes />}>
+                                <Route path={HOME_PAGE} element={<Home />} />
+                                <Route path={PROFILE_PAGE} element={<Profile />} >
+                                    <Route path={USER_PAGE} element={<Profile />} >
+                                        <Route path={RELATIONSHIPS_PAGE} element={<Relationships />} />
+                                    </Route>
+                                    <Route path={VISITOR_PAGE} element={<VisitorProfile />} />
+                                </Route >
+                                <Route path={TOURNAMENT_BASE} element={<Tournament />} >
+                                    <Route path={TOURNAMENT_PAGE} element={<Tournament />} />
+                                </Route  >
+                                <Route path={GAME_NAVIGATION} element={<Game />} />
+                            </Route>
+                            <Route path={'*'} element={<NotFound />} />
+                        </Routes>
+                    </RoomProvider>
+                </UserProvider>
 
             </AuthProvider>
         </ErrorBoundary >

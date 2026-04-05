@@ -1,6 +1,6 @@
 import { AxiosRequestConfig } from 'axios';
 import api from './api';
-import { IChangePassword, ICredentials, ILogin } from '../types/auth';
+import { ISetPassword, ICredentials, ILogin } from '../types/auth';
 
 export class AuthService {
   private base: string;
@@ -18,8 +18,8 @@ export class AuthService {
       },
       data: JSON.stringify(data)
     } as AxiosRequestConfig;
-    const result = await api(config);
-    return result;
+    const response = await api(config);
+    return response;
   }
 
   async login(data: ILogin) {
@@ -31,8 +31,8 @@ export class AuthService {
       },
       data: JSON.stringify(data)
     } as AxiosRequestConfig;
-    const result = await api(config);
-    return result;
+    const response = await api(config);
+    return response;
   }
 
   async logout(data: { user_id: string }) {
@@ -44,8 +44,8 @@ export class AuthService {
       },
       data: JSON.stringify(data)
     } as AxiosRequestConfig;
-    const result = await api(config);
-    return result;
+    const response = await api(config);
+    return response;
   }
 
   async refresh(data: { user_id: string }) {
@@ -57,11 +57,11 @@ export class AuthService {
       },
       data: JSON.stringify(data)
     } as AxiosRequestConfig;
-    const result = await api(config);
-    return result;
+    const response = await api(config);
+    return response;
   }
 
-  async changePassword(data: IChangePassword) {
+  async setPassword(data: ISetPassword) {
     const config = {
       url: this.base + '/change-password',
       method: 'PUT',
@@ -70,7 +70,7 @@ export class AuthService {
       },
       data: data
     } as AxiosRequestConfig;
-    const result = await api(config);
-    return result;
+    const response = await api(config);
+    return response;
   }
 }

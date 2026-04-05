@@ -3,85 +3,93 @@ import { createContext, ReactNode, useContext, } from 'react';
 import { UserService } from '../../shared/api/user';
 import { useAuth } from './Auth';
 import { IUserService } from '../../shared/types/user';
-import { UseAxios } from 'axios-hooks';
-import { AxiosRequestConfig } from 'axios';
 
-const instance = new UserService();
+const service = new UserService();
 
-const UserServiceContext = createContext<IUserService>(
-    {
-        getProfile: () => { return null },
-        getUser: () => () => { return null },
-        getProfileAvatar: (url: string) => { return null },
-        postProfileAvatar: () => () => { return null },
-        patchUsername: async () => { return },
-        patchEmail: async () => { return },
-        deleteUser: async () => { return },
+const UserServiceContext = createContext<IUserService | undefined>(undefined);
+
+export function useUserService() {
+    const userContext = useContext(UserServiceContext);
+    if (userContext === undefined) {
+        throw new Error('useUserService has to be used within UserProvide');
     }
-);
+    return userContext;
+}
 
-export function useUserService() { return useContext(UserServiceContext); }
-
-export function UserProvider({ useAxios, children }: { useAxios: UseAxios, children: ReactNode }) {
+export function UserProvider({ children }: { children: ReactNode }) {
     const auth = useAuth();
-    const [, exePostProfileAvatar] = useAxios(instance.postProfileAvatar(auth.userId), { manual: true });
-    const [, exePatchUsername] = useAxios(instance.patchUsername(), { manual: true });
-    const [, exePatchEmail] = useAxios(instance.patchEmail(), { manual: true });
-    const [, exeDeleteUser] = useAxios(instance.deleteUser(), { manual: true });
 
-    function getProfile() {
-        const result = useAxios(instance.getProfile(auth.userId));
-        return (result);
-    }
-
-
-    function getUser() {
-        const result = useAxios(instance.getUser(auth.userId));
-        return (result);
-    }
-
-    function getProfileAvatar(url: string) {
-        const result = useAxios(instance.getProfileAvatar(url));
-        return (result);
-    }
-
-    async function postProfileAvatar(config: AxiosRequestConfig) {
+    async function getProfile() {
         try {
-            await exePostProfileAvatar(config);
+            const response = service.getProfile({ userId: auth.userId });
+            return (response);
         } catch (e: any) {
             console.error(e);
-            // TODO: add error handling
-            // throw e;
+            throw e
         }
     }
 
-    async function patchUsername(config: AxiosRequestConfig) {
+    async function getUser() {
         try {
-            await exePatchUsername(config);
+            const response = service.getUser({ userId: auth.userId });
+            return (response);
         } catch (e: any) {
             console.error(e);
-            // TODO: add error handling
-            // throw e;
+            throw e
         }
     }
 
-    async function patchEmail(config: AxiosRequestConfig) {
+    async function getProfileAvatar(url: string) {
         try {
-            await exePatchEmail(config);
+            const response = service.getProfileAvatar({ avatarUrl: url });
+            return (response);
         } catch (e: any) {
             console.error(e);
-            // TODO: add error handling
-            // throw e;
+            throw e
         }
     }
 
-    async function deleteUser(config: AxiosRequestConfig) {
+    async function setProfileAvatar(data: FormData) {
         try {
-            await exeDeleteUser(config);
+            const response = await service.setProfileAvatar({ userId: auth.userId, data });
+            return (response);
         } catch (e: any) {
             console.error(e);
             // TODO: add error handling
-            // throw e;
+            throw e;
+        }
+    }
+
+    async function setUsername(user_name: string) {
+        try {
+            const response = await service.setUsername({ user_id: auth.userId, user_name });
+            return response
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e;
+        }
+    }
+
+    async function setEmail(user_email: string) {
+        try {
+            const response = await service.setEmail({ user_id: auth.userId, user_email });
+            return response;
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e;
+        }
+    }
+
+    async function deleteUser() {
+        try {
+            const response = await service.deleteUser({ user_id: auth.userId });
+            return response;
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e;
         }
     }
 
@@ -90,9 +98,9 @@ export function UserProvider({ useAxios, children }: { useAxios: UseAxios, child
             getProfile,
             getUser,
             getProfileAvatar,
-            postProfileAvatar,
-            patchUsername,
-            patchEmail,
+            setProfileAvatar,
+            setUsername,
+            setEmail,
             deleteUser,
         }}>
             {children}
