@@ -3,24 +3,23 @@ import { env } from './config/env.js';
 const start = async () => {
   try {
     await app.listen({ port: env.PORT, host: env.HOST });
-    console.log(`User management service is running on port ${env.PORT}`);
+    app.log.info(`User management service is running on port ${env.PORT}`);
   } catch (err) {
-    console.error('Error starting User management service:', err);
+    app.log.error({ err }, 'Error starting User management service');
     process.exit(1);
   }
 };
 
 start();
 
-
 const shutDown = async () => {
-  console.log('Shutting down User management service...');
+  app.log.info('Shutting down User management service...');
   try {
     await app.close();
-    console.log('User management service shut down gracefully.');
+    app.log.info('User management service shut down gracefully.');
     process.exit(0);
   } catch (err) {
-    console.error('Error during shutdown of User management service:', err);
+    app.log.error({ err }, 'Error during shutdown of User management service');
     process.exit(1);
   }
 };

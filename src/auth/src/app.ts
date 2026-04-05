@@ -19,14 +19,14 @@ app.get('/health', async () => {
 });
 app.register(authRoutes, { prefix: AUTH_PREFIX, authController }).
   after(() => {
-    console.log('Auth routes registered');
+    app.log.info('Auth routes registered');
   }).
   ready((err) => {
     if (err) {
-      console.error('Error during app readiness:', err);
+      app.log.error({ err }, 'Error during app readiness');
       process.exit(1);
     }
-    console.log('Auth service is ready');
+    app.log.info('Auth service is ready');
   });
 
 
