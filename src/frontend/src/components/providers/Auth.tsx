@@ -53,12 +53,12 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             const accessToken = response.data.access_token;
             const userId = response.data.id;
             setToken(accessToken);
-            // WARN: return to 
-            // setUserId(userId);
-            setUserId('8')
+            setUserId(userId);
+            setIsAuthenticated(true);
         } catch (e: any) {
             console.error(e)
             setToken(failedToken);
+            throw e
             // TODO: error handling
         }
     }
@@ -83,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             const response = await service.refresh({ user_id: userId })
             console.log(response.data.access_token)
             setToken(response.data.access_token);
+            setIsAuthenticated(true);
             setIsLoading(false);
         } catch (e: any) {
             console.error(e);

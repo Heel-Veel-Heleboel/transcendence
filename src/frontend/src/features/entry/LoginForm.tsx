@@ -1,8 +1,7 @@
 import { JSX } from "react"
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/providers/Auth.tsx";
-import { CONFIG } from "../../shared/config/AppConfig.ts";
-import { ENTRY_NAVIGATION } from "../../shared/constants/navigation.ts";
+import { ENTRY_NAVIGATION, HOME_NAVIGATION } from "../../shared/constants/navigation.ts";
 
 /* v8 ignore start */
 
@@ -29,7 +28,7 @@ export function LoginForm(): JSX.Element {
 
         try {
             await auth.logIn({ email, password });
-            navigate(CONFIG.MENU_NAVIGATION);
+            navigate(HOME_NAVIGATION);
         } catch (e: any) {
             alert('log in failed')
             console.error(e);

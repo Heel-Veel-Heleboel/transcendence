@@ -21,7 +21,7 @@ export interface IAuthContext {
   userId: string;
   token: string;
   register: (data: ICredentials) => Promise<void>;
-  logIn: (data: ICredentials) => Promise<void>;
+  logIn: (data: ILogin) => Promise<void>;
   logOut: Function;
   refresh: Function;
   changePassword: (data: IChangePassword) => Promise<void>;

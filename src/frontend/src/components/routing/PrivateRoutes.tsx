@@ -1,16 +1,10 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../providers/Auth"
 import { LOGIN_NAVIGATION } from "../../shared/constants/navigation";
-import useUserId from "../hooks/useUserid";
 import { useEffect } from "react";
 
 export function PrivateRoutes() {
     const auth = useAuth();
-    console.log('isAuthenticated');
-    console.log(auth.isAuthenticated);
-    console.log('token');
-    console.log(auth.token);
-
     useEffect(() => { }, [auth.isAuthenticated]);
 
     return (
