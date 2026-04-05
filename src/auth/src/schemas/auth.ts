@@ -23,7 +23,14 @@ export const RegistrationSchema = {
 //login schema
 export const LoginSchemaBody = Type.Object({
   email: Type.String(),
-  password: Type.String()
+  password: Type.String(),
+  two_factor_token: Type.Optional(
+    Type.String({
+      minLength: 6,
+      maxLength: 6,
+      pattern: '^[0-9]{6}$'
+    })
+  )
 });
 //type for login schema
 export type LoginSchemaType = Static<typeof LoginSchemaBody>;
@@ -77,5 +84,28 @@ export type DeleteAuthDataSchemaType = Static<typeof DeleteAuthDataSchemaBody>;
 //wrap and export delete auth data schema for routes
 export const DeleteAuthDataSchema = {
   body: DeleteAuthDataSchemaBody
+};
+
+//enable 2fa schema
+export const EnableTwoFactorSchemaBody = Type.Object({
+  user_id: Type.Number()
+});
+export type EnableTwoFactorSchemaType = Static<typeof EnableTwoFactorSchemaBody>;
+export const EnableTwoFactorSchema = {
+  body: EnableTwoFactorSchemaBody
+};
+
+//verify 2fa schema
+export const VerifyTwoFactorSchemaBody = Type.Object({
+  user_id: Type.Number(),
+  token: Type.String({
+    minLength: 6,
+    maxLength: 6,
+    pattern: '^[0-9]{6}$'
+  })
+});
+export type VerifyTwoFactorSchemaType = Static<typeof VerifyTwoFactorSchemaBody>;
+export const VerifyTwoFactorSchema = {
+  body: VerifyTwoFactorSchemaBody
 };
 
