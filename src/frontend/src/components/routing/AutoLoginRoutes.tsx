@@ -12,13 +12,13 @@ export function AutoLogin() {
 
     if (!userId) {
         return (
-            <Navigate to={LOGIN_NAVIGATION} />
+            <Outlet />
         )
     }
 
     useEffect(() => { }, [auth.isAuthenticated]);
 
     return (
-        auth.isAuthenticated ? <Navigate to={HOME_NAVIGATION} /> : auth.isLoading ? <div><h1>attempting auto-login</h1></div> : <Navigate to={LOGIN_NAVIGATION} />
+        auth.isAuthenticated ? <Navigate to={HOME_NAVIGATION} /> : auth.isLoading ? <div><h1>attempting auto-login</h1></div> : <Outlet />
     )
 }
