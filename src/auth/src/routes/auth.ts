@@ -4,6 +4,7 @@ import * as SchemaTypes from '../schemas/auth.js';
 import { validatePasswordHook } from '../middleware/validate-password-hook.js';
 
 
+
 export async function authRoutes(fastify: FastifyInstance, options: {authController: AuthController}) {
   const { authController } = options;
   
@@ -37,5 +38,15 @@ export async function authRoutes(fastify: FastifyInstance, options: {authControl
   fastify.delete<{ Body: SchemaTypes.DeleteAuthDataSchemaType }>('/delete-auth-data', {
     schema: SchemaTypes.DeleteAuthDataSchema,
     handler: authController.deleteAuthDataForUser.bind(authController)
+  });
+
+  fastify.post<{ Body: SchemaTypes.EnableTwoFactorSchemaType }>('/enable-2fa', {
+    schema: SchemaTypes.EnableTwoFactorSchema,
+    handler: authController.setupTwoFactorAuth.bind(authController)
+  });
+
+  fastify.post<{ Body: SchemaTypes.VerifyTwoFactorSchemaType }>('/verify-2fa', {
+    schema: SchemaTypes.VerifyTwoFactorSchema,
+    handler: authController.verifyTwoFactorAuth.bind(authController)
   });
 }
