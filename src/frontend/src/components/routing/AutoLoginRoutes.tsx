@@ -1,7 +1,7 @@
 
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../providers/Auth"
-import { HOME_NAVIGATION, LOGIN_NAVIGATION } from "../../shared/constants/navigation";
+import { HOME_NAVIGATION } from "../../shared/constants/navigation";
 import { useEffect } from "react";
 import useUserId from "../hooks/useUserid";
 
