@@ -1,6 +1,5 @@
 import {
     createContext,
-    useRef,
     useContext,
     useLayoutEffect,
     useState,
@@ -10,14 +9,13 @@ import {
 } from 'react'
 import { useNavigate } from 'react-router-dom';
 import api from '../../shared/api/api.ts';
-import { IAuthContext, ICredentials } from '../../shared/types/auth.ts';
+import { IAuthContext, IChangePassword, ICredentials, ILogin } from '../../shared/types/auth.ts';
 import { AuthService } from '../../shared/api/auth.ts';
-import { UseAxios } from 'axios-hooks';
 import { START_MENU_NAVIGATION } from '../../shared/constants/navigation.ts';
-import { AxiosRequestConfig } from 'axios';
 import useUserId from '../hooks/useUserid.tsx';
 
-const instance = new AuthService();
+const service = new AuthService();
+const failedToken = '';
 const AuthContext = createContext<IAuthContext | undefined>(undefined);
 
 export function useAuth() {
@@ -30,75 +28,44 @@ export function useAuth() {
     return authContext;
 }
 
-export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, children: ReactNode }): JSX.Element {
-    const isFetching = useRef(false);
+export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
     const [token, setToken] = useState<string>('');
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+    const [retry, setRetry] = useState<boolean>(false);
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [authenticating, setAuthenicating] = useState<boolean>(false);
     const { userId, setUserId, removeUserId } = useUserId();
     const navigate = useNavigate();
 
-    const [, postRegister] = useAxios(
-        instance.postRegister(),
-        { manual: true }
-    );
-    const [, postLogIn] = useAxios(
-        instance.postLogIn(),
-        { manual: true }
-    );
-    const [, postLogOut] = useAxios(
-        instance.postLogOut(),
-        { manual: true }
-    );
-    const [, postRefresh] = useAxios(
-        instance.postRefresh(),
-        { manual: true }
-    );
-    const [, exePutPassword] = useAxios(
-        instance.putPassword(),
-        { manual: true }
-    );
 
-
-
-    async function register(credentials: ICredentials) {
+    async function register(data: ICredentials) {
         try {
-            await postRegister(
-                {
-                    data: JSON.stringify({ email: credentials.email, user_name: credentials.user_name, password: credentials.password }),
-                }
-            )
+            await service.register(data);
         } catch (e: any) {
             console.error(e)
             // TODO: error handling
-            // throw e
         }
     }
 
-    async function logIn(credentials: ICredentials) {
+    async function logIn(data: ILogin) {
         try {
-            const response = await postLogIn(
-                {
-                    data: JSON.stringify({ email: credentials.email, user_name: credentials.user_name, password: credentials.password }),
-                }
-            )
+            const response = await service.login(data);
+            console.log(response);
             const accessToken = response.data.access_token;
             const userId = response.data.id;
             setToken(accessToken);
-            setUserId(userId);
+            // WARN: return to 
+            // setUserId(userId);
+            setUserId('8')
         } catch (e: any) {
             console.error(e)
+            setToken(failedToken);
             // TODO: error handling
-            // throw e
         }
     }
 
     async function logOut() {
         try {
-            const response = await postLogOut({
-                data: JSON.stringify({ user_id: userId })
-            })
+            const response = await service.logout({ user_id: userId })
             if (response.status === 204) {
                 gotoLogin();
             } else {
@@ -107,33 +74,26 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
         } catch (e: any) {
             console.error(e);
             // TODO: error handling
-            // throw e
         }
     }
 
     async function refresh() {
-        // if (isFetching.current) return; // INFO: Prevent duplicate requests
-        // isFetching.current = true;
         try {
-            const response = await postRefresh({
-                data: JSON.stringify({ user_id: userId })
-            })
+            setIsLoading(true);
+            const response = await service.refresh({ user_id: userId })
             console.log(response.data.access_token)
             setToken(response.data.access_token);
+            setIsLoading(false);
         } catch (e: any) {
             console.error(e);
             // TODO: error handling
-            // throw e
-            setToken('fail');
+            failedAuthentication();
         }
-        // finally {
-        //     isFetching.current = false;
-        // }
     }
 
-    async function putPassword(config: AxiosRequestConfig) {
+    async function changePassword(data: IChangePassword) {
         try {
-            const response = await exePutPassword(config)
+            const response = await service.changePassword(data)
             if (response.status === 204) {
                 gotoLogin();
             } else {
@@ -142,7 +102,6 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
         } catch (e: any) {
             console.error(e);
             // TODO: error handling
-            // throw e
         }
     }
 
@@ -168,10 +127,12 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
             return config;
         }, async (error) => {
             if (error.response?.status === 403) {
-                refresh();
-                // TODO: check if following if statement works when access_token is actually implemented
-                if (token === null)
+                if (retry) {
+                    setRetry(false);
                     return Promise.reject(error);
+                }
+                setRetry(true);
+                refresh();
                 return api(error.config);
             }
             return Promise.reject(error);
@@ -182,29 +143,28 @@ export function AuthProvider({ useAxios, children }: { useAxios: UseAxios, child
         };
     }, [token]);
 
+    function failedAuthentication() {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        setUserId('');
+        setToken(failedToken)
+    }
+
     useEffect(() => {
         async function autoLogin() {
-            if (userId && !token) {
-                setAuthenicating(true);
+            if (!userId) {
+                failedAuthentication();
+            } else if (userId && !token) {
                 await refresh();
             }
         }
-        if (token) {
-            setIsAuthenticated(true);
-            setIsLoading(false);
-        }
-        if (!token && authenticating) {
-            setIsAuthenticated(false);
-            setIsLoading(false);
-        }
-
         autoLogin();
     }, [token])
 
 
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, isLoading, userId, token, register, logIn, logOut, refresh, putPassword }} >
+        <AuthContext.Provider value={{ isAuthenticated, isLoading, userId, token, register, logIn, logOut, refresh, changePassword }} >
             {children}
         </ AuthContext.Provider>
     )

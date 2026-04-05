@@ -1,19 +1,28 @@
-import { AxiosRequestConfig } from 'axios';
-
 export interface ICredentials {
   email: string;
   user_name: string;
   password: string;
 }
 
+export interface ILogin {
+  email: string;
+  password: string;
+}
+
+export interface IChangePassword {
+  user_id: string;
+  current_password: string;
+  new_password: string;
+}
+
 export interface IAuthContext {
-  isAuthenticated: boolean;
+  isAuthenticated: boolean | null;
   isLoading: boolean;
   userId: string;
   token: string;
-  register: (credentials: ICredentials) => Promise<void>;
-  logIn: (credentials: ICredentials) => Promise<void>;
+  register: (data: ICredentials) => Promise<void>;
+  logIn: (data: ICredentials) => Promise<void>;
   logOut: Function;
   refresh: Function;
-  putPassword: (config: AxiosRequestConfig) => Promise<void>;
+  changePassword: (data: IChangePassword) => Promise<void>;
 }

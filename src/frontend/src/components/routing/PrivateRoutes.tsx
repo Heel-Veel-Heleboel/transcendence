@@ -8,6 +8,8 @@ export function PrivateRoutes() {
     const auth = useAuth();
     console.log('isAuthenticated');
     console.log(auth.isAuthenticated);
+    console.log('token');
+    console.log(auth.token);
 
     useEffect(() => { }, [auth.isAuthenticated]);
 

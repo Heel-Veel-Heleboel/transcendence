@@ -3,7 +3,7 @@ import { useLayoutEffect } from 'react';
 import { Game } from '../pages/Game.tsx'
 import { Home } from '../pages/Home.tsx'
 import { StartMenu } from '../pages/StartMenu.tsx'
-import { AuthProvider, useAuth } from '../components/providers/Auth.tsx';
+import { AuthProvider } from '../components/providers/Auth.tsx';
 import { RoomProvider } from '../components/providers/Room.tsx';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Profile } from '../pages/Profile.tsx';
@@ -16,16 +16,15 @@ import { CREDITS_NAVIGATION, GAME_NAVIGATION, HOME_NAVIGATION, ENTRY_NAVIGATION,
 import { Entry } from '../pages/Entry.tsx';
 import { Register } from '../pages/Register.tsx';
 import { Credits } from '../pages/Credits.tsx';
-import { configureApi } from '../shared/api/configure.ts';
-import api from '../shared/api/api.ts';
 import { Login } from '../pages/Login.tsx';
 import { NotFound } from '../features/errors/NotFound.tsx';
 import { PrivateRoutes } from '../components/routing/PrivateRoutes.tsx';
+import { configureApi } from '../shared/api/configure.ts';
+import api from '../shared/api/api.ts';
 
 /* v8 ignore start */
 export function App() {
     const location = useLocation();
-    console.log(location);
     const currentLocation = location.pathname.split("/")[1];
     useLayoutEffect(() => {
         let name;
@@ -37,38 +36,35 @@ export function App() {
         document.title = `Transcendance | ${name}`
     }, [])
 
-    const useAxiosInstance = configureApi(api);
-
     return (
         <ErrorBoundary FallbackComponent={GeneralErrorFallback} >
-            <AuthProvider useAxios={useAxiosInstance}>
-                <UserProvider useAxios={useAxiosInstance}>
-                    <RoomProvider>
-                        <Routes>
-                            <Route path={START_MENU_PAGE} element={<StartMenu />} />
-                            <Route path={ENTRY_PAGE}  >
-                                <Route index element={<Entry />} />
-                                <Route path={REGISTER_PAGE} element={<Register />} />
-                                <Route path={LOGIN_PAGE} element={<Login />} />
-                            </Route   >
-                            <Route path={CREDITS_PAGE} element={<Credits />} />
-                            <Route element={<PrivateRoutes />}>
-                                <Route path={HOME_PAGE} element={<Home />} />
-                                <Route path={PROFILE_PAGE} element={<Profile />} >
-                                    <Route path={USER_PAGE} element={<Profile />} >
-                                        <Route path={RELATIONSHIPS_PAGE} element={<Relationships />} />
-                                    </Route>
-                                    <Route path={VISITOR_PAGE} element={<VisitorProfile />} />
-                                </Route >
-                                <Route path={TOURNAMENT_BASE} element={<Tournament />} >
-                                    <Route path={TOURNAMENT_PAGE} element={<Tournament />} />
-                                </Route  >
-                                <Route path={GAME_NAVIGATION} element={<Game />} />
-                            </Route>
-                            <Route path={'*'} element={<NotFound />} />
-                        </Routes>
-                    </RoomProvider>
-                </UserProvider>
+            <AuthProvider >
+                <RoomProvider>
+                    <Routes>
+                        <Route path={START_MENU_PAGE} element={<StartMenu />} />
+                        <Route path={ENTRY_PAGE}  >
+                            <Route index element={<Entry />} />
+                            <Route path={REGISTER_PAGE} element={<Register />} />
+                            <Route path={LOGIN_PAGE} element={<Login />} />
+                        </Route   >
+                        <Route path={CREDITS_PAGE} element={<Credits />} />
+                        <Route element={<PrivateRoutes />}>
+                            <Route path={HOME_PAGE} element={<Home />} />
+                            <Route path={PROFILE_PAGE} element={<Profile />} >
+                                <Route path={USER_PAGE} element={<Profile />} >
+                                    <Route path={RELATIONSHIPS_PAGE} element={<Relationships />} />
+                                </Route>
+                                <Route path={VISITOR_PAGE} element={<VisitorProfile />} />
+                            </Route >
+                            <Route path={TOURNAMENT_BASE} element={<Tournament />} >
+                                <Route path={TOURNAMENT_PAGE} element={<Tournament />} />
+                            </Route  >
+                            <Route path={GAME_NAVIGATION} element={<Game />} />
+                        </Route>
+                        <Route path={'*'} element={<NotFound />} />
+                    </Routes>
+                </RoomProvider>
+
             </AuthProvider>
         </ErrorBoundary >
     )

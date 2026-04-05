@@ -28,7 +28,7 @@ export function LoginForm(): JSX.Element {
         }
 
         try {
-            await auth.logIn({ email, user_name, password });
+            await auth.logIn({ email, password });
             navigate(CONFIG.MENU_NAVIGATION);
         } catch (e: any) {
             alert('log in failed')
