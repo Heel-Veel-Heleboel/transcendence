@@ -21,11 +21,13 @@ describe('Auth routes', () => {
       logout: vi.fn(),
       refresh: vi.fn(),
       changePassword: vi.fn(),
-      deleteAuthDataForUser: vi.fn()
+      deleteAuthDataForUser: vi.fn(),
+      setupTwoFactorAuth: vi.fn(),
+      verifyTwoFactorAuth: vi.fn()
     };
     await authRoutes(MockFastify as any, { authController: MockControllers as any });
 
-    expect(MockFastify.post).toBeCalledTimes(4);
+    expect(MockFastify.post).toBeCalledTimes(6);
     expect(MockFastify.put).toBeCalledTimes(1);
     expect(MockFastify.delete).toBeCalledTimes(1);
     expect(MockFastify.get).toBeCalledTimes(0);
@@ -52,6 +54,16 @@ describe('Auth routes', () => {
       handler: expect.any(Function)
     }));
 
+    expect(MockFastify.post).toHaveBeenCalledWith('/enable-2fa', expect.objectContaining({
+      schema: SchemaTypes.EnableTwoFactorSchema,
+      handler: expect.any(Function)
+    }));
+
+    expect(MockFastify.post).toHaveBeenCalledWith('/verify-2fa', expect.objectContaining({
+      schema: SchemaTypes.VerifyTwoFactorSchema,
+      handler: expect.any(Function)
+    }));
+
     expect(MockFastify.delete).toHaveBeenCalledWith('/delete-auth-data', expect.objectContaining({
       schema: SchemaTypes.DeleteAuthDataSchema,
       handler: expect.any(Function)
@@ -63,5 +75,7 @@ describe('Auth routes', () => {
     expect(MockControllers.refresh).not.toBeCalled();
     expect(MockControllers.changePassword).not.toBeCalled();
     expect(MockControllers.deleteAuthDataForUser).not.toBeCalled();
+    expect(MockControllers.setupTwoFactorAuth).not.toBeCalled();
+    expect(MockControllers.verifyTwoFactorAuth).not.toBeCalled();
   });
 });
