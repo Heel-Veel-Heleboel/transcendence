@@ -134,4 +134,26 @@ export class AuthController {
     request.log.info({ user_id: request.body.user_id }, 'Auth data for user deleted successfully');
     return reply.code(204).send();
   }
+
+  async setupTwoFactorAuth(
+    request: FastifyRequest<{ Body: SchemaTypes.EnableTwoFactorSchemaType }>,
+    reply: FastifyReply
+  ): Promise<FastifyReply> {
+    const { user_id } = request.body;
+    request.log.info({ user_id }, 'Setup 2FA attempt');
+    const qr_code = await this.authService.setUpTwoFactorAuth(user_id);
+    request.log.info({ user_id }, '2FA setup successfully');
+    return reply.code(200).send({ qr_code });
+  }
+
+  async verifyTwoFactorAuth(
+    request: FastifyRequest<{ Body: SchemaTypes.VerifyTwoFactorSchemaType }>,
+    reply: FastifyReply
+  ): Promise<FastifyReply> {
+    const { user_id, token } = request.body;
+    request.log.info({ user_id }, 'Verify 2FA attempt');
+    await this.authService.verifyTwoFactorAuth(user_id, token);
+    request.log.info({ user_id }, '2FA verified successfully');
+    return reply.code(200).send({ verified: true });
+  }
 }

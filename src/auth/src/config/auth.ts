@@ -1,6 +1,7 @@
 import { AuthService } from '../services/auth.js';
 import { CredentialsDao } from '../dao/credentials.dao.js';
 import { RefreshTokenDao } from '../dao/refresh-token.dao.js';
+import { TwoFactorAuthDao } from '../dao/2fa.dao.js';
 import { UserManagementClient } from '../client/user-management.js';
 import { getPrismaClient } from '../db/prisma.client.js';
 import { getJwtConfig } from '../config/jwt.js';
@@ -14,9 +15,10 @@ export function getAuthController(): AuthController {
     const jwtConfig = getJwtConfig();
     const prisma = getPrismaClient();
     const credentialsDao = new CredentialsDao(prisma);
+    const twoFactorAuthDao = new TwoFactorAuthDao(prisma);
     const userManagementService = new UserManagementClient(serverInfo.USER_MANAGEMENT_URL, 10000);
     const refreshTokenDao = new RefreshTokenDao(prisma, jwtConfig.expirationRefreshToken);
-    const auth = new AuthService(userManagementService, credentialsDao, refreshTokenDao);
+    const auth = new AuthService(userManagementService, credentialsDao, refreshTokenDao, twoFactorAuthDao);
     controllers = new AuthController(auth);
   }
   return controllers;
