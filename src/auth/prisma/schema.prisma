@@ -34,7 +34,9 @@ model RefreshToken {
 model TwoFactorAuth {
   user_id      Int @id
   secret       String
-  is_enabled   Boolean @default(false)
+  enabled      Boolean @default(false)
+  attempts     Int @default(0)
+  expires_at   DateTime?
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
 }
