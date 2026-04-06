@@ -7,6 +7,7 @@ import { Password } from "./Password";
 import { DeleteUser } from "./DeleteUser";
 import { IUser } from "../../shared/types/user";
 import { DEFAULT_USER } from "../../shared/constants/defaults";
+import { TwoFactor } from "./TwoFactor";
 
 export function ProfilePropertiesPrimary() {
     const userService = useUserService();
@@ -45,6 +46,7 @@ export function ProfilePropertiesPrimary() {
             <Username user={user} />
             <Email user={user} />
             <Password />
+            <TwoFactor />
             <DeleteUser />
         </ProfilePropertiesPrimaryContainer>
     )
@@ -68,7 +70,7 @@ export function ProfilePropertiesPrimaryContainer({ children }: { children: Reac
 
 export function ProfilePropertiesSecundary({ children }: { children: ReactNode }) {
     return (
-        <div id="secundary-profile-properties" className="flex min-h-1/2">
+        <div id="secundary-profile-properties" className="flex min-h-1/4">
             {children}
         </div>
 
