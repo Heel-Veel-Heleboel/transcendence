@@ -65,7 +65,7 @@ export class AuthController {
 
     reply.setCookie('refresh_token', '', {
       httpOnly: true,
-      path: AUTH_PREFIX,
+      path: '/',
       maxAge: 0,
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production'
@@ -104,7 +104,7 @@ export class AuthController {
 
     reply.setCookie('refresh_token', new_refresh_token, {
       httpOnly: true,
-      path: AUTH_PREFIX,
+      path: '/',
       maxAge: getJwtConfig().expirationRefreshToken,
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production'
@@ -129,10 +129,19 @@ export class AuthController {
     return reply.code(204).send();
   }
 
-  async deleteAuthDataForUser(request: FastifyRequest<{ Body: SchemaTypes.DeleteAuthDataSchemaType }>, reply: FastifyReply): Promise<FastifyReply> {
-    request.log.info({ user_id: request.body.user_id }, 'Delete auth data for user attempt');
+  async deleteAuthDataForUser(
+    request: FastifyRequest<{ Body: SchemaTypes.DeleteAuthDataSchemaType }>,
+    reply: FastifyReply
+  ): Promise<FastifyReply> {
+    request.log.info(
+      { user_id: request.body.user_id },
+      'Delete auth data for user attempt'
+    );
     await this.authService.deleteAuthDataForUser(request.body.user_id);
-    request.log.info({ user_id: request.body.user_id }, 'Auth data for user deleted successfully');
+    request.log.info(
+      { user_id: request.body.user_id },
+      'Auth data for user deleted successfully'
+    );
     return reply.code(204).send();
   }
 

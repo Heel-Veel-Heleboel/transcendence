@@ -22,7 +22,6 @@ describe('TournamentService', () => {
       findRegistrationEnding: vi.fn(),
       findReadyToStart: vi.fn(),
       findOpen: vi.fn(),
-      hasActiveCreatedTournament: vi.fn(),
       update: vi.fn(),
       updateStatus: vi.fn(),
       delete: vi.fn(),
@@ -37,7 +36,7 @@ describe('TournamentService', () => {
       unregister: vi.fn(),
       findByTournamentAndUser: vi.fn(),
       isRegistered: vi.fn(),
-      isInActiveTournament: vi.fn(),
+      getActiveTournament: vi.fn(),
       findByTournament: vi.fn(),
       findByUser: vi.fn(),
       setSeed: vi.fn(),
@@ -67,6 +66,8 @@ describe('TournamentService', () => {
       cancelMatch: vi.fn(),
       findActiveMatchForUser: vi.fn(),
       findNextQueuedMatch: vi.fn(),
+      findAllQueuedMatches: vi.fn(),
+      activateMatches: vi.fn(),
       activateMatch: vi.fn(),
       resetToPendingAck: vi.fn(),
       findCompletedInRound: vi.fn(),
@@ -92,34 +93,38 @@ describe('TournamentService', () => {
         createdBy: 100,
         registrationEnd: futureDate,
       };
-      vi.mocked(mockTournamentDao.hasActiveCreatedTournament).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce(null);
       vi.mocked(mockTournamentDao.create).mockResolvedValueOnce(mockTournament as any);
 
       const result = await service.createTournament({
         name: 'Test Tournament',
         createdBy: 100,
+        creatorUsername: 'creator',
         registrationEnd: futureDate,
       });
 
       expect(result).toEqual(mockTournament);
-      expect(mockTournamentDao.create).toHaveBeenCalledWith({
+      expect(mockTournamentDao.create).toHaveBeenCalledWith(expect.objectContaining({
         name: 'Test Tournament',
         createdBy: 100,
-        registrationEnd: futureDate,
-      });
+      }));
+      expect(mockParticipantDao.register).toHaveBeenCalledWith(1, 100, 'creator');
     });
 
-    it('should throw error if user already has an active tournament', async () => {
-      vi.mocked(mockTournamentDao.hasActiveCreatedTournament).mockResolvedValueOnce(true);
+    it('should throw error if user is already in an active tournament', async () => {
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce({
+        tournamentId: 5, createdBy: 100
+      });
 
       const error = await service.createTournament({
         name: 'Another Tournament',
         createdBy: 100,
+        creatorUsername: 'creator',
         registrationEnd: new Date(Date.now() + 3600000),
       }).catch(e => e);
 
       expect(error).toBeInstanceOf(TournamentError);
-      expect(error.code).toBe('ALREADY_HAS_TOURNAMENT');
+      expect(error.code).toBe('ALREADY_IN_TOURNAMENT');
       expect(mockTournamentDao.create).not.toHaveBeenCalled();
     });
   });
@@ -204,7 +209,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
-      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce(null);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(true);
       vi.mocked(mockParticipantDao.count).mockResolvedValueOnce(3);
 
@@ -224,7 +229,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
-      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce(null);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(true);
       vi.mocked(mockParticipantDao.count).mockResolvedValueOnce(4);
 
@@ -283,7 +288,9 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
-      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(true);
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce({
+        tournamentId: 5, createdBy: 200
+      });
 
       const error = await service.register(1, 100, 'testuser').catch(e => e);
       expect(error).toBeInstanceOf(TournamentError);
@@ -300,7 +307,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
-      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce(null);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(false);
 
       await expect(service.register(1, 100, 'testuser')).rejects.toThrow(TournamentError);
@@ -316,7 +323,7 @@ describe('TournamentService', () => {
       };
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
       vi.mocked(mockParticipantDao.isRegistered).mockResolvedValueOnce(false);
-      vi.mocked(mockParticipantDao.isInActiveTournament).mockResolvedValueOnce(false);
+      vi.mocked(mockParticipantDao.getActiveTournament).mockResolvedValueOnce(null);
       vi.mocked(mockTournamentDao.hasCapacity).mockResolvedValueOnce(true);
       vi.mocked(mockParticipantDao.count).mockResolvedValueOnce(5); // Over max
 
@@ -410,7 +417,7 @@ describe('TournamentService', () => {
   });
 
   describe('startTournament', () => {
-    it('should generate knockout bracket and return first activated match', async () => {
+    it('should generate knockout bracket and return all activated matches', async () => {
       const mockTournament = {
         id: 1,
         status: 'SCHEDULED',
@@ -436,8 +443,9 @@ describe('TournamentService', () => {
       expect(mockTournamentDao.update).toHaveBeenCalledWith(1, { totalRounds: 2 });
       // Seeds assigned for all 4 players
       expect(mockParticipantDao.setSeed).toHaveBeenCalledTimes(4);
-      // Returns the first match
-      expect(result).toEqual(mockMatch);
+      // Returns all round 1 matches
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual(mockMatch);
     });
 
     it('should handle byes for non-power-of-2 player counts', async () => {
@@ -464,7 +472,7 @@ describe('TournamentService', () => {
       expect(mockTournamentDao.update).toHaveBeenCalledWith(1, { totalRounds: 2 });
     });
 
-    it('should set deadline only on first match', async () => {
+    it('should set deadline on all round 1 matches', async () => {
       const mockTournament = {
         id: 1,
         status: 'SCHEDULED',
@@ -485,10 +493,9 @@ describe('TournamentService', () => {
       await service.startTournament(1);
 
       const createCalls = vi.mocked(mockMatchDao.create).mock.calls;
-      // First match should have a deadline
+      // All matches should have a deadline
       expect(createCalls[0][0].deadline).toBeInstanceOf(Date);
-      // Second match should have null deadline (queued)
-      expect(createCalls[1][0].deadline).toBeNull();
+      expect(createCalls[1][0].deadline).toBeInstanceOf(Date);
     });
 
     it('should revert to SCHEDULED if bracket generation fails', async () => {
@@ -539,37 +546,44 @@ describe('TournamentService', () => {
     });
   });
 
-  describe('activateNextMatch', () => {
-    it('should activate the next queued match', async () => {
+  describe('activateRoundMatches', () => {
+    it('should activate all queued matches for the next round', async () => {
       const mockTournament = { id: 1, ackDeadlineMin: 20 };
-      const queuedMatch = { id: 'match-2', tournamentId: 1, round: 1, bracketPosition: 1 };
-      const activatedMatch = { ...queuedMatch, deadline: new Date() };
+      const queuedMatches = [
+        { id: 'match-2', tournamentId: 1, round: 2, bracketPosition: 0 },
+        { id: 'match-3', tournamentId: 1, round: 2, bracketPosition: 1 }
+      ];
 
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(mockTournament as any);
-      vi.mocked(mockMatchDao.findNextQueuedMatch).mockResolvedValueOnce(queuedMatch as any);
-      vi.mocked(mockMatchDao.activateMatch).mockResolvedValueOnce(activatedMatch as any);
+      vi.mocked(mockMatchDao.findAllQueuedMatches).mockResolvedValueOnce(queuedMatches as any);
+      vi.mocked(mockMatchDao.activateMatches).mockResolvedValueOnce(
+        queuedMatches.map(m => ({ ...m, deadline: new Date() })) as any
+      );
 
-      const result = await service.activateNextMatch(1);
+      const result = await service.activateRoundMatches(1);
 
-      expect(result).toEqual(activatedMatch);
-      expect(mockMatchDao.activateMatch).toHaveBeenCalledWith('match-2', expect.any(Date));
+      expect(result).toHaveLength(2);
+      expect(mockMatchDao.activateMatches).toHaveBeenCalledWith(
+        ['match-2', 'match-3'],
+        expect.any(Date)
+      );
     });
 
-    it('should return null when no queued matches remain', async () => {
+    it('should return empty array when no queued matches remain', async () => {
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce({ id: 1, ackDeadlineMin: 20 } as any);
-      vi.mocked(mockMatchDao.findNextQueuedMatch).mockResolvedValueOnce(null);
+      vi.mocked(mockMatchDao.findAllQueuedMatches).mockResolvedValueOnce([]);
 
-      const result = await service.activateNextMatch(1);
+      const result = await service.activateRoundMatches(1);
 
-      expect(result).toBeNull();
+      expect(result).toEqual([]);
     });
 
-    it('should return null if tournament not found', async () => {
+    it('should return empty array if tournament not found', async () => {
       vi.mocked(mockTournamentDao.findById).mockResolvedValueOnce(null);
 
-      const result = await service.activateNextMatch(999);
+      const result = await service.activateRoundMatches(999);
 
-      expect(result).toBeNull();
+      expect(result).toEqual([]);
     });
   });
 

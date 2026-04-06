@@ -1,14 +1,14 @@
 import {
   RateLimitConfig,
   RateLimitEntry
-} from '../entity/common';
+} from '../entity/common.js';
 import fs from 'fs';
-import { logger } from './logger';
+import { logger } from './logger.js';
 import {
   validateIntegerRange,
   validateTimeWindow,
   parseJsonSafe
-} from '../utils/validation';
+} from '../utils/validation.js';
 
 const DEFAULT_GLOBAL_RATE_LIMIT: RateLimitEntry = { max: 1000, timeWindow: '1 minute' };
 const DEFAULT_AUTHENTICATED_RATE_LIMIT: RateLimitEntry = { max: 2000, timeWindow: '1 minute' };

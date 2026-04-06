@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import type { RawData } from 'ws';
-import { verifyToken } from '../middleware/auth';
-import { addConnection, removeConnection } from './connections';
+import { verifyToken } from '../middleware/auth.js';
+import { addConnection, removeConnection } from './connections.js';
 
 const AUTH_TIMEOUT_MS = 5000;
 const MAX_MESSAGE_SIZE = 4096; // 4KB max message size

@@ -11,19 +11,30 @@ export class MatchmakingClient {
    * Forward a player's acknowledgement to the matchmaking service.
    * Returns the matchmaking response (includes bothReady and roomId when both acked).
    */
-  async acknowledge(matchId: string, playerId: number): Promise<{ bothReady: boolean; roomId: string | null }> {
-    const response = await fetch(`${this.matchmakingUrl}/match/${matchId}/acknowledge`, {
-      method: 'POST',
-      headers: {
-        'x-user-id': String(playerId)
+  async acknowledge(
+    matchId: string,
+    playerId: number
+  ): Promise<{ bothReady: boolean; roomId: string | null }> {
+    const response = await fetch(
+      `${this.matchmakingUrl}/match/${matchId}/acknowledge`,
+      {
+        method: 'POST',
+        headers: {
+          'x-user-id': String(playerId)
+        }
       }
-    });
+    );
 
     if (!response.ok) {
-      throw new Error(`Matchmaking returned ${response.status} when acknowledging match ${matchId}`);
+      throw new Error(
+        `Matchmaking returned ${response.status} when acknowledging match ${matchId}`
+      );
     }
 
-    return await response.json() as { bothReady: boolean; roomId: string | null };
+    return (await response.json()) as {
+      bothReady: boolean;
+      roomId: string | null;
+    };
   }
 
   /**
@@ -31,15 +42,20 @@ export class MatchmakingClient {
    * The match will be cancelled.
    */
   async decline(matchId: string, playerId: number): Promise<void> {
-    const response = await fetch(`${this.matchmakingUrl}/match/${matchId}/decline`, {
-      method: 'POST',
-      headers: {
-        'x-user-id': String(playerId)
+    const response = await fetch(
+      `${this.matchmakingUrl}/match/${matchId}/decline`,
+      {
+        method: 'POST',
+        headers: {
+          'x-user-id': String(playerId)
+        }
       }
-    });
+    );
 
     if (!response.ok) {
-      throw new Error(`Matchmaking returned ${response.status} when declining match ${matchId}`);
+      throw new Error(
+        `Matchmaking returned ${response.status} when declining match ${matchId}`
+      );
     }
   }
 }

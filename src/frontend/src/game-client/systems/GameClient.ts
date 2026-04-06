@@ -28,12 +28,16 @@ import { Callbacks, Room } from '@colyseus/sdk';
 import { Protagonist } from '../components/Protagonist';
 import { Antagonist } from '../components/Antagonist';
 import gameConfig from '../utils/GameConfig.ts';
+import { Dispatch, SetStateAction } from 'react';
 
 /* v8 ignore start */
 export class GameClient {
   private _scene!: Scene;
   private _defaultScene!: Scene;
   private _engine!: AbstractEngine;
+  private _gameMode!: string;
+  private _matchId!: string;
+  private _setError!: Dispatch<SetStateAction<Error | null>>;
 
   private _frameCount!: number;
   private _arena!: Arena;
@@ -51,9 +55,33 @@ export class GameClient {
   //@ts-ignore
   private _backgroundMusic!: Sound;
 
-  constructor(defaultScene: Scene) {
+  constructor(
+    defaultScene: Scene,
+    gameMode: string,
+    matchId: string,
+    setError: Dispatch<SetStateAction<Error | null>>
+  ) {
     this.defaultScene = defaultScene;
     this.engine = defaultScene.getEngine();
+    this.gameMode = gameMode;
+    this.matchId = matchId;
+    this.setError = setError;
+
+    // NOTE: Wraps class in Proxy to catch errors in every method
+    return new Proxy(this, {
+      get(target: any, prop: any) {
+        const origMethod = target[prop];
+        if (typeof origMethod == 'function') {
+          return function (...args: any) {
+            try {
+              return origMethod.apply(target, args);
+            } catch (e: any) {
+              setError(e);
+            }
+          };
+        }
+      }
+    });
   }
 
   async initGame() {
@@ -66,7 +94,7 @@ export class GameClient {
   }
 
   private async initScene(scene: Scene) {
-    this.hud = new Hud('hud.json', scene);
+    this.hud = new Hud('guiTexture.json', scene);
     await this.hud.init();
 
     if (process.env.NODE_ENV !== 'production') {
@@ -86,25 +114,30 @@ export class GameClient {
 
   private draw(g: GameClient) {
     return () => {
-      if (typeof g.prota === 'undefined') return;
-      if (!(g.frameCount % 600)) {
-        // console.log(g.balls);
-      }
-      for (const entity of g.balls) {
-        const ball = entity[1];
-        if (ball) {
-          g.prota.hitIndicator.detectIncomingHits(ball);
+      try {
+        if (typeof g.prota === 'undefined') return;
+        if (!(g.frameCount % 600)) {
+          // console.log(g.balls);
         }
-        ball.update();
+        for (const entity of g.balls) {
+          const ball = entity[1];
+          if (ball) {
+            g.prota.hitIndicator.detectIncomingHits(ball);
+          }
+          ball.update();
+        }
+        if (
+          g.keyManager.deltaTime !== 0 &&
+          g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames
+        ) {
+          g.keyManager.resolve();
+        }
+        // g.prota.hud.changeMana(0.01);
+        g.frameCount++;
+      } catch (e: any) {
+        console.error(e);
+        this.setError(e);
       }
-      if (
-        g.keyManager.deltaTime !== 0 &&
-        g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames
-      ) {
-        g.keyManager.resolve();
-      }
-      g.prota.hud.changeMana(0.01);
-      g.frameCount++;
     };
   }
 
@@ -236,6 +269,15 @@ export class GameClient {
   private set engine(engine: AbstractEngine) {
     this._engine = engine;
   }
+  private set gameMode(gameMode: string) {
+    this._gameMode = gameMode;
+  }
+  private set matchId(matchId: string) {
+    this._matchId = matchId;
+  }
+  private set setError(setError: Dispatch<SetStateAction<Error | null>>) {
+    this._setError = setError;
+  }
   private set frameCount(frameCount: number) {
     this._frameCount = frameCount;
   }
@@ -279,6 +321,15 @@ export class GameClient {
   // NOTE: set to public to dispose scene on error
   public get engine(): AbstractEngine {
     return this._engine;
+  }
+  public get gameMode(): string {
+    return this._gameMode;
+  }
+  public get matchId(): string {
+    return this._matchId;
+  }
+  private get setError() {
+    return this._setError;
   }
   private get frameCount(): number {
     return this._frameCount;

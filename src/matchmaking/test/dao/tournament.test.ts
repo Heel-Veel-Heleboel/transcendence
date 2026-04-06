@@ -381,30 +381,6 @@ describe('TournamentDao', () => {
     });
   });
 
-  describe('hasActiveCreatedTournament', () => {
-    it('should return true when user has an active created tournament', async () => {
-      mockPrismaClient.tournament.count.mockResolvedValueOnce(1);
-
-      const result = await dao.hasActiveCreatedTournament(100);
-
-      expect(mockPrismaClient.tournament.count).toBeCalledWith({
-        where: {
-          createdBy: 100,
-          status: { in: ['REGISTRATION', 'SCHEDULED', 'IN_PROGRESS'] },
-        },
-      });
-      expect(result).toBe(true);
-    });
-
-    it('should return false when user has no active created tournament', async () => {
-      mockPrismaClient.tournament.count.mockResolvedValueOnce(0);
-
-      const result = await dao.hasActiveCreatedTournament(100);
-
-      expect(result).toBe(false);
-    });
-  });
-
   describe('countByStatus', () => {
     it('should count tournaments by status', async () => {
       mockPrismaClient.tournament.count.mockResolvedValueOnce(3);

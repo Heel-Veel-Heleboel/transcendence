@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyBaseLogger } from 'fastify';
-import { config } from '../config';
-import { ServiceHealth } from '../entity/common';
+import { config } from '../config/index.js';
+import { ServiceHealth } from '../entity/common.js';
 
 const HEALTH_CHECK_TIMEOUT_MS = 3000;
 const HEALTH_CHECK_MAX_ATTEMPTS = 2;

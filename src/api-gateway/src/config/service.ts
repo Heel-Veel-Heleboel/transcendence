@@ -1,12 +1,12 @@
 import fs from 'fs';
-import { ServiceConfig } from '../entity/common';
-import { logger } from './logger';
+import { ServiceConfig } from '../entity/common.js';
+import { logger } from './logger.js';
 import {
   validateIntegerRange,
   validateUrl,
   normalizeBoolean,
   parseJsonSafe
-} from '../utils/validation';
+} from '../utils/validation.js';
 
 const DEFAULT_TIMEOUT = 5000;
 const DEFAULT_RETRIES = 2;

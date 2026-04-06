@@ -2,6 +2,7 @@ import fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import { getPrismaClient, disconnectPrisma } from './db/prisma.client.js';
+import { loggerOptions } from './config/logger.js';
 import { MatchDao } from './dao/match.js';
 import { TournamentDao } from './dao/tournament.js';
 import { TournamentParticipantDao } from './dao/tournament-participant.js';
@@ -19,18 +20,7 @@ import { registerTournamentRoutes } from './routes/tournament.js';
 import { registerDirectChallengeRoutes } from './routes/direct-challenge.js';
 import { GameMode } from './types/match.js';
 
-const server = fastify({
-  logger: {
-    level: process.env.LOG_LEVEL || 'info',
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname'
-      }
-    }
-  }
-});
+const server = fastify({ logger: loggerOptions });
 
 // Register plugins
 await server.register(cors, {
@@ -78,7 +68,7 @@ const userManagementClient = {
   async reportMatchResult(message: { playerId: number; isWinner: boolean }): Promise<void> {
     const userManagementUrl = process.env.USER_MANAGEMENT_URL || 'http://localhost:3004';
     try {
-      const response = await fetch(`${userManagementUrl}/profile/update-stats`, {
+      const response = await fetch(`${userManagementUrl}/users/profile/update-stats`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: message.playerId, is_winner: message.isWinner })
@@ -109,6 +99,7 @@ const lifecycleManager = new TournamentLifecycleManager(
   tournamentDao,
   matchDao,
   gatewayNotificationClient,
+  chatServiceClient,
   undefined, // use default timer provider
   server.log
 );
@@ -161,9 +152,9 @@ server.get('/health/detailed', async () => {
 });
 
 // Register routes
-await registerMatchmakingRoutes(server, pools, poolRegistry, chatServiceClient);
+await registerMatchmakingRoutes(server, pools, poolRegistry, chatServiceClient,gatewayNotificationClient, matchDao, participantDao);
 await registerMatchRoutes(server, matchDao, tournamentDao, matchReporting, gameServerClient, chatServiceClient, gatewayNotificationClient, lifecycleManager);
-await registerTournamentRoutes(server, tournamentService, lifecycleManager);
+await registerTournamentRoutes(server, tournamentService, gatewayNotificationClient, lifecycleManager);
 await registerDirectChallengeRoutes(server, matchDao, chatServiceClient, pools, poolRegistry);
 
 // Graceful shutdown

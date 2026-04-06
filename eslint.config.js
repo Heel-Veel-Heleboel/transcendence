@@ -2,8 +2,10 @@ import js from '@eslint/js';
 import globals from 'globals';
 import typescript from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
+import reactHooks from 'eslint-plugin-react-hooks';
 
 export default [
+  reactHooks.configs.flat.recommended,
   js.configs.recommended,
   {
     files: ['**/*.ts', '**/*.tsx'],

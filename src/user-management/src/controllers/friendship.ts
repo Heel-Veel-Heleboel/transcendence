@@ -6,10 +6,10 @@ export class FriendshipController {
   constructor(private readonly friendshipService: FriendshipService) {}
 
   async createFriendship(req: FastifyRequest<{ Body: { user1_id: number; user2_id: number, status?:  FriendshipStatus } }>, res: FastifyReply): Promise<void> {
-    const { user1_id, user2_id, status } = req.body;
+    const { user1_id, user2_id } = req.body;
 
     req.log.info(`Creating friendship between user ${user1_id} and user ${user2_id}`);
-    await this.friendshipService.createFriendship({ user1_id, user2_id, status });
+    await this.friendshipService.createFriendship({ user1_id, user2_id });
     req.log.info(`Friendship request sent from user ${user1_id} to user ${user2_id}`);
     res.status(201).send({ message: 'Friendship request sent' });
   }
@@ -49,6 +49,20 @@ export class FriendshipController {
     res.status(200).send(friendship);
   }
 
+  async getFriendshipBetween(req: FastifyRequest<{ Params: { userId1: number; userId2: number } }>, res: FastifyReply): Promise<void> {
+    const { userId1, userId2 } = req.params;
+
+    req.log.info(`Retrieving friendship between user ${userId1} and user ${userId2}`);
+    const friendship = await this.friendshipService.getFriendshipBetween({ userId1, userId2 });
+    if (!friendship) {
+      req.log.warn(`Friendship between ${userId1} and ${userId2} not found`);
+      res.status(404).send({ message: 'Friendship not found' });
+      return;
+    }
+    req.log.info(`Friendship between ${userId1} and ${userId2} retrieved successfully`);
+    res.status(200).send(friendship);
+  }
+
 
 
 
@@ -65,7 +79,7 @@ export class FriendshipController {
   async findAllByStatusForUser(req: FastifyRequest<{ Params: { userId: number; status: FriendshipStatus } }>, res: FastifyReply): Promise<void> {
     const { userId, status } = req.params;
     req.log.info(`Retrieving all friendships with status ${status} for user ${userId}`);
-    const friendships = await this.friendshipService.getUserFriendships({ userId });
+    const friendships = await this.friendshipService.getAllByStatusForUser({ userId, status });
     req.log.info(`Retrieved ${friendships.length} friendships with status ${status} for user ${userId}`);
     res.status(200).send(friendships);
   }

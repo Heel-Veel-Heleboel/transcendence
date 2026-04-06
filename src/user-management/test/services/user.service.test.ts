@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UserService } from '../../src/services/user.js';
 import { UserRepository } from '../../src/repositories/user.js';
-import * as SchemaTypes from '../../src/schemas/user.services.js';
+import * as SchemaTypes from '../../src/schemas/user.js';
 
 describe('UserService', () => {
   let service: UserService;

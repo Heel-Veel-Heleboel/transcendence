@@ -46,7 +46,7 @@ export class ProfileController {
 
   async uploadAvatar( request: FastifyRequest< {Params: { user_id: number }}>, reply: FastifyReply): Promise<FastifyReply> {
 
-    const file = await request.file({ limits: { fileSize: 1024 } });
+    const file = await request.file({ limits: { fileSize: 1024 * 1024 } });
 
     if (!file) {
       return reply.status(400).send({ message: 'No file uploaded' });
@@ -54,7 +54,7 @@ export class ProfileController {
 
     const user_id = request.params.user_id;
 
-    const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR || 'uploads');
+    const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR || '/uploads');
     fs.mkdirSync(uploadDir, { recursive: true });
 
     const file_extension = path.extname(file.filename).toLowerCase();

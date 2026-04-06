@@ -51,6 +51,25 @@ export function sendToUsers(userIds: string[], event: object): { userId: string;
   }));
 }
 
+export function broadcastToAll(event: object): number {
+  const message = JSON.stringify(event);
+  let sent = 0;
+  for (const [userId, userConnections] of connections) {
+    for (const connection of userConnections) {
+      if (connection.socket.readyState === WebSocket.OPEN) {
+        connection.socket.send(message);
+        sent++;
+      } else {
+        userConnections.delete(connection);
+      }
+    }
+    if (userConnections.size === 0) {
+      connections.delete(userId);
+    }
+  }
+  return sent;
+}
+
 export function getConnectionCount(): number {
   let count = 0;
   for (const conns of connections.values()) {

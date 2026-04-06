@@ -5,26 +5,11 @@ import prismaDisconnectHook from './middleware/prisma-disconnect-hook.js';
 import { getAuthController } from './config/auth.js';
 import { AUTH_PREFIX } from './constants/auth.js';
 import  cookie  from '@fastify/cookie';
+import { loggerOptions } from './config/logger.js';
 
 const authController = getAuthController();
 
-const isDevelopment = process.env.NODE_ENV !== 'production';
-const app = fastify({
-  logger: {
-    level: process.env.LOG_LEVEL || 'info',
-    transport: isDevelopment
-      ? {
-        target: 'pino-pretty',
-        options: {
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname',
-          colorize: true,
-          singleLine: false
-        }
-      }
-      : undefined
-  }
-});
+const app = fastify({ logger: loggerOptions });
 
 app.register(cookie);
 app.setErrorHandler(authErrorHandler);
@@ -34,14 +19,14 @@ app.get('/health', async () => {
 });
 app.register(authRoutes, { prefix: AUTH_PREFIX, authController }).
   after(() => {
-    console.log('Auth routes registered');
+    app.log.info('Auth routes registered');
   }).
   ready((err) => {
     if (err) {
-      console.error('Error during app readiness:', err);
+      app.log.error({ err }, 'Error during app readiness');
       process.exit(1);
     }
-    console.log('Auth service is ready');
+    app.log.info('Auth service is ready');
   });
 
 

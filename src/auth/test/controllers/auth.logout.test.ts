@@ -117,7 +117,7 @@ describe('AuthController - logout', () => {
       '',
       expect.objectContaining({
         httpOnly: true,
-        path: '/auth',
+        path: '/',
         maxAge: 0,
         sameSite: 'strict',
         secure: false
@@ -147,4 +147,3 @@ describe('AuthController - logout', () => {
     expect(MockReply.setCookie).not.toHaveBeenCalled();
   });
 });
-

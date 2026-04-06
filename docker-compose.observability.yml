@@ -1,0 +1,228 @@
+# Observability Stack for Transcendence
+# Prometheus + Grafana (metrics) + ELK (logs)
+#
+# Usage:
+#   Start: docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
+#   Stop:  docker compose -f docker-compose.yml -f docker-compose.observability.yml down
+#
+# Prerequisites: run main docker-compose.yml first (creates transcendence-app network)
+#
+# Log shipping: services send JSON logs directly to Logstash via pino-socket (TCP port 5000)
+
+volumes:
+  certs:
+    driver: local
+  esdata:
+    driver: local
+  kibana-data:
+    driver: local
+  logstash-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  app-network:
+    name: transcendence-app
+    external: true
+
+  observability-network:
+    name: transcendence-observability
+    driver: bridge
+
+  docker-proxy-network:
+    name: transcendence-docker-proxy
+    driver: bridge
+
+services:
+  setup:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+      - ./src/observability/setup/elk-setup.sh:/elk-setup.sh:ro
+    user: '0'
+    environment:
+      - ELASTIC_USER=${ELASTIC_USER}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_USER=${KIBANA_USER}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+    command: ['/bin/bash', '/elk-setup.sh']
+    networks:
+      - observability-network
+    healthcheck:
+      test: ['CMD-SHELL', '[ -f config/certs/elasticsearch/elasticsearch.crt ]']
+      interval: 1s
+      timeout: 5s
+      retries: 120
+
+  elasticsearch:
+    depends_on:
+      setup:
+        condition: service_healthy
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - ${ES_PORT}:9200
+    environment:
+      - node.name=elasticsearch
+      - discovery.type=single-node
+      - cluster.name=${CLUSTER_NAME:-transcendence-logs}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.key=certs/elasticsearch/elasticsearch.key
+      - xpack.security.http.ssl.certificate=certs/elasticsearch/elasticsearch.crt
+      - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
+      - xpack.license.self_generated.type=${LICENSE:-basic}
+      - bootstrap.memory_lock=true
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+    mem_limit: ${ES_MEM_LIMIT}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - observability-network
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+
+  kibana:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+    volumes:
+      - certs:/usr/share/kibana/config/certs
+      - kibana-data:/usr/share/kibana/data
+    ports:
+      - ${KIBANA_PORT}:5601
+    environment:
+      - SERVERNAME=kibana
+      - ELASTICSEARCH_HOSTS=https://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=${KIBANA_USER}
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
+      - XPACK_SECURITY_ENCRYPTIONKEY=${ENCRYPTION_KEY}
+    mem_limit: ${KB_MEM_LIMIT}
+    networks:
+      - observability-network
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+
+  logstash:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    image: docker.elastic.co/logstash/logstash:${STACK_VERSION}
+    user: root
+    volumes:
+      - certs:/usr/share/logstash/certs
+      - logstash-data:/usr/share/logstash/data
+      - ./src/observability/logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./src/observability/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+    ports:
+      - '5044:5044'   # TCP input — services send JSON logs via pino-socket
+      - '9600:9600'   # Logstash monitoring API
+    environment:
+      - ELASTIC_USER=${ELASTIC_USER}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTIC_HOSTS=https://elasticsearch:9200
+      - LOGSTASH_DEBUG=${LOGSTASH_DEBUG:-false}
+    networks:
+      - observability-network
+      - app-network   # Reachable by app services for log shipping
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9600']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - CONTAINERS=1
+      - NETWORKS=1
+      - SERVICES=0
+      - TASKS=0
+      - POST=0
+    networks:
+      - docker-proxy-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:2375/version']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    depends_on:
+      docker-proxy:
+        condition: service_healthy
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--query.max-concurrency=0'
+    volumes:
+      - ./src/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./src/observability/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    tmpfs:
+      - /prometheus:size=500m,uid=65534,gid=65534
+    ports:
+      - '9090:9090'
+    networks:
+      - docker-proxy-network
+      - observability-network
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:9090/-/healthy']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    ports:
+      - '3001:3000'
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./src/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - observability-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

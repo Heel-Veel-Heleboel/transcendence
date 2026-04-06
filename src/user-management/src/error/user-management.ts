@@ -46,3 +46,11 @@ export class ProfileNotFoundError extends Error {
     this.name = 'ProfileNotFoundError';
   }
 }
+
+
+export class ClientError extends Error {
+  constructor(name?: string) {
+    super();
+    this.name = name || 'ClientError';
+  }
+}

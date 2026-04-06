@@ -56,13 +56,14 @@ describe('Tournament Routes', () => {
         { id: 1, player1Id: 101, player2Id: 102, tournamentId: 1, status: 'PENDING' }
       ]),
       getParticipantIds: vi.fn().mockResolvedValue([101, 102, 103]),
-      getUserTournamentStatus: vi.fn().mockResolvedValue({
-        hasCreatedTournament: false,
-        isInActiveTournament: false
-      })
     } as any;
 
-    await registerTournamentRoutes(server, mockTournamentService);
+    const mockGatewayNotificationClient = {
+      notifyUsers: vi.fn(),
+      broadcastEvent: vi.fn()
+    } as any;
+
+    await registerTournamentRoutes(server, mockTournamentService, mockGatewayNotificationClient);
     await server.ready();
   });
 
@@ -79,7 +80,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {
           name: 'Test Tournament',
         }
@@ -98,6 +99,7 @@ describe('Tournament Routes', () => {
         matchDurationMin: 3,
         ackDeadlineMin: 20,
         createdBy: 100,
+        creatorUsername: 'creator',
         registrationEnd: expect.any(Date),
         startTime: null
       });
@@ -107,7 +109,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {
           name: 'Powerup Tournament',
           gameMode: 'powerup',
@@ -127,7 +129,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {}
       });
 
@@ -141,7 +143,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {
           name: 'Test Tournament',
           gameMode: 'invalid_mode'
@@ -158,6 +160,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
+        headers: { 'x-user-name': 'creator' },
         payload: {
           name: 'Test Tournament',
         }
@@ -169,6 +172,22 @@ describe('Tournament Routes', () => {
       expect(body.message).toContain('x-user-id');
     });
 
+    it('should return 401 when x-user-name header is missing', async () => {
+      const response = await server.inject({
+        method: 'POST',
+        url: '/matchmaking/tournament',
+        headers: { 'x-user-id': '100' },
+        payload: {
+          name: 'Test Tournament',
+        }
+      });
+
+      expect(response.statusCode).toBe(401);
+      const body = JSON.parse(response.body);
+      expect(body.error).toBe('Unauthorized');
+      expect(body.message).toContain('x-user-name');
+    });
+
     it('should return 400 on TournamentError', async () => {
       vi.mocked(mockTournamentService.createTournament).mockRejectedValue(
         new TournamentError('Some error', 'SOME_CODE')
@@ -177,7 +196,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {
           name: 'Test Tournament',
         }
@@ -189,15 +208,15 @@ describe('Tournament Routes', () => {
       expect(body.code).toBe('SOME_CODE');
     });
 
-    it('should return 400 when user already has an active tournament', async () => {
+    it('should return 400 when user is already in an active tournament', async () => {
       vi.mocked(mockTournamentService.createTournament).mockRejectedValue(
-        new TournamentError('Already have an active tournament', 'ALREADY_HAS_TOURNAMENT')
+        new TournamentError('Already in an active tournament', 'ALREADY_IN_TOURNAMENT')
       );
 
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {
           name: 'Another Tournament',
         }
@@ -206,7 +225,7 @@ describe('Tournament Routes', () => {
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
       expect(body.error).toBe('Bad Request');
-      expect(body.code).toBe('ALREADY_HAS_TOURNAMENT');
+      expect(body.code).toBe('ALREADY_IN_TOURNAMENT');
     });
 
     it('should return 500 on unexpected error', async () => {
@@ -217,7 +236,7 @@ describe('Tournament Routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/matchmaking/tournament',
-        headers: { 'x-user-id': '100' },
+        headers: { 'x-user-id': '100', 'x-user-name': 'creator' },
         payload: {
           name: 'Test Tournament',
         }
@@ -226,86 +245,6 @@ describe('Tournament Routes', () => {
       expect(response.statusCode).toBe(500);
       const body = JSON.parse(response.body);
       expect(body.error).toBe('Internal Server Error');
-    });
-  });
-
-  // ============================================================================
-  // GET /matchmaking/tournament/status/me - User Tournament Status
-  // ============================================================================
-
-  describe('GET /matchmaking/tournament/status/me', () => {
-    it('should return status when user can create and join', async () => {
-      const response = await server.inject({
-        method: 'GET',
-        url: '/matchmaking/tournament/status/me',
-        headers: { 'x-user-id': '100' },
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body);
-      expect(body.canCreate).toBe(true);
-      expect(body.canJoin).toBe(true);
-      expect(body.hasCreatedTournament).toBe(false);
-      expect(body.isInActiveTournament).toBe(false);
-    });
-
-    it('should return canCreate=false when user has active tournament', async () => {
-      vi.mocked(mockTournamentService.getUserTournamentStatus).mockResolvedValueOnce({
-        hasCreatedTournament: true,
-        isInActiveTournament: false
-      });
-
-      const response = await server.inject({
-        method: 'GET',
-        url: '/matchmaking/tournament/status/me',
-        headers: { 'x-user-id': '100' },
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body);
-      expect(body.canCreate).toBe(false);
-      expect(body.canJoin).toBe(true);
-    });
-
-    it('should return canJoin=false when user is in active tournament', async () => {
-      vi.mocked(mockTournamentService.getUserTournamentStatus).mockResolvedValueOnce({
-        hasCreatedTournament: false,
-        isInActiveTournament: true
-      });
-
-      const response = await server.inject({
-        method: 'GET',
-        url: '/matchmaking/tournament/status/me',
-        headers: { 'x-user-id': '100' },
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body);
-      expect(body.canCreate).toBe(false);
-      expect(body.canJoin).toBe(false);
-    });
-
-    it('should return 401 when x-user-id header is missing', async () => {
-      const response = await server.inject({
-        method: 'GET',
-        url: '/matchmaking/tournament/status/me',
-      });
-
-      expect(response.statusCode).toBe(401);
-    });
-
-    it('should return 500 on unexpected error', async () => {
-      vi.mocked(mockTournamentService.getUserTournamentStatus).mockRejectedValueOnce(
-        new Error('Database error')
-      );
-
-      const response = await server.inject({
-        method: 'GET',
-        url: '/matchmaking/tournament/status/me',
-        headers: { 'x-user-id': '100' },
-      });
-
-      expect(response.statusCode).toBe(500);
     });
   });
 

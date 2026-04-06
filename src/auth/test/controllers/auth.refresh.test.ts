@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthController } from '../../src/controllers/auth.js';
 import { RefreshedTokensDto } from '../../src/types/dtos/auth.js';
 import { AuthenticationError } from '../../src/error/auth.js';
-import { log, warn } from 'console';
 
 vi.mock('../../src/config/jwt.js', () => ({
   getJwtConfig: vi.fn(() => ({
@@ -17,7 +16,7 @@ const MockAuthService = {
 const MockReply = {
   code: vi.fn().mockReturnThis(),
   setCookie: vi.fn().mockReturnThis(),
-  cookies: {} ,
+  cookies: {},
   send: vi.fn()
 };
 
@@ -53,16 +52,25 @@ describe('AuthController - refresh', () => {
 
     await authController.refresh(mockRequest, MockReply as any);
 
-    expect(MockAuthService.refresh).toHaveBeenCalledWith({ user_id: 1 }, 'old-refresh-token');
+    expect(MockAuthService.refresh).toHaveBeenCalledWith(
+      { user_id: 1 },
+      'old-refresh-token'
+    );
     expect(MockReply.code).toHaveBeenCalledWith(200);
     // Should send only access_token (new_refresh_token is in cookie)
-    expect(MockReply.send).toHaveBeenCalledWith({ access_token: 'new-access-token' });
-    expect(MockReply.setCookie).toHaveBeenCalledWith('refresh_token', 'new-refresh-token', expect.objectContaining({
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/auth',
-      maxAge: expect.any(Number)
-    }));
+    expect(MockReply.send).toHaveBeenCalledWith({
+      access_token: 'new-access-token'
+    });
+    expect(MockReply.setCookie).toHaveBeenCalledWith(
+      'refresh_token',
+      'new-refresh-token',
+      expect.objectContaining({
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',
+        maxAge: expect.any(Number)
+      })
+    );
     expect(mockRequest.log.info).toHaveBeenCalledWith(
       { user_id: mockRequest.body.user_id },
       'Token refresh attempt'
@@ -91,7 +99,9 @@ describe('AuthController - refresh', () => {
     const error = new Error('Refresh failed');
     MockAuthService.refresh.mockRejectedValueOnce(error);
 
-    await expect(authController.refresh(mockRequest, MockReply as any)).rejects.toThrow('Refresh failed');
+    await expect(
+      authController.refresh(mockRequest, MockReply as any)
+    ).rejects.toThrow('Refresh failed');
     expect(MockReply.code).not.toHaveBeenCalled();
     expect(MockReply.send).not.toHaveBeenCalled();
     expect(mockRequest.log.info).toHaveBeenCalledWith(
@@ -133,7 +143,7 @@ describe('AuthController - refresh', () => {
       'brand-new-refresh-token',
       expect.objectContaining({
         httpOnly: true,
-        path: '/auth',
+        path: '/',
         sameSite: 'strict',
         secure: false,
         maxAge: expect.any(Number)
@@ -154,8 +164,12 @@ describe('AuthController - refresh', () => {
       }
     } as any;
 
-    await expect(authController.refresh(mockRequest, MockReply as any)).rejects.toThrow(new AuthenticationError('Refresh token cookie is missing'));
-    
+    await expect(
+      authController.refresh(mockRequest, MockReply as any)
+    ).rejects.toThrow(
+      new AuthenticationError('Refresh token cookie is missing')
+    );
+
     expect(mockRequest.log.warn).toHaveBeenCalledWith(
       { user_id: mockRequest.body.user_id },
       'Refresh token cookie is missing'
@@ -186,7 +200,9 @@ describe('AuthController - refresh', () => {
     await authController.refresh(mockRequest, MockReply as any);
 
     // Response should only contain access_token
-    expect(MockReply.send).toHaveBeenCalledWith({ access_token: 'fresh.access.token' });
+    expect(MockReply.send).toHaveBeenCalledWith({
+      access_token: 'fresh.access.token'
+    });
     expect(MockReply.send).toHaveBeenCalledWith(
       expect.not.objectContaining({ new_refresh_token: expect.anything() })
     );
@@ -221,3 +237,4 @@ describe('AuthController - refresh', () => {
     );
   });
 });
+

@@ -22,8 +22,8 @@ model User {
   created_at            DateTime @default(now())
   updated_at            DateTime @updatedAt
 
-  sent_friendships      Friendship[] @relation("sent_friendships")
-  received_friendships  Friendship[] @relation("received_friendships")
+  friendships_as_user1  Friendship[] @relation("sent_friendships")
+  friendships_as_user2  Friendship[] @relation("received_friendships")
 }
 
 model Profile {

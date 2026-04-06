@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import jwt from 'jsonwebtoken';
-import { config } from '../config';
-import { JWTPayload } from '../entity/common';
+import { config } from '../config/index.js';
+import { JWTPayload } from '../entity/common.js';
 
 // Extend FastifyRequest to include user
 declare module 'fastify' {

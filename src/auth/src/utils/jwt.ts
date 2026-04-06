@@ -23,7 +23,6 @@ export function generateAccessToken(payload: IJwtPayLoad): string {
       issuer: config.issuer,
       audience: config.audience
     } as jwt.SignOptions);
-  console.log('Access Token Generated:', token);
   return token;
 }
 

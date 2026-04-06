@@ -1,4 +1,4 @@
-import { PrismaClient, TournamentParticipant } from '../../generated/prisma/index.js';
+import { PrismaClient, TournamentParticipant, TournamentStatus } from '../../generated/prisma/index.js';
 import { TournamentRanking } from '../types/tournament.js';
 
 /**
@@ -79,19 +79,30 @@ export class TournamentParticipantDao {
   }
 
   /**
-   * Check if a user is registered in any active tournament
-   * (REGISTRATION, SCHEDULED, or IN_PROGRESS)
+   * Get the active tournament a user is participating in, if any.
+   * Active = REGISTRATION, SCHEDULED, or IN_PROGRESS and not yet eliminated.
+   * Returns tournamentId, createdBy, and tournamentStatus, or null.
    */
-  async isInActiveTournament(userId: number): Promise<boolean> {
-    const count = await this.prisma.tournamentParticipant.count({
+  async getActiveTournament(userId: number): Promise<{ tournamentId: number; createdBy: number; tournamentStatus: TournamentStatus } | null> {
+    const participant = await this.prisma.tournamentParticipant.findFirst({
       where: {
         userId,
+        eliminatedIn: null,
         tournament: {
           status: { in: ['REGISTRATION', 'SCHEDULED', 'IN_PROGRESS'] }
         }
+      },
+      select: {
+        tournamentId: true,
+        tournament: { select: { createdBy: true, status: true } }
       }
     });
-    return count > 0;
+    if (!participant) return null;
+    return {
+      tournamentId: participant.tournamentId,
+      createdBy: participant.tournament.createdBy,
+      tournamentStatus: participant.tournament.status
+    };
   }
 
   /**

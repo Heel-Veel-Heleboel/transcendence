@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { config } from '../config';
-import type { RateLimitEntry } from '../entity/common';
+import { config } from '../config/index.js';
+import type { RateLimitEntry } from '../entity/common.js';
 
 // In-memory rate limiter
 class RateLimiter {

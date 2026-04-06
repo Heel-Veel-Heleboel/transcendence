@@ -28,7 +28,7 @@ export async function registerMatchRoutes(
    * When both players have acknowledged, a Colyseus room is created on the
    * game server and the roomId is stored as gameSessionId on the match.
    */
-  server.post('/match/:matchId/acknowledge', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.post('/matchmaking/match/:matchId/acknowledge', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
     const userId = getUserIdFromHeader(request);
 
@@ -134,7 +134,7 @@ export async function registerMatchRoutes(
    * POST /match/:matchId/decline
    * Player declines the match. Match is cancelled (no scores, no winner).
    */
-  server.post('/match/:matchId/decline', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.post('/matchmaking/match/:matchId/decline', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
     const userId = getUserIdFromHeader(request);
 
@@ -150,11 +150,15 @@ export async function registerMatchRoutes(
       if (!match) {
         return reply.status(404).send({ error: 'Not Found', message: 'Match not found' });
       }
-      if (match.status !== 'PENDING_ACKNOWLEDGEMENT') {
-        return reply.status(400).send({ error: 'Bad Request', message: `Match is ${match.status}, cannot decline` });
-      }
       if (match.player1Id !== userId && match.player2Id !== userId) {
         return reply.status(403).send({ error: 'Forbidden', message: 'You are not a player in this match' });
+      }
+      if (match.status === 'CANCELLED' || match.status === 'FORFEITED') {
+        // Already declined/cancelled — idempotent, return current state
+        return reply.status(200).send({ success: true, matchId: match.id, status: match.status });
+      }
+      if (match.status !== 'PENDING_ACKNOWLEDGEMENT') {
+        return reply.status(400).send({ error: 'Bad Request', message: `Match is ${match.status}, cannot decline` });
       }
 
       let updatedMatch;
@@ -201,7 +205,7 @@ export async function registerMatchRoutes(
    * GET /match/:matchId
    * Get match details
    */
-  server.get('/match/:matchId', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.get('/matchmaking/match/:matchId', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
 
     try {
@@ -229,7 +233,7 @@ export async function registerMatchRoutes(
    * Report match result (called by game-service).
    * When isFinished is false the match is recorded as CANCELLED (premature end).
    */
-  server.post('/match/:matchId/result', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.post('/matchmaking/match/:matchId/result', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
     const { winnerId, player1Score, player2Score, isFinished } = request.body as {
       winnerId?: number;

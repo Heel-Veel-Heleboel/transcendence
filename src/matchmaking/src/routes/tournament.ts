@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { TournamentService, TournamentError } from '../services/tournament.js';
 import { TournamentLifecycleManager } from '../services/tournament-lifecycle.js';
+import { GatewayNotificationClient } from '../services/gateway-notification-client.js';
 import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
 import { GameMode, isValidGameMode } from '../types/match.js';
 import {
@@ -23,6 +24,7 @@ import {
 export async function registerTournamentRoutes(
   server: FastifyInstance,
   tournamentService: TournamentService,
+  gatewayNotificationClient: GatewayNotificationClient,
   lifecycleManager?: TournamentLifecycleManager
 ): Promise<void> {
 
@@ -45,6 +47,14 @@ export async function registerTournamentRoutes(
       return reply.status(401).send({
         error: 'Unauthorized',
         message: 'Missing x-user-id header'
+      });
+    }
+
+    const creatorUsername = getUserNameFromHeader(request);
+    if (creatorUsername === null) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-name header'
       });
     }
 
@@ -88,6 +98,7 @@ export async function registerTournamentRoutes(
         matchDurationMin: DEFAULT_MATCH_DURATION_MIN,
         ackDeadlineMin: DEFAULT_ACK_DEADLINE_MIN,
         createdBy,
+        creatorUsername,
         registrationEnd,
         startTime: null
       });
@@ -96,6 +107,12 @@ export async function registerTournamentRoutes(
 
       // Schedule registration end timer
       lifecycleManager?.onTournamentCreated(tournament);
+
+      // Broadcast to all connected users so they can update the tournament list
+      gatewayNotificationClient.broadcastEvent({
+        type: 'TOURNAMENT_UPDATE',
+        tournamentId: tournament.id
+      });
 
       return reply.status(201).send({
         success: true,
@@ -113,37 +130,6 @@ export async function registerTournamentRoutes(
       return reply.status(500).send({
         error: 'Internal Server Error',
         message: 'Failed to create tournament'
-      });
-    }
-  });
-
-  /**
-   * GET /matchmaking/tournament/status/me
-   * Check if user can create or join a tournament
-   */
-  server.get('/matchmaking/tournament/status/me', async (request: FastifyRequest, reply: FastifyReply) => {
-    const userId = getUserIdFromHeader(request);
-
-    if (userId === null) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Missing x-user-id header'
-      });
-    }
-
-    try {
-      const status = await tournamentService.getUserTournamentStatus(userId);
-
-      return reply.status(200).send({
-        canCreate: !status.hasCreatedTournament && !status.isInActiveTournament,
-        canJoin: !status.isInActiveTournament,
-        ...status
-      });
-    } catch (error) {
-      request.log.error({ error, userId }, 'Error getting user tournament status');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to get tournament status'
       });
     }
   });
@@ -232,6 +218,11 @@ export async function registerTournamentRoutes(
 
       request.log.info({ tournamentId, userId }, 'Tournament cancelled');
 
+      gatewayNotificationClient.broadcastEvent({
+        type: 'TOURNAMENT_UPDATE',
+        tournamentId
+      });
+
       return reply.status(200).send({
         success: true,
         tournament
@@ -297,6 +288,11 @@ export async function registerTournamentRoutes(
 
       request.log.info({ tournamentId, userId, full }, 'User registered for tournament');
 
+      gatewayNotificationClient.broadcastEvent({
+        type: 'TOURNAMENT_UPDATE',
+        tournamentId
+      });
+
       // If tournament is now full, trigger early registration close
       if (full) {
         lifecycleManager?.onRegistrationFull(tournamentId).catch(err => {
@@ -353,6 +349,11 @@ export async function registerTournamentRoutes(
       await tournamentService.unregister(tournamentId, userId);
 
       request.log.info({ tournamentId, userId }, 'User unregistered from tournament');
+
+      gatewayNotificationClient.broadcastEvent({
+        type: 'TOURNAMENT_UPDATE',
+        tournamentId
+      });
 
       return reply.status(200).send({
         success: true,

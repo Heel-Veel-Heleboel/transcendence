@@ -534,7 +534,7 @@ describe('ChatService', () => {
       expect(result.bothAcked).toBe(true);
     });
 
-    it('should set status to declined and notify both players when a player cancels', async () => {
+    it('should set status to declined, notify both players with matchCancelled: true when a player cancels', async () => {
       mockMessageDao.findById.mockResolvedValueOnce({
         id: 'ack-1', channelId: 'dm-1', metadata: pendingMeta(),
       });
@@ -547,8 +547,68 @@ describe('ChatService', () => {
       );
       expect(mockNotificationService.notifyUsers).toBeCalledWith([1, 2], expect.objectContaining({
         acknowledged: false,
+        matchCancelled: true,
       }));
       expect(result).toEqual({ acknowledged: false, matchId: 'match-1', gameMode: 'classic' });
+    });
+
+    it('should call matchmakingClient.decline when client is provided and player declines', async () => {
+      const mockMatchmakingClient = { decline: vi.fn().mockResolvedValue(undefined), acknowledge: vi.fn() };
+      const serviceWithClient = new ChatService(
+        mockChannelDao as any,
+        mockMessageDao as any,
+        mockNotificationService as any,
+        mockBlockService as any,
+        undefined,
+        mockMatchmakingClient as any,
+      );
+      mockMessageDao.findById.mockResolvedValueOnce({
+        id: 'ack-1', channelId: 'dm-1', metadata: pendingMeta(),
+      });
+
+      await serviceWithClient.respondToMatchAck('ack-1', 1, false);
+
+      expect(mockMatchmakingClient.decline).toBeCalledWith('match-1', 1);
+    });
+
+    it('should propagate matchmakingClient.decline error instead of swallowing it', async () => {
+      const mockMatchmakingClient = {
+        decline: vi.fn().mockRejectedValue(new Error('Matchmaking returned 500')),
+        acknowledge: vi.fn(),
+      };
+      const serviceWithClient = new ChatService(
+        mockChannelDao as any,
+        mockMessageDao as any,
+        mockNotificationService as any,
+        mockBlockService as any,
+        undefined,
+        mockMatchmakingClient as any,
+      );
+      mockMessageDao.findById.mockResolvedValueOnce({
+        id: 'ack-1', channelId: 'dm-1', metadata: pendingMeta(),
+      });
+
+      await expect(serviceWithClient.respondToMatchAck('ack-1', 1, false))
+        .rejects.toThrow('Matchmaking returned 500');
+    });
+
+    it('should call matchmakingClient.acknowledge when client is provided and player acks', async () => {
+      const mockMatchmakingClient = { acknowledge: vi.fn().mockResolvedValue({ bothReady: false, roomId: null }), decline: vi.fn() };
+      const serviceWithClient = new ChatService(
+        mockChannelDao as any,
+        mockMessageDao as any,
+        mockNotificationService as any,
+        mockBlockService as any,
+        undefined,
+        mockMatchmakingClient as any,
+      );
+      mockMessageDao.findById.mockResolvedValueOnce({
+        id: 'ack-1', channelId: 'dm-1', metadata: pendingMeta(),
+      });
+
+      await serviceWithClient.respondToMatchAck('ack-1', 1, true);
+
+      expect(mockMatchmakingClient.acknowledge).toBeCalledWith('match-1', 1);
     });
 
     it('should throw 403 if caller is not one of the matched players', async () => {

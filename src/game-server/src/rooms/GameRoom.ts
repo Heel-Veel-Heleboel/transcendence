@@ -13,7 +13,7 @@ interface GameRoomOptions {
   player2Username: string;
   gameMode: string;
   tournamentId?: number | null;
-  deadline?: string | null;  // ISO string (Date is not JSON-serializable over the wire)
+  deadline?: string | null; // ISO string (Date is not JSON-serializable over the wire)
   isGoldenGame?: boolean;
 }
 
@@ -23,6 +23,8 @@ export class GameRoom extends Room {
   state = new GameRoomState();
   engine: GameEngine;
   id = 0;
+  gameFinished = false;
+  hasCrashed = false;
 
   // Match context — used when reporting the result back to matchmaking
   matchId: string;
@@ -55,6 +57,42 @@ export class GameRoom extends Room {
 
     this.engine = new GameEngine(this);
     await this.engine.initGame();
+    setTimeout(() => {
+      this.gameFinished = true;
+    }, 10000);
+    this.setSimulationInterval(deltaTime => this.update(deltaTime));
+  }
+
+  update(_deltaTime: number) {
+    if (this.gameFinished) {
+      this.sendResult();
+    }
+  }
+
+  async sendResult() {
+    // NOTE: send game result
+    try {
+      // TODO: implement logic for picking winnerId
+      const winner = this.player1Id;
+      const response = await fetch(
+        `http://localhost:3005/match/${this.matchId}/result`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            winnerId: winner,
+            player1Score: 1,
+            player2Score: 2,
+            isFinished: true
+          })
+        }
+      );
+      console.log(response);
+      this.disconnect();
+    } catch (e: any) {
+      console.error(e);
+      // TODO: notify client that server could not finish game correctly.
+    }
   }
 
   onJoin(client: Client, _options: any) {
@@ -119,7 +157,7 @@ export class GameRoom extends Room {
       ball.physicsMesh.mesh.absolutePosition
     );
     this.id++;
-    console.log('setting ball in state: ');
+    console.log('adding hack');
     this.state.balls.set(client.sessionId, ball);
   }
 

@@ -6,7 +6,11 @@ export class NotificationService {
 
   constructor(
     private readonly channelDao: ChannelDao,
-    private readonly logger?: { info: Function; error: Function; warn: Function }
+    private readonly logger?: {
+      info: Function;
+      error: Function;
+      warn: Function;
+    }
   ) {
     this.gatewayUrl = process.env.GATEWAY_URL || 'http://localhost:3000';
   }
@@ -23,11 +27,17 @@ export class NotificationService {
       });
 
       if (!response.ok) {
-        this.logger?.warn({ status: response.status, event: event.type }, 'Gateway notify returned non-OK');
+        this.logger?.warn(
+          { status: response.status, event: event.type },
+          'Gateway notify returned non-OK'
+        );
       }
 
     } catch (error) {
-      this.logger?.error({ error, event: event.type }, 'Failed to notify via gateway');
+      this.logger?.error(
+        { error, event: event.type },
+        'Failed to notify via gateway'
+      );
     }
   }
 

@@ -1,6 +1,12 @@
 import { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import  * as Errors from '../error/user-management.js';
-import { UserDomainErrorMessages, CommonErrorMessages, ProfileDomainErrorMessages, FriendshipDomainErrorMessages } from '../constants/error-messages.js';
+import { 
+  UserDomainErrorMessages,
+  CommonErrorMessages,
+  ProfileDomainErrorMessages,
+  FriendshipDomainErrorMessages,
+  ClientErrors
+} from '../constants/error-messages.js';
 
 interface ValidationError {
   instancePath: string;
@@ -79,7 +85,13 @@ export function errorHandler(
     });
   } 
 
-
+  if (error instanceof Errors.ClientError) {
+    return reply.code(500).send({
+      statusCode: 500,
+      error: 'Internal Server Error',
+      message: ClientErrors.CLIENT_ERROR(error.name)
+    });
+  }
 
   if (isFastifyValidationError(error)) {
     const details = error.validation.map(item => ({

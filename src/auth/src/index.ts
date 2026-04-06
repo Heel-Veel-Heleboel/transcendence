@@ -3,9 +3,9 @@ import { serverInfo } from './config/server-info.js';
 const start = async () => {
   try {
     await app.listen({ port: serverInfo.PORT, host: serverInfo.HOST });
-    console.log(`Auth service is running on port ${serverInfo.PORT}`);
+    app.log.info(`Auth service is running on port ${serverInfo.PORT}`);
   } catch (err) {
-    console.error('Error starting Auth service:', err);
+    app.log.error({ err }, 'Error starting Auth service');
     process.exit(1);
   }
 };
@@ -13,13 +13,13 @@ const start = async () => {
 start();
 
 const shutDown = async () => {
-  console.log('Shutting down Auth service...');
+  app.log.info('Shutting down Auth service...');
   try {
     await app.close();
-    console.log('Auth service shut down gracefully.');
+    app.log.info('Auth service shut down gracefully.');
     process.exit(0);
   } catch (err) {
-    console.error('Error during shutdown of Auth service:', err);
+    app.log.error({ err }, 'Error during shutdown of Auth service');
     process.exit(1);
   }
 };
