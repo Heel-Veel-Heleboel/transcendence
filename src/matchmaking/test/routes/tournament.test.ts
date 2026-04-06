@@ -55,6 +55,16 @@ describe('Tournament Routes', () => {
       getMatches: vi.fn().mockResolvedValue([
         { id: 1, player1Id: 101, player2Id: 102, tournamentId: 1, status: 'PENDING' }
       ]),
+      getBracket: vi.fn().mockResolvedValue({
+        tournamentId: 1,
+        totalRounds: 2,
+        status: 'IN_PROGRESS',
+        bracket: [
+          { player1Id: 101, player1Username: 'alice', player2Id: 102, player2Username: 'bob', winnerId: null, status: 'IN_PROGRESS' },
+          { player1Id: null, player1Username: 'TBD', player2Id: null, player2Username: 'TBD', winnerId: null, status: 'TBD' },
+          { player1Id: null, player1Username: 'TBD', player2Id: null, player2Username: 'TBD', winnerId: null, status: 'TBD' }
+        ]
+      }),
       getParticipantIds: vi.fn().mockResolvedValue([101, 102, 103]),
     } as any;
 
@@ -818,11 +828,11 @@ describe('Tournament Routes', () => {
   });
 
   // ============================================================================
-  // GET /matchmaking/tournament/:id/matches - Get Matches
+  // GET /matchmaking/tournament/:id/matches - Get Bracket
   // ============================================================================
 
   describe('GET /matchmaking/tournament/:id/matches', () => {
-    it('should get tournament matches', async () => {
+    it('should return bracket for a tournament', async () => {
       const response = await server.inject({
         method: 'GET',
         url: '/matchmaking/tournament/1/matches'
@@ -830,9 +840,12 @@ describe('Tournament Routes', () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
-      expect(body.matches).toBeDefined();
-      expect(Array.isArray(body.matches)).toBe(true);
-      expect(mockTournamentService.getMatches).toHaveBeenCalledWith(1);
+      expect(body.tournamentId).toBe(1);
+      expect(body.totalRounds).toBe(2);
+      expect(body.status).toBe('IN_PROGRESS');
+      expect(Array.isArray(body.bracket)).toBe(true);
+      expect(body.bracket).toHaveLength(3);
+      expect(mockTournamentService.getBracket).toHaveBeenCalledWith(1);
     });
 
     it('should return 400 for invalid tournament ID', async () => {
@@ -847,21 +860,23 @@ describe('Tournament Routes', () => {
       expect(body.message).toContain('Invalid tournament ID');
     });
 
-    it('should return empty array when no matches', async () => {
-      vi.mocked(mockTournamentService.getMatches).mockResolvedValue([]);
+    it('should return 404 when tournament not found', async () => {
+      vi.mocked(mockTournamentService.getBracket).mockRejectedValue(
+        new TournamentError('Tournament not found', 'NOT_FOUND')
+      );
 
       const response = await server.inject({
         method: 'GET',
-        url: '/matchmaking/tournament/1/matches'
+        url: '/matchmaking/tournament/999/matches'
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body);
-      expect(body.matches).toEqual([]);
+      expect(body.error).toBe('Not Found');
     });
 
     it('should return 500 on unexpected error', async () => {
-      vi.mocked(mockTournamentService.getMatches).mockRejectedValue(
+      vi.mocked(mockTournamentService.getBracket).mockRejectedValue(
         new Error('Database error')
       );
 

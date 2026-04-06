@@ -417,7 +417,9 @@ export async function registerTournamentRoutes(
 
   /**
    * GET /matchmaking/tournament/:id/matches
-   * Get all matches for a tournament
+   * Get the bracket for a knockout tournament as a binary tree array.
+   * Index 0 = final, children of node i at 2i+1 and 2i+2.
+   * Total size = 2^totalRounds - 1. TBD nodes fill unplayed slots.
    */
   server.get('/matchmaking/tournament/:id/matches', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
@@ -431,14 +433,20 @@ export async function registerTournamentRoutes(
     }
 
     try {
-      const matches = await tournamentService.getMatches(tournamentId);
+      const bracket = await tournamentService.getBracket(tournamentId);
 
-      return reply.status(200).send({ matches });
+      return reply.status(200).send(bracket);
     } catch (error) {
-      request.log.error({ error, tournamentId }, 'Error getting matches');
+      if (error instanceof TournamentError && error.code === 'NOT_FOUND') {
+        return reply.status(404).send({
+          error: 'Not Found',
+          message: 'Tournament not found'
+        });
+      }
+      request.log.error({ error, tournamentId }, 'Error getting bracket');
       return reply.status(500).send({
         error: 'Internal Server Error',
-        message: 'Failed to get matches'
+        message: 'Failed to get bracket'
       });
     }
   });

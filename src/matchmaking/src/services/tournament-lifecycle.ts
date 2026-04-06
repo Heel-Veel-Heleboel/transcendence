@@ -190,6 +190,10 @@ export class TournamentLifecycleManager {
     if (match.tournamentId) {
       await this.tournamentService.processMatchResult(match);
       await this.activateNextRoundMatches(match.tournamentId);
+      this.gatewayNotificationClient.broadcastEvent({
+        type: 'TOURNAMENT_BRACKET_UPDATE',
+        tournamentId: match.tournamentId
+      });
     }
   }
 
@@ -326,6 +330,11 @@ export class TournamentLifecycleManager {
         this.notifyMatchPlayers(match, tournament);
       }
 
+      this.gatewayNotificationClient.broadcastEvent({
+        type: 'TOURNAMENT_BRACKET_UPDATE',
+        tournamentId
+      });
+
       this.log('info', `Tournament ${tournamentId} started, ${matches.length} matches activated`);
     } catch (error) {
       this.log('error', `Failed to start tournament ${tournamentId}`, { error });
@@ -377,6 +386,10 @@ export class TournamentLifecycleManager {
       if (updatedMatch.tournamentId) {
         await this.tournamentService.processMatchResult(updatedMatch);
         await this.activateNextRoundMatches(updatedMatch.tournamentId);
+        this.gatewayNotificationClient.broadcastEvent({
+          type: 'TOURNAMENT_BRACKET_UPDATE',
+          tournamentId: updatedMatch.tournamentId
+        });
       }
     } catch (error) {
       this.log('error', `Failed to handle match deadline for ${matchId}`, { error });

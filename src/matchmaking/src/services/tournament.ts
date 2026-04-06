@@ -5,7 +5,9 @@ import { MatchDao } from '../dao/match.js';
 import {
   CreateTournamentData,
   TournamentSummary,
-  TournamentRanking
+  TournamentRanking,
+  TournamentBracket,
+  BracketNode
 } from '../types/tournament.js';
 import { Logger } from '../types/logger.js';
 
@@ -532,6 +534,67 @@ export class TournamentService {
 
   async getMatches(tournamentId: number): Promise<Match[]> {
     return await this.matchDao.findByTournamentId(tournamentId);
+  }
+
+  /**
+   * Build a binary-tree bracket array for a knockout tournament.
+   *
+   * Layout: level-order (BFS), root = final at index 0.
+   * Total size = 2^totalRounds - 1.
+   * Unplayed/future slots are TBD nodes.
+   *
+   * Round numbering in the DB: round 1 = first round played, round N = final.
+   * Tree depth: depth 0 = root = final (round totalRounds), depth d = round (totalRounds - d).
+   */
+  async getBracket(tournamentId: number): Promise<TournamentBracket> {
+    const tournament = await this.tournamentDao.findById(tournamentId);
+
+    if (!tournament) {
+      throw new TournamentError('Tournament not found', 'NOT_FOUND');
+    }
+
+    const totalRounds = tournament.totalRounds ?? 0;
+    const treeSize = totalRounds > 0 ? Math.pow(2, totalRounds) - 1 : 0;
+
+    const tbd: BracketNode = {
+      player1Id: null,
+      player1Username: 'TBD',
+      player2Id: null,
+      player2Username: 'TBD',
+      winnerId: null,
+      status: 'TBD'
+    };
+
+    const bracket: BracketNode[] = Array.from({ length: treeSize }, () => ({ ...tbd }));
+
+    if (totalRounds === 0) {
+      return { tournamentId, totalRounds, status: tournament.status, bracket };
+    }
+
+    const matches = await this.matchDao.findByTournamentId(tournamentId);
+
+    for (const match of matches) {
+      if (match.round === null || match.bracketPosition === null) continue;
+
+      // depth in tree: final (round totalRounds) is at depth 0
+      const depth = totalRounds - match.round;
+      // first index at this depth in a level-order array
+      const depthStart = Math.pow(2, depth) - 1;
+      const index = depthStart + match.bracketPosition;
+
+      if (index < 0 || index >= treeSize) continue;
+
+      bracket[index] = {
+        player1Id: match.player1Id,
+        player1Username: match.player1Username,
+        player2Id: match.player2Id,
+        player2Username: match.player2Username,
+        winnerId: match.winnerId ?? null,
+        status: match.status
+      };
+    }
+
+    return { tournamentId, totalRounds, status: tournament.status, bracket };
   }
 
   // ============================================================================
