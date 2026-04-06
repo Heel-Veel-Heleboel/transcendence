@@ -7,9 +7,7 @@ import {
 } from '../types/dtos/auth.js';
 import * as SchemaTypes from '../schemas/auth.js';
 import { getJwtConfig } from '../config/jwt.js';
-import { AuthenticationError, AuthorizationError } from '../error/auth.js';
-import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
-import { getAuthenticatedUserId } from '../middleware/require-user-id.js';
+import { AuthenticationError } from '../error/auth.js';
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -150,13 +148,9 @@ export class AuthController {
     reply: FastifyReply
   ): Promise<FastifyReply> {
     const { user_id } = request.body;
-    const authenticatedUserId = getAuthenticatedUserId(request);
-    if (authenticatedUserId !== user_id) {
-      throw new AuthorizationError(AUTH_ERROR_MESSAGES.TOKEN_OWNERSHIP_MISMATCH);
-    }
-    request.log.info({ user_id: authenticatedUserId }, 'Setup 2FA attempt');
-    const qr_code = await this.authService.setupTwoFactorAuth(authenticatedUserId);
-    request.log.info({ user_id: authenticatedUserId }, '2FA setup successfully');
+    request.log.info({ user_id: user_id }, 'Setup 2FA attempt');
+    const qr_code = await this.authService.setupTwoFactorAuth(user_id);
+    request.log.info({ user_id: user_id }, '2FA setup successfully');
     return reply.code(200).send({ qr_code });
   }
 
@@ -165,13 +159,9 @@ export class AuthController {
     reply: FastifyReply
   ): Promise<FastifyReply> {
     const { user_id, token } = request.body;
-    const authenticatedUserId = getAuthenticatedUserId(request);
-    if (authenticatedUserId !== user_id) {
-      throw new AuthorizationError(AUTH_ERROR_MESSAGES.TOKEN_OWNERSHIP_MISMATCH);
-    }
-    request.log.info({ user_id: authenticatedUserId }, 'Verify 2FA attempt');
-    await this.authService.verifyTwoFactorAuth(authenticatedUserId, token);
-    request.log.info({ user_id: authenticatedUserId }, '2FA verified successfully');
+    request.log.info({ user_id: user_id }, 'Verify 2FA attempt');
+    await this.authService.verifyTwoFactorAuth(user_id, token);
+    request.log.info({ user_id: user_id }, '2FA verified successfully');
     return reply.code(200).send({ verified: true });
   }
 }

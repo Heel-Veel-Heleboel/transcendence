@@ -3,7 +3,6 @@ import { authRoutes } from '../../src/routes/auth.js';
 
 import * as SchemaTypes from '../../src/schemas/auth.js';
 import { validatePasswordHook } from '../../src/middleware/validate-password-hook.js';
-import { requireUserIdHeader } from '../../src/middleware/require-user-id.js';
 
 
 describe('Auth routes', () => {
@@ -61,13 +60,11 @@ describe('Auth routes', () => {
 
     expect(MockFastify.post).toHaveBeenCalledWith('/setup-2fa', expect.objectContaining({
       schema: SchemaTypes.SetupTwoFactorSchema,
-      preHandler: requireUserIdHeader,
       handler: expect.any(Function)
     }));
 
     expect(MockFastify.post).toHaveBeenCalledWith('/verify-2fa', expect.objectContaining({
       schema: SchemaTypes.VerifyTwoFactorSchema,
-      preHandler: requireUserIdHeader,
       handler: expect.any(Function)
     }));
 

@@ -24,10 +24,9 @@ import {
 import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
 import * as SchemaTypes from '../schemas/auth.js';
 
-import { TOTP } from 'otplib';
+import { generateSecret, verify, generateURI } from 'otplib';
 import QRCode from 'qrcode';
 
-const totp = new TOTP();
 /**
  * Authentication Service
  *
@@ -271,11 +270,10 @@ export class AuthService {
       if (existingTwoFactorAuth) {
         await this.twoFactorAuthDao.delete(user_id);
       }
-
-      const secret = totp.generateSecret();
+      const secret = generateSecret();
       await this.twoFactorAuthDao.create(user_id, secret);
-
-      const uri = totp.toURI({
+      
+      const uri = generateURI({
         issuer: 'Auth service',
         label: user.email,
         secret
@@ -312,7 +310,8 @@ export class AuthService {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.TWO_FACTOR_AUTH_EXPIRED);
     }
 
-    const result = await totp.verify(token, {
+    const result = await verify({
+      token: token,
       secret: twoFactorAuthData.secret,
       algorithm: 'sha1',
       digits: 6,
