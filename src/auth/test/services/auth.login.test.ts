@@ -4,10 +4,27 @@ import * as passwordHasherModule from '../../src/utils/password-hash.js';
 import * as jwtModule from '../../src/utils/jwt.js';
 import { expect, describe, beforeEach, vi, it } from 'vitest';
 import { REFRESH_TOKEN_SIZE } from '../../src/constants/jwt.js';
+import { AUTH_ERROR_MESSAGES } from '../../src/constants/auth.js';
+import { TOTP } from 'otplib';
 
 
 vi.mock('../../src/utils/password-hash.js');
 vi.mock('../../src/utils/jwt.js');
+vi.mock('otplib', () => {
+  class TOTP {
+    verify() {
+      return { valid: false };
+    }
+    generateSecret() {
+      return 'secret';
+    }
+    toURI() {
+      return 'otpauth://test';
+    }
+  }
+
+  return { TOTP };
+});
 
 const mockUserService = {
   findUserByEmail: vi.fn(),
@@ -21,6 +38,12 @@ const mockCredentialDao = {
 const mockRefreshTokenDao = {
   store: vi.fn()
 };
+const mockTwoFactorAuthDao = {
+  findByUserId: vi.fn(),
+  increaseAttempts: vi.fn(),
+  resetAttempts: vi.fn(),
+  enable: vi.fn()
+};
 
 
 describe('AuthService - Login', () => {
@@ -29,7 +52,13 @@ describe('AuthService - Login', () => {
 
   beforeEach(()=>{
     vi.clearAllMocks();
-    authService = new AuthService(mockUserService as any, mockCredentialDao as any, mockRefreshTokenDao as any);
+    mockTwoFactorAuthDao.findByUserId.mockResolvedValue(null);
+    authService = new AuthService(
+      mockUserService as any,
+      mockCredentialDao as any,
+      mockRefreshTokenDao as any,
+      mockTwoFactorAuthDao as any
+    );
   });
 
   /**
@@ -257,6 +286,100 @@ describe('AuthService - Login', () => {
     await expect(authService.login(loginDto)).rejects.toThrow('Invalid signing key');
 
     expect(mockRefreshTokenDao.store).not.toHaveBeenCalled();
+  });
+
+  it('should require 2FA token when 2FA is enabled', async () => {
+    const loginDto = {
+      email: 'test@user.com',
+      password: 'TestPassword123!'
+    };
+
+    const mockUser = {
+      id: 1,
+      email: 'test@user.com',
+      username: 'testuser'
+    };
+    const mockStoredCredentials = {
+      user_id: 1,
+      hashed_password: '$2b$10$hashed_password'
+    };
+
+    mockUserService.findUserByEmail.mockResolvedValue(mockUser);
+    mockCredentialDao.findByUserId.mockResolvedValue(mockStoredCredentials);
+    mockTwoFactorAuthDao.findByUserId.mockResolvedValue({
+      user_id: 1,
+      secret: 'secret',
+      enabled: true,
+      attempts: 0,
+      expires_at: null,
+      created_at: new Date(),
+      updated_at: new Date()
+    });
+    vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
+
+    await expect(authService.login(loginDto)).rejects.toThrow(AuthenticationError);
+    await expect(authService.login(loginDto)).rejects.toThrow(
+      AUTH_ERROR_MESSAGES.TWO_FACTOR_REQUIRED
+    );
+
+    expect(jwtModule.generateAccessToken).not.toHaveBeenCalled();
+    expect(jwtModule.generateRefreshToken).not.toHaveBeenCalled();
+    expect(mockRefreshTokenDao.store).not.toHaveBeenCalled();
+  });
+
+  it('should allow login with valid 2FA token when enabled', async () => {
+    const loginDto = {
+      email: 'test@user.com',
+      password: 'TestPassword123!',
+      two_factor_token: '123456'
+    };
+
+    const mockUser = {
+      id: 1,
+      email: 'test@user.com',
+      username: 'testuser'
+    };
+    const mockStoredCredentials = {
+      user_id: 1,
+      hashed_password: '$2b$10$hashed_password'
+    };
+
+    const mockAccessToken = '24raffw.wffwfwf34w.fwfwf65';
+    const mockRefreshTokenResult = {
+      id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
+      refresh_token: 'a1b2c3d4e5f64a5b8c9d0e1f2a3b4c5d',
+      hashed_refresh_token: 'fv233h2fv233h2b4v2vn2jnmn24m42m42b42nbteb4v2vn2jnmn24m42m42b42nb'
+    };
+
+    mockUserService.findUserByEmail.mockResolvedValue(mockUser);
+    mockCredentialDao.findByUserId.mockResolvedValue(mockStoredCredentials);
+    mockTwoFactorAuthDao.findByUserId.mockResolvedValue({
+      user_id: 1,
+      secret: 'secret',
+      enabled: true,
+      attempts: 0,
+      expires_at: null,
+      created_at: new Date(),
+      updated_at: new Date()
+    });
+
+    vi.spyOn(passwordHasherModule, 'comparePasswordHash').mockResolvedValue(true);
+    vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
+    vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
+    mockRefreshTokenDao.store.mockResolvedValue(undefined);
+    vi.spyOn(TOTP.prototype, 'verify').mockReturnValue({ valid: true });
+
+    const result = await authService.login(loginDto);
+
+    expect(TOTP.prototype.verify).toHaveBeenCalled();
+    expect(mockTwoFactorAuthDao.resetAttempts).toHaveBeenCalledWith(mockUser.id, null);
+    expect(result).toEqual({
+      access_token: mockAccessToken,
+      refresh_token: mockRefreshTokenResult.refresh_token,
+      id: mockUser.id,
+      name: mockUser.username,
+      email: mockUser.email
+    });
   });
 
   /**

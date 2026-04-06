@@ -9,6 +9,7 @@ const mockUserService = {
 const mockCredentialsDao = {
   create: vi.fn()
 };
+const mockTwoFactorAuthDao = {};
 
 describe('AuthService - register', () => {
   let authService: AuthService;
@@ -18,7 +19,8 @@ describe('AuthService - register', () => {
     authService = new AuthService(
       mockUserService as any,
       mockCredentialsDao as any,
-      {} as any 
+      {} as any,
+      mockTwoFactorAuthDao as any
     );
   });
 

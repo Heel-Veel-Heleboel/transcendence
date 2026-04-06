@@ -3,6 +3,7 @@ import { authRoutes } from '../../src/routes/auth.js';
 
 import * as SchemaTypes from '../../src/schemas/auth.js';
 import { validatePasswordHook } from '../../src/middleware/validate-password-hook.js';
+import { requireUserIdHeader } from '../../src/middleware/require-user-id.js';
 
 
 describe('Auth routes', () => {
@@ -21,11 +22,13 @@ describe('Auth routes', () => {
       logout: vi.fn(),
       refresh: vi.fn(),
       changePassword: vi.fn(),
-      deleteAuthDataForUser: vi.fn()
+      deleteAuthDataForUser: vi.fn(),
+      setupTwoFactorAuth: vi.fn(),
+      verifyTwoFactorAuth: vi.fn()
     };
     await authRoutes(MockFastify as any, { authController: MockControllers as any });
 
-    expect(MockFastify.post).toBeCalledTimes(4);
+    expect(MockFastify.post).toBeCalledTimes(6);
     expect(MockFastify.put).toBeCalledTimes(1);
     expect(MockFastify.delete).toBeCalledTimes(1);
     expect(MockFastify.get).toBeCalledTimes(0);
@@ -34,21 +37,37 @@ describe('Auth routes', () => {
       preHandler: validatePasswordHook,
       handler: expect.any(Function)
     }));
+
     expect(MockFastify.put).toHaveBeenCalledWith('/change-password', expect.objectContaining({
       schema: SchemaTypes.ChangePasswordSchema,
       preHandler: validatePasswordHook,
       handler: expect.any(Function)
     }));
+
     expect(MockFastify.post).toHaveBeenCalledWith('/login', expect.objectContaining({
       schema: SchemaTypes.LoginSchema,
       handler: expect.any(Function)
     }));
+
     expect(MockFastify.post).toHaveBeenCalledWith('/logout', expect.objectContaining({
       schema: SchemaTypes.LogoutSchema,
       handler: expect.any(Function)
     }));
+
     expect(MockFastify.post).toHaveBeenCalledWith('/refresh', expect.objectContaining({
       schema: SchemaTypes.RefreshSchema,
+      handler: expect.any(Function)
+    }));
+
+    expect(MockFastify.post).toHaveBeenCalledWith('/setup-2fa', expect.objectContaining({
+      schema: SchemaTypes.SetupTwoFactorSchema,
+      preHandler: requireUserIdHeader,
+      handler: expect.any(Function)
+    }));
+
+    expect(MockFastify.post).toHaveBeenCalledWith('/verify-2fa', expect.objectContaining({
+      schema: SchemaTypes.VerifyTwoFactorSchema,
+      preHandler: requireUserIdHeader,
       handler: expect.any(Function)
     }));
 
@@ -63,5 +82,7 @@ describe('Auth routes', () => {
     expect(MockControllers.refresh).not.toBeCalled();
     expect(MockControllers.changePassword).not.toBeCalled();
     expect(MockControllers.deleteAuthDataForUser).not.toBeCalled();
+    expect(MockControllers.setupTwoFactorAuth).not.toBeCalled();
+    expect(MockControllers.verifyTwoFactorAuth).not.toBeCalled();
   });
 });

@@ -1,6 +1,7 @@
 import { UserManagementClient } from '../client/user-management.js';
 import { ICredentialsDao } from '../types/daos/credentials.js';
 import { IRefreshTokenDao } from '../types/daos/refresh-token.js';
+import { ITwoFactorAuthDao } from '../types/daos/2fa.js';
 import {
   SafeUserDto,
   LoggedInUserDto,
@@ -23,6 +24,10 @@ import {
 import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
 import * as SchemaTypes from '../schemas/auth.js';
 
+import { TOTP } from 'otplib';
+import QRCode from 'qrcode';
+
+const totp = new TOTP();
 /**
  * Authentication Service
  *
@@ -36,7 +41,8 @@ export class AuthService {
   constructor(
     private readonly userService: UserManagementClient,
     private readonly credentialsDao: ICredentialsDao,
-    private readonly refreshTokenDao: IRefreshTokenDao
+    private readonly refreshTokenDao: IRefreshTokenDao,
+    private readonly twoFactorAuthDao: ITwoFactorAuthDao
   ) {}
 
 
@@ -86,6 +92,13 @@ export class AuthService {
       ))
     ) {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
+    }
+    const twoFactorAuthData = await this.twoFactorAuthDao.findByUserId(user.id);
+    if (twoFactorAuthData?.enabled) {
+      if (!login.two_factor_token) {
+        throw new AuthenticationError(AUTH_ERROR_MESSAGES.TWO_FACTOR_REQUIRED);
+      }
+      await this.verifyTwoFactorAuth(user.id, login.two_factor_token);
     }
 
     const access_token = generateAccessToken({
@@ -240,5 +253,82 @@ export class AuthService {
     await this.credentialsDao.deleteByUserId({ user_id });
     await this.refreshTokenDao.revokeAllByUserId({ user_id });
     await this.refreshTokenDao.purgeRevokedExpired();
+    await this.twoFactorAuthDao.delete(user_id);
+  }
+
+
+
+  async setupTwoFactorAuth(user_id: number): Promise<string> {
+    try {
+      const user = await this.userService.findByUserId(user_id);
+      if (!user) {
+        throw new ResourceNotFoundError(
+          AUTH_ERROR_MESSAGES.USER_NOT_FOUND_BY_ID(user_id)
+        );
+      }
+
+      const existingTwoFactorAuth = await this.twoFactorAuthDao.findByUserId(user_id);
+      if (existingTwoFactorAuth) {
+        await this.twoFactorAuthDao.delete(user_id);
+      }
+
+      const secret = totp.generateSecret();
+      await this.twoFactorAuthDao.create(user_id, secret);
+
+      const uri = totp.toURI({
+        issuer: 'Auth service',
+        label: user.email,
+        secret
+      });
+
+      const qrDataUrl = await QRCode.toDataURL(uri);
+      return qrDataUrl;
+    } catch {
+      throw new Error(AUTH_ERROR_MESSAGES.TWO_FACTOR_SETUP_FAILED);
+    }
+  }
+
+  
+
+  async enableTwoFactorAuth(user_id: number): Promise<void> {
+    await this.twoFactorAuthDao.enable(user_id);
+  }
+
+
+
+
+  async verifyTwoFactorAuth(user_id: number, token: string): Promise<boolean> {
+    const twoFactorAuthData = await this.twoFactorAuthDao.findByUserId( user_id );
+    if (!twoFactorAuthData) {
+      throw new ResourceNotFoundError(
+        AUTH_ERROR_MESSAGES.TWO_FACTOR_AUTH_NOT_FOUND_BY_USER_ID(user_id)
+      );
+    }
+
+    if (twoFactorAuthData.attempts >= 5) {
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.TWO_FACTOR_AUTH_MAX_ATTEMPTS);
+    }
+    if (!twoFactorAuthData.enabled && twoFactorAuthData.expires_at && twoFactorAuthData.expires_at <= new Date()) {
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.TWO_FACTOR_AUTH_EXPIRED);
+    }
+
+    const result = await totp.verify(token, {
+      secret: twoFactorAuthData.secret,
+      algorithm: 'sha1',
+      digits: 6,
+      period: 30
+    });
+    if (!result.valid) {
+      await this.twoFactorAuthDao.increaseAttempts(user_id);
+      throw new AuthenticationError(AUTH_ERROR_MESSAGES.TWO_FACTOR_INVALID_TOKEN);
+    }
+
+    if (twoFactorAuthData.enabled) {
+      await this.twoFactorAuthDao.resetAttempts(user_id, null);
+      return true;
+    }
+
+    await this.enableTwoFactorAuth(user_id);
+    return true;
   }
 }

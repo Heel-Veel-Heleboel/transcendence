@@ -21,6 +21,7 @@ const MockRefreshTokenDao = {
   revokeAllByUserId: vi.fn(),
   purgeRevokedExpired: vi.fn()
 };
+const MockTwoFactorAuthDao = {};
 
 describe('AuthService - changePassword', () => {
   let authService: AuthService;
@@ -33,7 +34,8 @@ describe('AuthService - changePassword', () => {
     authService = new AuthService(
       MockUserService as any, 
       MockCredentialsDao as any,
-      MockRefreshTokenDao as any
+      MockRefreshTokenDao as any,
+      MockTwoFactorAuthDao as any
     );
   });
 

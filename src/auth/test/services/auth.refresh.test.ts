@@ -29,6 +29,7 @@ const mockRefreshTokenDao = {
   findById: vi.fn(),
   revoke: vi.fn()
 };
+const mockTwoFactorAuthDao = {};
 
 describe('AuthService - refresh', () => {
   let authService: AuthService;
@@ -38,7 +39,8 @@ describe('AuthService - refresh', () => {
     authService = new AuthService(
       mockUserService as any,
       mockCredentialsDao as any,
-      mockRefreshTokenDao as any
+      mockRefreshTokenDao as any,
+      mockTwoFactorAuthDao as any
     );
   });
 
