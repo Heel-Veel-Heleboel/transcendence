@@ -275,7 +275,7 @@ export class AuthService {
       const secret = totp.generateSecret();
       await this.twoFactorAuthDao.create(user_id, secret);
 
-      const uri = totp.keyuri({
+      const uri = totp.toURI({
         issuer: 'Auth service',
         label: user.email,
         secret
@@ -312,15 +312,13 @@ export class AuthService {
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.TWO_FACTOR_AUTH_EXPIRED);
     }
 
-    const result = await totp.verify({
-      token,
+    const result = await totp.verify(token, {
       secret: twoFactorAuthData.secret,
       algorithm: 'sha1',
       digits: 6,
-      step: 30
-
+      period: 30
     });
-    if (!result) {
+    if (!result.valid) {
       await this.twoFactorAuthDao.increaseAttempts(user_id);
       throw new AuthenticationError(AUTH_ERROR_MESSAGES.TWO_FACTOR_INVALID_TOKEN);
     }

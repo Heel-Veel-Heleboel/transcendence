@@ -8,12 +8,12 @@ import QRCode from 'qrcode';
 vi.mock('otplib', () => {
   class TOTP {
     verify() {
-      return false;
+      return { valid: false };
     }
     generateSecret() {
       return 'secret';
     }
-    keyuri() {
+    toURI() {
       return 'otpauth://test';
     }
   }
@@ -61,7 +61,7 @@ describe('AuthService - Two Factor Auth', () => {
     });
     mockTwoFactorAuthDao.findByUserId.mockResolvedValue(null);
     vi.spyOn(TOTP.prototype, 'generateSecret').mockReturnValue('secret');
-    vi.spyOn(TOTP.prototype, 'keyuri').mockReturnValue('otpauth://test');
+    vi.spyOn(TOTP.prototype, 'toURI').mockReturnValue('otpauth://test');
     (QRCode.toDataURL as unknown as vi.Mock).mockResolvedValue('data:image/png;base64,qr');
 
     const result = await authService.setupTwoFactorAuth(1);
@@ -80,7 +80,7 @@ describe('AuthService - Two Factor Auth', () => {
       created_at: new Date(),
       updated_at: new Date()
     });
-    vi.spyOn(TOTP.prototype, 'verify').mockReturnValue(true);
+    vi.spyOn(TOTP.prototype, 'verify').mockReturnValue({ valid: true });
 
     const result = await authService.verifyTwoFactorAuth(1, '123456');
 
@@ -99,7 +99,7 @@ describe('AuthService - Two Factor Auth', () => {
       created_at: new Date(),
       updated_at: new Date()
     });
-    vi.spyOn(TOTP.prototype, 'verify').mockReturnValue(false);
+    vi.spyOn(TOTP.prototype, 'verify').mockReturnValue({ valid: false });
 
     await expect(authService.verifyTwoFactorAuth(1, '123456')).rejects.toThrow(AuthenticationError);
     await expect(authService.verifyTwoFactorAuth(1, '123456')).rejects.toThrow(

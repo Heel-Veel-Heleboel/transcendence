@@ -13,12 +13,12 @@ vi.mock('../../src/utils/jwt.js');
 vi.mock('otplib', () => {
   class TOTP {
     verify() {
-      return false;
+      return { valid: false };
     }
     generateSecret() {
       return 'secret';
     }
-    keyuri() {
+    toURI() {
       return 'otpauth://test';
     }
   }
@@ -367,7 +367,7 @@ describe('AuthService - Login', () => {
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
     mockRefreshTokenDao.store.mockResolvedValue(undefined);
-    vi.spyOn(TOTP.prototype, 'verify').mockReturnValue(true);
+    vi.spyOn(TOTP.prototype, 'verify').mockReturnValue({ valid: true });
 
     const result = await authService.login(loginDto);
 
