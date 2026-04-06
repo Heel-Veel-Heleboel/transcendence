@@ -1,13 +1,14 @@
 import { JSX } from "react"
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/providers/Auth.tsx";
-import { ENTRY_NAVIGATION, HOME_NAVIGATION } from "../../shared/constants/navigation.ts";
+import { ENTRY_NAVIGATION, HOME_NAVIGATION, TWO_FACTOR_NAVIGATION } from "../../shared/constants/navigation.ts";
 
 /* v8 ignore start */
 
 export function LoginForm(): JSX.Element {
     const auth = useAuth();
     const navigate = useNavigate();
+
     async function submit(form: FormData) {
         const email = form.get("email") as string;
         const user_name = form.get("username") as string;
@@ -30,8 +31,12 @@ export function LoginForm(): JSX.Element {
             await auth.logIn({ email, password });
             navigate(HOME_NAVIGATION);
         } catch (e: any) {
-            alert('log in failed')
-            console.error(e);
+            if (e.response.status === 401) {
+                navigate(TWO_FACTOR_NAVIGATION, { state: { email, password } })
+            } else {
+                alert('log in failed')
+                console.error(e);
+            }
         }
     };
     return (

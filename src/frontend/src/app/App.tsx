@@ -11,7 +11,7 @@ import { Tournament } from '../pages/Tournament.tsx';
 import { VisitorProfile } from '../pages/VisitorProfile.tsx';
 import { Relationships } from '../pages/Relationships.tsx';
 import { GeneralErrorFallback } from '../features/errors/GeneralErrorFallBack.tsx';
-import { GAME_NAVIGATION, ENTRY_PAGE, REGISTER_PAGE, LOGIN_PAGE, START_MENU_PAGE, CREDITS_PAGE, HOME_PAGE, PROFILE_PAGE, USER_PAGE, RELATIONSHIPS_PAGE, VISITOR_PAGE, TOURNAMENT_BASE, TOURNAMENT_PAGE } from '../shared/constants/navigation.ts';
+import { GAME_NAVIGATION, ENTRY_PAGE, REGISTER_PAGE, LOGIN_PAGE, START_MENU_PAGE, CREDITS_PAGE, HOME_PAGE, PROFILE_PAGE, USER_PAGE, RELATIONSHIPS_PAGE, VISITOR_PAGE, TOURNAMENT_BASE, TOURNAMENT_PAGE, TWO_FACTOR_PAGE } from '../shared/constants/navigation.ts';
 import { Entry } from '../pages/Entry.tsx';
 import { Register } from '../pages/Register.tsx';
 import { Credits } from '../pages/Credits.tsx';
@@ -20,6 +20,7 @@ import { NotFound } from '../features/errors/NotFound.tsx';
 import { PrivateRoutes } from '../components/routing/PrivateRoutes.tsx';
 import { AutoLogin } from '../components/routing/AutoLoginRoutes.tsx';
 import { UserProvider } from '../components/providers/User.tsx';
+import { TwoFactorLogin } from '../pages/TwoFactorLogin.tsx';
 
 /* v8 ignore start */
 export function App() {
@@ -47,6 +48,7 @@ export function App() {
                                     <Route index element={<Entry />} />
                                     <Route path={REGISTER_PAGE} element={<Register />} />
                                     <Route path={LOGIN_PAGE} element={<Login />} />
+                                    <Route path={TWO_FACTOR_PAGE} element={<TwoFactorLogin />} />
                                 </Route   >
                             </Route>
                             <Route path={CREDITS_PAGE} element={<Credits />} />

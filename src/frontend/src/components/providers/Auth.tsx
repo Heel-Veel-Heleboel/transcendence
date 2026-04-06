@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             }
             return response
         } catch (e: any) {
-            console.error(e);
+            console.log(e);
             // TODO: error handling
             throw e
         }
@@ -107,6 +107,28 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             } else {
                 throw new Error(`${response.status}`);
             }
+            return response
+        } catch (e: any) {
+            console.error(e);
+            // TODO: error handling
+            throw e
+        }
+    }
+
+    async function setTwoFactor() {
+        try {
+            const response = await service.setTwoFactor({ user_id: Number(userId) })
+            return response
+        } catch (e: any) {
+            console.error(e);
+            // TODO: error handling
+            throw e
+        }
+    }
+
+    async function verifyTwoFactor(token: string) {
+        try {
+            const response = await service.verifyTwoFactor({ user_id: Number(userId), token })
             return response
         } catch (e: any) {
             console.error(e);
@@ -174,7 +196,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, isLoading, userId, token, register, logIn, logOut, refresh, setPassword }} >
+        <AuthContext.Provider value={{ isAuthenticated, isLoading, userId, token, register, logIn, logOut, refresh, setTwoFactor, verifyTwoFactor, setPassword }} >
             {children}
         </ AuthContext.Provider>
     )
