@@ -67,7 +67,7 @@ services:
     container_name: auth
     build:
       context: src/auth
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3003:3003"
       - "51213:51213" # prisma studio

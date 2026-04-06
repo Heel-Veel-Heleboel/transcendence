@@ -1,0 +1,32 @@
+FROM node:24-alpine
+
+# create non-privileged user and group
+RUN addgroup -S appgroup && adduser -S app -G appgroup
+
+# create and own workdir
+WORKDIR /app
+RUN chown app:appgroup /app
+
+# add dependenies
+RUN apk add --no-cache python3 make g++
+copy prisma.config.ts ./
+
+# copy package files as root (safe) then set ownership so app can write
+COPY package.json package-lock.json ./
+RUN chown app:appgroup package.json package-lock.json
+
+# install dependencies as app (now owns files)
+RUN npm install
+
+# add other configuration
+COPY tsconfig.json ./
+COPY keys ./keys/
+COPY src ./src/
+COPY .env* ./
+
+# copy rest of files as root but set ownership in one step
+COPY --chown=app:appgroup . .
+USER app
+
+EXPOSE 3003
+CMD ["npm", "run", "dev"]
