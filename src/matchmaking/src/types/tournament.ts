@@ -1,4 +1,4 @@
-import { TournamentStatus } from '../../generated/prisma/index.js';
+import { TournamentStatus, MatchStatus } from '../../generated/prisma/index.js';
 
 /**
  * Type definitions for Tournament operations
@@ -87,7 +87,7 @@ export interface BracketNode {
   player2Id: number | null;
   player2Username: string;
   winnerId: number | null;
-  status: string;
+  status: MatchStatus | 'TBD';
 }
 
 /**
