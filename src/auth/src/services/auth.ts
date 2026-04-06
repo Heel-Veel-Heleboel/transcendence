@@ -24,8 +24,10 @@ import {
 import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
 import * as SchemaTypes from '../schemas/auth.js';
 
-import { totp } from 'otplib';
+import { TOTP } from 'otplib';
 import QRCode from 'qrcode';
+
+const totp = new TOTP();
 /**
  * Authentication Service
  *
@@ -251,6 +253,7 @@ export class AuthService {
     await this.credentialsDao.deleteByUserId({ user_id });
     await this.refreshTokenDao.revokeAllByUserId({ user_id });
     await this.refreshTokenDao.purgeRevokedExpired();
+    await this.twoFactorAuthDao.delete(user_id);
   }
 
 
