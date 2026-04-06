@@ -8,7 +8,7 @@ import {
 import * as SchemaTypes from '../schemas/auth.js';
 import { getJwtConfig } from '../config/jwt.js';
 import { AuthenticationError, AuthorizationError } from '../error/auth.js';
-import { AUTH_ERROR_MESSAGES, AUTH_PREFIX } from '../constants/auth.js';
+import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
 import { getAuthenticatedUserId } from '../middleware/require-user-id.js';
 
 export class AuthController {
