@@ -271,7 +271,6 @@ export class AuthService {
         await this.twoFactorAuthDao.delete(user_id);
       }
       const secret = generateSecret();
-      console.log('Generating 2FA secret for user_id:', user_id);
       await this.twoFactorAuthDao.create(user_id, secret);
       
       const uri = generateURI({
