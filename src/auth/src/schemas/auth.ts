@@ -86,13 +86,13 @@ export const DeleteAuthDataSchema = {
   body: DeleteAuthDataSchemaBody
 };
 
-//enable 2fa schema
-export const EnableTwoFactorSchemaBody = Type.Object({
+//setup 2fa schema
+export const SetupTwoFactorSchemaBody = Type.Object({
   user_id: Type.Number()
 });
-export type EnableTwoFactorSchemaType = Static<typeof EnableTwoFactorSchemaBody>;
-export const EnableTwoFactorSchema = {
-  body: EnableTwoFactorSchemaBody
+export type SetupTwoFactorSchemaType = Static<typeof SetupTwoFactorSchemaBody>;
+export const SetupTwoFactorSchema = {
+  body: SetupTwoFactorSchemaBody
 };
 
 //verify 2fa schema
