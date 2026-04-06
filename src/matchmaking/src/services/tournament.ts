@@ -541,10 +541,17 @@ export class TournamentService {
    *
    * Layout: level-order (BFS), root = final at index 0.
    * Total size = 2^totalRounds - 1.
-   * Unplayed/future slots are TBD nodes.
+   * Unplayed/future slots are TBD nodes; bye slots show the real player + BYE opponent.
    *
    * Round numbering in the DB: round 1 = first round played, round N = final.
    * Tree depth: depth 0 = root = final (round totalRounds), depth d = round (totalRounds - d).
+   *
+   * Bye-slot index formula (round 1 only):
+   *   Bye players occupy the first `byeCount` positions at the leaf level.
+   *   Round 1 matches are shifted right: leafDepthStart + byeCount + bracketPosition.
+   *   byeCount = leafSlots - round1MatchCount  (where leafSlots = 2^(totalRounds-1))
+   *
+   * For rounds > 1, byes no longer shift positions: depthStart + bracketPosition.
    */
   async getBracket(tournamentId: number): Promise<TournamentBracket> {
     const tournament = await this.tournamentDao.findById(tournamentId);
@@ -573,14 +580,25 @@ export class TournamentService {
 
     const matches = await this.matchDao.findByTournamentId(tournamentId);
 
+    const leafDepthStart = Math.pow(2, totalRounds - 1) - 1;
+    const leafSlots = Math.pow(2, totalRounds - 1);
+    const round1MatchCount = matches.filter(m => m.round === 1).length;
+    const byeCount = leafSlots - round1MatchCount;
+
+    // Populate match nodes
     for (const match of matches) {
       if (match.round === null || match.bracketPosition === null) continue;
 
-      // depth in tree: final (round totalRounds) is at depth 0
-      const depth = totalRounds - match.round;
-      // first index at this depth in a level-order array
-      const depthStart = Math.pow(2, depth) - 1;
-      const index = depthStart + match.bracketPosition;
+      let index: number;
+      if (match.round === 1) {
+        // Round 1 matches are shifted right past the bye slots at the leaf level
+        index = leafDepthStart + byeCount + match.bracketPosition;
+      } else {
+        // All later rounds: straightforward level-order mapping
+        const depth = totalRounds - match.round;
+        const depthStart = Math.pow(2, depth) - 1;
+        index = depthStart + match.bracketPosition;
+      }
 
       if (index < 0 || index >= treeSize) continue;
 
@@ -592,6 +610,28 @@ export class TournamentService {
         winnerId: match.winnerId ?? null,
         status: match.status
       };
+    }
+
+    // Populate bye slots: first byeCount positions at the leaf level.
+    // Bye players are the lowest-seeded participants (seed 1..byeCount).
+    // Leaf position i corresponds to the player with seed i+1.
+    if (byeCount > 0) {
+      const participants = await this.participantDao.findByTournament(tournamentId);
+      const byePlayers = participants
+        .filter(p => p.seed !== null && p.seed <= byeCount)
+        .sort((a, b) => (a.seed ?? 0) - (b.seed ?? 0));
+
+      for (let i = 0; i < byePlayers.length; i++) {
+        const p = byePlayers[i];
+        bracket[leafDepthStart + i] = {
+          player1Id: p.userId,
+          player1Username: p.username,
+          player2Id: null,
+          player2Username: 'BYE',
+          winnerId: p.userId,
+          status: 'BYE'
+        };
+      }
     }
 
     return { tournamentId, totalRounds, status: tournament.status, bracket };

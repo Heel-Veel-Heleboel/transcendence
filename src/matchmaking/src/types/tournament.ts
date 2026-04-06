@@ -87,7 +87,7 @@ export interface BracketNode {
   player2Id: number | null;
   player2Username: string;
   winnerId: number | null;
-  status: MatchStatus | 'TBD';
+  status: MatchStatus | 'TBD' | 'BYE';
 }
 
 /**
