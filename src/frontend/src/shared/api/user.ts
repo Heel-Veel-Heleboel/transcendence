@@ -1,4 +1,11 @@
 import { AxiosRequestConfig } from 'axios';
+import api from './api';
+import { IDeleteUser, IGetUser, ISetEmail, ISetUsername } from '../types/user';
+import {
+  IGetProfile,
+  IGetProfileAvatar,
+  ISetProfileAvatar
+} from '../types/profile';
 
 export class UserService {
   private base: string;
@@ -7,69 +14,80 @@ export class UserService {
     this.base = 'users';
   }
 
-  getUser(userId: string) {
+  async getUser(data: IGetUser) {
     const config = {
-      url: this.base + '/find-by-id/' + userId
+      url: this.base + '/find-by-id/' + data.userId
     } as AxiosRequestConfig;
-    return config;
+    const response = api(config);
+    return response;
   }
 
-  getProfile(userId: string) {
+  async getProfile(data: IGetProfile) {
     const config = {
-      url: this.base + '/profile/find-by-id/' + userId
+      url: this.base + '/profile/find-by-id/' + data.userId
     } as AxiosRequestConfig;
-    return config;
+    const response = api(config);
+    return response;
   }
 
-  getProfileAvatar(avatarUrl: string) {
+  async getProfileAvatar(data: IGetProfileAvatar) {
     const config = {
-      url: this.base + avatarUrl,
+      url: this.base + data.avatarUrl,
       responseType: 'blob'
     } as AxiosRequestConfig;
-    return config;
+    const response = api(config);
+    return response;
   }
 
-  postProfileAvatar(userId: string) {
+  setProfileAvatar(data: ISetProfileAvatar) {
     const config = {
-      url: this.base + '/profile/upload-avatar/' + userId,
+      url: this.base + '/profile/upload-avatar/' + data.userId,
       method: 'POST',
       headers: {
         'Content-Type': 'multipart/form-data'
-      }
+      },
+      data: data.data
     } as AxiosRequestConfig;
-    return config;
+    const response = api(config);
+    return response;
   }
 
-  patchUsername() {
+  setUsername(data: ISetUsername) {
     const config = {
       url: this.base + '/update-name',
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      data: JSON.stringify(data)
     } as AxiosRequestConfig;
-    return config;
+    const response = api(config);
+    return response;
   }
 
-  patchEmail() {
+  setEmail(data: ISetEmail) {
     const config = {
       url: this.base + '/update-email',
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      data: JSON.stringify(data)
     } as AxiosRequestConfig;
-    return config;
+    const response = api(config);
+    return response;
   }
 
-  deleteUser() {
+  deleteUser(data: IDeleteUser) {
     const config = {
       url: this.base + '/delete',
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      data: JSON.stringify({ user_id: Number(data.user_id) })
     } as AxiosRequestConfig;
-    return config;
+    const response = api(config);
+    return response;
   }
 }

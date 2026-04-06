@@ -1,22 +1,33 @@
-import { AxiosRequestConfig } from 'axios';
+import { AxiosResponse } from 'axios';
 
 export interface ICredentials {
   email: string;
-  username: string;
+  user_name: string;
   password: string;
 }
 
-export interface IAuthContext {
-  token: string | null;
-  userId: string;
-  register: Function;
-  logIn: Function;
-  logOut: Function;
-  refresh: Function;
-  gotoLogin: Function;
-  service: IAuthService;
+export interface ILogin {
+  email: string;
+  password: string;
 }
 
-export interface IAuthService {
-  putPassword: () => AxiosRequestConfig;
+export interface ISetPassword {
+  user_id: string;
+  current_password: string;
+  new_password: string;
+}
+
+export interface IAuthContext {
+  isAuthenticated: boolean | null;
+  isLoading: boolean;
+  userId: string;
+  token: string;
+  register: (data: ICredentials) => Promise<AxiosResponse>;
+  logIn: (data: ILogin) => Promise<AxiosResponse>;
+  logOut: () => Promise<AxiosResponse>;
+  refresh: () => Promise<AxiosResponse>;
+  setPassword: (data: {
+    current_password: string;
+    new_password: string;
+  }) => Promise<AxiosResponse>;
 }

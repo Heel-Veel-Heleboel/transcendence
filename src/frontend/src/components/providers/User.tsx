@@ -1,48 +1,109 @@
 
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useContext, } from 'react';
 import { UserService } from '../../shared/api/user';
 import { useAuth } from './Auth';
 import { IUserService } from '../../shared/types/user';
 
-const instance = new UserService();
-const defaultUserService = {
-    getUser: () => instance.getUser('0'),
-    getProfile: () => instance.getProfile('0'),
-    getProfileAvatar: (url: string) => instance.getProfileAvatar(url),
-    postProfileAvatar: () => instance.postProfileAvatar('0'),
-    patchUsername: () => instance.patchUsername(),
-    patchEmail: () => instance.patchEmail(),
-    deleteUser: () => instance.deleteUser()
+const service = new UserService();
+
+const UserServiceContext = createContext<IUserService | undefined>(undefined);
+
+export function useUserService() {
+    const userContext = useContext(UserServiceContext);
+    if (userContext === undefined) {
+        throw new Error('useUserService has to be used within UserProvide');
+    }
+    return userContext;
 }
 
-
-const UserServiceContext = createContext<IUserService>(
-    defaultUserService
-);
-
-export function useUserService() { return useContext(UserServiceContext); }
-
 export function UserProvider({ children }: { children: ReactNode }) {
-    const [userService, setUserService] = useState<IUserService>(defaultUserService)
     const auth = useAuth();
 
-    useEffect(() => {
-        setUserService(
-            {
-                getUser: () => instance.getUser(auth.userId),
-                getProfile: () => instance.getProfile(auth.userId),
-                getProfileAvatar: (url: string) => instance.getProfileAvatar(url),
-                postProfileAvatar: () => instance.postProfileAvatar(auth.userId),
-                patchUsername: () => instance.patchUsername(),
-                patchEmail: () => instance.patchEmail(),
-                deleteUser: () => instance.deleteUser(),
-            }
-        )
-    }, [auth.userId])
+    async function getProfile() {
+        try {
+            const response = service.getProfile({ userId: auth.userId });
+            return (response);
+        } catch (e: any) {
+            console.error(e);
+            throw e
+        }
+    }
+
+    async function getUser() {
+        try {
+            const response = service.getUser({ userId: auth.userId });
+            return (response);
+        } catch (e: any) {
+            console.error(e);
+            throw e
+        }
+    }
+
+    async function getProfileAvatar(url: string) {
+        try {
+            const response = service.getProfileAvatar({ avatarUrl: url });
+            return (response);
+        } catch (e: any) {
+            console.error(e);
+            throw e
+        }
+    }
+
+    async function setProfileAvatar(data: FormData) {
+        try {
+            const response = await service.setProfileAvatar({ userId: auth.userId, data });
+            return (response);
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e;
+        }
+    }
+
+    async function setUsername(user_name: string) {
+        try {
+            const response = await service.setUsername({ user_id: auth.userId, user_name });
+            return response
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e;
+        }
+    }
+
+    async function setEmail(user_email: string) {
+        try {
+            const response = await service.setEmail({ user_id: auth.userId, user_email });
+            return response;
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e;
+        }
+    }
+
+    async function deleteUser() {
+        try {
+            const response = await service.deleteUser({ user_id: auth.userId });
+            return response;
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e;
+        }
+    }
 
     return (
-        <UserServiceContext.Provider value={userService}>
+        <UserServiceContext.Provider value={{
+            getProfile,
+            getUser,
+            getProfileAvatar,
+            setProfileAvatar,
+            setUsername,
+            setEmail,
+            deleteUser,
+        }}>
             {children}
-        </UserServiceContext.Provider>
+        </UserServiceContext.Provider >
     );
 }

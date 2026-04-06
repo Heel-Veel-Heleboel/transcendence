@@ -1,27 +1,37 @@
 import { BaseSyntheticEvent, Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react";
 import { useUserService } from "../../components/providers/User";
-import useAxios from "axios-hooks";
 import { IProfile } from "../../shared/types/profile";
 import { DEFAULT_AVATAR, DEFAULT_PROFILE } from "../../shared/constants/defaults";
 
 export function ProfileAvatar() {
     const userService = useUserService();
-    const [profileResult] = useAxios(userService.getProfile());
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<boolean>(false);
     const [profile, setProfile] = useState<IProfile>(DEFAULT_PROFILE);
 
     useEffect(() => {
-        if (profileResult.data) {
-            setProfile(profileResult.data)
+        async function getProfile() {
+            try {
+                const result = await userService.getProfile();
+                setProfile(result.data);
+            } catch (e: any) {
+                setError(true);
+            } finally {
+                setLoading(false);
+            }
         }
-    }, [profileResult.data])
+        getProfile();
+    }, [])
 
-    if (profileResult.loading) {
-        <ProfileAvatarContainer>
-            <div>loading</div>
-        </ProfileAvatarContainer>
+    if (loading) {
+        return (
+            <ProfileAvatarContainer>
+                <div>loading</div>
+            </ProfileAvatarContainer>
+        )
     }
 
-    if (profileResult.error) {
+    if (error) {
         return (
             <ProfileAvatarContainer>
                 <div>error</div>
@@ -60,25 +70,37 @@ export function ProfileName({ name }: { name: string }) {
 export function ProfilePicture({ profile }: { profile: IProfile }) {
     const [image, setImage] = useState<string>(DEFAULT_AVATAR);
     const userService = useUserService();
-    const [avatarResult] = useAxios(userService.getProfileAvatar(profile.avatar_url));
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<boolean>(false);
 
     useEffect(() => {
-        console.log('avatarResult')
-        console.log(avatarResult);
-        if (avatarResult.data) {
-            const imageObjectUrl = URL.createObjectURL(avatarResult.data);
-            setImage(imageObjectUrl);
+        async function getProfileAvatar() {
+            try {
+                if (profile.avatar_url === null) {
+                    throw new Error('no avatar');
+                }
+                const result = await userService.getProfileAvatar(profile.avatar_url);
+                const imageObjectUrl = URL.createObjectURL(result.data);
+                setImage(imageObjectUrl);
+            } catch (e: any) {
+                console.error(e);
+                setError(true);
+            } finally {
+                setLoading(false);
+            }
         }
-    }, [avatarResult])
+        getProfileAvatar();
+    }, [])
 
-    if (avatarResult.loading) {
-        <ProfilePictureContainer>
-            <div>loading</div>
-        </ProfilePictureContainer>
+    if (loading) {
+        return (
+            <ProfilePictureContainer>
+                <div>loading</div>
+            </ProfilePictureContainer>
+        )
     }
 
-    if (avatarResult.error) {
-        console.log(avatarResult.error);
+    if (error) {
     }
 
     return (
@@ -106,12 +128,11 @@ export function ProfilePictureContainer({ children }: { children: ReactNode }) {
 
 export function ProfilePictureForm({ setImage }: { setImage: Dispatch<SetStateAction<string>> }) {
     const userService = useUserService();
-    const [, postAvatar] = useAxios(userService.postProfileAvatar(), { manual: true });
     const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
     async function uploadFiles(formData: FormData) {
         try {
-            await postAvatar({ data: formData },);
+            await userService.setProfileAvatar(formData);
             if (selectedFiles) {
                 const imageObjectUrl = URL.createObjectURL(selectedFiles[0]);
                 setImage(imageObjectUrl);

@@ -1,16 +1,19 @@
 import { JSX } from "react";
-import { START_MENU_PAGE } from "../../shared/constants/Constants.ts";
 import { MenuOption } from "./MenuOption.tsx";
 import { CONFIG } from "../../shared/config/AppConfig.ts";
+import { useNavigate } from "react-router-dom";
+import { START_MENU_NAVIGATION } from "../../shared/constants/navigation.ts";
 
 /* v8 ignore start */
-export function Credits({ redirect }: { redirect: (page: number) => void }): JSX.Element {
+export function CreditsContainer(): JSX.Element {
+    const navigate = useNavigate();
+
     return (
-        <div className="flex flex-col justify-between min-h-full text-white">
+        <div id='credits-container' className="flex flex-col justify-between min-h-full text-white">
             <div />
             <CreditsSectionMembers />
             <CreditsSectionServices />
-            <MenuOption text={CONFIG.CREDITS_MENU_RETURN_TEXT} margin={0} callback={() => redirect(START_MENU_PAGE.MENU)} />
+            <MenuOption text={CONFIG.CREDITS_MENU_RETURN_TEXT} margin={0} callback={() => navigate(START_MENU_NAVIGATION)} />
             <div />
         </div>
     )
@@ -18,7 +21,7 @@ export function Credits({ redirect }: { redirect: (page: number) => void }): JSX
 
 export function CreditsSectionMembers(): JSX.Element {
     return (
-        <div>
+        <div id="credits-members">
             <CreditsSectionTitle title="Members" />
             <CreditsSectionContentCenter value="amysiv" />
             <CreditsSectionContentCenter value="spenning" />
@@ -30,7 +33,7 @@ export function CreditsSectionMembers(): JSX.Element {
 
 export function CreditsSectionServices(): JSX.Element {
     return (
-        <div>
+        <div id="credits-services">
             <CreditsSectionTitle title="services" />
             <CreditsSectionContentSplit Key="api-gateway" value="vshkonda" />
             <CreditsSectionContentSplit Key="frontend" value="spenning" />
