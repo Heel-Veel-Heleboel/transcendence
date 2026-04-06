@@ -24,7 +24,7 @@ import {
 import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
 import * as SchemaTypes from '../schemas/auth.js';
 
-import { generateSecret, verify, generateURI} from 'otplib';
+import { generateSecret, verify, generateURI } from 'otplib';
 import QRCode from 'qrcode';
 
 /**

@@ -8,7 +8,6 @@ import {
 import * as SchemaTypes from '../schemas/auth.js';
 import { getJwtConfig } from '../config/jwt.js';
 import { AuthenticationError } from '../error/auth.js';
-import { AUTH_PREFIX } from '../constants/auth.js';
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
