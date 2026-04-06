@@ -104,6 +104,6 @@ export interface BracketNode {
 export interface TournamentBracket {
   tournamentId: number;
   totalRounds: number;
-  status: string;
+  status: TournamentStatus;
   bracket: BracketNode[];
 }
