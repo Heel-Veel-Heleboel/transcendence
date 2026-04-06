@@ -31,8 +31,8 @@ export function composeDependencies() {
   const profRepository = new ProfileRepository(prisma);
   const friendRepository = new FriendshipRepository(prisma);
 
-  const userService = new UserService(userRepository, authClient);
-  const profService = new ProfileService(profRepository);
+  const userService = new UserService(userRepository, authClient, apiGatewayClient);
+  const profService = new ProfileService(profRepository, apiGatewayClient);
   const friendService = new FriendshipService(friendRepository, apiGatewayClient);
 
   const userController = new UserController(userService);

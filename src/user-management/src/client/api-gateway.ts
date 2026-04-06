@@ -3,7 +3,7 @@ import { ClientError } from '../error/user-management.js';
 
 export interface WebSocketEvent {
   type: string;
-  friendship_id: number;
+  [key: string]: unknown;
 }
 
 export class ApiGatewayClient{
@@ -12,10 +12,10 @@ export class ApiGatewayClient{
     private readonly timeout: number
   ) {}
 
-  async notifyAddressee(user2_id: number, event: WebSocketEvent): Promise<void> {
+  async notifyUsers(userIds: number[], event: WebSocketEvent): Promise<void> {
     try {
-      await axios.post(`${this.baseUrl}/internal/ws/notify `, {
-        userIds: [user2_id],
+      await axios.post(`${this.baseUrl}/internal/ws/notify`, {
+        userIds,
         event
       }, {
         timeout: this.timeout,
@@ -26,5 +26,9 @@ export class ApiGatewayClient{
     } catch {
       throw new ClientError('APIGatewayClient');
     }
+  }
+
+  async notifyAddressee(user2_id: number, event: WebSocketEvent): Promise<void> {
+    return this.notifyUsers([user2_id], event);
   }
 }

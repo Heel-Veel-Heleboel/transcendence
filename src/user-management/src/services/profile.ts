@@ -1,10 +1,14 @@
 
 import { ProfileRepository } from '../repositories/profile.js';
 import { ProfileResponseDto } from '../dto/profile.js';
+import { ApiGatewayClient } from '../client/api-gateway.js';
 
 
 export class ProfileService {
-  constructor(private readonly profileRepository: ProfileRepository) {}
+  constructor(
+    private readonly profileRepository: ProfileRepository,
+    private readonly apiGatewayClient: ApiGatewayClient
+  ) {}
 
   async getProfileByUserId(user_id: number) : Promise<ProfileResponseDto | null> {
     const profile = await this.profileRepository.findByUserId({ user_id });
@@ -31,6 +35,8 @@ export class ProfileService {
 
 
   async uploadUrl(user_id: number, pub_url: string) : Promise<string | null> {
-    return await this.profileRepository.uploadAvatarUrl({ user_id: user_id, avatar_url: pub_url });
+    const result = await this.profileRepository.uploadAvatarUrl({ user_id: user_id, avatar_url: pub_url });
+    await this.apiGatewayClient.notifyUsers([user_id], { type: 'USER_AVATAR_UPDATED', user_id, avatar_url: pub_url });
+    return result;
   }
 }

@@ -1,9 +1,14 @@
 import { UserRepository } from '../repositories/user.js';
 import * as SchemaTypes  from '../schemas/user.js';
 import { AuthClient } from '../client/auth.js';
+import { ApiGatewayClient } from '../client/api-gateway.js';
 
 export class UserService {
-  constructor(private readonly userRepository: UserRepository, private readonly authClient: AuthClient) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly authClient: AuthClient,
+    private readonly apiGatewayClient: ApiGatewayClient
+  ) {}
 
   async createUser(input: SchemaTypes.CreateUserSchemaType): Promise<{ id: number }> {
     return await this.userRepository.create( { email: input.user_email, name: input.user_name });
@@ -18,18 +23,21 @@ export class UserService {
 
   async updateUserEmail(input: SchemaTypes.UpdateUserEmailSchemaType): Promise<void> {
     await this.userRepository.updateEmail({ id: input.user_id, email: input.user_email });
+    await this.apiGatewayClient.notifyUsers([input.user_id], { type: 'USER_EMAIL_UPDATED', user_id: input.user_id, email: input.user_email });
   }
 
 
 
   async updateUserName(input: SchemaTypes.UpdateUserNameSchemaType): Promise<void> {
     await this.userRepository.updateName({ id: input.user_id, name: input.user_name });
-  } 
+    await this.apiGatewayClient.notifyUsers([input.user_id], { type: 'USER_NAME_UPDATED', user_id: input.user_id, name: input.user_name });
+  }
 
 
 
   async updateStatus(input: SchemaTypes.UpdateUserStatusSchemaType): Promise<void> {
     await this.userRepository.updateStatus({ id: input.user_id, activity_status: input.activity_status });
+    await this.apiGatewayClient.notifyUsers([input.user_id], { type: 'USER_STATUS_UPDATED', user_id: input.user_id, activity_status: input.activity_status });
   }
 
 
