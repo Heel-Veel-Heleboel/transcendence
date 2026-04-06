@@ -2,7 +2,6 @@ services:
 
   # ─── API Gateway ────────────────────────────────────────────────────────────
   api-gateway:
-    container_name: api-gateway
     build:
       context: src/api-gateway
       dockerfile: Dockerfile
@@ -14,6 +13,11 @@ services:
       - PORT=3000
       - HOST=0.0.0.0
       - SERVICES_FILE=/app/config/services.json
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
+    labels:
+      prometheus.scrape: "true"
+      prometheus.port: "3000"
     depends_on:
       auth:
         condition: service_started
@@ -35,7 +39,6 @@ services:
 
   # ─── Frontend ───────────────────────────────────────────────────────────────
   frontend:
-    container_name: frontend
     build:
       context: src/frontend
       dockerfile: Dockerfile
@@ -53,7 +56,6 @@ services:
 
   # ─── Auth ───────────────────────────────────────────────────────────────────
   auth:
-    container_name: auth
     build:
       context: src/auth
       dockerfile: Dockerfile
@@ -65,6 +67,12 @@ services:
       - PORT=3003
       - HOST=0.0.0.0
       - DATABASE_URL=file:/data/auth.db
+      - JWT_PRIVATE_KEY_PATH=/app/keys/jwt_private.pem
+      - JWT_PUBLIC_KEY_PATH=/app/keys/jwt_public.pem
+      - USER_MANAGEMENT_URL=http://user-management:3004
+    labels:
+      prometheus.scrape: "true"
+      prometheus.port: "3003"
     volumes:
       - auth-data:/data
     networks:
@@ -77,7 +85,6 @@ services:
 
   # ─── User Management ────────────────────────────────────────────────────────
   user-management:
-    container_name: user-management
     build:
       context: src/user-management
       dockerfile: Dockerfile
@@ -89,6 +96,10 @@ services:
       - PORT=3004
       - HOST=0.0.0.0
       - DATABASE_URL=file:/data/user-management.db
+      - AUTH_SERVICE_URL=http://auth:3003
+    labels:
+      prometheus.scrape: "true"
+      prometheus.port: "3004"
     volumes:
       - user-management-data:/data
     networks:
@@ -101,7 +112,6 @@ services:
 
   # ─── Matchmaking ────────────────────────────────────────────────────────────
   matchmaking:
-    container_name: matchmaking
     build:
       context: src/matchmaking
       dockerfile: Dockerfile
@@ -113,6 +123,12 @@ services:
       - PORT=3005
       - HOST=0.0.0.0
       - DATABASE_URL=file:/data/matchmaking.db
+      - GAME_SERVER_URL=http://game-server:2567
+      - CHAT_SERVICE_URL=http://chat:3006
+      - USER_MANAGEMENT_URL=http://user-management:3004
+    labels:
+      prometheus.scrape: "true"
+      prometheus.port: "3005"
     volumes:
       - matchmaking-data:/data
     networks:
@@ -125,7 +141,6 @@ services:
 
   # ─── Chat ───────────────────────────────────────────────────────────────────
   chat:
-    container_name: chat
     build:
       context: src/chat
       dockerfile: Dockerfile
@@ -137,6 +152,10 @@ services:
       - PORT=3006
       - HOST=0.0.0.0
       - DATABASE_URL=file:/data/chat.db
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3002
+    labels:
+      prometheus.scrape: "true"
+      prometheus.port: "3006"
     volumes:
       - chat-data:/data
     networks:
@@ -149,7 +168,6 @@ services:
 
   # ─── Game Server ─────────────────────────────────────────────────────────────
   game-server:
-    container_name: game-server
     build:
       context: src/game-server
       dockerfile: Dockerfile
@@ -173,4 +191,5 @@ volumes:
 
 networks:
   app-net:
+    name: transcendence-app
     driver: bridge

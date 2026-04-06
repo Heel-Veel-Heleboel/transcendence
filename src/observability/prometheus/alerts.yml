@@ -22,18 +22,6 @@ groups:
           description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
           dashboard: "http://localhost:3001/d/api-gateway"
 
-      # Circuit breaker opened
-      - alert: CircuitBreakerOpened
-        expr: circuit_breaker_state == 1
-        for: 1m
-        labels:
-          severity: critical
-          service: "{{ $labels.service }}"
-        annotations:
-          summary: "Circuit breaker OPEN for {{ $labels.service }}"
-          description: "Service {{ $labels.service }} circuit breaker is in OPEN state, rejecting requests"
-          dashboard: "http://localhost:3001/d/circuit-breaker"
-
       # High response time (p95 > 1 second)
       - alert: HighResponseTime
         expr: |
@@ -86,33 +74,6 @@ groups:
         annotations:
           summary: "Service {{ $labels.job }} is flapping"
           description: "{{ $labels.job }} has restarted {{ $value }} times in the last 10 minutes"
-
-  # Circuit Breaker Specific Alerts
-  - name: circuit_breaker_alerts
-    interval: 15s
-    rules:
-      # High failure rate (may lead to circuit opening)
-      - alert: HighCircuitBreakerFailureRate
-        expr: |
-          rate(circuit_breaker_failures_total[2m]) > 0.5
-        for: 1m
-        labels:
-          severity: warning
-          service: "{{ $labels.service }}"
-        annotations:
-          summary: "High failure rate for {{ $labels.service }}"
-          description: "{{ $labels.service }} is experiencing {{ $value }} failures/sec (may trip circuit breaker)"
-
-      # Circuit breaker in HALF_OPEN state for too long
-      - alert: CircuitBreakerStuckHalfOpen
-        expr: circuit_breaker_state == 2
-        for: 5m
-        labels:
-          severity: warning
-          service: "{{ $labels.service }}"
-        annotations:
-          summary: "Circuit breaker stuck in HALF_OPEN for {{ $labels.service }}"
-          description: "{{ $labels.service }} circuit breaker has been in HALF_OPEN state for over 5 minutes"
 
   # Authentication Alerts
   - name: auth_alerts
