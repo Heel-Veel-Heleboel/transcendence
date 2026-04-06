@@ -440,7 +440,8 @@ export async function registerTournamentRoutes(
       if (error instanceof TournamentError && error.code === 'NOT_FOUND') {
         return reply.status(404).send({
           error: 'Not Found',
-          message: 'Tournament not found'
+          message: 'Tournament not found',
+          code: error.code
         });
       }
       request.log.error({ error, tournamentId }, 'Error getting bracket');
