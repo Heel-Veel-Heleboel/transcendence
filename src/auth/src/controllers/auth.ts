@@ -7,8 +7,9 @@ import {
 } from '../types/dtos/auth.js';
 import * as SchemaTypes from '../schemas/auth.js';
 import { getJwtConfig } from '../config/jwt.js';
-import { AuthenticationError } from '../error/auth.js';
-import { AUTH_PREFIX } from '../constants/auth.js';
+import { AuthenticationError, AuthorizationError } from '../error/auth.js';
+import { AUTH_ERROR_MESSAGES, AUTH_PREFIX } from '../constants/auth.js';
+import { getAuthenticatedUserId } from '../middleware/require-user-id.js';
 
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -135,14 +136,18 @@ export class AuthController {
     return reply.code(204).send();
   }
 
-  async setupTwoFactorAuth(
-    request: FastifyRequest<{ Body: SchemaTypes.EnableTwoFactorSchemaType }>,
+  async setUpTwoFactorAuth(
+    request: FastifyRequest<{ Body: SchemaTypes.SetupTwoFactorSchemaType }>,
     reply: FastifyReply
   ): Promise<FastifyReply> {
     const { user_id } = request.body;
-    request.log.info({ user_id }, 'Setup 2FA attempt');
-    const qr_code = await this.authService.setUpTwoFactorAuth(user_id);
-    request.log.info({ user_id }, '2FA setup successfully');
+    const authenticatedUserId = getAuthenticatedUserId(request);
+    if (authenticatedUserId !== user_id) {
+      throw new AuthorizationError(AUTH_ERROR_MESSAGES.TOKEN_OWNERSHIP_MISMATCH);
+    }
+    request.log.info({ user_id: authenticatedUserId }, 'Setup 2FA attempt');
+    const qr_code = await this.authService.setUpTwoFactorAuth(authenticatedUserId);
+    request.log.info({ user_id: authenticatedUserId }, '2FA setup successfully');
     return reply.code(200).send({ qr_code });
   }
 
@@ -151,9 +156,13 @@ export class AuthController {
     reply: FastifyReply
   ): Promise<FastifyReply> {
     const { user_id, token } = request.body;
-    request.log.info({ user_id }, 'Verify 2FA attempt');
-    await this.authService.verifyTwoFactorAuth(user_id, token);
-    request.log.info({ user_id }, '2FA verified successfully');
+    const authenticatedUserId = getAuthenticatedUserId(request);
+    if (authenticatedUserId !== user_id) {
+      throw new AuthorizationError(AUTH_ERROR_MESSAGES.TOKEN_OWNERSHIP_MISMATCH);
+    }
+    request.log.info({ user_id: authenticatedUserId }, 'Verify 2FA attempt');
+    await this.authService.verifyTwoFactorAuth(authenticatedUserId, token);
+    request.log.info({ user_id: authenticatedUserId }, '2FA verified successfully');
     return reply.code(200).send({ verified: true });
   }
 }
