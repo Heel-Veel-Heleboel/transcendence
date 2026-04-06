@@ -1,8 +1,8 @@
 import useWebSocket from "react-use-websocket";
-import { CONFIG } from "../../constants/AppConfig";
 import { useAuth } from "../providers/Auth";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { CONFIG } from "../../shared/config/AppConfig";
 
 export function useNotifications() {
     const [chatUpdate, setChatUpdate] = useState<number>(0);

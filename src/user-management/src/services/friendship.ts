@@ -7,7 +7,8 @@ import {
   GetFriendshipDto,
   FindAllForUserDto,
   IsBlockedDto,
-  FindAllByStatusForUserDto
+  FindAllByStatusForUserDto,
+  FriendshipDto
 } from '../dto/friendship.js';
 import { ApiGatewayClient, WebSocketEvent  } from '../client/api-gateway.js';
 
@@ -58,6 +59,10 @@ export class FriendshipService {
     return this.friendshipRepository.findById({ id: data.id });
   }
 
+
+  async getFriendshipBetween(data: FriendshipDto): Promise<Friendship | null> {
+    return this.friendshipRepository.findBetween({ userId1: data.userId1, userId2: data.userId2 });
+  }
 
 
   async getUserFriendships(data: FindAllForUserDto): Promise<Friendship[]> {

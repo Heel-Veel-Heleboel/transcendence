@@ -8,11 +8,11 @@ import {
     ReactNode,
     JSX
 } from 'react'
-import { CONFIG } from '../../constants/AppConfig';
 import { useNavigate } from 'react-router-dom';
-import api from '../../api.ts';
-import { getCookie, createCookie } from '../utils/cookies';
-import { ERRORS } from '../../constants/Errors.ts';
+import { CONFIG } from '../../shared/config/AppConfig.ts';
+import api from '../../shared/api/api.ts';
+import { createCookie, getCookie } from '../../shared/utils/cookies.ts';
+import { ERRORS } from '../../shared/errors/Errors.ts';
 
 interface ICredentials {
     email: string;
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
     useEffect(() => {
         async function fetchAccess() {
-            refreshAttempt();
+            refresh();
         }
 
         fetchAccess();
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             return config;
         }, async (error) => {
             if (error.response.status === 403) {
-                refreshAttempt();
+                refresh();
                 // TODO: check if following if statement works when access_token is actually implemented
                 if (token === null)
                     return Promise.reject(error);
@@ -154,17 +154,9 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             setToken(response.data.access_token);
         } catch (e: any) {
             console.error(e);
-            setToken(null);
+            gotoLogin();
         } finally {
             isFetching.current = false;
-        }
-    }
-
-    function refreshAttempt() {
-        try {
-            refresh();
-        } catch {
-            gotoLogin();
         }
     }
 

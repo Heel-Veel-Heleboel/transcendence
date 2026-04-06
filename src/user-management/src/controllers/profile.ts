@@ -6,9 +6,7 @@ import fs from 'fs';
 import util from 'util';
 import path from 'path';
 import crypto  from 'crypto';
-import { env } from '../config/env.js';
 import * as ProfileSchema from '../schemas/profile.js';
-import { ProfileErrors } from '../constants/error-messages.js';
 
 
 const pump = util.promisify(pipeline);
@@ -48,27 +46,27 @@ export class ProfileController {
 
   async uploadAvatar( request: FastifyRequest< {Params: { user_id: number }}>, reply: FastifyReply): Promise<FastifyReply> {
 
-    const file = await request.file({ limits: { fileSize: env.FILE_SIZE_LIMIT } });
+    const file = await request.file({ limits: { fileSize: 1024 * 1024 } });
 
     if (!file) {
-      return reply.status(400).send({ message: ProfileErrors.NO_FILE_UPLOADED });
+      return reply.status(400).send({ message: 'No file uploaded' });
     }
 
     const user_id = request.params.user_id;
 
-    const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR || 'uploads');
+    const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR || '/uploads');
     fs.mkdirSync(uploadDir, { recursive: true });
 
     const file_extension = path.extname(file.filename).toLowerCase();
 
     if (!file.mimetype.startsWith('image/')) {
       file.file.resume();
-      return reply.status(400).send({ message: ProfileErrors.INVALID_FILE_TYPE });
+      return reply.status(400).send({ message: 'Invalid file type' });
     }
 
     if (!allowedExtensions.includes(file_extension)) {
       file.file.resume(); 
-      return reply.status(400).send({ message: ProfileErrors.INVALID_FILE_EXTENSION });
+      return reply.status(400).send({ message: 'Invalid file extension' });
     }
 
     const unique_filename = crypto.randomUUID() + file_extension;
@@ -79,15 +77,15 @@ export class ProfileController {
     } catch (error) {
       await fs.promises.unlink(filePath).catch(() => {});
       request.log.error({ error }, 'Error uploading file');
-      return reply.status(500).send({ message: ProfileErrors.UPLOAD_AVATAR_FAILED });
+      return reply.status(500).send({ message: 'Upload failed' });
     }
 
     if (file.file.truncated) {
       await fs.promises.unlink(filePath).catch(() => {});
-      return reply.code(413).send({ message: ProfileErrors.FILE_TOO_LARGE });
+      return reply.code(413).send({ message: 'File too large' });
     }
 
-    const pub_url = `${process.env.PREFIX || '/users/uploads/'}${unique_filename}`;
+    const pub_url = `${process.env.PREFIX || '/uploads/'}${unique_filename}`;
     const result = await this.profileService.uploadUrl(user_id, pub_url);
 
     return reply.code(200).send({

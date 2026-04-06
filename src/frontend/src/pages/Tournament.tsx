@@ -1,11 +1,10 @@
 import { JSX, useEffect, useState } from "react";
-import { MainContainer } from "../components/sections/MainContainer";
+import api from "../shared/api/api";
+import { CONFIG } from "../shared/config/AppConfig";
+import { MainContainer } from "../components/layout/MainContainer";
 import { useParams } from "react-router-dom";
-import api from "../api";
-import { CONFIG } from "../constants/AppConfig";
-import { ITournament } from "../types/matchmaking.ts";
-import { Terminal } from "../components/utils/MenuUtils";
-
+import { ITournament } from "../shared/types/matchmaking";
+import { Terminal } from "../components/layout/Terminal";
 
 export function Tournament(): JSX.Element {
     const { tournamentId } = useParams()
@@ -106,14 +105,18 @@ export function TournamentContent({ tournament }: { tournament: ITournament | nu
                 <div className="flex flex-col">
                     <div className="h-1/10"></div>
                     <div className="h-8/10">
-                        <Terminal title="participants" child={<div> content</div>} />
+                        <Terminal title="participants" >
+                            <div> content</div>
+                        </Terminal >
                     </div>
                     <div className="h-1/10"></div>
                 </div>
                 <div className="flex flex-col">
                     <div className="h-1/10"></div>
                     <div className="h-8/10">
-                        <Terminal title="participants" child={<div> content</div>} />
+                        <Terminal title="participants" >
+                            child={<div> content</div>}
+                        </Terminal >
                     </div>
                     <div className="h-1/10"></div>
                 </div>

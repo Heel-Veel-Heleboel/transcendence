@@ -49,6 +49,20 @@ export class FriendshipController {
     res.status(200).send(friendship);
   }
 
+  async getFriendshipBetween(req: FastifyRequest<{ Params: { userId1: number; userId2: number } }>, res: FastifyReply): Promise<void> {
+    const { userId1, userId2 } = req.params;
+
+    req.log.info(`Retrieving friendship between user ${userId1} and user ${userId2}`);
+    const friendship = await this.friendshipService.getFriendshipBetween({ userId1, userId2 });
+    if (!friendship) {
+      req.log.warn(`Friendship between ${userId1} and ${userId2} not found`);
+      res.status(404).send({ message: 'Friendship not found' });
+      return;
+    }
+    req.log.info(`Friendship between ${userId1} and ${userId2} retrieved successfully`);
+    res.status(200).send(friendship);
+  }
+
 
 
 

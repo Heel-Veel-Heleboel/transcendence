@@ -31,6 +31,11 @@ export interface FindByUsersDto {
   userId2: number;
 }
 
+export interface FriendshipDto {
+  userId1: number;
+  userId2: number;
+}
+
 
 
 export interface FindAllForUserDto {

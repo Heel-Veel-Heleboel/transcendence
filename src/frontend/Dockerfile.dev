@@ -1,24 +1,26 @@
-# Use the latest LTS version of Node.js
 FROM node:24-alpine
 
-# Run as a non-privileged user
+# create non-privileged user and group
 RUN addgroup -S appgroup && adduser -S app -G appgroup
+
+# create and own workdir
+WORKDIR /app
+RUN chown app:appgroup /app
+
+# copy package files as root (safe) then set ownership so app can write
+COPY package.json package-lock.json ./
+RUN chown app:appgroup package.json package-lock.json
+
+# switch to non-root user
 USER app
 
-# Set the working directory inside the container
-WORKDIR /app
- 
-# Copy package.json and package-lock.json
-COPY package*.json ./
- 
-# Install dependencies
+# install dependencies as app (now owns files)
 RUN npm install
- 
-# Copy the rest of your application files
-COPY --chown=app:app . .
- 
-# Expose the port your app runs on
+
+# copy rest of files as root but set ownership in one step
+USER root
+COPY --chown=app:appgroup . .
+USER app
+
 EXPOSE 5173
- 
-# Define the command to run your app
 CMD ["npm", "start"]
