@@ -1,21 +1,12 @@
-import { BaseSyntheticEvent, JSX, useEffect, useState } from "react"
+import { JSX } from "react"
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../components/providers/Auth";
 import { ProfileContainer } from "../features/profile/ProfileContainer";
-import { ProfileAvatarContainer, ProfileName, ProfilePicture, ProfilePictureForm } from "../features/profile/ProfileAvatar";
+import { ProfileAvatar } from "../features/profile/ProfileAvatar";
 import { ProfileProperties, ProfilePropertiesPrimary, ProfilePropertiesSecundary } from "../features/profile/ProfileProperties";
-import { Username } from "../features/profile/Username";
-import { Email } from "../features/profile/Email";
-import { Password } from "../features/profile/Password";
-import { DeleteAccount } from "../features/profile/DeleteAccount";
-import { ProfileRelationships } from "../features/profile/ProfileRelationships";
-import api from "../shared/api/api";
 import { CONFIG } from "../shared/config/AppConfig";
-import { getCookie } from "../shared/utils/cookies";
-import { ERRORS } from "../shared/errors/Errors";
 import { MainContainer } from "../components/layout/MainContainer";
 import { Widget } from "../components/layout/Widget";
-import { IProfile, IUser } from "../shared/types/profile";
 
 /* v8 ignore start */
 
@@ -38,130 +29,11 @@ export function Profile(): JSX.Element {
 }
 
 export function UserProfileContent(): JSX.Element {
-    const [profile, setProfile] = useState<IProfile | null>(null);
-    const [user, setUser] = useState<IUser | null>(null);
-    const [name, setName] = useState<string>('mysterio');
-    const [email, setEmail] = useState<string>('mysterio@myster.io');
-    const [image, setImage] = useState<string>(CONFIG.PROFILE_DEFAULT_LOGO);
-    const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
-
-    async function uploadFiles(formData: FormData) {
-        try {
-            const response = await api.post(CONFIG.REQUEST_PROFILE_PICTURE_UPLOAD + user?.id, formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-
-            console.log("Upload successful:", response.data);
-            alert("Files uploaded!");
-            for (const value of formData.values()) {
-                console.log(value);
-            }
-            if (selectedFiles) {
-                const imageObjectUrl = URL.createObjectURL(selectedFiles[0]);
-                setImage(imageObjectUrl);
-            }
-        } catch (error) {
-            console.error("Error uploading files:", error);
-            alert("Upload failed.");
-        }
-    };
-
-    async function handleFileChange(event: BaseSyntheticEvent) {
-        setSelectedFiles(event.target.files);
-    };
-
-    async function handleSubmit(event: BaseSyntheticEvent) {
-        event.preventDefault();
-
-        if (!selectedFiles) {
-            alert("Please select files first!");
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append("images", selectedFiles[0]);
-
-        await uploadFiles(formData);
-    };
-
-    useEffect(() => {
-        async function getUser() {
-            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
-            try {
-                const result = await api<IUser>({
-                    url: CONFIG.REQUEST_USER + user_id
-                })
-                setUser(result.data);
-                setName(result.data.name);
-                setEmail(result.data.email);
-            }
-            catch (e: any) {
-                console.error(e);
-                throw new Error(ERRORS.PROFILE_USER_FAILED);
-            }
-        }
-        async function getProfile() {
-            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
-            try {
-                const result = await api<IProfile>({
-                    url: CONFIG.REQUEST_PROFILE + user_id
-                })
-                console.log('getprofile');
-                console.log(result);
-                setProfile(result.data);
-            }
-            catch (e: any) {
-                console.error(e);
-                throw new Error(ERRORS.PROFILE_USER_FAILED);
-            }
-        }
-
-        getProfile()
-        getUser();
-    }, [])
-
-    useEffect(() => {
-        async function getPicture() {
-            try {
-                if (profile?.avatar_url === null) {
-                    setImage(CONFIG.PROFILE_DEFAULT_LOGO);
-                    return;
-                }
-                const result = await api({
-                    url: CONFIG.REQUEST_PROFILE_PICTURE + profile?.avatar_url,
-                    responseType: 'blob'
-                })
-                const imageObjectUrl = URL.createObjectURL(result.data);
-                setImage(imageObjectUrl);
-            }
-            catch (e: any) {
-                console.error(e);
-                throw new Error('getPicture failed');
-            }
-        }
-
-        if (profile) {
-            getPicture()
-        }
-    }, [profile])
-
     return (
         <ProfileContainer >
-            <ProfileAvatarContainer >
-                <ProfileName name={name} />
-                <ProfilePicture image={image} />
-                <ProfilePictureForm handleSubmit={handleSubmit} handleFileChange={handleFileChange} />
-            </ProfileAvatarContainer >
+            <ProfileAvatar />
             <ProfileProperties>
-                <ProfilePropertiesPrimary>
-                    <ProfileRelationships />
-                    <Username username={name} />
-                    <Email email={email} />
-                    <Password />
-                    <DeleteAccount />
-                </ProfilePropertiesPrimary>
+                <ProfilePropertiesPrimary />
                 <ProfilePropertiesSecundary>
                     <div className="w-1/20"></div>
                     <div className="w-8/10">statistics</div>

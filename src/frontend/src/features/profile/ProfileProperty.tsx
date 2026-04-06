@@ -1,8 +1,10 @@
 import { JSX } from "react/jsx-runtime"
+import { htmlIdefier } from "../../shared/utils/html"
+import { ReactNode } from "react"
 
-export function DisplayedProfileProperty({ title, property, dropDown, toggleDropDown, showDropdown }: { title: string, property: string | undefined, dropDown: JSX.Element, toggleDropDown: () => void, showDropdown: boolean }): JSX.Element {
+export function DisplayedProfileProperty({ title, property, toggleDropDown, showDropdown, children }: { title: string, property: string | undefined, toggleDropDown: () => void, showDropdown: boolean, children: ReactNode }): JSX.Element {
     return (
-        <div id={title.toLowerCase().replace(' ', '-') + '-property'}>
+        <div id={htmlIdefier(title) + '-property'}>
             <div className="flex">
                 <div className="w-1/5 text-xl truncate">{title}</div>
                 <div className="w-1/10">•</div>
@@ -12,20 +14,20 @@ export function DisplayedProfileProperty({ title, property, dropDown, toggleDrop
                     <button onClick={toggleDropDown}>{showDropdown ? "Cancel" : "Change"}</button>
                 </div>
             </div>
-            {showDropdown && dropDown}
+            {showDropdown && children}
         </div>
     )
 }
 
-export function HiddenProfileProperty({ title, dropDown, toggleDropDown, showDropdown }: { title: string, dropDown: JSX.Element, toggleDropDown: () => void, showDropdown: boolean }): JSX.Element {
+export function HiddenProfileProperty({ title, toggleDropDown, showDropdown, children }: { title: string, toggleDropDown: () => void, showDropdown: boolean, children: ReactNode }): JSX.Element {
     return (
-        <div id={title.toLowerCase().replace(' ', '-') + '-property'}>
+        <div id={htmlIdefier(title) + '-property'}>
             <div className="flex">
                 <div className="w-full text-xl truncate">
                     <button onClick={toggleDropDown}>{showDropdown ? "Cancel " + title : title}</button>
                 </div>
             </div>
-            {showDropdown && dropDown}
+            {showDropdown && children}
         </div>
     )
 }

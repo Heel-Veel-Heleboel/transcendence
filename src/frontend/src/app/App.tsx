@@ -12,6 +12,7 @@ import { VisitorProfile } from '../pages/VisitorProfile.tsx';
 import { Relationships } from '../pages/Relationships.tsx';
 import { CONFIG } from '../shared/config/AppConfig.ts';
 import { GeneralErrorFallback } from '../features/errors/GeneralErrorFallBack.tsx';
+import { UserProvider } from '../components/providers/User.tsx';
 
 /* v8 ignore start */
 export function App() {
@@ -30,19 +31,20 @@ export function App() {
     return (
         <ErrorBoundary FallbackComponent={GeneralErrorFallback} >
             <AuthProvider>
+                <UserProvider>
 
-                <RoomProvider>
-                    <Routes>
-                        <Route path={CONFIG.START_MENU_NAVIGATION} element={<Login />} />
-                        <Route path={CONFIG.MENU_NAVIGATION} element={<Home />} />
-                        <Route path={CONFIG.USER_PROFILE_NAVIGATION} element={<Profile />} />
-                        <Route path={CONFIG.USER_RELATIONSHIPS_NAVIGATION} element={<Relationships />} />
-                        <Route path={CONFIG.VISITOR_PROFILE_NAVIGATION} element={<VisitorProfile />} />
-                        <Route path={CONFIG.TOURNAMENT_NAVIGATION} element={<Tournament />} />
-                        <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />
-                    </Routes>
-                </RoomProvider>
-
+                    <RoomProvider>
+                        <Routes>
+                            <Route path={CONFIG.START_MENU_NAVIGATION} element={<Login />} />
+                            <Route path={CONFIG.MENU_NAVIGATION} element={<Home />} />
+                            <Route path={CONFIG.USER_PROFILE_NAVIGATION} element={<Profile />} />
+                            <Route path={CONFIG.USER_RELATIONSHIPS_NAVIGATION} element={<Relationships />} />
+                            <Route path={CONFIG.VISITOR_PROFILE_NAVIGATION} element={<VisitorProfile />} />
+                            <Route path={CONFIG.TOURNAMENT_NAVIGATION} element={<Tournament />} />
+                            <Route path={CONFIG.GAME_NAVIGATION} element={<Game />} />
+                        </Routes>
+                    </RoomProvider>
+                </UserProvider>
             </AuthProvider>
         </ErrorBoundary >
     )

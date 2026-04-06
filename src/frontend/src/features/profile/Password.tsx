@@ -1,23 +1,15 @@
-import { BaseSyntheticEvent, JSX, useState } from "react";
-import api from "../../shared/api/api";
-import { getCookie } from "../../shared/utils/cookies";
-import { CONFIG } from "../../shared/config/AppConfig";
-import { HiddenProfileProperty } from "./ProfileProperty";
+import { BaseSyntheticEvent, useState } from "react";
+import { IUser } from "../../shared/types/user";
+import useAxios from "axios-hooks";
 import { SubmitPropertyChangeOldNew } from "./Submit";
+import { HiddenProfileProperty } from "./ProfileProperty";
+import { useAuth } from "../../components/providers/Auth";
 
-export function Password() {
+export function Password({ user }: { user: IUser }) {
+    const auth = useAuth();
+    const [, putPassword] = useAxios(auth.service.putPassword(), { manual: true });
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
-
-    function handleChange() {
-        setShowDropDown(!showDropdown);
-    }
-    return (
-        <HiddenProfileProperty title="Change Password" dropDown={ChangePassword(handleChange)} toggleDropDown={handleChange} showDropdown={showDropdown} />
-    )
-}
-
-function ChangePassword(resetState: () => void): JSX.Element {
-    const [oldPassword, setOldPassword] = useState<string>();
+    const [currentPassword, setOldPassword] = useState<string>();
     const [newPassword, setNewPassword] = useState<string>();
 
     async function handleChangeOld(event: BaseSyntheticEvent) {
@@ -28,11 +20,15 @@ function ChangePassword(resetState: () => void): JSX.Element {
         setNewPassword(event.target.value);
     };
 
+    function handleDropdown() {
+        setShowDropDown(!showDropdown);
+    }
+
 
     async function handleSubmit(event: BaseSyntheticEvent) {
         event.preventDefault();
 
-        if (!oldPassword) {
+        if (!currentPassword) {
             alert("Please give your current password!");
             return;
         }
@@ -45,21 +41,21 @@ function ChangePassword(resetState: () => void): JSX.Element {
 
     async function requestChange() {
         try {
-            const user_id = getCookie(CONFIG.USERID_COOKIE_NAME);
-            await api({
-                url: CONFIG.REQUEST_PROFILE_CHANGE_PASSWORD,
-                method: 'PUT',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                data: JSON.stringify({ user_id: Number(user_id), current_password: oldPassword, new_password: newPassword }),
+            await putPassword({
+                data: JSON.stringify({ user_id: user.id, current_password: currentPassword, new_password: newPassword }),
             })
-            resetState();
+            handleDropdown();
             alert("Password changed!");
         } catch (error) {
             console.error("Error changing Password:", error);
             alert("Password change failed");
         }
     }
-    return (SubmitPropertyChangeOldNew(handleChangeOld, handleChangeNew, handleSubmit, 'Change Password'));
+    return (
+        <HiddenProfileProperty title="Password" toggleDropDown={handleDropdown} showDropdown={showDropdown} >
+            <SubmitPropertyChangeOldNew props={{ handleChangeOld, handleChangeNew, handleSubmit, buttonText: 'Change Password' }} />
+        </HiddenProfileProperty >
+    )
 }
+
+

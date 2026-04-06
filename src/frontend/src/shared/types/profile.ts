@@ -1,16 +1,7 @@
-export interface IUserStatus {
-  activity_status: string;
-  name: string;
-}
-
-export interface IUser {
-  id: number;
-  email: string;
-  name: string;
-}
+import { IUserStatus } from './user';
 
 export interface IProfile {
-  avatar_url: null;
+  avatar_url: string;
   created_at: string;
   games_played: number;
   id: number;
