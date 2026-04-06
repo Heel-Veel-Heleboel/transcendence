@@ -2,16 +2,24 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthService } from '../../src/services/auth.js';
 import { AuthenticationError } from '../../src/error/auth.js';
 import { AUTH_ERROR_MESSAGES } from '../../src/constants/auth.js';
-import { totp } from 'otplib';
+import { TOTP } from 'otplib';
 import QRCode from 'qrcode';
 
-vi.mock('otplib', () => ({
-  totp: {
-    generateSecret: vi.fn(),
-    keyuri: vi.fn(),
-    verify: vi.fn()
+vi.mock('otplib', () => {
+  class TOTP {
+    verify() {
+      return false;
+    }
+    generateSecret() {
+      return 'secret';
+    }
+    keyuri() {
+      return 'otpauth://test';
+    }
   }
-}));
+
+  return { TOTP };
+});
 
 vi.mock('qrcode', () => ({
   default: {
@@ -52,8 +60,8 @@ describe('AuthService - Two Factor Auth', () => {
       email: 'test@user.com'
     });
     mockTwoFactorAuthDao.findByUserId.mockResolvedValue(null);
-    (totp.generateSecret as unknown as vi.Mock).mockReturnValue('secret');
-    (totp.keyuri as unknown as vi.Mock).mockReturnValue('otpauth://test');
+    vi.spyOn(TOTP.prototype, 'generateSecret').mockReturnValue('secret');
+    vi.spyOn(TOTP.prototype, 'keyuri').mockReturnValue('otpauth://test');
     (QRCode.toDataURL as unknown as vi.Mock).mockResolvedValue('data:image/png;base64,qr');
 
     const result = await authService.setUpTwoFactorAuth(1);
@@ -72,7 +80,7 @@ describe('AuthService - Two Factor Auth', () => {
       created_at: new Date(),
       updated_at: new Date()
     });
-    (totp.verify as unknown as vi.Mock).mockReturnValue(true);
+    vi.spyOn(TOTP.prototype, 'verify').mockReturnValue(true);
 
     const result = await authService.verifyTwoFactorAuth(1, '123456');
 
@@ -91,7 +99,7 @@ describe('AuthService - Two Factor Auth', () => {
       created_at: new Date(),
       updated_at: new Date()
     });
-    (totp.verify as unknown as vi.Mock).mockReturnValue(false);
+    vi.spyOn(TOTP.prototype, 'verify').mockReturnValue(false);
 
     await expect(authService.verifyTwoFactorAuth(1, '123456')).rejects.toThrow(AuthenticationError);
     await expect(authService.verifyTwoFactorAuth(1, '123456')).rejects.toThrow(

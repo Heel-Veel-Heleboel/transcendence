@@ -3,6 +3,7 @@ import { authRoutes } from '../../src/routes/auth.js';
 
 import * as SchemaTypes from '../../src/schemas/auth.js';
 import { validatePasswordHook } from '../../src/middleware/validate-password-hook.js';
+import { requireUserIdHeader } from '../../src/middleware/require-user-id.js';
 
 
 describe('Auth routes', () => {
@@ -36,31 +37,37 @@ describe('Auth routes', () => {
       preHandler: validatePasswordHook,
       handler: expect.any(Function)
     }));
+    
     expect(MockFastify.put).toHaveBeenCalledWith('/change-password', expect.objectContaining({
       schema: SchemaTypes.ChangePasswordSchema,
       preHandler: validatePasswordHook,
       handler: expect.any(Function)
     }));
+
     expect(MockFastify.post).toHaveBeenCalledWith('/login', expect.objectContaining({
       schema: SchemaTypes.LoginSchema,
       handler: expect.any(Function)
     }));
+
     expect(MockFastify.post).toHaveBeenCalledWith('/logout', expect.objectContaining({
       schema: SchemaTypes.LogoutSchema,
       handler: expect.any(Function)
     }));
+
     expect(MockFastify.post).toHaveBeenCalledWith('/refresh', expect.objectContaining({
       schema: SchemaTypes.RefreshSchema,
       handler: expect.any(Function)
     }));
 
-    expect(MockFastify.post).toHaveBeenCalledWith('/enable-2fa', expect.objectContaining({
-      schema: SchemaTypes.EnableTwoFactorSchema,
+    expect(MockFastify.post).toHaveBeenCalledWith('/setup-2fa', expect.objectContaining({
+      schema: SchemaTypes.SetupTwoFactorSchema,
+      preHandler: requireUserIdHeader,
       handler: expect.any(Function)
     }));
 
     expect(MockFastify.post).toHaveBeenCalledWith('/verify-2fa', expect.objectContaining({
       schema: SchemaTypes.VerifyTwoFactorSchema,
+      preHandler: requireUserIdHeader,
       handler: expect.any(Function)
     }));
 

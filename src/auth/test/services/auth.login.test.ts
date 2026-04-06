@@ -5,18 +5,26 @@ import * as jwtModule from '../../src/utils/jwt.js';
 import { expect, describe, beforeEach, vi, it } from 'vitest';
 import { REFRESH_TOKEN_SIZE } from '../../src/constants/jwt.js';
 import { AUTH_ERROR_MESSAGES } from '../../src/constants/auth.js';
-import { totp } from 'otplib';
+import { TOTP } from 'otplib';
 
 
 vi.mock('../../src/utils/password-hash.js');
 vi.mock('../../src/utils/jwt.js');
-vi.mock('otplib', () => ({
-  totp: {
-    verify: vi.fn(),
-    generateSecret: vi.fn(),
-    keyuri: vi.fn()
+vi.mock('otplib', () => {
+  class TOTP {
+    verify() {
+      return false;
+    }
+    generateSecret() {
+      return 'secret';
+    }
+    keyuri() {
+      return 'otpauth://test';
+    }
   }
-}));
+
+  return { TOTP };
+});
 
 const mockUserService = {
   findUserByEmail: vi.fn(),
@@ -359,11 +367,11 @@ describe('AuthService - Login', () => {
     vi.spyOn(jwtModule, 'generateAccessToken').mockReturnValue(mockAccessToken);
     vi.spyOn(jwtModule, 'generateRefreshToken').mockReturnValue(mockRefreshTokenResult);
     mockRefreshTokenDao.store.mockResolvedValue(undefined);
-    (totp.verify as unknown as vi.Mock).mockReturnValue(true);
+    vi.spyOn(TOTP.prototype, 'verify').mockReturnValue(true);
 
     const result = await authService.login(loginDto);
 
-    expect(totp.verify).toHaveBeenCalled();
+    expect(TOTP.prototype.verify).toHaveBeenCalled();
     expect(mockTwoFactorAuthDao.resetAttempts).toHaveBeenCalledWith(mockUser.id, null);
     expect(result).toEqual({
       access_token: mockAccessToken,
