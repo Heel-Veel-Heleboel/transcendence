@@ -1,5 +1,6 @@
 //server
 import fastify from 'fastify';
+import { loggerOptions } from './config/logger.js';
 import { env } from './config/env.js';
 //routes
 import { userRoutes } from './routes/user.js';
@@ -17,23 +18,7 @@ import { composeDependencies } from './config/set-up-controllers.js';
 
 
 
-const isDevelopment = process.env.NODE_ENV !== 'production';
-const app = fastify({
-  logger: {
-    level: process.env.LOG_LEVEL || 'info',
-    transport: isDevelopment
-      ? {
-        target: 'pino-pretty',
-        options: {
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname',
-          colorize: true,
-          singleLine: false
-        }
-      }
-      : undefined
-  }
-});
+const app = fastify({ logger: loggerOptions });
 
 const { userController, profController, friendController } = composeDependencies();
 

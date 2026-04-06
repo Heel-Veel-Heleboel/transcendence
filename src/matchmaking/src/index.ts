@@ -2,6 +2,7 @@ import fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import { getPrismaClient, disconnectPrisma } from './db/prisma.client.js';
+import { loggerOptions } from './config/logger.js';
 import { MatchDao } from './dao/match.js';
 import { TournamentDao } from './dao/tournament.js';
 import { TournamentParticipantDao } from './dao/tournament-participant.js';
@@ -19,18 +20,7 @@ import { registerTournamentRoutes } from './routes/tournament.js';
 import { registerDirectChallengeRoutes } from './routes/direct-challenge.js';
 import { GameMode } from './types/match.js';
 
-const server = fastify({
-  logger: {
-    level: process.env.LOG_LEVEL || 'info',
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname'
-      }
-    }
-  }
-});
+const server = fastify({ logger: loggerOptions });
 
 // Register plugins
 await server.register(cors, {

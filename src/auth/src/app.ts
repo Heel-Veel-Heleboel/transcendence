@@ -5,26 +5,11 @@ import prismaDisconnectHook from './middleware/prisma-disconnect-hook.js';
 import { getAuthController } from './config/auth.js';
 import { AUTH_PREFIX } from './constants/auth.js';
 import  cookie  from '@fastify/cookie';
+import { loggerOptions } from './config/logger.js';
 
 const authController = getAuthController();
 
-const isDevelopment = process.env.NODE_ENV !== 'production';
-const app = fastify({
-  logger: {
-    level: process.env.LOG_LEVEL || 'info',
-    transport: isDevelopment
-      ? {
-        target: 'pino-pretty',
-        options: {
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname',
-          colorize: true,
-          singleLine: false
-        }
-      }
-      : undefined
-  }
-});
+const app = fastify({ logger: loggerOptions });
 
 app.register(cookie);
 app.setErrorHandler(authErrorHandler);

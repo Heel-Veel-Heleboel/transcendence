@@ -2,6 +2,7 @@ import fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import { getPrismaClient, disconnectPrisma } from './db/prisma.client.js';
+import { loggerOptions } from './config/logger.js';
 import { ChannelDao } from './dao/channel.dao.js';
 import { MessageDao } from './dao/message.dao.js';
 import { NotificationService } from './services/notification.js';
@@ -12,18 +13,7 @@ import { registerChannelRoutes } from './routes/channels.js';
 import { registerMessageRoutes } from './routes/messages.js';
 import { registerInternalRoutes } from './routes/internal.js';
 
-const server = fastify({
-  logger: {
-    level: process.env.LOG_LEVEL || 'info',
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname'
-      }
-    }
-  }
-});
+const server = fastify({ logger: loggerOptions });
 
 // Register plugins
 await server.register(cors, {

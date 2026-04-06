@@ -70,6 +70,9 @@ services:
       - JWT_PRIVATE_KEY_PATH=/app/keys/jwt_private.pem
       - JWT_PUBLIC_KEY_PATH=/app/keys/jwt_public.pem
       - USER_MANAGEMENT_URL=http://user-management:3004
+      - SERVICE_NAME=auth
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
     labels:
       prometheus.scrape: "true"
       prometheus.port: "3003"
@@ -97,6 +100,9 @@ services:
       - HOST=0.0.0.0
       - DATABASE_URL=file:/data/user-management.db
       - AUTH_SERVICE_URL=http://auth:3003
+      - SERVICE_NAME=user-management
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
     labels:
       prometheus.scrape: "true"
       prometheus.port: "3004"
@@ -126,6 +132,9 @@ services:
       - GAME_SERVER_URL=http://game-server:2567
       - CHAT_SERVICE_URL=http://chat:3006
       - USER_MANAGEMENT_URL=http://user-management:3004
+      - SERVICE_NAME=matchmaking
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
     labels:
       prometheus.scrape: "true"
       prometheus.port: "3005"
@@ -153,6 +162,9 @@ services:
       - HOST=0.0.0.0
       - DATABASE_URL=file:/data/chat.db
       - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3002
+      - SERVICE_NAME=chat
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
     labels:
       prometheus.scrape: "true"
       prometheus.port: "3006"
