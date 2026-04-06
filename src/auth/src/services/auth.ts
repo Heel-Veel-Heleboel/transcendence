@@ -258,7 +258,7 @@ export class AuthService {
 
 
 
-  async setUpTwoFactorAuth(user_id: number): Promise<string> {
+  async setupTwoFactorAuth(user_id: number): Promise<string> {
     try {
       const user = await this.userService.findByUserId(user_id);
       if (!user) {

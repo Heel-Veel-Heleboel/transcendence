@@ -37,7 +37,7 @@ describe('Auth routes', () => {
       preHandler: validatePasswordHook,
       handler: expect.any(Function)
     }));
-    
+
     expect(MockFastify.put).toHaveBeenCalledWith('/change-password', expect.objectContaining({
       schema: SchemaTypes.ChangePasswordSchema,
       preHandler: validatePasswordHook,

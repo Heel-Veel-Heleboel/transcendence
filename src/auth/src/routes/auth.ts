@@ -44,7 +44,7 @@ export async function authRoutes(fastify: FastifyInstance, options: {authControl
   fastify.post<{ Body: SchemaTypes.SetupTwoFactorSchemaType }>('/setup-2fa', {
     schema: SchemaTypes.SetupTwoFactorSchema,
     preHandler: requireUserIdHeader,
-    handler: authController.setUpTwoFactorAuth.bind(authController)
+    handler: authController.setupTwoFactorAuth.bind(authController)
   });
 
   fastify.post<{ Body: SchemaTypes.VerifyTwoFactorSchemaType }>('/verify-2fa', {

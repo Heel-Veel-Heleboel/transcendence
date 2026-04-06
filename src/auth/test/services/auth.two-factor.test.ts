@@ -64,7 +64,7 @@ describe('AuthService - Two Factor Auth', () => {
     vi.spyOn(TOTP.prototype, 'keyuri').mockReturnValue('otpauth://test');
     (QRCode.toDataURL as unknown as vi.Mock).mockResolvedValue('data:image/png;base64,qr');
 
-    const result = await authService.setUpTwoFactorAuth(1);
+    const result = await authService.setupTwoFactorAuth(1);
 
     expect(mockTwoFactorAuthDao.create).toHaveBeenCalledWith(1, 'secret');
     expect(result).toBe('data:image/png;base64,qr');

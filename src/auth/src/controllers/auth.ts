@@ -145,7 +145,7 @@ export class AuthController {
     return reply.code(204).send();
   }
 
-  async setUpTwoFactorAuth(
+  async setupTwoFactorAuth(
     request: FastifyRequest<{ Body: SchemaTypes.SetupTwoFactorSchemaType }>,
     reply: FastifyReply
   ): Promise<FastifyReply> {
@@ -155,7 +155,7 @@ export class AuthController {
       throw new AuthorizationError(AUTH_ERROR_MESSAGES.TOKEN_OWNERSHIP_MISMATCH);
     }
     request.log.info({ user_id: authenticatedUserId }, 'Setup 2FA attempt');
-    const qr_code = await this.authService.setUpTwoFactorAuth(authenticatedUserId);
+    const qr_code = await this.authService.setupTwoFactorAuth(authenticatedUserId);
     request.log.info({ user_id: authenticatedUserId }, '2FA setup successfully');
     return reply.code(200).send({ qr_code });
   }
