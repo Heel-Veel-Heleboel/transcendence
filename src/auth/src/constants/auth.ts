@@ -27,4 +27,4 @@ export const AUTH_ERROR_MESSAGES = {
 } as const;
 
 
-export const AUTH_PREFIX = '/auth';
+export const  AUTH_PREFIX = '/auth';
