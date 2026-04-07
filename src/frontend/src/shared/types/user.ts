@@ -1,4 +1,5 @@
 import { AxiosResponse } from 'axios';
+import { IFriendship, ISetFriendshipStatus } from './friendship';
 
 export interface IUserStatus {
   activity_status: string;
@@ -31,8 +32,11 @@ export interface IDeleteUser {
 
 export interface IUserService {
   getUser: () => Promise<AxiosResponse>;
-  getProfile: () => Promise<AxiosResponse>;
+  getProfile: (userId: string) => Promise<AxiosResponse>;
   getProfileAvatar: (url: string) => Promise<AxiosResponse>;
+  getFriendship: (userId: string) => Promise<IFriendship>;
+  setFriendship: (userId: string) => Promise<AxiosResponse>;
+  setFriendshipStatus: (data: ISetFriendshipStatus) => Promise<AxiosResponse>;
   setProfileAvatar: (data: FormData) => Promise<AxiosResponse>;
   setUsername: (user_name: string) => Promise<AxiosResponse>;
   setEmail: (user_email: string) => Promise<AxiosResponse>;

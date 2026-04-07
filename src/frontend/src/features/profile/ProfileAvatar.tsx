@@ -1,10 +1,16 @@
-import { BaseSyntheticEvent, Dispatch, ReactNode, SetStateAction, useEffect, useState } from "react";
+import { BaseSyntheticEvent, Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useUserService } from "../../components/providers/User";
 import { IProfile } from "../../shared/types/profile";
 import { DEFAULT_AVATAR, DEFAULT_PROFILE } from "../../shared/constants/defaults";
+import { useAuth } from "../../components/providers/Auth";
+import { ProfilePictureImage } from "./ProfilePictureImage";
+import { ProfilePictureContainer } from "./ProfilePictureContainer";
+import { ProfileAvatarContainer } from "./ProfileAvatarContainer";
+import { ProfileName } from "./ProfileName";
 
 export function ProfileAvatar() {
     const userService = useUserService();
+    const auth = useAuth();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
     const [profile, setProfile] = useState<IProfile>(DEFAULT_PROFILE);
@@ -12,7 +18,7 @@ export function ProfileAvatar() {
     useEffect(() => {
         async function getProfile() {
             try {
-                const result = await userService.getProfile();
+                const result = await userService.getProfile(auth.userId);
                 setProfile(result.data);
             } catch (e: any) {
                 setError(true);
@@ -47,25 +53,6 @@ export function ProfileAvatar() {
     )
 }
 
-export function ProfileAvatarContainer({ children }: { children: ReactNode }) {
-    return (
-        <div id="profile-avatar" className="w-1/2 min-h-full flex flex-col justify-around text-xl">
-            <div className="h-3/5">
-                <div className="min-h-full flex flex-col justify-between">
-                    {children}
-                </div>
-            </div>
-        </div>
-    )
-}
-
-export function ProfileName({ name }: { name: string }) {
-    return (
-        <div id="profile-name">
-            {name}
-        </div>
-    )
-}
 
 export function ProfilePicture({ profile }: { profile: IProfile }) {
     const [image, setImage] = useState<string>(DEFAULT_AVATAR);
@@ -105,26 +92,13 @@ export function ProfilePicture({ profile }: { profile: IProfile }) {
 
     return (
         <ProfilePictureContainer>
-            <div className="flex justify-between">
-                <div />
-                <img src={image} alt="profile_pic" className="w-1/4 min-h-1/2" />
-                <div />
-            </div>
+            <ProfilePictureImage image={image} />
             <ProfilePictureForm setImage={setImage} />
         </ProfilePictureContainer>
     )
 }
 
-export function ProfilePictureContainer({ children }: { children: ReactNode }) {
-    return (
-        <div id='profile-picture' className="flex justify-center">
-            <div className="flex flex-col">
-                {children}
-            </div>
-        </div>
-    )
 
-}
 
 export function ProfilePictureForm({ setImage }: { setImage: Dispatch<SetStateAction<string>> }) {
     const userService = useUserService();
