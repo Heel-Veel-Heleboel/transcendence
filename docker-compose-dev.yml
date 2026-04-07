@@ -5,7 +5,7 @@ services:
     container_name: api-gateway
     build:
       context: src/api-gateway
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
     environment:
@@ -33,6 +33,16 @@ services:
         condition: any
         delay: 5s
         window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: src/api-gateway/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - src/api-gateway/node_modules/
+        - action: rebuild
+          path: src/api-gateway/package.json
 
   # ─── Frontend ───────────────────────────────────────────────────────────────
   frontend:
@@ -88,13 +98,23 @@ services:
         condition: any
         delay: 5s
         window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: src/auth/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - src/auth/node_modules/
+        - action: rebuild
+          path: src/auth/package.json
 
   # ─── User Management ────────────────────────────────────────────────────────
   user-management:
     container_name: user-management
     build:
       context: src/user-management
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3004:3004"
       - "51212:51212" # prisma studio
@@ -113,13 +133,23 @@ services:
         condition: any
         delay: 5s
         window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: src/user-management/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - src/user-management/node_modules/
+        - action: rebuild
+          path: src/user-management/package.json
 
   # ─── Matchmaking ────────────────────────────────────────────────────────────
   matchmaking:
     container_name: matchmaking
     build:
       context: src/matchmaking
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3005:3005"
     environment:
@@ -139,13 +169,23 @@ services:
         condition: any
         delay: 5s
         window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: src/matchmaking/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - src/matchmaking/node_modules/
+        - action: rebuild
+          path: src/matchmaking/package.json
 
   # ─── Chat ───────────────────────────────────────────────────────────────────
   chat:
     container_name: chat
     build:
       context: src/chat
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3006:3006"
     environment:
@@ -163,13 +203,23 @@ services:
         condition: any
         delay: 5s
         window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: src/chat/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - src/chat/node_modules/
+        - action: rebuild
+          path: src/chat/package.json
 
   # ─── Game Server ─────────────────────────────────────────────────────────────
   game-server:
     container_name: game-server
     build:
       context: src/game-server
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "2567:2567"
     environment:
@@ -182,6 +232,16 @@ services:
         condition: any
         delay: 5s
         window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: src/game-server/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - src/game-server/node_modules/
+        - action: rebuild
+          path: src/game-server/package.json
 
 volumes:
   auth-data:

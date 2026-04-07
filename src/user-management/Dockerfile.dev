@@ -21,17 +21,13 @@ RUN npm install
 
 # add other configuration
 COPY tsconfig.json ./
-COPY keys ./keys/
 COPY src ./src/
 COPY .env* ./
-
-# # give app user access to volume
-# RUN chown -R app:appgroup /data
 
 # copy rest of files as root but set ownership in one step
 COPY --chown=app:appgroup . .
 
-EXPOSE 3003
+EXPOSE 3004
 
 # add runuser for entrypoint script
 RUN apk add util-linux
