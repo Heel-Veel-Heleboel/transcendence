@@ -80,7 +80,7 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
         throw error;
     }
     return (
-        <div className="h-full w-full">
+        <div id='game-container' className="h-full w-full">
             <SceneComponent id='game-canvas' antialias onSceneReady={onSceneReady} onRender={onRender} adaptToDeviceRatio className="h-full w-full" />
         </div>
     );

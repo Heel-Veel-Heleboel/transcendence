@@ -48,7 +48,7 @@ export function SubmitPropertyChangeOldNew({ props }: { props: IPropertyChangeOl
 
 export function SubmitPropertyChangeYesNo({ props }: { props: IPropertyChangeYesNo }) {
     return (
-        <div id={props.title.toLowerCase().replace(' ', '-')}>
+        <div id={htmlIdefier(props.title)}>
             <div className="flex flex-col">
                 <div className="w-full">
                     <button onClick={props.handleDropDown}>{props.title}</button>
