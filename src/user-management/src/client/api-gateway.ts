@@ -24,7 +24,7 @@ export class ApiGatewayClient{
         }
       });
     } catch {
-      throw new ClientError('APIGatewayClient');
+      // throw new ClientError('APIGatewayClient');
     }
   }
 
