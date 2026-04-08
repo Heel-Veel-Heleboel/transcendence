@@ -1,4 +1,4 @@
-import { TournamentStatus } from '../../generated/prisma/index.js';
+import { TournamentStatus, MatchStatus } from '../../generated/prisma/index.js';
 
 /**
  * Type definitions for Tournament operations
@@ -75,4 +75,35 @@ export interface TournamentRanking {
   username: string;
   seed: number | null;
   eliminatedIn: number | null;  // null = still in or winner
+}
+
+/**
+ * A single node in the bracket binary tree array.
+ * TBD nodes represent future/unplayed match slots that don't exist in the DB yet.
+ */
+export interface BracketNode {
+  player1Id: number | null;
+  player1Username: string;
+  player2Id: number | null;
+  player2Username: string;
+  winnerId: number | null;
+  status: MatchStatus | 'TBD' | 'BYE';
+}
+
+/**
+ * Bracket representation for a knockout tournament.
+ *
+ * The `bracket` array is a binary tree stored in level-order (BFS):
+ *   - index 0 = root = the final match
+ *   - children of node i are at 2i+1 (left) and 2i+2 (right)
+ *   - total size = 2^totalRounds - 1
+ *
+ * Nodes whose matches don't exist yet have status "TBD" and null player fields.
+ * The frontend can infer the full bracket shape from totalRounds alone.
+ */
+export interface TournamentBracket {
+  tournamentId: number;
+  totalRounds: number;
+  status: TournamentStatus;
+  bracket: BracketNode[];
 }
