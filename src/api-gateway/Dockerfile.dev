@@ -10,9 +10,8 @@ RUN chown app:appgroup /app
 # add dependenies
 COPY config ./config/
 
-# copy package files as root (safe) then set ownership so app can write
+# copy package files
 COPY package.json package-lock.json ./
-RUN chown app:appgroup package.json package-lock.json
 
 # install dependencies as app (now owns files)
 RUN npm install
@@ -27,10 +26,7 @@ COPY .env* ./
 RUN npm run build
 
 # copy rest of files as root but set ownership in one step
-COPY --chown=app:appgroup . .
 USER app
 
 EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
-CMD ["node", "--env-file-if-exists=.env", "dist/index.js"]
+CMD ["npm", "run", "dev"]

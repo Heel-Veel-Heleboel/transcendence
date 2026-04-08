@@ -8,13 +8,12 @@ WORKDIR /app
 RUN chown app:appgroup /app
 
 # add dependenies
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ util-linux
 COPY prisma.config.ts ./
 COPY prisma ./prisma/
 
 # copy package files as root (safe) then set ownership so app can write
 COPY package.json package-lock.json ./
-RUN chown app:appgroup package.json package-lock.json
 
 # install dependencies as app (now owns files)
 RUN npm install
@@ -24,18 +23,14 @@ COPY tsconfig.json ./
 COPY src ./src/
 COPY .env* ./
 
-# copy rest of files as root but set ownership in one step
-COPY --chown=app:appgroup . .
-
 EXPOSE 3005
-
-# add runuser for entrypoint script
-RUN apk add util-linux
 
 # setup entrypoint script for non-root volume access
 COPY entrypoint-dev.sh ./entrypoint-dev.sh
 ENTRYPOINT ["/bin/sh", "entrypoint-dev.sh"]
 
 RUN npm run db:generate
+RUN npm run build
+RUN cp -r generated dist/generated
 
-CMD ["node", "--env-file-if-exists=.env", "dist/src/index.js"]
+CMD ["npm", "run", "dev"]
