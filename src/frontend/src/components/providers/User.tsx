@@ -3,6 +3,7 @@ import { createContext, ReactNode, useContext, } from 'react';
 import { UserService } from '../../shared/api/user';
 import { useAuth } from './Auth';
 import { IUserService } from '../../shared/types/user';
+import { FriendshipStatus, ISetFriendshipStatus, responseToFriendship } from '../../shared/types/friendship';
 
 const service = new UserService();
 
@@ -19,32 +20,71 @@ export function useUserService() {
 export function UserProvider({ children }: { children: ReactNode }) {
     const auth = useAuth();
 
-    async function getProfile() {
+    async function getProfile(userId: string) {
         try {
-            const response = service.getProfile({ userId: auth.userId });
+            const response = await service.getProfile({ userId: userId });
             return (response);
         } catch (e: any) {
             console.error(e);
+            // TODO: add error handling
             throw e
         }
     }
 
     async function getUser() {
         try {
-            const response = service.getUser({ userId: auth.userId });
+            const response = await service.getUser({ userId: auth.userId });
             return (response);
         } catch (e: any) {
             console.error(e);
+            // TODO: add error handling
             throw e
         }
     }
 
     async function getProfileAvatar(url: string) {
         try {
-            const response = service.getProfileAvatar({ avatarUrl: url });
+            const response = await service.getProfileAvatar({ avatarUrl: url });
             return (response);
         } catch (e: any) {
             console.error(e);
+            // TODO: add error handling
+            throw e
+        }
+    }
+
+    async function getFriendship(userId: string) {
+        try {
+            const response = await service.getFriendship({ userId1: auth.userId, userId2: userId });
+            return (responseToFriendship(response.data, Number(userId)));
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e
+        }
+    }
+
+    async function setFriendship(userId: string) {
+        try {
+            const response = await service.setFriendship({ userId1: auth.userId, userId2: userId });
+            return (response);
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e
+        }
+    }
+
+    async function setFriendshipStatus(data: ISetFriendshipStatus) {
+        try {
+            if (!Object.values(FriendshipStatus).includes(data.status)) {
+                throw new Error('invalid status given to service layer')
+            }
+            const response = await service.setFriendshipStatus(data);
+            return (response);
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
             throw e
         }
     }
@@ -98,6 +138,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
             getProfile,
             getUser,
             getProfileAvatar,
+            getFriendship,
+            setFriendship,
+            setFriendshipStatus,
             setProfileAvatar,
             setUsername,
             setEmail,

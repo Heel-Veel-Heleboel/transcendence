@@ -1,10 +1,10 @@
 import { useState } from "react";
-import api from "../../shared/api/api";
-import { CONFIG } from "../../shared/config/AppConfig";
 import { IFriendship } from "../../shared/types/friendship";
 import { SubmitPropertyChangeYesNo } from "./Submit";
+import { useUserService } from "../../components/providers/User";
 
-export function BlockUser({ friendship }: { friendship: IFriendship | null }) {
+export function BlockUser({ friendship }: { friendship: IFriendship }) {
+    const service = useUserService();
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
 
     function handleDropDown() {
@@ -12,14 +12,7 @@ export function BlockUser({ friendship }: { friendship: IFriendship | null }) {
     }
     async function requestUnblock() {
         try {
-            await api({
-                url: CONFIG.REQUEST_FRIEND_UPDATE,
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                data: JSON.stringify({ id: friendship?.id, status: 'PENDING' }),
-            })
+            await service.setFriendshipStatus({ id: String(friendship.id), status: 'PENDING' })
             handleDropDown();
             alert("unblocked user!");
         } catch (error) {
@@ -30,14 +23,7 @@ export function BlockUser({ friendship }: { friendship: IFriendship | null }) {
 
     async function requestBlock() {
         try {
-            await api({
-                url: CONFIG.REQUEST_FRIEND_UPDATE,
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                data: JSON.stringify({ id: friendship?.id, status: 'BLOCKED' }),
-            })
+            await service.setFriendshipStatus({ id: String(friendship.id), status: 'BLOCKED' })
             handleDropDown();
             alert("blocked user!");
         } catch (error) {
@@ -49,8 +35,8 @@ export function BlockUser({ friendship }: { friendship: IFriendship | null }) {
     return (
         <div id="block-user">
             {friendship && friendship?.status === 'BLOCKED' ?
-                <SubmitPropertyChangeYesNo title='Unblock User' handleDropDown={handleDropDown} showDropdown={showDropdown} yes={requestUnblock} no={handleDropDown} /> :
-                <SubmitPropertyChangeYesNo title='Block User' handleDropDown={handleDropDown} showDropdown={showDropdown} yes={requestBlock} no={handleDropDown} />
+                <SubmitPropertyChangeYesNo props={{ title: 'Unblock User', handleDropDown: handleDropDown, showDropdown: showDropdown, yes: requestUnblock, no: handleDropDown }} /> :
+                <SubmitPropertyChangeYesNo props={{ title: 'Block User', handleDropDown: handleDropDown, showDropdown: showDropdown, yes: requestBlock, no: handleDropDown }} />
             }
         </div>
     )

@@ -1,3 +1,4 @@
+import { IFriendship } from '../types/friendship';
 import { IProfile } from '../types/profile';
 import { IUser, IUserStatus } from '../types/user';
 
@@ -25,4 +26,13 @@ export const DEFAULT_USER: IUser = {
   id: 0,
   email: 'mysterio@myster.io',
   name: 'mysterio'
+};
+
+export const DEFAULT_FRIENDSHIP: IFriendship = {
+  created_at: '0',
+  id: 0,
+  status: 'PENDING',
+  updated_at: '0',
+  userId: 0,
+  userName: 'mysterio'
 };

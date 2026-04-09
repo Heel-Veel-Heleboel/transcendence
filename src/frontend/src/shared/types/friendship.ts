@@ -20,6 +20,23 @@ export interface IFriendshipResponse {
   user2: IUser;
 }
 
+export interface IFriendshipBetween {
+  userId1: string;
+  userId2: string;
+}
+
+export interface ISetFriendshipStatus {
+  id: string;
+  status: string;
+}
+
+export const FriendshipStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+  BLOCKED: 'BLOCKED'
+};
+
 export function responseToFriendship(
   response: IFriendshipResponse,
   userId: number
