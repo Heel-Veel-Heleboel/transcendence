@@ -50,7 +50,7 @@ ps:
 	$(COMPOSE_APP) ps
 
 $(NAME):
-	docker compose up --build
+	$(COMPOSE_APP) up --build
 	touch $(NAME)
 
 .PHONY: all clean fclean re dev dev-build dev-down prod prod-build prod-down logs ps
