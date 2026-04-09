@@ -54,7 +54,7 @@ export function App() {
                             <Route path={CREDITS_PAGE} element={<Credits />} />
                             <Route element={<PrivateRoutes />}>
                                 <Route path={HOME_PAGE} element={<Home />} />
-                                <Route path={PROFILE_PAGE} element={<Profile />} >
+                                <Route path={PROFILE_PAGE} >
                                     <Route path={USER_PAGE} element={<Profile />} >
                                         <Route path={RELATIONSHIPS_PAGE} element={<Relationships />} />
                                     </Route>

@@ -11,11 +11,11 @@ import { Widget } from "../components/layout/Widget";
 
 export function Profile(): JSX.Element {
     return (
-        <MainContainer children={
+        <MainContainer>
             <Widget logoPath={CONFIG.PROFILE_LOGO} title={CONFIG.PROFILE_TITLE} width="w-full" >
                 <UserProfileContent />
             </Widget>
-        } />
+        </MainContainer >
     )
 }
 

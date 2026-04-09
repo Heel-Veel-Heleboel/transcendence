@@ -14,7 +14,7 @@ export function Neofetch(): JSX.Element {
     // TODO update with p5 version
     const logo = (typeof platform.name === 'undefined') ? '?' : (browsers.get(platform.name)?.logo);
     return (
-        <div className="flex min-h-9/10">
+        <div id='neofetch' className="flex min-h-9/10">
             <div className='min-h-full w-1/2'>
                 <div className="whitespace-pre-wrap text-[3px] min-h-full">{logo}</div>
 

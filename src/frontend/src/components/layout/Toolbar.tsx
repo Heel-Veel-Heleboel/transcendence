@@ -2,6 +2,7 @@ import { JSX, useState, useEffect } from 'react';
 import { useAuth } from '../providers/Auth.tsx';
 import { useNavigate } from 'react-router-dom';
 import { CONFIG } from '../../shared/config/AppConfig.ts';
+import { htmlIdefier } from '../../shared/utils/html.ts';
 
 /* v8 ignore start*/
 export function Toolbar(): JSX.Element {
@@ -13,7 +14,7 @@ export function Toolbar(): JSX.Element {
             {/* TODO update with own logo*/}
             <div className="px-2 py-2" onClick={() => navigate(CONFIG.MENU_NAVIGATION)}>logo</div>
             <div className="py-2">{`${time.date} - ${time.time}`}</div>
-            <div id="toolbarOptionsContainer" className="flex ">
+            <div id="toolbar-options" className="flex ">
                 <ToolbarOption id='profile' src={CONFIG.PROFILE_LOGO} callback={() => navigate(CONFIG.USER_PROFILE_NAVIGATION)} />
                 <ToolbarOption id='logout' src={CONFIG.LOGOUT_LOGO} callback={() => auth.logOut()} />
             </div>
@@ -22,9 +23,8 @@ export function Toolbar(): JSX.Element {
 }
 
 export function ToolbarOption({ id, src, callback }: { id: string, src: string, callback: () => void }): JSX.Element {
-    const divId = `toolbarOption${id}`;
     return (
-        <div id={divId} className='flex px-2 py-1'>
+        <div id={`toolbar-option-${htmlIdefier(id)}`} className='flex px-2 py-1'>
             <img src={src} alt={id} onClick={callback} />
         </div >
     )
