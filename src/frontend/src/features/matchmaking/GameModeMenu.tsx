@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { IMatchmakingStatus, MatchmakingStatus } from "../../shared/types/matchmaking";
 import { CurrentActivity } from "./Activity";
 import { useMatchMakingService } from "../../components/providers/Match";
+import { TOURNAMENT_CREATION_NAVIGATION, TOURNAMENT_CREATION_PAGE } from "../../shared/constants/navigation";
 
 export function GameModeMenuButton({ callback, title }: { callback: () => void, title: string }) {
     return (
@@ -71,7 +72,7 @@ export function CreateClassicTournament() {
     const navigate = useNavigate();
 
     return (
-        <GameModeMenuButton callback={() => { navigate(CREATE_CLASSIC_TOURNY_NAVIGATION) }} title={'create classic tournament'} />
+        <GameModeMenuButton callback={() => { navigate(TOURNAMENT_CREATION_NAVIGATION, { state: { mode: 'classic' } }) }} title={'create classic tournament'} />
     )
 }
 
@@ -79,6 +80,6 @@ export function CreatePowerupTournament() {
     const navigate = useNavigate();
 
     return (
-        <GameModeMenuButton callback={() => { navigate(CREATE_POWERUP_TOURNY_NAVIGATION) }} title={'create powerup tournament'} />
+        <GameModeMenuButton callback={() => { navigate(TOURNAMENT_CREATION_NAVIGATION, { state: { mode: 'powerup' } }) }} title={'create powerup tournament'} />
     )
 }

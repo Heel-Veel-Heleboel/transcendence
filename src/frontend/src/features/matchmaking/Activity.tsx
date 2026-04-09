@@ -143,7 +143,7 @@ export function PendingMatch({ status }: { status: IMatchmakingStatus }) {
                 if (status.activeMatchId) {
                     const result = await service.getMatchInfo(status.activeMatchId);
                     const match = result.data;
-                    const name = match.player1Id === auth.userId ? match.player1Username : match.player2Username;
+                    const name = String(match.player1Id) === auth.userId ? match.player2Username : match.player1Username;
                     setOpponent(name);
                 }
             } catch (e: any) {
@@ -168,7 +168,7 @@ export function PendingMatch({ status }: { status: IMatchmakingStatus }) {
     }
 
     return (
-        <Activity label={<div>`Current match vs ${opponent}`</div>} callback={null} callbackTitle={''} />
+        <Activity label={<div>{`Current match vs ${opponent}`}</div>} callback={null} callbackTitle={''} />
     )
 
 }

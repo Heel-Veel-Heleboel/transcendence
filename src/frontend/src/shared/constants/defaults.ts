@@ -1,5 +1,5 @@
 import { IFriendship } from '../types/friendship';
-import { IMatch } from '../types/matchmaking';
+import { IMatch, IMatchmakingStatus } from '../types/matchmaking';
 import { IProfile } from '../types/profile';
 import { IUser, IUserStatus } from '../types/user';
 
@@ -60,4 +60,13 @@ export const DEFAULT_MATCH: IMatch = {
   resultSource: null,
   round: null,
   bracketPosition: null
+};
+
+export const DEFAULT_MATCHSTATUS: IMatchmakingStatus = {
+  state: '',
+  poolGameMode: null,
+  activeMatchId: null,
+  activeTournamentId: null,
+  tournamentStatus: null,
+  isCreator: false
 };

@@ -10,7 +10,7 @@ export class MatchmakingService {
 
   async getStatus() {
     const config = {
-      url: this.base + 'status/me',
+      url: this.base + '/status/me',
       method: 'GET'
     } as AxiosRequestConfig;
     const response = await api(config);
@@ -19,7 +19,7 @@ export class MatchmakingService {
 
   async getMatchInfo(matchId: string) {
     const config = {
-      url: this.base + `match/${matchId}`,
+      url: this.base + `/match/${matchId}`,
       method: 'GET'
     } as AxiosRequestConfig;
     const response = await api(config);
@@ -28,7 +28,16 @@ export class MatchmakingService {
 
   async getTournamentInfo(tournamentId: string) {
     const config = {
-      url: this.base + `tournament/${tournamentId}`,
+      url: this.base + `/tournament/${tournamentId}`,
+      method: 'GET'
+    } as AxiosRequestConfig;
+    const response = await api(config);
+    return response;
+  }
+
+  async getTournaments() {
+    const config = {
+      url: this.base + '/tournament',
       method: 'GET'
     } as AxiosRequestConfig;
     const response = await api(config);
@@ -37,7 +46,16 @@ export class MatchmakingService {
 
   async cancelTournament(tournamentId: string) {
     const config = {
-      url: this.base + `tournament/${tournamentId}/cancel`,
+      url: this.base + `/tournament/${tournamentId}/cancel`,
+      method: 'POST'
+    } as AxiosRequestConfig;
+    const response = await api(config);
+    return response;
+  }
+
+  async registerTournament(tournamentId: string) {
+    const config = {
+      url: this.base + `/tournament/${tournamentId}/register`,
       method: 'POST'
     } as AxiosRequestConfig;
     const response = await api(config);
@@ -46,7 +64,7 @@ export class MatchmakingService {
 
   async unregisterTournament(tournamentId: string) {
     const config = {
-      url: this.base + `tournament/${tournamentId}/unregister`,
+      url: this.base + `/tournament/${tournamentId}/unregister`,
       method: 'POST'
     } as AxiosRequestConfig;
     const response = await api(config);
@@ -55,7 +73,7 @@ export class MatchmakingService {
 
   async joinClassic() {
     const config = {
-      url: this.base + 'classic/join',
+      url: this.base + '/classic/join',
       method: 'POST'
     } as AxiosRequestConfig;
     const response = await api(config);
@@ -64,7 +82,7 @@ export class MatchmakingService {
 
   async leaveClassic() {
     const config = {
-      url: this.base + 'classic/leave',
+      url: this.base + '/classic/leave',
       method: 'POST'
     } as AxiosRequestConfig;
     const response = await api(config);
@@ -73,7 +91,7 @@ export class MatchmakingService {
 
   async joinPowerup() {
     const config = {
-      url: this.base + 'powerup/join',
+      url: this.base + '/powerup/join',
       method: 'POST'
     } as AxiosRequestConfig;
     const response = await api(config);
@@ -82,7 +100,7 @@ export class MatchmakingService {
 
   async leavePowerup() {
     const config = {
-      url: this.base + 'powerup/leave',
+      url: this.base + '/powerup/leave',
       method: 'POST'
     } as AxiosRequestConfig;
     const response = await api(config);

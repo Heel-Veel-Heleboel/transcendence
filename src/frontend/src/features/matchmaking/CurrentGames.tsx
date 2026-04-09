@@ -1,11 +1,12 @@
 import { useLobbyRoom } from "@colyseus/react";
+import { Client } from "@colyseus/sdk";
 import { JSX } from "react";
 
 const client = new Client("ws://localhost:2567");
 
 export function CurrentGames(): JSX.Element {
     const { rooms, error, isConnecting } = useLobbyRoom(
-        () => client.joinOrCreate(CONFIG.LOBBYROOM),
+        () => client.joinOrCreate('lobby'),
     );
 
     if (isConnecting) return <p>Connecting...</p>;

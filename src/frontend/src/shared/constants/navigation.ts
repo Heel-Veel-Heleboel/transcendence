@@ -12,6 +12,7 @@ export const VISITOR_PAGE = ':userId';
 export const GAME_PAGE = '/game/:gameMode/:matchId/:roomId';
 export const TOURNAMENT_BASE = '/tournament';
 export const TOURNAMENT_PAGE = ':tournamentId';
+export const TOURNAMENT_CREATION_PAGE = 'create';
 
 export const START_MENU_NAVIGATION = START_MENU_PAGE;
 export const CREDITS_NAVIGATION = CREDITS_PAGE;
@@ -26,6 +27,8 @@ export const RELATIONSHIPS_NAVIGATION =
 export const VISITOR_NAVIGATION = PROFILE_PAGE + '/' + VISITOR_PAGE;
 export const GAME_NAVIGATION = GAME_PAGE;
 export const TOURNAMENT_NAVIGATION = TOURNAMENT_BASE + '/' + TOURNAMENT_PAGE;
+export const TOURNAMENT_CREATION_NAVIGATION =
+  TOURNAMENT_BASE + '/' + TOURNAMENT_CREATION_PAGE;
 export const TOURNAMENT_NAVIGATION_REDIRECT = (tournamentId: string) => {
   return `${TOURNAMENT_BASE}/${tournamentId}`;
 };

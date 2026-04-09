@@ -59,7 +59,9 @@ export interface IMatchmakingService {
   getStatus: () => Promise<AxiosResponse>;
   getMatchInfo: (matchId: string) => Promise<AxiosResponse>;
   getTournamentInfo: (tournamentId: string) => Promise<AxiosResponse>;
+  getTournaments: () => Promise<AxiosResponse>;
   cancelTournament: (tournamentId: string) => Promise<AxiosResponse>;
+  registerTournament: (tournamentId: string) => Promise<AxiosResponse>;
   unregisterTournament: (tournamentId: string) => Promise<AxiosResponse>;
   joinClassic: () => Promise<AxiosResponse>;
   leaveClassic: () => Promise<AxiosResponse>;

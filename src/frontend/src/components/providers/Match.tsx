@@ -1,5 +1,4 @@
 import { createContext, ReactNode, useContext, } from 'react';
-import { useAuth } from './Auth';
 import { MatchmakingService } from '../../shared/api/matchmaking';
 import { IMatchmakingService } from '../../shared/types/matchmaking';
 
@@ -16,7 +15,6 @@ export function useMatchMakingService() {
 }
 
 export function MatchProvider({ children }: { children: ReactNode }) {
-    const auth = useAuth();
 
     async function getStatus() {
         try {
@@ -49,9 +47,29 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    async function getTournaments() {
+        try {
+            const response = await service.getTournaments();
+            return response
+        } catch (e: any) {
+            console.error(e);
+            throw e
+        }
+    }
+
     async function cancelTournament(tournamentId: string) {
         try {
             const response = await service.cancelTournament(tournamentId);
+            return response
+        } catch (e: any) {
+            console.error(e);
+            throw e
+        }
+    }
+
+    async function registerTournament(tournamentId: string) {
+        try {
+            const response = await service.registerTournament(tournamentId);
             return response
         } catch (e: any) {
             console.error(e);
@@ -118,7 +136,9 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             getStatus,
             getMatchInfo,
             getTournamentInfo,
+            getTournaments,
             cancelTournament,
+            registerTournament,
             unregisterTournament,
             joinClassic,
             leaveClassic,
