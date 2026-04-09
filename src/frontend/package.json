@@ -1,12 +1,13 @@
 {
-    "name": "frontend-ssr",
+    "name": "frontend",
     "private": true,
     "version": "1.0.0",
     "type": "module",
     "scripts": {
+        "start": "npm run build && npm run prod",
         "dev": "NODE_ENV=development node server | npx pino-pretty",
         "prod": "NODE_ENV=production node server",
-        "build": "vite build --outDir dist/client",
+        "build": "vite build --outDir dist/",
         "preview": "cross-env NODE_ENV=production node server",
         "test": "vitest",
         "test:run": "vitest run --passWithNoTests",
