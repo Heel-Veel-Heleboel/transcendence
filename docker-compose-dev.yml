@@ -161,6 +161,7 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "3005:3005"
+      - "51214:51214" # prisma studio
     env_file:
       - docker/shared.dev.env
     environment:
@@ -201,6 +202,7 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "3006:3006"
+      - "51215:51215" # prisma studio
     env_file:
       - docker/shared.dev.env
     environment:
