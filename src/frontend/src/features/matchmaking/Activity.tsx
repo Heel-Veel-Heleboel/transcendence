@@ -7,11 +7,11 @@ import { TOURNAMENT_NAVIGATION_REDIRECT } from "../../shared/constants/navigatio
 
 export function CurrentActivity({ status }: { status: IMatchmakingStatus }) {
 
-    if (status.activeMatchId && !status.activeTournamentId) {
+    if (status.activeMatchId) {
         return (
             <MatchActivity status={status} />
         )
-    } else if (!status.activeMatchId && status.activeTournamentId) {
+    } else if (status.activeTournamentId) {
         return (
             <TournamentActivity status={status} />
         )
@@ -26,22 +26,26 @@ export function TournamentActivity({ status }: { status: IMatchmakingStatus }) {
     const service = useMatchMakingService();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
-    const [tournamentName, setTournamentName] = useState<string>('Champions League');
+    const [tournamentName, setTournamentName] = useState<string>('');
 
     useEffect(() => {
-        async function getMatch() {
+        async function getActiveTournament() {
             try {
-                if (status.activeMatchId) {
-                    const result = await service.getTournamentInfo(String(status.activeTournamentId));
-                    setTournamentName(result.data.name);
-                }
+                setLoading(true);
+                setError(false);
+                const result = await service.getTournamentInfo(String(status.activeTournamentId));
+                console.log('here');
+                console.log(result);
+                console.log(status);
+                setTournamentName(result.data.tournament.name);
             } catch (e: any) {
+                console.error(e);
                 setError(true);
             } finally {
                 setLoading(false);
             }
         }
-        getMatch();
+        getActiveTournament();
     }, [])
 
     if (loading) {
@@ -71,7 +75,6 @@ export function TournamentActivity({ status }: { status: IMatchmakingStatus }) {
 export function PendingTournament({ status, tournamentId, tournamentName }: { status: IMatchmakingStatus, tournamentId: string, tournamentName: string }) {
     const navigate = useNavigate();
     const service = useMatchMakingService();
-    const [callback, setCallback] = useState<() => void>(() => { return });
     const [callbackTitle, setCallbackTitle] = useState<string>('');
 
     async function cancelTournament() {
@@ -94,18 +97,21 @@ export function PendingTournament({ status, tournamentId, tournamentName }: { st
 
 
     useEffect(() => {
+        console.log(tournamentName);
         if (status.activeTournamentId && status.isCreator) {
-            setCallback(() => { cancelTournament() })
             setCallbackTitle('cancel');
         }
         else if (status.activeTournamentId && !status.isCreator) {
-            setCallback(() => { unregisterTournament() })
             setCallbackTitle('leave');
         }
     }, [])
     if (status.state === 'in_tournament_registration' && status.activeTournamentId && status.isCreator)
         return (
-            <Activity label={<div>Pending tournament: <button onClick={() => { navigate(TOURNAMENT_NAVIGATION_REDIRECT(tournamentId)) }}>{tournamentName} </button></div>} callback={callback} callbackTitle={callbackTitle} />
+            <Activity
+                label={<div>Pending tournament: <button onClick={() => { navigate(TOURNAMENT_NAVIGATION_REDIRECT(tournamentId)) }}>{tournamentName} </button></div>}
+                callback={callbackTitle === 'cancel' ? () => { cancelTournament() } : callbackTitle === 'leave' ? () => { unregisterTournament() } : () => { return }}
+                callbackTitle={callbackTitle}
+            />
         )
 }
 

@@ -63,7 +63,7 @@ export function App() {
                                         </Route>
                                         <Route path={VISITOR_PAGE} element={<VisitorProfile />} />
                                     </Route >
-                                    <Route path={TOURNAMENT_BASE} element={<Tournament />} >
+                                    <Route path={TOURNAMENT_BASE} >
                                         <Route path={TOURNAMENT_PAGE} element={<Tournament />} />
                                         <Route path={TOURNAMENT_CREATION_PAGE} element={<TournamentCreation />} />
                                     </Route  >

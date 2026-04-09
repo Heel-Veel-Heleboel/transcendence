@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext, } from 'react';
 import { MatchmakingService } from '../../shared/api/matchmaking';
-import { IMatchmakingService } from '../../shared/types/matchmaking';
+import { IMatchmakingService, ISetTournament } from '../../shared/types/matchmaking';
 
 const service = new MatchmakingService();
 
@@ -50,6 +50,16 @@ export function MatchProvider({ children }: { children: ReactNode }) {
     async function getTournaments() {
         try {
             const response = await service.getTournaments();
+            return response
+        } catch (e: any) {
+            console.error(e);
+            throw e
+        }
+    }
+
+    async function setTournament(data: ISetTournament) {
+        try {
+            const response = await service.setTournament(data);
             return response
         } catch (e: any) {
             console.error(e);
@@ -137,6 +147,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             getMatchInfo,
             getTournamentInfo,
             getTournaments,
+            setTournament,
             cancelTournament,
             registerTournament,
             unregisterTournament,

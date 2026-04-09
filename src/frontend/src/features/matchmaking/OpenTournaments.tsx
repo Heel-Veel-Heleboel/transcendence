@@ -14,6 +14,7 @@ function JoinTournament({ tournament, state }: { tournament: ITournament, state:
     async function register(id: string) {
         try {
             await service.registerTournament(id);
+            alert(`joined tournament: ${tournament.name}!`)
         } catch (e: any) {
             console.error(e);
             alert('failed to join tournament')
@@ -36,14 +37,15 @@ export function OpenTournaments({ state }: { state: string }): JSX.Element {
     const service = useMatchMakingService();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
-    const [tournaments, setTournaments] = useState<Array<ITournament>>(new Array<ITournament>());
+    const [tournaments, setTournaments] = useState<Array<ITournament>>([]);
 
     useEffect(() => {
         async function getTournaments() {
             try {
+                setError(false);
                 setLoading(true);
                 const result = await service.getTournaments();
-                setTournaments(result.data);
+                setTournaments(result.data.tournaments);
             } catch (e: any) {
                 setError(true);
             }
@@ -65,12 +67,6 @@ export function OpenTournaments({ state }: { state: string }): JSX.Element {
         return (
             <div>error</div>
         )
-    }
-
-    if (!tournaments.hasOwnProperty('map')) {
-        return (
-            <div></div>
-        );
     }
 
     return (

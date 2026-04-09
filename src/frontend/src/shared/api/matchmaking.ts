@@ -1,5 +1,6 @@
 import { AxiosRequestConfig } from 'axios';
 import api from './api';
+import { ISetTournament } from '../types/matchmaking';
 
 export class MatchmakingService {
   private base: string;
@@ -39,6 +40,19 @@ export class MatchmakingService {
     const config = {
       url: this.base + '/tournament',
       method: 'GET'
+    } as AxiosRequestConfig;
+    const response = await api(config);
+    return response;
+  }
+
+  async setTournament(data: ISetTournament) {
+    const config = {
+      url: this.base + '/tournament',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: JSON.stringify(data)
     } as AxiosRequestConfig;
     const response = await api(config);
     return response;
