@@ -1,6 +1,7 @@
 NAME	:= .docker_compose_started
 
 COMPOSE_APP  = docker compose -f docker-compose.yml
+COMPOSE_DEV = docker compose -f docker-compose.yml -f docker-compose.observability.yml
 COMPOSE_PROD = docker compose -f docker-compose.yml -f docker-compose.observability.yml
 
 all: $(NAME)
@@ -20,14 +21,14 @@ re: fclean all
 # ── Dev (app services only, pino-pretty logs) ────────────────────────────────
 
 dev:
-	docker compose -f docker-compose-dev.yml up --watch
+	$(COMPOSE_DEV) up --watch
 	touch $(NAME)
 
 dev-build:
-	$(COMPOSE_APP) up -d --build
+	$(COMPOSE_DEV) up -d --build
 
 dev-down:
-	$(COMPOSE_APP) down
+	$(COMPOSE_DEV) down
 
 # ── Prod (app + observability stack) ─────────────────────────────────────────
 
