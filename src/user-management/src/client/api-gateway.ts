@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ClientError } from '../error/user-management.js';
+// import { ClientError } from '../error/user-management.js';
 
 export interface WebSocketEvent {
   type: string;
@@ -25,6 +25,7 @@ export class ApiGatewayClient{
       });
     } catch {
       // throw new ClientError('APIGatewayClient');
+      
     }
   }
 
