@@ -23,6 +23,7 @@ import { UserProvider } from '../components/providers/User.tsx';
 import { TwoFactorLogin } from '../pages/TwoFactorLogin.tsx';
 import { TournamentCreation } from '../pages/TournamentCreation.tsx';
 import { MatchProvider } from '../components/providers/Match.tsx';
+import { ChatProvider } from '../components/providers/Chat.tsx';
 
 /* v8 ignore start */
 export function App() {
@@ -42,37 +43,39 @@ export function App() {
         <ErrorBoundary FallbackComponent={GeneralErrorFallback} >
             <AuthProvider >
                 <UserProvider>
-                    <MatchProvider>
-                        <RoomProvider>
-                            <Routes>
-                                <Route element={<AutoLogin />}>
-                                    <Route path={START_MENU_PAGE} element={<StartMenu />} />
-                                    <Route path={ENTRY_PAGE}  >
-                                        <Route index element={<Entry />} />
-                                        <Route path={REGISTER_PAGE} element={<Register />} />
-                                        <Route path={LOGIN_PAGE} element={<Login />} />
-                                        <Route path={TWO_FACTOR_PAGE} element={<TwoFactorLogin />} />
-                                    </Route   >
-                                </Route>
-                                <Route path={CREDITS_PAGE} element={<Credits />} />
-                                <Route element={<PrivateRoutes />}>
-                                    <Route path={HOME_PAGE} element={<Home />} />
-                                    <Route path={PROFILE_PAGE} >
-                                        <Route path={USER_PAGE} element={<Profile />} >
-                                            <Route path={RELATIONSHIPS_PAGE} element={<Relationships />} />
-                                        </Route>
-                                        <Route path={VISITOR_PAGE} element={<VisitorProfile />} />
-                                    </Route >
-                                    <Route path={TOURNAMENT_BASE} >
-                                        <Route path={TOURNAMENT_PAGE} element={<Tournament />} />
-                                        <Route path={TOURNAMENT_CREATION_PAGE} element={<TournamentCreation />} />
-                                    </Route  >
-                                    <Route path={GAME_NAVIGATION} element={<Game />} />
-                                </Route>
-                                <Route path={'*'} element={<NotFound />} />
-                            </Routes>
-                        </RoomProvider>
-                    </MatchProvider>
+                    <ChatProvider>
+                        <MatchProvider>
+                            <RoomProvider>
+                                <Routes>
+                                    <Route element={<AutoLogin />}>
+                                        <Route path={START_MENU_PAGE} element={<StartMenu />} />
+                                        <Route path={ENTRY_PAGE}  >
+                                            <Route index element={<Entry />} />
+                                            <Route path={REGISTER_PAGE} element={<Register />} />
+                                            <Route path={LOGIN_PAGE} element={<Login />} />
+                                            <Route path={TWO_FACTOR_PAGE} element={<TwoFactorLogin />} />
+                                        </Route   >
+                                    </Route>
+                                    <Route path={CREDITS_PAGE} element={<Credits />} />
+                                    <Route element={<PrivateRoutes />}>
+                                        <Route path={HOME_PAGE} element={<Home />} />
+                                        <Route path={PROFILE_PAGE} >
+                                            <Route path={USER_PAGE} element={<Profile />} >
+                                                <Route path={RELATIONSHIPS_PAGE} element={<Relationships />} />
+                                            </Route>
+                                            <Route path={VISITOR_PAGE} element={<VisitorProfile />} />
+                                        </Route >
+                                        <Route path={TOURNAMENT_BASE} >
+                                            <Route path={TOURNAMENT_PAGE} element={<Tournament />} />
+                                            <Route path={TOURNAMENT_CREATION_PAGE} element={<TournamentCreation />} />
+                                        </Route  >
+                                        <Route path={GAME_NAVIGATION} element={<Game />} />
+                                    </Route>
+                                    <Route path={'*'} element={<NotFound />} />
+                                </Routes>
+                            </RoomProvider>
+                        </MatchProvider>
+                    </ChatProvider>
                 </UserProvider>
 
             </AuthProvider>
