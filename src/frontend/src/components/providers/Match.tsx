@@ -9,7 +9,7 @@ const MatchmakingServiceContext = createContext<IMatchmakingService | undefined>
 export function useMatchMakingService() {
     const userContext = useContext(MatchmakingServiceContext);
     if (userContext === undefined) {
-        throw new Error('useUserService has to be used within UserProvide');
+        throw new Error('useMatchMakingService has to be used within MatchProvider');
     }
     return userContext;
 }
