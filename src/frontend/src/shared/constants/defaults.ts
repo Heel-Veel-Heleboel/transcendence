@@ -1,4 +1,5 @@
 import { IFriendship } from '../types/friendship';
+import { IMatch, IMatchmakingStatus } from '../types/matchmaking';
 import { IProfile } from '../types/profile';
 import { IUser, IUserStatus } from '../types/user';
 
@@ -35,4 +36,37 @@ export const DEFAULT_FRIENDSHIP: IFriendship = {
   updated_at: '0',
   userId: 0,
   userName: 'mysterio'
+};
+
+export const DEFAULT_MATCH: IMatch = {
+  id: '',
+  tournamentId: null,
+  gameMode: '',
+  player1Id: 0,
+  player2Id: 0,
+  player1Username: '',
+  player2Username: '',
+  status: '',
+  scheduledAt: new Date(0),
+  deadline: null,
+  player1Acknowledged: false,
+  player2Acknowledged: false,
+  startedAt: null,
+  completedAt: null,
+  winnerId: null,
+  player1Score: null,
+  player2Score: null,
+  gameSessionId: null,
+  resultSource: null,
+  round: null,
+  bracketPosition: null
+};
+
+export const DEFAULT_MATCHSTATUS: IMatchmakingStatus = {
+  state: '',
+  poolGameMode: null,
+  activeMatchId: null,
+  activeTournamentId: null,
+  tournamentStatus: null,
+  isCreator: false
 };

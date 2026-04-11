@@ -51,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     async function logIn(data: ILogin) {
         try {
             const response = await service.login(data);
-            console.log(response);
             const accessToken = response.data.access_token;
             const userId = response.data.id;
             setToken(accessToken);
@@ -76,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             }
             return response
         } catch (e: any) {
-            console.log(e);
+            console.error(e);
             // TODO: error handling
             throw e
         }
@@ -86,7 +85,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         try {
             setIsLoading(true);
             const response = await service.refresh({ user_id: userId })
-            console.log(response.data.access_token)
             setToken(response.data.access_token);
             setIsAuthenticated(true);
             setIsLoading(false);
