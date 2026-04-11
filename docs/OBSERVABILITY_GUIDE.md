@@ -60,13 +60,13 @@ GRAFANA_ADMIN_PASSWORD=<your-password>
 docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
 ```
 
-The `elk-setup` container runs first: it generates TLS certificates for Elasticsearch, Kibana, and Logstash, then sets the `kibana_system` password. Elasticsearch and Kibana will not be ready until `elk-setup` exits cleanly. This typically takes 60–120 seconds.
+The `setup` service runs the one-time ELK initialization steps: it generates TLS certificates for Elasticsearch, Kibana, and Logstash, then sets the `kibana_system` password. The setup container stays running, so Elasticsearch and Kibana readiness is driven by the Compose dependency and healthcheck flow rather than by `setup` exiting. Allow roughly 60–120 seconds for the stack to become healthy.
 
 Check readiness:
 
 ```bash
-# elk-setup should show "ELK setup completed successfully!"
-docker logs transcendence-elk-setup-1
+# setup logs should include "ELK setup completed successfully!"
+docker compose logs setup
 
 # Elasticsearch cluster health (green or yellow = ready)
 curl -u elastic:<ELASTIC_PASSWORD> --cacert certs/ca/ca.crt https://localhost:9200/_cluster/health
