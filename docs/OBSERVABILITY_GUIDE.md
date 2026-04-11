@@ -39,7 +39,7 @@ Services (/metrics endpoint)
 
 ## Prerequisites
 
-Copy `emv.txt` to `.env` at the project root and set your credentials before starting:
+Create a `.env` file at the project root and set your credentials before starting using the values below:
 
 ```env
 ELASTIC_USER=elastic
