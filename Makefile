@@ -1,7 +1,7 @@
 NAME	:= .docker_compose_started
 
 COMPOSE_APP  = docker compose -f docker-compose.yml
-COMPOSE_DEV = docker compose -f docker-compose.yml -f docker-compose.observability.yml
+COMPOSE_DEV = docker compose -f docker-compose-dev.yml -f docker-compose.observability.yml
 COMPOSE_PROD = docker compose -f docker-compose.yml -f docker-compose.observability.yml
 
 all: $(NAME)
