@@ -1,4 +1,4 @@
-import { JSX, useEffect, useState } from "react"
+import { FormEvent, JSX, useEffect, useState } from "react"
 import { IChatMessage } from "../../shared/types/chat.ts";
 import { useChatService } from "../../components/providers/Chat.tsx";
 import { ChatContainer } from "./ChatContainer.tsx";
@@ -22,6 +22,7 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
                     setLoading(true)
                     setError(false)
                     const result = await service.getChannelMessages(currentChat);
+                    console.log(result);
                     setChat(result);
                 } catch (e: any) {
                     console.error(e);
@@ -35,41 +36,18 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
 
     }, [currentChat])
 
-    async function sendAck(messageId: string, response: boolean) {
-        try {
-            await service.setAck({ messageId, response });
-        } catch (e: any) {
-            console.error(e);
-        }
-    }
 
     function ListMessages({ chat }: { chat: Array<IChatMessage> }) {
-        const listItems = chat.map(item =>
-            <li key={item.id}>
-                <br />
-                <div className="border border-white flex justify-between">
-                    <div></div>
-                    <div className="flex flex-col">
-                        <div>
-                            {item.content}
-                        </div>
-                        <br />
-                        <div className="flex justify-between">
-                            <div></div>
-                            <div className="flex justify-around w-1/4">
-                                <button onClick={() => sendAck(item.id, true)} className="bg-green-500">Accept</button>
-                                <div />
-                                <button onClick={() => sendAck(item.id, false)} className="bg-red-500">Cancel</button>
-                            </div>
-
-                            <div></div>
-                        </div>
-                        <br />
-                    </div>
-                    <div></div>
-                </div>
-            </li>
-        );
+        const listItems = chat.map(item => {
+            if (item.type === 'SYSTEM') {
+                return (
+                    <RenderAckMessage item={item} />
+                )
+            }
+            return (
+                <div>msg</div>
+            )
+        });
         return <ul>{listItems}</ul>;
     }
 
@@ -99,9 +77,86 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
     }
 
     return (
-        <ChatContainer>
-            <ListMessages chat={chat} />
-        </ChatContainer>
+        <div id="messenger-container" className="flex flex-col w-4/6 min-h-full">
+            <ChatContainer>
+                <ListMessages chat={chat} />
+            </ChatContainer>
+            <MessageForm />
+        </div>
+    )
+}
+
+
+export function RenderAckMessage({ item }: { item: IChatMessage }) {
+    const service = useChatService();
+
+    async function sendAck(messageId: string, response: boolean) {
+        try {
+            await service.setAck({ messageId, response });
+        } catch (e: any) {
+            alert('failed to send acknowledgement');
+            console.error(e);
+        }
+    }
+    return (
+        <li key={item.id}>
+            <br />
+            <div className="border border-white flex justify-between">
+                <div></div>
+                <div className="flex flex-col">
+                    <div>
+                        {item.content}
+                    </div>
+                    <br />
+                    <div className="flex justify-between">
+                        <div></div>
+                        <div className="flex justify-around w-1/4">
+                            <button onClick={() => sendAck(item.id, true)} className="bg-green-500">Accept</button>
+                            <div />
+                            <button onClick={() => sendAck(item.id, false)} className="bg-red-500">Cancel</button>
+                        </div>
+
+                        <div></div>
+                    </div>
+                    <br />
+                </div>
+                <div></div>
+            </div>
+        </li>
+    )
+}
+
+export function MessageForm() {
+    const service = useChatService();
+
+    async function submit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        const form = new FormData(event.currentTarget);
+        const input = form.get("message-input") as string;
+
+        try {
+            // await service.verifyTwoFactor(token);
+            console.log(input);
+            event.currentTarget.reset();
+        } catch (e: any) {
+            alert('failed to send message');
+            console.error(e);
+        }
+    };
+
+    return (
+        <div id="message-form" className="min-h-1/5">
+            <div className="min-h-full flex">
+                <form className="min-h-full min-w-full flex" onSubmit={submit}>
+                    <div className="min-w-4/5 min-h-full">
+                        <textarea id="message-input-element" name="message-input" className="border w-full min-h-full" />
+                    </div>
+                    <div id="message-send-button" className="min-w-1/5 min-h-full">
+                        <button type="submit" className="border min-h-full w-full" >Send</button>
+                    </div>
+                </form>
+            </div>
+        </div >
     )
 }
 
