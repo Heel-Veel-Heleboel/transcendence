@@ -9,7 +9,7 @@ Services (pino-socket TCP)
    Logstash :5044          ← parses & enriches JSON logs
         │
         ▼
-Elasticsearch :9200        ← stores logs in data streams
+Elasticsearch :9200        ← stores logs in daily indices
         │
         ▼
    Kibana :5601            ← search, filter, visualise logs
@@ -28,8 +28,8 @@ Services (/metrics endpoint)
 
 | Component | What it is | What it does here |
 |-----------|-----------|-------------------|
-| **Logstash** | Data processing pipeline | Receives raw JSON logs from services over TCP (pino-socket). Parses Pino fields (`level`, `time`, `name`), maps numeric levels to `severity` strings, overrides severity based on HTTP status codes, and routes each event to a per-service data stream in Elasticsearch. |
-| **Elasticsearch** | Distributed search & analytics engine | Stores every log event in a data stream named `logs-<service>-YYYY.MM.dd`. Provides full-text search and field filtering via its REST API. TLS + xpack security are enabled — all internal traffic is encrypted with auto-generated certificates. |
+| **Logstash** | Data processing pipeline | Receives raw JSON logs from services over TCP (pino-socket). Parses Pino fields (`level`, `time`, `name`), maps numeric levels to `severity` strings, overrides severity based on HTTP status codes, and writes each event to a per-service daily index in Elasticsearch (`logs-<service>-YYYY.MM.dd`). |
+| **Elasticsearch** | Distributed search & analytics engine | Stores every log event in a daily index named `logs-<service>-YYYY.MM.dd` (e.g. `logs-api-gateway-2026.04.11`). Provides full-text search and field filtering via its REST API. TLS + xpack security are enabled — all internal traffic is encrypted with auto-generated certificates. |
 | **Kibana** | UI for Elasticsearch | The main interface for browsing, filtering, and visualising logs. Connects to Elasticsearch with the `kibana_system` internal user. You log in as `elastic` to use it. |
 | **Prometheus** | Metrics collection engine | Scrapes `/metrics` endpoints on a 15 s interval. Uses Docker service discovery via docker-proxy — any container with the label `prometheus.scrape=true` is picked up automatically. |
 | **Grafana** | Metrics visualisation UI | Connects to Prometheus as its default datasource (auto-provisioned). Used for dashboards and alert visualisation. |
@@ -102,7 +102,7 @@ Kibana needs a **data view** that matches the indices Logstash creates before yo
 
 > If no indices appear in the dropdown, logs have not reached Elasticsearch yet. Check Logstash is running and that at least one service is shipping logs.
 
-You only need to do this once. The data view covers all per-service streams (`logs-api-gateway-*`, `logs-auth-*`, etc.) automatically.
+You only need to do this once. The data view covers all per-service indices (`logs-api-gateway-*`, `logs-auth-*`, etc.) automatically.
 
 ---
 
