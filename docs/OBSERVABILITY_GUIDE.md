@@ -69,7 +69,9 @@ Check readiness:
 docker compose logs setup
 
 # Elasticsearch cluster health (green or yellow = ready)
-curl -u elastic:<ELASTIC_PASSWORD> --cacert certs/ca/ca.crt https://localhost:9200/_cluster/health
+docker compose -f docker-compose.yml -f docker-compose.observability.yml exec elk-setup \
+  curl -u elastic:<ELASTIC_PASSWORD> --cacert config/certs/ca/ca.crt \
+  https://elasticsearch:9200/_cluster/health
 ```
 
 ---
