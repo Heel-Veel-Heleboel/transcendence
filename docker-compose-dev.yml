@@ -270,4 +270,5 @@ volumes:
 
 networks:
   app-net:
+    name: transcendence-app
     driver: bridge
