@@ -44,7 +44,7 @@ export function LiveChatRooms({ setChat }: { setChat: Dispatch<SetStateAction<st
     function List({ channels }: { channels: Array<IChat> }) {
         // TODO: make seperate unread counter component
         const listItems = channels.map(item =>
-            <li onClick={() => { setChat(item.id) }} key={item.id}>{item.id} {item.unreadCount ? `unread:${item.unreadCount}` : null}</li>
+            <li onClick={() => { setChat(item.id) }} key={0}>{item.id} {item.unreadCount ? `unread:${item.unreadCount}` : null}</li>
         );
         return <ul>{listItems}</ul>;
     }

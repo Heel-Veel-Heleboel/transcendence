@@ -19,8 +19,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     async function getChannels() {
         try {
             const response = await service.getChannels();
-            const mappedChannels = response.data.map((channel: IChatMessage) => channel.id); // INFO: mapping necessary for proper list rendering
-            return (mappedChannels);
+            return (response.data);
         } catch (e: any) {
             console.error(e);
             // TODO: add error handling
