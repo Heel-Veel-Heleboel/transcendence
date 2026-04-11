@@ -1,0 +1,32 @@
+FROM node:24-alpine
+
+# create non-privileged user and group
+RUN addgroup -S appgroup && adduser -S app -G appgroup
+
+# create and own workdir
+WORKDIR /app
+RUN chown app:appgroup /app
+
+# add dependenies
+RUN apk add --no-cache python3 make g++ util-linux
+COPY prisma.config.ts ./
+COPY prisma ./prisma/
+
+# copy package files
+COPY package.json package-lock.json ./
+
+# install dependencies as app (now owns files)
+RUN npm install
+
+# add other configuration
+COPY tsconfig.json ./
+COPY src ./src/
+COPY .env* ./
+
+EXPOSE 3004
+
+# setup entrypoint script for non-root volume access
+COPY entrypoint-dev.sh ./entrypoint-dev.sh
+ENTRYPOINT ["/bin/sh", "entrypoint-dev.sh"]
+
+CMD ["npm", "run", "dev"]

@@ -5,16 +5,17 @@ services:
     container_name: api-gateway
     build:
       context: src/api-gateway
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
+    env_file:
+      - docker/shared.dev.env
     environment:
       - PORT=3000
       - HOST=0.0.0.0
-      - NODE_ENV=development
-      - JWT_PUBLIC_KEY_PATH=/app/keys/jwt_public.pem
-      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
-      - SERVICES=[{"name":"auth","upstream":"http://auth:3003","prefix":"/api/auth","requiresAuth":false},{"name":"user-management","upstream":"http://user-management:3004","prefix":"/api/user-management","requiresAuth":true},{"name":"chat","upstream":"http://chat:3006","prefix":"/api/chat","requiresAuth":true},{"name":"matchmaking","upstream":"http://matchmaking:3005","prefix":"/api/matchmaking","requiresAuth":true},{"name":"game-server","upstream":"http://game-server:2567","prefix":"/api/game-server","requiresAuth":false,"websocket":true}]
+      - SERVICES_FILE=/app/config/services.json
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
     depends_on:
       auth:
         condition: service_started
@@ -33,6 +34,16 @@ services:
         condition: any
         delay: 5s
         window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: src/api-gateway/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - src/api-gateway/node_modules/
+        - action: rebuild
+          path: src/api-gateway/package.json
 
   # ─── Frontend ───────────────────────────────────────────────────────────────
   frontend:
@@ -67,18 +78,22 @@ services:
     container_name: auth
     build:
       context: src/auth
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3003:3003"
       - "51213:51213" # prisma studio
+    env_file:
+      - docker/shared.dev.env
     environment:
       - PORT=3003
       - HOST=0.0.0.0
-      - NODE_ENV=development
       - DATABASE_URL=file:/data/auth.db
       - JWT_PRIVATE_KEY_PATH=/app/keys/jwt_private.pem
       - JWT_PUBLIC_KEY_PATH=/app/keys/jwt_public.pem
       - USER_MANAGEMENT_URL=http://user-management:3004
+      - SERVICE_NAME=auth
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
     volumes:
       - auth-data:/data
     networks:
@@ -88,22 +103,36 @@ services:
         condition: any
         delay: 5s
         window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: src/auth/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - src/auth/node_modules/
+        - action: rebuild
+          path: src/auth/package.json
 
   # ─── User Management ────────────────────────────────────────────────────────
   user-management:
     container_name: user-management
     build:
       context: src/user-management
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3004:3004"
       - "51212:51212" # prisma studio
+    env_file:
+      - docker/shared.dev.env
     environment:
       - PORT=3004
       - HOST=0.0.0.0
-      - NODE_ENV=development
       - DATABASE_URL=file:/data/user-management.db
       - AUTH_SERVICE_URL=http://auth:3003
+      - SERVICE_NAME=user-management
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
     volumes:
       - user-management-data:/data
     networks:
@@ -113,23 +142,38 @@ services:
         condition: any
         delay: 5s
         window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: src/user-management/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - src/user-management/node_modules/
+        - action: rebuild
+          path: src/user-management/package.json
 
   # ─── Matchmaking ────────────────────────────────────────────────────────────
   matchmaking:
     container_name: matchmaking
     build:
       context: src/matchmaking
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3005:3005"
+      - "51214:51214" # prisma studio
+    env_file:
+      - docker/shared.dev.env
     environment:
       - PORT=3005
       - HOST=0.0.0.0
-      - NODE_ENV=development
       - DATABASE_URL=file:/data/matchmaking.db
       - GAME_SERVER_URL=http://game-server:2567
       - CHAT_SERVICE_URL=http://chat:3006
       - USER_MANAGEMENT_URL=http://user-management:3004
+      - SERVICE_NAME=matchmaking
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
     volumes:
       - matchmaking-data:/data
     networks:
@@ -139,21 +183,36 @@ services:
         condition: any
         delay: 5s
         window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: src/matchmaking/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - src/matchmaking/node_modules/
+        - action: rebuild
+          path: src/matchmaking/package.json
 
   # ─── Chat ───────────────────────────────────────────────────────────────────
   chat:
     container_name: chat
     build:
       context: src/chat
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3006:3006"
+      - "51215:51215" # prisma studio
+    env_file:
+      - docker/shared.dev.env
     environment:
       - PORT=3006
       - HOST=0.0.0.0
-      - NODE_ENV=development
       - DATABASE_URL=file:/data/chat.db
       - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3002
+      - SERVICE_NAME=chat
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
     volumes:
       - chat-data:/data
     networks:
@@ -163,13 +222,23 @@ services:
         condition: any
         delay: 5s
         window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: src/chat/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - src/chat/node_modules/
+        - action: rebuild
+          path: src/chat/package.json
 
   # ─── Game Server ─────────────────────────────────────────────────────────────
   game-server:
     container_name: game-server
     build:
       context: src/game-server
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "2567:2567"
     environment:
@@ -182,6 +251,16 @@ services:
         condition: any
         delay: 5s
         window: 15s
+    develop:
+      watch:
+        - action: sync
+          path: src/game-server/src
+          target: /app/src/
+          initial_sync: true
+          ignore:
+            - src/game-server/node_modules/
+        - action: rebuild
+          path: src/game-server/package.json
 
 volumes:
   auth-data:

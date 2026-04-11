@@ -1,0 +1,28 @@
+FROM node:24-alpine
+
+# create non-privileged user and group
+RUN addgroup -S appgroup && adduser -S app -G appgroup
+
+# create and own workdir
+WORKDIR /app
+RUN chown app:appgroup /app
+
+# copy package files as root (safe) then set ownership so app can write
+COPY package.json package-lock.json ./
+RUN chown app:appgroup package.json package-lock.json
+
+# install dependencies as app (now owns files)
+RUN npm install
+
+# add other configuration
+COPY tsconfig.json ./
+COPY public ./public/
+COPY src ./src/
+COPY .env* ./
+
+# copy rest of files as root but set ownership in one step
+COPY --chown=app:appgroup . .
+USER app
+
+EXPOSE 2567
+CMD ["npm", "run", "dev"]
