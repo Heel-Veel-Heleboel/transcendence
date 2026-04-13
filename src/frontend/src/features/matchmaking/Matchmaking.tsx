@@ -20,6 +20,7 @@ export function Matchmaking(): JSX.Element {
             try {
                 const result = await service.getStatus();
                 setStatus(result.data);
+                console.log(result.data);
             } catch (e: any) {
                 console.error(e);
             }

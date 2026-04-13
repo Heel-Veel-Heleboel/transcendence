@@ -9,7 +9,12 @@ export function CurrentActivity({ status }: { status: IMatchmakingStatus }) {
 
     if (status.activeMatchId) {
         return (
-            <MatchActivity status={status} />
+            <PendingMatch status={status} />
+        )
+    }
+    else if (status.state === 'in_pool' && !status.activeMatchId) {
+        return (
+            <InPool status={status} />
         )
     } else if (status.activeTournamentId) {
         return (
@@ -17,7 +22,7 @@ export function CurrentActivity({ status }: { status: IMatchmakingStatus }) {
         )
     } else {
         return (
-            <div>error</div>
+            <div id="current-activity-error">error</div>
         )
     }
 }
@@ -123,19 +128,6 @@ export function ActiveTournament({ tournamentId, tournamentName }: { tournamentI
     )
 }
 
-export function MatchActivity({ status }: { status: IMatchmakingStatus }) {
-
-    if (status.state === 'match_pending_ack' && status.activeMatchId)
-        return (
-            <PendingMatch status={status} />
-        )
-    else if (status.state === 'in_pool' && !status.activeMatchId) {
-        return (
-            <InPool status={status} />
-        )
-    }
-}
-
 export function PendingMatch({ status }: { status: IMatchmakingStatus }) {
     const auth = useAuth();
     const service = useMatchMakingService();
@@ -153,6 +145,7 @@ export function PendingMatch({ status }: { status: IMatchmakingStatus }) {
                     setOpponent(name);
                 }
             } catch (e: any) {
+                console.error(e);
                 setError(true);
             } finally {
                 setLoading(false);
@@ -169,7 +162,7 @@ export function PendingMatch({ status }: { status: IMatchmakingStatus }) {
 
     if (error) {
         return (
-            <div>error</div>
+            <div id="pending-match-error">error</div>
         )
     }
 
