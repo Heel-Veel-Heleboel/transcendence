@@ -4,7 +4,7 @@
 chown -R app:appgroup /data
 
 # INFO:sync schema to database
-npx prisma db push
+npm run db:push
 
 npx prisma studio --browser none --port 51212 &
 
