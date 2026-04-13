@@ -5,11 +5,11 @@
   "license": "ISC",
   "author": "Vova Shkonda",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
-    "start": "npm run db:push && node dist/index.js",
+    "start": "npm run db:push && node dist/src/index.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
