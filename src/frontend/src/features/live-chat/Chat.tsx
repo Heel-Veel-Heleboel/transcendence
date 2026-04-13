@@ -2,13 +2,8 @@ import { FormEvent, JSX, useEffect, useState } from "react"
 import { IChatMessage } from "../../shared/types/chat.ts";
 import { useChatService } from "../../components/providers/Chat.tsx";
 import { ChatContainer } from "./ChatContainer.tsx";
+import { RenderAckMessage, RenderMessage, RenderUnknownMessageType } from "./RenderMessage.tsx";
 
-// NOTE: GET /chat/channels/:channelId/messages to get all messages of selected channel
-// if notification is sent for every message received then 
-//      re-render chat when notification is received
-//      or safe message in state.
-// else
-//      re-render chat with time interval
 export function Chat({ channelId }: { channelId: string }): JSX.Element {
     const service = useChatService();
     const [chat, setChat] = useState<Array<IChatMessage>>([]);
@@ -22,7 +17,6 @@ export function Chat({ channelId }: { channelId: string }): JSX.Element {
                     setLoading(true)
                     setError(false)
                     const result = await service.getChannelMessages(channelId);
-                    console.log(result);
                     setChat(result);
                 } catch (e: any) {
                     console.error(e);
@@ -49,7 +43,7 @@ export function Chat({ channelId }: { channelId: string }): JSX.Element {
                 )
             }
             return (
-                <RenderUnknownMessageType />
+                <RenderUnknownMessageType item={item} />
             )
         });
         return <ul>{listItems.reverse()}</ul>;
@@ -91,96 +85,6 @@ export function Chat({ channelId }: { channelId: string }): JSX.Element {
 }
 
 
-export function RenderMessage({ item }: { item: IChatMessage }) {
-    console.log('item');
-    console.log(item);
-    return (
-        <li key={item.id} id={`message-${item.id}`} className="flex w-full pt-px pb-px" >
-            <RenderMessageDate item={item} />
-            <RenderMessageSender item={item} />
-            <RenderMessageContent item={item} />
-        </li >
-    )
-
-}
-
-export function RenderUnknownMessageType() {
-    return (
-        <div></div>
-    )
-
-}
-
-export function RenderMessageDate({ item }: { item: IChatMessage }) {
-    const date = new Date(item.createdAt);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const seconds = date.getSeconds();
-    const formattedSeconds = seconds < 10 ? '0' + seconds.toString() : seconds.toString();
-    return (
-        <div id={`message-date-${item.id}`} className="w-1/9">
-            {'[' + hours + ':' + minutes + ':' + formattedSeconds + ']'}
-        </div>
-    )
-}
-
-export function RenderMessageSender({ item }: { item: IChatMessage }) {
-    return (
-        <div id={`message-sender-${item.id}`} className="w-1/9 text-right pr-2">
-            {item.senderId.toString()}
-        </div>
-    )
-}
-
-export function RenderMessageContent({ item }: { item: IChatMessage }) {
-    return (
-        <div id={`message-content-${item.id}`} className="w-7/9 border-l">
-            <div className="pl-2 break-all text-wrap pr-2">
-                {item.content}
-            </div>
-        </div >
-    )
-}
-
-
-export function RenderAckMessage({ item }: { item: IChatMessage }) {
-    const service = useChatService();
-
-    async function sendAck(messageId: string, response: boolean) {
-        try {
-            await service.setAck({ messageId, response });
-        } catch (e: any) {
-            alert('failed to send acknowledgement');
-            console.error(e);
-        }
-    }
-    return (
-        <li key={item.id}>
-            <br />
-            <div className="border border-white flex justify-between">
-                <div></div>
-                <div className="flex flex-col">
-                    <div>
-                        {item.content}
-                    </div>
-                    <br />
-                    <div className="flex justify-between">
-                        <div></div>
-                        <div className="flex justify-around w-1/4">
-                            <button onClick={() => sendAck(item.id, true)} className="bg-green-500">Accept</button>
-                            <div />
-                            <button onClick={() => sendAck(item.id, false)} className="bg-red-500">Cancel</button>
-                        </div>
-
-                        <div></div>
-                    </div>
-                    <br />
-                </div>
-                <div></div>
-            </div>
-        </li>
-    )
-}
 
 export function MessageForm({ channelId }: { channelId: string }) {
     const service = useChatService();
