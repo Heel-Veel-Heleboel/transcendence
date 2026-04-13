@@ -32,4 +32,7 @@ export const TOURNAMENT_CREATION_NAVIGATION =
 export const TOURNAMENT_NAVIGATION_REDIRECT = (tournamentId: string) => {
   return `${TOURNAMENT_BASE}/${tournamentId}`;
 };
+export const VISITOR_PAGE_REDIRECTION = (userId: string) => {
+  return `${PROFILE_PAGE}/${userId}`;
+};
 export const QUIT_REDIRECT = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';

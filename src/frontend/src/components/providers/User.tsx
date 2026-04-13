@@ -42,6 +42,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    async function getUserByName(name: string) {
+        try {
+            const response = await service.getUserByName(name);
+            return (response.data);
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e
+        }
+    }
+
     async function getProfileAvatar(url: string) {
         try {
             const response = await service.getProfileAvatar({ avatarUrl: url });
@@ -137,6 +148,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         <UserServiceContext.Provider value={{
             getProfile,
             getUser,
+            getUserByName,
             getProfileAvatar,
             getFriendship,
             setFriendship,
