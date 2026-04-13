@@ -17,7 +17,8 @@ import { IChat } from "../../shared/types/chat";
 // user2 o
 // also option to delete chat or leave groupchat if implemented in chat-service
 // 
-export function LiveChatRooms({ setChat }: { setChat: Dispatch<SetStateAction<string | null>> }): JSX.Element {
+export function LiveChatRooms({ setChannelId }: { setChannelId: Dispatch<SetStateAction<string>> }): JSX.Element {
+
     const service = useChatService();
     const notif = useNotifications();
     const [loading, setLoading] = useState<boolean>(true);
@@ -44,7 +45,7 @@ export function LiveChatRooms({ setChat }: { setChat: Dispatch<SetStateAction<st
     function List({ channels }: { channels: Array<IChat> }) {
         // TODO: make seperate unread counter component
         const listItems = channels.map(item =>
-            <li onClick={() => { setChat(item.id) }} key={0}>{item.id} {item.unreadCount ? `unread:${item.unreadCount}` : null}</li>
+            <li onClick={() => { setChannelId(item.id) }} key={0}>{item.id} {item.unreadCount ? `unread:${item.unreadCount}` : null}</li>
         );
         return <ul>{listItems}</ul>;
     }

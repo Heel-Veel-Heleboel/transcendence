@@ -9,7 +9,7 @@ import { ChatContainer } from "./ChatContainer.tsx";
 //      or safe message in state.
 // else
 //      re-render chat with time interval
-export function Chat({ currentChat }: { currentChat: string | null }): JSX.Element {
+export function Chat({ channelId }: { channelId: string }): JSX.Element {
     const service = useChatService();
     const [chat, setChat] = useState<Array<IChatMessage>>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -17,11 +17,11 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
 
     useEffect(() => {
         async function getChat() {
-            if (currentChat) {
+            if (channelId) {
                 try {
                     setLoading(true)
                     setError(false)
-                    const result = await service.getChannelMessages(currentChat);
+                    const result = await service.getChannelMessages(channelId);
                     console.log(result);
                     setChat(result);
                 } catch (e: any) {
@@ -34,7 +34,7 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
         }
         getChat();
 
-    }, [currentChat])
+    }, [channelId])
 
 
     function ListMessages({ chat }: { chat: Array<IChatMessage> }) {
@@ -43,16 +43,20 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
                 return (
                     <RenderAckMessage item={item} />
                 )
+            } else if (item.type === 'TEXT') {
+                return (
+                    <RenderMessage item={item} />
+                )
             }
             return (
-                <div>msg</div>
+                <RenderUnknownMessageType />
             )
         });
-        return <ul>{listItems}</ul>;
+        return <ul>{listItems.reverse()}</ul>;
     }
 
 
-    if (!currentChat) {
+    if (!channelId) {
         return (
             <ChatContainer>
                 <div>select chat</div>
@@ -81,8 +85,60 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
             <ChatContainer>
                 <ListMessages chat={chat} />
             </ChatContainer>
-            <MessageForm />
+            <MessageForm channelId={channelId} />
         </div>
+    )
+}
+
+
+export function RenderMessage({ item }: { item: IChatMessage }) {
+    console.log('item');
+    console.log(item);
+    return (
+        <li key={item.id} id={`message-${item.id}`} className="flex w-full pt-px pb-px" >
+            <RenderMessageDate item={item} />
+            <RenderMessageSender item={item} />
+            <RenderMessageContent item={item} />
+        </li >
+    )
+
+}
+
+export function RenderUnknownMessageType() {
+    return (
+        <div></div>
+    )
+
+}
+
+export function RenderMessageDate({ item }: { item: IChatMessage }) {
+    const date = new Date(item.createdAt);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
+    const formattedSeconds = seconds < 10 ? '0' + seconds.toString() : seconds.toString();
+    return (
+        <div id={`message-date-${item.id}`} className="w-1/9">
+            {'[' + hours + ':' + minutes + ':' + formattedSeconds + ']'}
+        </div>
+    )
+}
+
+export function RenderMessageSender({ item }: { item: IChatMessage }) {
+    return (
+        <div id={`message-sender-${item.id}`} className="w-1/9 text-right pr-2">
+            {item.senderId.toString()}
+        </div>
+    )
+}
+
+export function RenderMessageContent({ item }: { item: IChatMessage }) {
+    return (
+        <div id={`message-content-${item.id}`} className="w-7/9 border-l">
+            <div className="pl-2 break-all text-wrap pr-2">
+                {item.content}
+            </div>
+        </div >
     )
 }
 
@@ -126,18 +182,16 @@ export function RenderAckMessage({ item }: { item: IChatMessage }) {
     )
 }
 
-export function MessageForm() {
+export function MessageForm({ channelId }: { channelId: string }) {
     const service = useChatService();
+    const [content, setContent] = useState<string>('');
 
     async function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        const form = new FormData(event.currentTarget);
-        const input = form.get("message-input") as string;
 
         try {
-            // await service.verifyTwoFactor(token);
-            console.log(input);
-            event.currentTarget.reset();
+            await service.sendMessage({ channelId, content })
+            setContent('');
         } catch (e: any) {
             alert('failed to send message');
             console.error(e);
@@ -149,7 +203,13 @@ export function MessageForm() {
             <div className="min-h-full flex">
                 <form className="min-h-full min-w-full flex" onSubmit={submit}>
                     <div className="min-w-4/5 min-h-full">
-                        <textarea id="message-input-element" name="message-input" className="border w-full min-h-full" />
+                        <textarea
+                            id="message-input-element"
+                            name="message-input"
+                            className="border w-full min-h-full"
+                            value={content}
+                            onChange={e => setContent(e.target.value)}
+                        />
                     </div>
                     <div id="message-send-button" className="min-w-1/5 min-h-full">
                         <button type="submit" className="border min-h-full w-full" >Send</button>
