@@ -1,4 +1,4 @@
-import { FormEvent, JSX, useEffect, useState } from "react"
+import { FormEvent, JSX, ReactNode, useEffect, useState } from "react"
 import { IChatMessage } from "../../shared/types/chat.ts";
 import { useChatService } from "../../components/providers/Chat.tsx";
 import { ChatContainer } from "./ChatContainer.tsx";
@@ -53,37 +53,50 @@ export function Chat({ channelId }: { channelId: string }): JSX.Element {
 
     if (!channelId) {
         return (
-            <ChatContainer>
-                <div>select chat</div>
-            </ChatContainer>
+            <MessengerContainer>
+                <ChatContainer>
+                    <div>select chat</div>
+                </ChatContainer>
+            </MessengerContainer>
         )
     }
 
     if (loading) {
         return (
-            <ChatContainer>
-                <div>loading</div>
-            </ChatContainer>
+            <MessengerContainer>
+                <ChatContainer>
+                    <div>loading</div>
+                </ChatContainer>
+            </MessengerContainer>
         )
     }
 
     if (error) {
         return (
-            <ChatContainer>
-                <div>error</div>
-            </ChatContainer>
+            <MessengerContainer>
+                <ChatContainer>
+                    <div>error</div>
+                </ChatContainer>
+            </MessengerContainer>
         )
     }
 
     return (
-        <div id="messenger-container" className="flex flex-col w-4/6 min-h-full">
+        <MessengerContainer>
             <ChatContainer>
                 <ListMessages chat={chat} />
             </ChatContainer>
             <MessageForm channelId={channelId} />
-        </div>
+        </MessengerContainer>
     )
 }
 
 
+export function MessengerContainer({ children }: { children: ReactNode }) {
+    return (
+        <div id="messenger-container" className="flex flex-col w-4/6 min-h-full">
+            {children}
+        </div>
+    )
+}
 
