@@ -1,18 +1,11 @@
-import { Dispatch, FormEvent, JSX, useState, SetStateAction } from "react"
+import { Dispatch, FormEvent, JSX, useState, SetStateAction, useEffect, ReactNode } from "react"
 import { useUserService } from "../../components/providers/User";
 import { IUser } from "../../shared/types/user";
-import { DEFAULT_USER } from "../../shared/constants/defaults";
-import { VISITOR_NAVIGATION, VISITOR_PAGE_REDIRECTION } from "../../shared/constants/navigation";
+import { DEFAULT_FRIENDSHIP, DEFAULT_USER } from "../../shared/constants/defaults";
+import { VISITOR_PAGE_REDIRECTION } from "../../shared/constants/navigation";
 import { useNavigate } from "react-router-dom";
-
-// NOTE: Searchbar with empty content at first render
-// USERS search username and it displays search result
-// USER can click on dropdown menu which shows following options
-//      + show profile
-//      + friend
-//      + message
-//      + groupchat
-//      + block
+import { FriendshipStatus, IFriendship } from "../../shared/types/friendship";
+import { useChatService } from "../../components/providers/Chat";
 
 export function LiveChatUsers(): JSX.Element {
     const [profile, setProfile] = useState<IUser>(DEFAULT_USER);
@@ -113,9 +106,203 @@ export function UserSearchResult({ profile }: { profile: IUser }) {
                 </div>
             </div>
             {dropDown ?
-                <div>lol</div> :
+                <UserDropDown profile={profile} /> :
                 null
             }
         </div>
     )
+}
+
+export function UserDropDown({ profile }: { profile: IUser }) {
+    const navigate = useNavigate();
+    const service = useUserService();
+    const [friendship, setFriendship] = useState<IFriendship>(DEFAULT_FRIENDSHIP);
+
+    useEffect(() => {
+        async function getFriendship() {
+            try {
+                service.getFriendship(String(profile.id))
+                setFriendship(friendship);
+            } catch (e: any) {
+                console.error(e);
+            }
+        }
+
+        getFriendship()
+    }, [])
+
+    return (
+        <div id="user-dropdown" className="flex flex-col">
+            <div>
+                <button id="go-to-profile" onClick={() => navigate(VISITOR_PAGE_REDIRECTION(String(profile.id)))}>
+                    show profile
+                </button>
+            </div>
+            {friendship.status === FriendshipStatus.UNDEFINED ?
+                <UserDropDownContainer>
+                    <SendFriendshipRequest profile={profile} />
+                    <SendMessage />
+                    <BlockUser profile={profile} />
+                </UserDropDownContainer>
+                : null
+            }
+            {friendship.status === FriendshipStatus.PENDING ?
+                <UserDropDownContainer>
+                    <CancelFriendshipRequest profile={profile} />
+                    <SendMessage />
+                    <BlockUser profile={profile} />
+                </UserDropDownContainer>
+                : null
+            }
+            {friendship.status === FriendshipStatus.ACCEPTED ?
+                <UserDropDownContainer>
+                    <Unfriend profile={profile} />
+                    <SendMessage />
+                    <BlockUser profile={profile} />
+                </UserDropDownContainer>
+                : null
+            }
+            {friendship.status === FriendshipStatus.REJECTED ?
+                <UserDropDownContainer>
+                    <SendFriendshipRequest profile={profile} />
+                    <SendMessage />
+                    <BlockUser profile={profile} />
+                </UserDropDownContainer>
+                : null
+            }
+            {friendship.status === FriendshipStatus.BLOCKED ?
+                <UserDropDownContainer>
+                    <SendFriendshipRequest profile={profile} />
+                    <SendMessage />
+                    <UnBlockUser profile={profile} />
+                </UserDropDownContainer>
+                : null
+            }
+        </div>
+    )
+}
+
+export function UserDropDownContainer({ children }: { children: ReactNode }) {
+    return (
+        <div className="flex flex-col">
+            {children}
+        </div>
+    )
+
+}
+
+export function SendFriendshipRequest({ profile }: { profile: IUser }) {
+    const service = useUserService();
+
+    async function sendFriendship() {
+        try {
+            await service.setFriendship(String(profile.id))
+        } catch (e: any) {
+            console.error(e);
+            alert('failed to send friendship request');
+        }
+    }
+
+    return (
+        <button id='send-friendship' onClick={() => sendFriendship()} className="text-left">
+            send friendship
+        </button>
+    )
+}
+
+export function CancelFriendshipRequest({ profile }: { profile: IUser }) {
+    const service = useUserService();
+
+    async function cancelFriendshipRequest() {
+        try {
+            await service.setFriendshipStatus({ id: String(profile.id), status: FriendshipStatus.REJECTED });
+        } catch (e: any) {
+            console.error(e);
+            alert('failed to cancel friendship request');
+        }
+    }
+
+    return (
+        <button id='cancel-friendship' onClick={() => cancelFriendshipRequest()} className="text-left">
+            cancel friendship request
+        </button>
+    )
+}
+
+export function Unfriend({ profile }: { profile: IUser }) {
+    const service = useUserService();
+
+    async function unFriend() {
+        try {
+            await service.setFriendshipStatus({ id: String(profile.id), status: FriendshipStatus.REJECTED });
+        } catch (e: any) {
+            console.error(e);
+            alert('failed to unfriend');
+        }
+    }
+
+    return (
+        <button id='unfriend' onClick={() => unFriend()} className="text-left">
+            unfriend
+        </button>
+    )
+}
+
+export function BlockUser({ profile }: { profile: IUser }) {
+    const service = useUserService();
+
+    async function block() {
+        try {
+            await service.setFriendshipStatus({ id: String(profile.id), status: FriendshipStatus.BLOCKED });
+        } catch (e: any) {
+            console.error(e);
+            alert('failed to block');
+        }
+    }
+
+    return (
+        <button id='block' onClick={() => block()} className="text-left">
+            block
+        </button>
+    )
+}
+
+export function UnBlockUser({ profile }: { profile: IUser }) {
+    const service = useUserService();
+
+    async function unBlock() {
+        try {
+            await service.setFriendshipStatus({ id: String(profile.id), status: FriendshipStatus.PENDING });
+        } catch (e: any) {
+            console.error(e);
+            alert('failed to unblock');
+        }
+    }
+
+    return (
+        <button id='unblock' onClick={() => unBlock()} className="text-left">
+            unblock
+        </button>
+    )
+}
+
+
+export function SendMessage() {
+    const service = useChatService();
+
+    async function sendMessage() {
+        try {
+            // await service.getChannelBetween({ id: String(profile.id), status: FriendshipStatus.PENDING });
+        } catch (e: any) {
+            console.error(e);
+            alert('failed to unblock');
+        }
+    }
+
+    return (
+        <button id='send-message' onClick={() => sendMessage()} className="text-left">
+            send message
+        </button>
+    )
+
 }

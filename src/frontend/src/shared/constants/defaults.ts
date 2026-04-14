@@ -32,7 +32,7 @@ export const DEFAULT_USER: IUser = {
 export const DEFAULT_FRIENDSHIP: IFriendship = {
   created_at: '0',
   id: 0,
-  status: 'PENDING',
+  status: 'UNDEFINED',
   updated_at: '0',
   userId: 0,
   userName: 'mysterio'
