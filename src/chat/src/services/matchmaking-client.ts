@@ -16,7 +16,7 @@ export class MatchmakingClient {
     playerId: number
   ): Promise<{ bothReady: boolean; roomId: string | null }> {
     const response = await fetch(
-      `${this.matchmakingUrl}/match/${matchId}/acknowledge`,
+      `${this.matchmakingUrl}/matchmaking/match/${matchId}/acknowledge`,
       {
         method: 'POST',
         headers: {
@@ -43,7 +43,7 @@ export class MatchmakingClient {
    */
   async decline(matchId: string, playerId: number): Promise<void> {
     const response = await fetch(
-      `${this.matchmakingUrl}/match/${matchId}/decline`,
+      `${this.matchmakingUrl}/matchmaking/match/${matchId}/decline`,
       {
         method: 'POST',
         headers: {

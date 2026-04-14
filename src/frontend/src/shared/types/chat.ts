@@ -10,8 +10,16 @@ export interface IAck {
   response: boolean;
 }
 
+export interface IChatMember {
+  userId: number;
+  username: string | null;
+}
+
 export interface IChat {
   id: string;
+  type: string;
+  name: string | null;
+  members: IChatMember[];
   unreadCount: number;
 }
 
