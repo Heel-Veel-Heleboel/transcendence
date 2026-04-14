@@ -1,6 +1,6 @@
 import { FriendshipRepository } from '../repositories/friendship.js';
 import { Friendship } from '../../generated/prisma/client.js';
-import { 
+import {
   CreateFriendshipDto,
   DeleteFriendshipDto,
   UpdateFriendshipStatusDto,
@@ -8,9 +8,11 @@ import {
   FindAllForUserDto,
   IsBlockedDto,
   FindAllByStatusForUserDto,
-  FriendshipDto
+  FriendshipDto,
+  BlockUserDto,
 } from '../dto/friendship.js';
 import { ApiGatewayClient, WebSocketEvent  } from '../client/api-gateway.js';
+import * as Error from '../error/user-management.js';
 
 
 
@@ -22,23 +24,26 @@ export class FriendshipService {
 
 
 
-  private async normalizeUserIds(userId1: number, userId2: number): Promise<[number, number]> {
-    return userId1 < userId2 ? [userId1, userId2] : [userId2, userId1];
-  }
-
-
-
   async createFriendship(data: CreateFriendshipDto): Promise<void> {
-    const { user1_id, user2_id } = data;
-    const [userId1, userId2] = await this.normalizeUserIds(user1_id, user2_id);
+    // Prevent sending a request to someone who has blocked you
+    const blockedByAddressee = await this.friendshipRepository.isBlockedBy({
+      blocker_id: data.addressee_id,
+      target_id: data.requester_id
+    });
+    if (blockedByAddressee) {
+      throw new Error.BlockedByUserError();
+    }
 
-    const friendship = await this.friendshipRepository.create({ user1_id: userId1, user2_id: userId2 });
+    const friendship = await this.friendshipRepository.create({
+      requester_id: data.requester_id,
+      addressee_id: data.addressee_id,
+    });
 
     const event: WebSocketEvent = {
       type: 'FRIENDSHIP_REQUEST',
       friendship_id: friendship.id
     };
-    await this.apiGatewayClient.notifyAddressee(user2_id, event);
+    await this.apiGatewayClient.notifyAddressee(data.addressee_id, event);
   }
 
 
@@ -47,10 +52,35 @@ export class FriendshipService {
     await this.friendshipRepository.delete({ id: data.id });
   }
 
+  // Cancel a pending outgoing request — only the original requester may do this
+  async cancelFriendshipRequest(data: { friendship_id: number; requester_id: number }): Promise<void> {
+    const friendship = await this.friendshipRepository.findById({ id: data.friendship_id });
+    if (!friendship) {
+      throw new Error.FriendshipNotFoundError();
+    }
+    if (friendship.status !== 'PENDING') {
+      throw new Error.NotAuthorizedError();
+    }
+    if (friendship.requester_id !== data.requester_id) {
+      throw new Error.NotAuthorizedError();
+    }
+    await this.friendshipRepository.delete({ id: data.friendship_id });
+  }
+
 
 
   async updateFriendshipStatus(data: UpdateFriendshipStatusDto): Promise<Friendship> {
-    return this.friendshipRepository.updateStatus({ id: data.id, status: data.status }); 
+    // Only the addressee can accept or reject a PENDING request
+    if (data.status === 'ACCEPTED' || data.status === 'REJECTED') {
+      const friendship = await this.friendshipRepository.findById({ id: data.id });
+      if (!friendship) {
+        throw new Error.FriendshipNotFoundError();
+      }
+      if (data.addressee_id !== undefined && friendship.addressee_id !== data.addressee_id) {
+        throw new Error.NotAuthorizedError();
+      }
+    }
+    return this.friendshipRepository.updateStatus({ id: data.id, status: data.status });
   }
 
 
@@ -74,11 +104,31 @@ export class FriendshipService {
   async getAllByStatusForUser(data: FindAllByStatusForUserDto): Promise<Friendship[]> {
     return this.friendshipRepository.findAllByStatusForUser({ userId: data.userId, status: data.status });
   }
-  
-  
 
-  async isBlocked(data: IsBlockedDto): Promise<boolean> {
-    const [normalizedUserId1, normalizedUserId2] = await this.normalizeUserIds(data.userId1, data.userId2);
-    return this.friendshipRepository.isBlocked({ userId1: normalizedUserId1, userId2: normalizedUserId2 });
+
+
+  // Directional: did blocker_id block target_id?
+  async isBlockedBy(data: IsBlockedDto): Promise<boolean> {
+    return this.friendshipRepository.isBlockedBy({ blocker_id: data.blocker_id, target_id: data.target_id });
+  }
+
+  // Block a user: sets requester=blocker. Deletes any existing relationship (including pending requests).
+  async blockUser(data: BlockUserDto): Promise<Friendship> {
+    return this.friendshipRepository.blockUser({ blocker_id: data.blocker_id, blocked_id: data.blocked_id });
+  }
+
+  // Unblock: only the original blocker (requester of the BLOCKED record) can unblock.
+  async unblockUser(data: { blocker_id: number; blocked_id: number }): Promise<void> {
+    const friendship = await this.friendshipRepository.findBetween({
+      userId1: data.blocker_id,
+      userId2: data.blocked_id
+    });
+    if (!friendship || friendship.status !== 'BLOCKED') {
+      throw new Error.FriendshipNotFoundError();
+    }
+    if (friendship.requester_id !== data.blocker_id) {
+      throw new Error.NotAuthorizedError();
+    }
+    await this.friendshipRepository.delete({ id: friendship.id });
   }
 }
