@@ -32,6 +32,7 @@ export interface IDeleteUser {
 
 export interface IUserService {
   getUser: () => Promise<AxiosResponse>;
+  getUserByName: (name: string) => Promise<IUser>;
   getProfile: (userId: string) => Promise<AxiosResponse>;
   getProfileAvatar: (url: string) => Promise<AxiosResponse>;
   getFriendship: (userId: string) => Promise<IFriendship>;

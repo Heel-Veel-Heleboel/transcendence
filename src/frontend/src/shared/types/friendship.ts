@@ -31,6 +31,7 @@ export interface ISetFriendshipStatus {
 }
 
 export const FriendshipStatus = {
+  UNDEFINED: 'UNDEFINED',
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',
   REJECTED: 'REJECTED',

@@ -24,6 +24,15 @@ export class UserService {
     return response;
   }
 
+  async getUserByName(name: string) {
+    const config = {
+      url: this.base + '/find-by-name/' + name,
+      method: 'GET'
+    } as AxiosRequestConfig;
+    const response = await api(config);
+    return response;
+  }
+
   async getProfile(data: IGetProfile) {
     const config = {
       url: this.base + '/profile/find-by-id/' + data.userId,
