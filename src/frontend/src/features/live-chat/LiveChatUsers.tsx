@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { FriendshipStatus, IFriendship } from "../../shared/types/friendship";
 import { useChatService } from "../../components/providers/Chat";
 
-export function LiveChatUsers(): JSX.Element {
+export function LiveChatUsers({ setChannelId }: { setChannelId: Dispatch<SetStateAction<string>> }): JSX.Element {
     const [profile, setProfile] = useState<IUser>(DEFAULT_USER);
 
     return (
@@ -17,7 +17,7 @@ export function LiveChatUsers(): JSX.Element {
             </div>
             <UserSearchBar setProfile={setProfile} />
             <div className="grow">
-                <UserSearchResult profile={profile} />
+                <UserSearchResult profile={profile} setChannelId={setChannelId} />
             </div>
         </div>
     )
@@ -78,7 +78,7 @@ export function UserSearchBar({ setProfile }: { setProfile: Dispatch<SetStateAct
     )
 }
 
-export function UserSearchResult({ profile }: { profile: IUser }) {
+export function UserSearchResult({ profile, setChannelId }: { profile: IUser, setChannelId: Dispatch<SetStateAction<string>> }) {
     const navigate = useNavigate();
     const [dropDown, setDropDown] = useState<boolean>(false);
 
@@ -106,14 +106,14 @@ export function UserSearchResult({ profile }: { profile: IUser }) {
                 </div>
             </div>
             {dropDown ?
-                <UserDropDown profile={profile} /> :
+                <UserDropDown profile={profile} setChannelId={setChannelId} /> :
                 null
             }
         </div>
     )
 }
 
-export function UserDropDown({ profile }: { profile: IUser }) {
+export function UserDropDown({ profile, setChannelId }: { profile: IUser, setChannelId: Dispatch<SetStateAction<string>> }) {
     const navigate = useNavigate();
     const service = useUserService();
     const [friendship, setFriendship] = useState<IFriendship>(DEFAULT_FRIENDSHIP);
@@ -141,7 +141,7 @@ export function UserDropDown({ profile }: { profile: IUser }) {
             {friendship.status === FriendshipStatus.UNDEFINED ?
                 <UserDropDownContainer>
                     <SendFriendshipRequest profile={profile} />
-                    <SendMessage />
+                    <SendMessage profile={profile} setChannelId={setChannelId} />
                     <BlockUser profile={profile} />
                 </UserDropDownContainer>
                 : null
@@ -149,7 +149,7 @@ export function UserDropDown({ profile }: { profile: IUser }) {
             {friendship.status === FriendshipStatus.PENDING ?
                 <UserDropDownContainer>
                     <CancelFriendshipRequest profile={profile} />
-                    <SendMessage />
+                    <SendMessage profile={profile} setChannelId={setChannelId} />
                     <BlockUser profile={profile} />
                 </UserDropDownContainer>
                 : null
@@ -157,7 +157,7 @@ export function UserDropDown({ profile }: { profile: IUser }) {
             {friendship.status === FriendshipStatus.ACCEPTED ?
                 <UserDropDownContainer>
                     <Unfriend profile={profile} />
-                    <SendMessage />
+                    <SendMessage profile={profile} setChannelId={setChannelId} />
                     <BlockUser profile={profile} />
                 </UserDropDownContainer>
                 : null
@@ -165,7 +165,7 @@ export function UserDropDown({ profile }: { profile: IUser }) {
             {friendship.status === FriendshipStatus.REJECTED ?
                 <UserDropDownContainer>
                     <SendFriendshipRequest profile={profile} />
-                    <SendMessage />
+                    <SendMessage profile={profile} setChannelId={setChannelId} />
                     <BlockUser profile={profile} />
                 </UserDropDownContainer>
                 : null
@@ -173,7 +173,7 @@ export function UserDropDown({ profile }: { profile: IUser }) {
             {friendship.status === FriendshipStatus.BLOCKED ?
                 <UserDropDownContainer>
                     <SendFriendshipRequest profile={profile} />
-                    <SendMessage />
+                    <SendMessage profile={profile} setChannelId={setChannelId} />
                     <UnBlockUser profile={profile} />
                 </UserDropDownContainer>
                 : null
@@ -287,15 +287,16 @@ export function UnBlockUser({ profile }: { profile: IUser }) {
 }
 
 
-export function SendMessage() {
+export function SendMessage({ profile, setChannelId }: { profile: IUser, setChannelId: Dispatch<SetStateAction<string>> }) {
     const service = useChatService();
 
     async function sendMessage() {
         try {
-            // await service.getChannelBetween({ id: String(profile.id), status: FriendshipStatus.PENDING });
+            const channel = await service.createOrGetDMChannel(profile.id);
+            setChannelId(channel.id);
         } catch (e: any) {
             console.error(e);
-            alert('failed to unblock');
+            alert('failed to open chat');
         }
     }
 

@@ -17,7 +17,7 @@ export function LiveChat(): JSX.Element {
             <div className="flex h-19/20">
                 <LiveChatRooms setChannelId={setChannelId} chatUpdate={notif.chatUpdate} />
                 <Chat channelId={channelId} messageUpdate={notif.messageUpdate} />
-                <LiveChatUsers />
+                <LiveChatUsers setChannelId={setChannelId} />
             </div>
         </div>
     )
