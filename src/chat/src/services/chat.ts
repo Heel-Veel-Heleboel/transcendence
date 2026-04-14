@@ -3,6 +3,7 @@ import { MessageDao } from '../dao/message.dao.js';
 import { NotificationService } from './notification.js';
 import { BlockService } from './block.js';
 import { MatchmakingClient } from './matchmaking-client.js';
+import { UserClient } from './user-client.js';
 import type { MatchAckMetadata } from '../types/chat.js';
 
 export class ChatService {
@@ -12,7 +13,8 @@ export class ChatService {
     private readonly notificationService: NotificationService,
     private readonly blockService: BlockService,
     private readonly logger?: { info: Function; error: Function; warn: Function },
-    private readonly matchmakingClient?: MatchmakingClient
+    private readonly matchmakingClient?: MatchmakingClient,
+    private readonly userClient?: UserClient
   ) {}
 
   // ── Channels ──────────────────────────────────────────────
@@ -85,8 +87,17 @@ export class ChatService {
 
     const unreadCounts = await this.messageDao.countUnreadBatch(batchInput);
 
-    return channels.map((channel: { id: string }) => ({
+    const allMemberIds = Array.from(new Set(
+      channels.flatMap((c: { members: { userId: number }[] }) => c.members.map((m) => m.userId))
+    ));
+    const usernames = this.userClient ? await this.userClient.getUsernames(allMemberIds) : new Map<number, string>();
+
+    return channels.map((channel: { id: string; members: { userId: number }[] }) => ({
       ...channel,
+      members: channel.members.map((m) => ({
+        ...m,
+        username: usernames.get(m.userId) ?? null
+      })),
       unreadCount: unreadCounts.get(channel.id) ?? 0
     }));
   }
@@ -105,7 +116,16 @@ export class ChatService {
     const isMember = channel.members.some((m: { userId: number }) => m.userId === userId);
     if (!isMember) throw new ChatError(403, 'Not a member of this channel');
 
-    return channel;
+    const memberIds = channel.members.map((m: { userId: number }) => m.userId);
+    const usernames = this.userClient ? await this.userClient.getUsernames(memberIds) : new Map<number, string>();
+
+    return {
+      ...channel,
+      members: channel.members.map((m: { userId: number }) => ({
+        ...m,
+        username: usernames.get(m.userId) ?? null
+      }))
+    };
   }
 
   async addMember(channelId: string, requesterId: number, userId: number) {
