@@ -50,7 +50,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
     async function sendMessage(data: IMessage) {
         try {
-            await service.sendMessage(data);
+            return await service.sendMessage(data);
         } catch (e: any) {
             console.error(e);
             // TODO: add error handling

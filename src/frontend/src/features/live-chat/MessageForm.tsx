@@ -1,7 +1,8 @@
 import { FormEvent, useState } from "react";
 import { useChatService } from "../../components/providers/Chat";
+import { IChatMessage } from "../../shared/types/chat";
 
-export function MessageForm({ channelId }: { channelId: string }) {
+export function MessageForm({ channelId, onMessageAdded }: { channelId: string, onMessageAdded: (msg: IChatMessage) => void }) {
     const service = useChatService();
     const [content, setContent] = useState<string>('');
 
@@ -9,11 +10,12 @@ export function MessageForm({ channelId }: { channelId: string }) {
         event.preventDefault();
 
         try {
-            await service.sendMessage({ channelId, content })
+            const message = await service.sendMessage({ channelId, content })
             setContent('');
+            onMessageAdded(message);
         } catch (e: any) {
-            alert('failed to send message');
             console.error(e);
+            alert('failed to send message');
         }
     };
 
@@ -38,4 +40,3 @@ export function MessageForm({ channelId }: { channelId: string }) {
         </div >
     )
 }
-
