@@ -109,6 +109,9 @@ export const CONFIG = {
   REQUEST_FRIEND_ADD: 'users/friendship/create',
   REQUEST_FRIEND_UPDATE: 'users/friendship/update-status',
   REQUEST_FRIEND_DELETE: 'users/friendship/delete',
+  REQUEST_FRIEND_CANCEL: 'users/friendship/cancel',
+  REQUEST_FRIEND_BLOCK: 'users/friendship/block',
+  REQUEST_FRIEND_UNBLOCK: 'users/friendship/unblock',
   REQUEST_FRIEND_LIST: 'users/friendship/find-all-for-user/',
   REQUEST_FRIEND_REQUESTS: (userId: string) => {
     return `users/friendship/find-all-by-status-for-user/${userId}/PENDING`;

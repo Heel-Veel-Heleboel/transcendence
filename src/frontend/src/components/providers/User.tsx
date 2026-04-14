@@ -3,7 +3,7 @@ import { createContext, ReactNode, useContext, } from 'react';
 import { UserService } from '../../shared/api/user';
 import { useAuth } from './Auth';
 import { IUserService } from '../../shared/types/user';
-import { FriendshipStatus, ISetFriendshipStatus, responseToFriendship } from '../../shared/types/friendship';
+import { FriendshipStatus, IBlockUser, ICancelRequest, ISetFriendshipStatus, responseToFriendship } from '../../shared/types/friendship';
 
 const service = new UserService();
 
@@ -56,7 +56,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     async function getFriendship(userId: string) {
         try {
             const response = await service.getFriendship({ userId1: auth.userId, userId2: userId });
-            return (responseToFriendship(response.data, Number(userId)));
+            // Use current user's id as perspective so isRequester is correct
+            return (responseToFriendship(response.data, Number(auth.userId)));
         } catch (e: any) {
             console.error(e);
             // TODO: add error handling
@@ -64,9 +65,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    async function setFriendship(userId: string) {
+    async function setFriendship(addresseeId: string) {
         try {
-            const response = await service.setFriendship({ userId1: auth.userId, userId2: userId });
+            const response = await service.setFriendship({ requester_id: auth.userId, addressee_id: addresseeId });
             return (response);
         } catch (e: any) {
             console.error(e);
@@ -81,6 +82,39 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 throw new Error('invalid status given to service layer')
             }
             const response = await service.setFriendshipStatus(data);
+            return (response);
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e
+        }
+    }
+
+    async function cancelFriendshipRequest(data: ICancelRequest) {
+        try {
+            const response = await service.cancelFriendshipRequest(data);
+            return (response);
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e
+        }
+    }
+
+    async function blockUser(data: IBlockUser) {
+        try {
+            const response = await service.blockUser(data);
+            return (response);
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e
+        }
+    }
+
+    async function unblockUser(data: IBlockUser) {
+        try {
+            const response = await service.unblockUser(data);
             return (response);
         } catch (e: any) {
             console.error(e);
@@ -141,6 +175,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
             getFriendship,
             setFriendship,
             setFriendshipStatus,
+            cancelFriendshipRequest,
+            blockUser,
+            unblockUser,
             setProfileAvatar,
             setUsername,
             setEmail,
