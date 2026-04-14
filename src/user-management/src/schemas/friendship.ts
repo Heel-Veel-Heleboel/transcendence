@@ -2,17 +2,16 @@ import { Type, Static } from '@fastify/type-provider-typebox';
 import { FriendshipStatus  } from '../../generated/prisma/client.js';
 
 export const CreateFriendshipSchema = Type.Object({
-  user1_id: Type.Number(),
-  user2_id: Type.Number(),
-  status: Type.Optional(Type.Enum(FriendshipStatus))
-}); 
+  requester_id: Type.Number(),
+  addressee_id: Type.Number(),
+});
 
 export type CreateFriendshipSchemaType = Static<typeof CreateFriendshipSchema>;
 
 export const FriendshipSchema = Type.Object({
   userId1: Type.Number(),
   userId2: Type.Number()
-}); 
+});
 
 export type FriendshipSchemaType = Static<typeof FriendshipSchema>;
 
@@ -56,8 +55,8 @@ export type FindAllForUserSchemaType = Static<typeof FindAllForUserSchema>;
 
 
 export const IsBlockedSchema = Type.Object({
-  userId1: Type.Number(),
-  userId2: Type.Number()
+  blocker_id: Type.Number(),
+  target_id: Type.Number()
 });
 
 export type IsBlockedSchemaType = Static<typeof IsBlockedSchema>;
@@ -70,4 +69,13 @@ export const FindAllByStatusForUserSchema = Type.Object({
   status: Type.Enum(FriendshipStatus)
 });
 
-export type FindAllByStatusForUserSchemaType = Static<typeof FindAllByStatusForUserSchema>; 
+export type FindAllByStatusForUserSchemaType = Static<typeof FindAllByStatusForUserSchema>;
+
+
+
+export const BlockUserSchema = Type.Object({
+  blocker_id: Type.Number(),
+  blocked_id: Type.Number(),
+});
+
+export type BlockUserSchemaType = Static<typeof BlockUserSchema>;
