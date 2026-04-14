@@ -134,6 +134,17 @@ export class FriendshipRepository implements IFriendshipRepository {
     });
   }
 
+  // Returns the BLOCKED record where blocker_id is the requester (directional lookup)
+  async findDirectionalBlock(blocker_id: number, blocked_id: number): Promise<Friendship | null> {
+    return this.prisma.friendship.findFirst({
+      where: {
+        requester_id: blocker_id,
+        addressee_id: blocked_id,
+        status: 'BLOCKED'
+      }
+    });
+  }
+
   // Returns true if blocker_id has blocked target_id (directional)
   async isBlockedBy(data: IsBlockedDto): Promise<boolean> {
     const friendship = await this.prisma.friendship.findFirst({
@@ -148,23 +159,25 @@ export class FriendshipRepository implements IFriendshipRepository {
 
   // Creates or updates a relationship so that blocker_id is the requester with BLOCKED status.
   // If a friendship already exists in either direction, it is replaced with a new directional block.
+  // Delete + create are wrapped in a transaction to prevent data loss on concurrent writes.
   async blockUser(data: BlockUserDto): Promise<Friendship> {
-    await this.prisma.friendship.deleteMany({
-      where: {
-        OR: [
-          { requester_id: data.blocker_id, addressee_id: data.blocked_id },
-          { requester_id: data.blocked_id, addressee_id: data.blocker_id }
-        ]
-      }
-    });
-
     try {
-      return await this.prisma.friendship.create({
-        data: {
-          requester_id: data.blocker_id,
-          addressee_id: data.blocked_id,
-          status: 'BLOCKED'
-        }
+      return await this.prisma.$transaction(async (tx) => {
+        await tx.friendship.deleteMany({
+          where: {
+            OR: [
+              { requester_id: data.blocker_id, addressee_id: data.blocked_id },
+              { requester_id: data.blocked_id, addressee_id: data.blocker_id }
+            ]
+          }
+        });
+        return tx.friendship.create({
+          data: {
+            requester_id: data.blocker_id,
+            addressee_id: data.blocked_id,
+            status: 'BLOCKED'
+          }
+        });
       });
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
