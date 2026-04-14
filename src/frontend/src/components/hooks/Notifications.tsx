@@ -8,6 +8,7 @@ export function useNotifications() {
     const [chatUpdate, setChatUpdate] = useState<number>(0);
     const [matchUpdate, setMatchUpdate] = useState<number>(0);
     const [tournamentUpdate, setTournamentUpdate] = useState<number>(0);
+    const [friendshipUpdate, setFriendshipUpdate] = useState<number>(0);
     const auth = useAuth();
     const navigate = useNavigate();
     const notif =
@@ -37,6 +38,9 @@ export function useNotifications() {
                     if (msg.type === 'TOURNAMENT_UPDATE') {
                         setTournamentUpdate(event.timeStamp);
                     }
+                    if (msg.type === 'FRIENDSHIP_REQUEST') {
+                        setFriendshipUpdate(event.timeStamp);
+                    }
                     // handle chat:message, chat:match_ack_required, etc.
                 },
                 onClose: (event) => {
@@ -46,5 +50,5 @@ export function useNotifications() {
                     }
                 }
             });
-    return { ws: notif, chatUpdate: chatUpdate, tournamentUpdate: tournamentUpdate, matchUpdate: matchUpdate }
+    return { ws: notif, chatUpdate: chatUpdate, tournamentUpdate: tournamentUpdate, matchUpdate: matchUpdate, friendshipUpdate: friendshipUpdate }
 }

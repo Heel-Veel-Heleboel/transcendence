@@ -4,7 +4,7 @@ import { SubmitPropertyChangeYesNo } from "./Submit";
 import { useUserService } from "../../components/providers/User";
 import { useAuth } from "../../components/providers/Auth";
 
-export function BlockUser({ friendship, userId }: { friendship: IFriendship, userId: string }) {
+export function BlockUser({ friendship, userId, onRefresh }: { friendship: IFriendship | null, userId: string, onRefresh: () => void }) {
     const service = useUserService();
     const auth = useAuth();
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
@@ -20,7 +20,7 @@ export function BlockUser({ friendship, userId }: { friendship: IFriendship, use
                 blocked_id: Number(userId),
             });
             handleDropDown();
-            alert("unblocked user!");
+            onRefresh();
         } catch (error) {
             console.error("Error unblocking Account:", error);
             alert("unblocking account failed");
@@ -34,7 +34,7 @@ export function BlockUser({ friendship, userId }: { friendship: IFriendship, use
                 blocked_id: Number(userId),
             });
             handleDropDown();
-            alert("blocked user!");
+            onRefresh();
         } catch (error) {
             console.error("Error blocking Account:", error);
             alert("blocking account failed");

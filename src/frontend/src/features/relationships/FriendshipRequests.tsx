@@ -6,7 +6,7 @@ import { Terminal } from "../../components/layout/Terminal";
 import { IFriendship } from "../../shared/types/friendship";
 import { useAuth } from "../../components/providers/Auth";
 
-export function FriendshipRequests({ requests }: { requests: IFriendship[] }) {
+export function FriendshipRequests({ requests, onRefresh }: { requests: IFriendship[], onRefresh: () => void }) {
     const auth = useAuth();
 
     // Split into received (addressee) and sent (requester) pending requests
@@ -24,7 +24,7 @@ export function FriendshipRequests({ requests }: { requests: IFriendship[] }) {
                 },
                 data: JSON.stringify({ id: String(id), status: status, addressee_id: Number(auth.userId) }),
             })
-
+            onRefresh();
         } catch (error) {
             console.error(error);
             alert('handling friendship request failed!')
@@ -41,6 +41,7 @@ export function FriendshipRequests({ requests }: { requests: IFriendship[] }) {
                 },
                 data: JSON.stringify({ friendship_id, requester_id: Number(auth.userId) }),
             })
+            onRefresh();
         } catch (error) {
             console.error(error);
             alert('cancelling friendship request failed!')
