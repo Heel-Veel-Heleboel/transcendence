@@ -57,9 +57,9 @@ export class GameRoom extends Room {
 
     this.engine = new GameEngine(this);
     await this.engine.initGame();
-    setTimeout(() => {
-      this.gameFinished = true;
-    }, 10000);
+    // setTimeout(() => {
+    //   this.gameFinished = true;
+    // }, 10000);
     this.setSimulationInterval(deltaTime => this.update(deltaTime));
   }
 
@@ -75,7 +75,7 @@ export class GameRoom extends Room {
       // TODO: implement logic for picking winnerId
       const winner = this.player1Id;
       const response = await fetch(
-        `http://localhost:3005/match/${this.matchId}/result`,
+        `http://matchmaking:3005/matchmaking/match/${this.matchId}/result`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -88,10 +88,11 @@ export class GameRoom extends Room {
         }
       );
       console.log(response);
-      this.disconnect();
     } catch (e: any) {
       console.error(e);
       // TODO: notify client that server could not finish game correctly.
+    } finally {
+      this.disconnect();
     }
   }
 
@@ -178,6 +179,7 @@ export class GameRoom extends Room {
       this.state.players.delete(client.sessionId);
     }
     client.leave();
+    this.gameFinished = true;
   }
 
   onDispose() {
