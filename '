@@ -45,6 +45,7 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
     useEffect(() => {
         if (roomProv?.isDropped) {
             throw new Error('lost connection')
+
         }
     }, [roomProv?.isDropped])
 

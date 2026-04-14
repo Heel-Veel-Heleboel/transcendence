@@ -1,9 +1,10 @@
-import React, { createContext, useContext } from 'react';
+import { createContext, ReactNode, useContext, useState } from 'react';
 import { Client, Room } from '@colyseus/sdk';
 
 export interface RoomContextType {
     isConnecting: boolean;
     isConnected: boolean;
+    isDropped: boolean;
     room: Room;
     join: (roomId: string) => void;
     joinError: boolean;
@@ -21,11 +22,11 @@ let room!: Room;
 let hasActiveJoinRequest: boolean = false;
 const client = new Client("http://localhost:2567");
 
-export function RoomProvider({ children }: { children: React.ReactNode }) {
-
-    const [joinError, setJoinError] = React.useState(false);
-    const [isConnecting, setIsConnecting] = React.useState(false);
-    const [isConnected, setIsConnected] = React.useState(false);
+export function RoomProvider({ children }: { children: ReactNode }) {
+    const [joinError, setJoinError] = useState<boolean>(false);
+    const [isConnecting, setIsConnecting] = useState<boolean>(false);
+    const [isConnected, setIsConnected] = useState<boolean>(false);
+    const [isDropped, setIsDropped] = useState<boolean>(false);
 
     const join = async (roomId: string) => {
         if (hasActiveJoinRequest) { return; }
@@ -58,12 +59,16 @@ export function RoomProvider({ children }: { children: React.ReactNode }) {
 
 
         room.onLeave(() => setIsConnected(false));
+        room.onDrop(() => {
+            setIsDropped(true)
+            console.log('dropped')
+        })
 
         setIsConnected(true);
     };
 
     return (
-        <RoomContext.Provider value={{ isConnecting, isConnected, room, join, joinError }}>
+        <RoomContext.Provider value={{ isConnecting, isConnected, isDropped, room, join, joinError }}>
             {children}
         </RoomContext.Provider>
     );
