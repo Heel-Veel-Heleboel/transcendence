@@ -31,7 +31,7 @@ export function LoginForm(): JSX.Element {
             await auth.logIn({ email, password });
             navigate(HOME_NAVIGATION);
         } catch (e: any) {
-            if (e.response.status === 401) {
+            if (e.response?.status === 420) {
                 navigate(TWO_FACTOR_NAVIGATION, { state: { email, password } })
             } else {
                 alert('log in failed')
