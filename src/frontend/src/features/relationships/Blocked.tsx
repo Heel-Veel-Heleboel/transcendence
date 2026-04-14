@@ -6,7 +6,7 @@ import { Terminal } from "../../components/layout/Terminal";
 import { IFriendship } from "../../shared/types/friendship";
 import { useAuth } from "../../components/providers/Auth";
 
-export function Blocked({ blocks }: { blocks: IFriendship[] }) {
+export function Blocked({ blocks, onRefresh }: { blocks: IFriendship[], onRefresh: () => void }) {
     const auth = useAuth();
 
     async function handleUnblock(blockedUserId: number) {
@@ -19,6 +19,7 @@ export function Blocked({ blocks }: { blocks: IFriendship[] }) {
                 },
                 data: JSON.stringify({ blocker_id: Number(auth.userId), blocked_id: blockedUserId }),
             })
+            onRefresh();
         } catch (error) {
             console.error(error);
             alert('handling unblock request failed!')

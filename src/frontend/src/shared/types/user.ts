@@ -34,7 +34,7 @@ export interface IUserService {
   getUser: () => Promise<AxiosResponse>;
   getProfile: (userId: string) => Promise<AxiosResponse>;
   getProfileAvatar: (url: string) => Promise<AxiosResponse>;
-  getFriendship: (userId: string) => Promise<IFriendship>;
+  getFriendship: (userId: string) => Promise<IFriendship | null>;
   setFriendship: (userId: string) => Promise<AxiosResponse>;
   setFriendshipStatus: (data: ISetFriendshipStatus) => Promise<AxiosResponse>;
   cancelFriendshipRequest: (data: ICancelRequest) => Promise<AxiosResponse>;

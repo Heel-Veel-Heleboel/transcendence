@@ -59,6 +59,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
             // Use current user's id as perspective so isRequester is correct
             return (responseToFriendship(response.data, Number(auth.userId)));
         } catch (e: any) {
+            // 404 means no relationship exists yet — return null instead of throwing
+            if (e?.response?.status === 404) {
+                return null;
+            }
             console.error(e);
             // TODO: add error handling
             throw e

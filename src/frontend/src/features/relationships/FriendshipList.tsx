@@ -6,7 +6,7 @@ import { RelationsColumn } from "./RelationsColumn";
 import { Terminal } from "../../components/layout/Terminal";
 import { IFriendship } from "../../shared/types/friendship";
 
-export function FriendshipList({ friends }: { friends: IFriendship[] }) {
+export function FriendshipList({ friends, onRefresh }: { friends: IFriendship[], onRefresh: () => void }) {
     const navigate = useNavigate();
 
     async function removeFriend(friendshipId: number) {
@@ -20,6 +20,7 @@ export function FriendshipList({ friends }: { friends: IFriendship[] }) {
                 data: JSON.stringify({ id: friendshipId }),
             })
             alert("Friendship Removed");
+            onRefresh();
         } catch (error) {
             console.error("Error deleting friendship:", error);
             alert("friendship deletion failed");

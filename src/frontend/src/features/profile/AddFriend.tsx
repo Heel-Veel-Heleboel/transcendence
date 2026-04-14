@@ -3,13 +3,14 @@ import { useUserService } from "../../components/providers/User";
 import { useAuth } from "../../components/providers/Auth";
 
 
-export function AddFriend({ friendship, userId }: { friendship: IFriendship, userId: string }) {
+export function AddFriend({ friendship, userId, onRefresh }: { friendship: IFriendship | null, userId: string, onRefresh: () => void }) {
     const service = useUserService();
     const auth = useAuth();
 
     async function handleFriendshipRequest() {
         try {
             await service.setFriendship(userId);
+            onRefresh();
         }
         catch (e: any) {
             console.error(e);
@@ -20,9 +21,10 @@ export function AddFriend({ friendship, userId }: { friendship: IFriendship, use
     async function handleCancelRequest() {
         try {
             await service.cancelFriendshipRequest({
-                friendship_id: friendship.id,
+                friendship_id: friendship!.id,
                 requester_id: Number(auth.userId),
             });
+            onRefresh();
         }
         catch (e: any) {
             console.error(e);
