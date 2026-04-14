@@ -9,7 +9,7 @@ import {
   IsBlockedSchema,
   FindAllByStatusForUserSchema,
   FriendshipSchema,
-  BlockUserSchema,
+  BlockUserSchema
 } from '../schemas/friendship.js';
 import { Type } from '@fastify/type-provider-typebox';
 
@@ -33,7 +33,7 @@ export async function friendshipRoutes(
     schema: {
       body: Type.Object({
         friendship_id: Type.Number(),
-        requester_id: Type.Number(),
+        requester_id: Type.Number()
       })
     },
     handler: friendController.cancelFriendshipRequest.bind(friendController)

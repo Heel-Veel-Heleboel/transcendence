@@ -12,7 +12,7 @@ export class BlockService {
     try {
       const [blockedByUser, blockedByTarget] = await Promise.all([
         this.isBlockedBy(userId, targetUserId),
-        this.isBlockedBy(targetUserId, userId),
+        this.isBlockedBy(targetUserId, userId)
       ]);
       return blockedByUser || blockedByTarget;
     } catch (error) {

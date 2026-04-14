@@ -3,7 +3,7 @@ import { FriendshipStatus  } from '../../generated/prisma/client.js';
 
 export const CreateFriendshipSchema = Type.Object({
   requester_id: Type.Number(),
-  addressee_id: Type.Number(),
+  addressee_id: Type.Number()
 });
 
 export type CreateFriendshipSchemaType = Static<typeof CreateFriendshipSchema>;
@@ -29,7 +29,7 @@ export type DeleteFriendshipSchemaType = Static<typeof DeleteFriendshipSchema>;
 export const UpdateFriendshipStatusSchema = Type.Object({
   id: Type.Number(),
   status: Type.Enum(FriendshipStatus),
-  addressee_id: Type.Optional(Type.Number()),
+  addressee_id: Type.Optional(Type.Number())
 });
 
 export type UpdateFriendshipStatusSchemaType = Static<typeof UpdateFriendshipStatusSchema>;
@@ -76,7 +76,7 @@ export type FindAllByStatusForUserSchemaType = Static<typeof FindAllByStatusForU
 
 export const BlockUserSchema = Type.Object({
   blocker_id: Type.Number(),
-  blocked_id: Type.Number(),
+  blocked_id: Type.Number()
 });
 
 export type BlockUserSchemaType = Static<typeof BlockUserSchema>;
