@@ -61,7 +61,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         room.onLeave(() => setIsConnected(false));
         room.onDrop(() => {
             setIsDropped(true)
-            console.log('dropped')
         })
 
         setIsConnected(true);
