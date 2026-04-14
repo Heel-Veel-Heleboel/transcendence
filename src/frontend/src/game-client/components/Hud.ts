@@ -31,35 +31,73 @@ export class Hud implements IHud {
 
   async init() {
     try {
+      const healthLeft = '25';
+      const healthTop = '46.5';
+      const healthColor = 'red';
+      const healthWidth = 0.4;
+      const healthHeight = 0.025;
+
+      const manaLeft = '35';
+      const manaTop = '46.5';
+      const manaColor = 'red';
+      const manaWidth = 0.25;
+      const manaHeight = 0.025;
+
       const proHealthMeter = new GUI.Rectangle('proHealthMeter');
-      proHealthMeter.left = '-25%';
-      proHealthMeter.top = '-46.5%';
-      proHealthMeter.background = 'red';
-      proHealthMeter.width = 0.4;
-      proHealthMeter.height = 0.025;
+      proHealthMeter.left = `-${healthLeft}%`;
+      proHealthMeter.top = `-${healthTop}%`;
+      proHealthMeter.background = healthColor;
+      proHealthMeter.width = healthWidth;
+      proHealthMeter.height = healthHeight;
       this.texture.addControl(proHealthMeter);
 
       const proManaMeter = new GUI.Rectangle('proManaMeter');
-      proManaMeter.left = '-35%';
-      proManaMeter.top = '45%';
-      proManaMeter.width = 0.25;
-      proManaMeter.height = 0.025;
+      proManaMeter.left = `-${manaLeft}%`;
+      proManaMeter.top = `${manaTop}%`;
+      proManaMeter.width = manaWidth;
+      proManaMeter.height = manaHeight;
       this.texture.addControl(proManaMeter);
 
       const antaHealthMeter = new GUI.Rectangle('antaHealthMeter');
-      antaHealthMeter.left = '25%';
-      antaHealthMeter.top = '-46.5%';
-      antaHealthMeter.background = 'red';
-      antaHealthMeter.width = 0.4;
-      antaHealthMeter.height = 0.025;
+      antaHealthMeter.left = `${healthLeft}%`;
+      antaHealthMeter.top = `-${healthTop}%`;
+      antaHealthMeter.background = healthColor;
+      antaHealthMeter.width = healthWidth;
+      antaHealthMeter.height = healthHeight;
       this.texture.addControl(antaHealthMeter);
 
       const antaManaMeter = new GUI.Rectangle('antaManaMeter');
-      antaManaMeter.left = '35%';
-      antaManaMeter.top = '45%';
-      antaManaMeter.width = 0.25;
-      antaManaMeter.height = 0.025;
+      antaManaMeter.left = `${manaLeft}%`;
+      antaManaMeter.top = `${manaTop}%`;
+      antaManaMeter.width = manaWidth;
+      antaManaMeter.height = manaHeight;
       this.texture.addControl(antaManaMeter);
+
+      let width;
+      const leftAntaManaBorder = Number(manaLeft) - (manaWidth * 100) / 2;
+      const antaManaMeterPower1 = new GUI.Rectangle('antaManaMeterPower1');
+      width = (manaWidth / 4) * 1;
+      antaManaMeterPower1.left = `${String(leftAntaManaBorder + (width * 100) / 2)}%`;
+      antaManaMeterPower1.top = `${manaTop}%`;
+      antaManaMeterPower1.width = width;
+      antaManaMeterPower1.height = manaHeight;
+      this.texture.addControl(antaManaMeterPower1);
+
+      const antaManaMeterPower2 = new GUI.Rectangle('antaManaMeterPower2');
+      width = (manaWidth / 4) * 2;
+      antaManaMeterPower2.left = `${String(leftAntaManaBorder + (width * 100) / 2)}%`;
+      antaManaMeterPower2.top = `${manaTop}%`;
+      antaManaMeterPower2.width = width;
+      antaManaMeterPower2.height = manaHeight;
+      this.texture.addControl(antaManaMeterPower2);
+
+      const antaManaMeterPower3 = new GUI.Rectangle('antaManaMeterPower3');
+      width = (manaWidth / 4) * 3;
+      antaManaMeterPower3.left = `${String(leftAntaManaBorder + (width * 100) / 2)}%`;
+      antaManaMeterPower3.top = `${manaTop}%`;
+      antaManaMeterPower3.width = width;
+      antaManaMeterPower3.height = manaHeight;
+      this.texture.addControl(antaManaMeterPower3);
 
       // TODO: truncate proName is name of user is to long
       const proName = new GUI.TextBlock('proName');
