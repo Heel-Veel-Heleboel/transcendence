@@ -81,7 +81,7 @@ export class UserService {
   async cancelFriendshipRequest(data: ICancelRequest) {
     const config = {
       url: this.base + '/friendship/cancel',
-      method: 'DELETE',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -107,7 +107,7 @@ export class UserService {
   async unblockUser(data: IBlockUser) {
     const config = {
       url: this.base + '/friendship/unblock',
-      method: 'DELETE',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },

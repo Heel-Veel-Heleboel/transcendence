@@ -29,7 +29,7 @@ export async function friendshipRoutes(
     handler: friendController.deleteFriendship.bind(friendController)
   });
 
-  fastify.delete('/cancel', {
+  fastify.post('/cancel', {
     schema: {
       body: Type.Object({
         friendship_id: Type.Number(),
@@ -49,7 +49,7 @@ export async function friendshipRoutes(
     handler: friendController.blockUser.bind(friendController)
   });
 
-  fastify.delete('/unblock', {
+  fastify.post('/unblock', {
     schema: { body: BlockUserSchema },
     handler: friendController.unblockUser.bind(friendController)
   });

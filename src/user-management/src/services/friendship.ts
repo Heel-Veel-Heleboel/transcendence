@@ -70,13 +70,17 @@ export class FriendshipService {
 
 
   async updateFriendshipStatus(data: UpdateFriendshipStatusDto): Promise<Friendship> {
-    // Only the addressee can accept or reject a PENDING request
     if (data.status === 'ACCEPTED' || data.status === 'REJECTED') {
       const friendship = await this.friendshipRepository.findById({ id: data.id });
       if (!friendship) {
         throw new Error.FriendshipNotFoundError();
       }
-      if (data.addressee_id !== undefined && friendship.addressee_id !== data.addressee_id) {
+      // Friendship must be PENDING before it can be accepted or rejected
+      if (friendship.status !== 'PENDING') {
+        throw new Error.NotAuthorizedError();
+      }
+      // addressee_id is required for these transitions — only the addressee may respond
+      if (friendship.addressee_id !== data.addressee_id) {
         throw new Error.NotAuthorizedError();
       }
     }
@@ -117,17 +121,12 @@ export class FriendshipService {
     return this.friendshipRepository.blockUser({ blocker_id: data.blocker_id, blocked_id: data.blocked_id });
   }
 
-  // Unblock: only the original blocker (requester of the BLOCKED record) can unblock.
+  // Unblock: only the original blocker can unblock. Queries directionally so there is no
+  // ambiguity — if blocker_id did not create the block record, it won't be found.
   async unblockUser(data: { blocker_id: number; blocked_id: number }): Promise<void> {
-    const friendship = await this.friendshipRepository.findBetween({
-      userId1: data.blocker_id,
-      userId2: data.blocked_id
-    });
-    if (!friendship || friendship.status !== 'BLOCKED') {
+    const friendship = await this.friendshipRepository.findDirectionalBlock(data.blocker_id, data.blocked_id);
+    if (!friendship) {
       throw new Error.FriendshipNotFoundError();
-    }
-    if (friendship.requester_id !== data.blocker_id) {
-      throw new Error.NotAuthorizedError();
     }
     await this.friendshipRepository.delete({ id: friendship.id });
   }

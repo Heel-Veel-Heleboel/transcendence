@@ -28,7 +28,8 @@ export type DeleteFriendshipSchemaType = Static<typeof DeleteFriendshipSchema>;
 
 export const UpdateFriendshipStatusSchema = Type.Object({
   id: Type.Number(),
-  status: Type.Enum(FriendshipStatus)
+  status: Type.Enum(FriendshipStatus),
+  addressee_id: Type.Optional(Type.Number()),
 });
 
 export type UpdateFriendshipStatusSchemaType = Static<typeof UpdateFriendshipStatusSchema>;

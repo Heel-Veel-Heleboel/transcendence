@@ -20,5 +20,6 @@ export interface IFriendshipRepository {
   findAllForUser(data: FindAllForUserDto): Promise<Friendship[]>;
   findAllByStatusForUser(data: FindAllByStatusForUserDto): Promise<Friendship[]>;
   isBlockedBy(data: IsBlockedDto): Promise<boolean>;
+  findDirectionalBlock(blocker_id: number, blocked_id: number): Promise<Friendship | null>;
   blockUser(data: BlockUserDto): Promise<Friendship>;
 }

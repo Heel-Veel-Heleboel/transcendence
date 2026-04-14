@@ -21,7 +21,8 @@ export class BlockService {
     }
   }
 
-  // Returns true if blocker_id has blocked target_id (directional)
+  // Returns true if blocker_id has blocked target_id (directional).
+  // Fails closed: any error other than a clean 404 is treated as blocked for safety.
   private async isBlockedBy(blocker_id: number, target_id: number): Promise<boolean> {
     try {
       const response = await fetch(
@@ -30,15 +31,17 @@ export class BlockService {
 
       if (!response.ok) {
         if (response.status === 404) return false;
-        this.logger?.warn({ status: response.status }, 'Failed to check block status');
-        return false;
+        // Unexpected error from user-management — fail closed
+        this.logger?.warn({ status: response.status }, 'Unexpected response checking block status — treating as blocked');
+        return true;
       }
 
       const data = await response.json() as { blocked: boolean };
       return data.blocked;
     } catch (error) {
-      this.logger?.error({ error, blocker_id, target_id }, 'Error checking directional block status');
-      return false;
+      // Network error or service down — fail closed
+      this.logger?.error({ error, blocker_id, target_id }, 'Error checking block status — treating as blocked');
+      return true;
     }
   }
 

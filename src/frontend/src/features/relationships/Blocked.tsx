@@ -13,7 +13,7 @@ export function Blocked({ blocks, onRefresh }: { blocks: IFriendship[], onRefres
         try {
             await api({
                 url: CONFIG.REQUEST_FRIEND_UNBLOCK,
-                method: 'DELETE',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },

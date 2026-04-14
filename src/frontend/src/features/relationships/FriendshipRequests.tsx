@@ -35,7 +35,7 @@ export function FriendshipRequests({ requests, onRefresh }: { requests: IFriends
         try {
             await api({
                 url: CONFIG.REQUEST_FRIEND_CANCEL,
-                method: 'DELETE',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
