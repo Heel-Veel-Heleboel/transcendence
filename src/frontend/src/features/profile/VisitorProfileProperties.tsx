@@ -40,7 +40,7 @@ export function VisitorProfilePropertiesPrimary({ userId }: { userId: string }) 
     return (
         <ProfilePropertiesPrimaryContainer>
             <AddFriend friendship={friendship} userId={userId} />
-            <BlockUser friendship={friendship} />
+            <BlockUser friendship={friendship} userId={userId} />
         </ProfilePropertiesPrimaryContainer>
     )
 }
