@@ -96,19 +96,60 @@ docker compose down -v
 
 ## Database Migrations
 
-| Service | Strategy | Notes |
-|---|---|---|
-| auth | `prisma migrate deploy` | Has versioned migrations in `prisma/migrations/` |
-| chat | `prisma db push` | No migrations yet — schema is pushed directly |
-| matchmaking | `prisma db push` | No migrations yet — schema is pushed directly |
-| user-management | `prisma db push` | No migrations yet — schema is pushed directly |
+All four database services currently use `prisma db push` on startup — this syncs the schema
+directly to the SQLite database without requiring migration files. It is safe (does not drop
+data) and requires no additional setup.
 
-Before going to production, generate migrations for the remaining services:
+| Service | Strategy |
+|---|---|
+| auth | `prisma db push` |
+| user-management | `prisma db push` |
+| matchmaking | `prisma db push` |
+| chat | `prisma db push` |
+
+`db:push` runs via `npm run start` in prod containers and via `entrypoint-dev.sh` in dev containers.
+
+### Upgrading to versioned migrations before production
+
+When preparing for a real production deployment, switch all services from `db:push` to
+`prisma migrate deploy`. This gives you a proper audit trail and safe incremental schema changes.
+
+**Step 1 — Generate initial migration files** (run once locally per service):
 
 ```sh
-cd src/<service>
-npx prisma migrate dev --name init
+cd src/auth && DATABASE_URL="file:./prisma/temp.db" npx prisma migrate dev --name init && rm -f prisma/temp.db && cd ../..
+cd src/user-management && DATABASE_URL="file:./prisma/temp.db" npx prisma migrate dev --name init && rm -f prisma/temp.db && cd ../..
+cd src/chat && npx prisma migrate dev --name init && cd ../..
+cd src/matchmaking && npx prisma migrate dev --name init && cd ../..
 ```
 
-Commit the generated `prisma/migrations/` folder, then switch the service's Dockerfile CMD
-to use `prisma migrate deploy` instead of `prisma db push`.
+This creates `prisma/migrations/TIMESTAMP_init/migration.sql` for each service. Commit these files.
+
+**Step 2 — Update `start` scripts** in each service's `package.json`:
+
+```json
+"db:migrate": "prisma migrate deploy",
+"start": "npm run db:migrate && node dist/..."
+```
+
+**Step 3 — Update dev entrypoints** (`entrypoint-dev.sh`) to also replace `db:push` with `db:migrate`.
+
+**Step 4 — Remove stale volumes** (one-time, so migration history starts clean):
+
+```sh
+docker volume rm transcendence_auth-data transcendence_user-management-data transcendence_matchmaking-data transcendence_chat-data
+```
+
+After this, `migrate deploy` applies only pending migrations on each startup and leaves existing data untouched.
+
+### Adding schema changes after migrations are set up
+
+Every schema change requires a new migration file:
+
+```sh
+# After editing schema.prisma in a service:
+cd src/<service>
+npx prisma migrate dev --name describe_the_change
+```
+
+Commit the generated migration file. The next deployment applies it automatically.

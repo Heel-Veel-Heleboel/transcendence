@@ -13,4 +13,4 @@ RUN cp -r generated dist/generated
 COPY .env* ./
 
 EXPOSE 3005
-CMD ["sh", "-c", "npm run db:push && node --env-file-if-exists=.env dist/src/index.js"]
+CMD ["npm", "run", "start"]

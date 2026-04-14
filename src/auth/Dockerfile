@@ -8,6 +8,7 @@ RUN npm install
 COPY tsconfig.json ./
 COPY keys ./keys/
 COPY src ./src/
+RUN npm run build
 COPY .env* ./
 
 EXPOSE 3003
