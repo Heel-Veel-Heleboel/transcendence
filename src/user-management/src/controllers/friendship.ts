@@ -1,16 +1,23 @@
 import { FriendshipService } from '../services/friendship.js';
 import { FastifyRequest , FastifyReply } from 'fastify';
 import { FriendshipStatus } from '../../generated/prisma/client.js';
+import * as Error from '../error/user-management.js';
 
 export class FriendshipController {
   constructor(private readonly friendshipService: FriendshipService) {}
 
-  async createFriendship(req: FastifyRequest<{ Body: { user1_id: number; user2_id: number, status?:  FriendshipStatus } }>, res: FastifyReply): Promise<void> {
-    const { user1_id, user2_id } = req.body;
-
-    req.log.info(`Creating friendship between user ${user1_id} and user ${user2_id}`);
-    await this.friendshipService.createFriendship({ user1_id, user2_id });
-    req.log.info(`Friendship request sent from user ${user1_id} to user ${user2_id}`);
+  async createFriendship(req: FastifyRequest<{ Body: { requester_id: number; addressee_id: number } }>, res: FastifyReply): Promise<void> {
+    const { requester_id, addressee_id } = req.body;
+    req.log.info(`Friendship request from user ${requester_id} to user ${addressee_id}`);
+    try {
+      await this.friendshipService.createFriendship({ requester_id, addressee_id });
+    } catch (e) {
+      if (e instanceof Error.BlockedByUserError) {
+        res.status(403).send({ message: 'You have been blocked by this user' });
+        return;
+      }
+      throw e;
+    }
     res.status(201).send({ message: 'Friendship request sent' });
   }
 
@@ -20,57 +27,78 @@ export class FriendshipController {
     const { id } = req.body;
     req.log.info(`Deleting friendship with id ${id}`);
     await this.friendshipService.deleteFriendship({ id });
-    req.log.info(`Friendship with id ${id} deleted`);
     res.status(200).send({ message: 'Friendship deleted' });
   }
 
 
 
-  async updateFriendshipStatus(req: FastifyRequest<{ Body: { id: number; status: FriendshipStatus } }>, res: FastifyReply): Promise<void> {
-    const { id, status } = req.body;
-    req.log.info(`Updating friendship with id ${id} to status ${status}`);
-    const updatedFriendship = await this.friendshipService.updateFriendshipStatus({ id, status });
-    req.log.info(`Friendship with id ${id} updated to status ${status}`);
-    res.status(200).send(updatedFriendship);
+  async cancelFriendshipRequest(req: FastifyRequest<{ Body: { friendship_id: number; requester_id: number } }>, res: FastifyReply): Promise<void> {
+    const { friendship_id, requester_id } = req.body;
+    req.log.info(`User ${requester_id} cancelling friendship request ${friendship_id}`);
+    try {
+      await this.friendshipService.cancelFriendshipRequest({ friendship_id, requester_id });
+    } catch (e) {
+      if (e instanceof Error.FriendshipNotFoundError) {
+        res.status(404).send({ message: 'Friendship request not found' });
+        return;
+      }
+      if (e instanceof Error.NotAuthorizedError) {
+        res.status(403).send({ message: 'Not authorized to cancel this request' });
+        return;
+      }
+      throw e;
+    }
+    res.status(200).send({ message: 'Friendship request cancelled' });
+  }
+
+
+
+  async updateFriendshipStatus(req: FastifyRequest<{ Body: { id: number; status: FriendshipStatus; addressee_id?: number } }>, res: FastifyReply): Promise<void> {
+    const { id, status, addressee_id } = req.body;
+    req.log.info(`Updating friendship ${id} to status ${status}`);
+    try {
+      const updatedFriendship = await this.friendshipService.updateFriendshipStatus({ id, status, addressee_id });
+      res.status(200).send(updatedFriendship);
+    } catch (e) {
+      if (e instanceof Error.NotAuthorizedError) {
+        res.status(403).send({ message: 'Only the addressee can accept or reject a request' });
+        return;
+      }
+      if (e instanceof Error.FriendshipNotFoundError) {
+        res.status(404).send({ message: 'Friendship not found' });
+        return;
+      }
+      throw e;
+    }
   }
 
 
 
   async getFriendship(req: FastifyRequest<{ Params: { id: number } }>, res: FastifyReply): Promise<void> {
     const { id } = req.params;
-    req.log.info(`Retrieving friendship with id ${id}`);
     const friendship = await this.friendshipService.getFriendship({ id });
     if (!friendship) {
-      req.log.warn(`Friendship with id ${id} not found`);
       res.status(404).send({ message: 'Friendship not found' });
       return;
     }
-    req.log.info(`Friendship with id ${id} retrieved successfully`);
     res.status(200).send(friendship);
   }
 
   async getFriendshipBetween(req: FastifyRequest<{ Params: { userId1: number; userId2: number } }>, res: FastifyReply): Promise<void> {
     const { userId1, userId2 } = req.params;
-
-    req.log.info(`Retrieving friendship between user ${userId1} and user ${userId2}`);
     const friendship = await this.friendshipService.getFriendshipBetween({ userId1, userId2 });
     if (!friendship) {
-      req.log.warn(`Friendship between ${userId1} and ${userId2} not found`);
       res.status(404).send({ message: 'Friendship not found' });
       return;
     }
-    req.log.info(`Friendship between ${userId1} and ${userId2} retrieved successfully`);
     res.status(200).send(friendship);
   }
 
 
 
-
   async findAllForUser(req: FastifyRequest<{ Params: { userId: number } }>, res: FastifyReply): Promise<void> {
     const { userId } = req.params;
-    req.log.info(`Retrieving all friendships for user ${userId}`);
     const friendships = await this.friendshipService.getUserFriendships({ userId });
-    req.log.info(`Retrieved ${friendships.length} friendships for user ${userId}`);
     res.status(200).send(friendships);
   }
 
@@ -78,19 +106,42 @@ export class FriendshipController {
 
   async findAllByStatusForUser(req: FastifyRequest<{ Params: { userId: number; status: FriendshipStatus } }>, res: FastifyReply): Promise<void> {
     const { userId, status } = req.params;
-    req.log.info(`Retrieving all friendships with status ${status} for user ${userId}`);
     const friendships = await this.friendshipService.getAllByStatusForUser({ userId, status });
-    req.log.info(`Retrieved ${friendships.length} friendships with status ${status} for user ${userId}`);
     res.status(200).send(friendships);
   }
 
 
 
-  async isBlocked(req: FastifyRequest<{ Params: { userId1: number; userId2: number } }>, res: FastifyReply): Promise<void> {
-    const { userId1, userId2 } = req.params;
-    req.log.info(`Checking if user ${userId1} has blocked user ${userId2}`);
-    const blocked = await this.friendshipService.isBlocked({ userId1, userId2 });
-    req.log.info(`User ${userId1} has ${blocked ? '' : 'not '}blocked user ${userId2}`);
+  async isBlockedBy(req: FastifyRequest<{ Params: { blocker_id: number; target_id: number } }>, res: FastifyReply): Promise<void> {
+    const { blocker_id, target_id } = req.params;
+    req.log.info(`Checking if user ${blocker_id} has blocked user ${target_id}`);
+    const blocked = await this.friendshipService.isBlockedBy({ blocker_id, target_id });
     res.status(200).send({ blocked });
+  }
+
+  async blockUser(req: FastifyRequest<{ Body: { blocker_id: number; blocked_id: number } }>, res: FastifyReply): Promise<void> {
+    const { blocker_id, blocked_id } = req.body;
+    req.log.info(`User ${blocker_id} blocking user ${blocked_id}`);
+    const friendship = await this.friendshipService.blockUser({ blocker_id, blocked_id });
+    res.status(200).send(friendship);
+  }
+
+  async unblockUser(req: FastifyRequest<{ Body: { blocker_id: number; blocked_id: number } }>, res: FastifyReply): Promise<void> {
+    const { blocker_id, blocked_id } = req.body;
+    req.log.info(`User ${blocker_id} unblocking user ${blocked_id}`);
+    try {
+      await this.friendshipService.unblockUser({ blocker_id, blocked_id });
+    } catch (e) {
+      if (e instanceof Error.FriendshipNotFoundError) {
+        res.status(404).send({ message: 'Block relationship not found' });
+        return;
+      }
+      if (e instanceof Error.NotAuthorizedError) {
+        res.status(403).send({ message: 'Only the user who blocked can unblock' });
+        return;
+      }
+      throw e;
+    }
+    res.status(200).send({ message: 'User unblocked' });
   }
 }

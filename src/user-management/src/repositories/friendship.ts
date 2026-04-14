@@ -8,12 +8,10 @@ import {
   GetFriendshipDto,
   UpdateFriendshipStatusDto,
   FindAllForUserDto,
-  // FindAllPendingForUserDto,
-  // FindAllAcceptedForUserDto,
-  // FindAllBlockedForUserDto,
   FindAllByStatusForUserDto,
   IsBlockedDto,
-  FriendshipDto
+  FriendshipDto,
+  BlockUserDto,
 } from '../dto/friendship.js';
 
 
@@ -27,9 +25,9 @@ export class FriendshipRepository implements IFriendshipRepository {
     try {
       return await this.prisma.friendship.create({
         data: {
-          user1_id: data.user1_id,
-          user2_id: data.user2_id,
-          status:'PENDING'
+          requester_id: data.requester_id,
+          addressee_id: data.addressee_id,
+          status: data.status ?? 'PENDING'
         }
       });
     } catch (error) {
@@ -90,13 +88,13 @@ export class FriendshipRepository implements IFriendshipRepository {
   async findBetween(data: FriendshipDto): Promise<Friendship | null> {
     return await this.prisma.friendship.findFirst({
       include: {
-        user1: true,
-        user2: true
+        requester: true,
+        addressee: true
       },
       where: {
         OR: [
-          { user1_id: data.userId1, user2_id: data.userId2 },
-          { user1_id: data.userId2, user2_id: data.userId1 }
+          { requester_id: data.userId1, addressee_id: data.userId2 },
+          { requester_id: data.userId2, addressee_id: data.userId1 }
         ]
       }
     });
@@ -107,13 +105,13 @@ export class FriendshipRepository implements IFriendshipRepository {
   async findAllForUser(data: FindAllForUserDto): Promise<Friendship[]> {
     return await this.prisma.friendship.findMany({
       include: {
-        user1: true,
-        user2: true
+        requester: true,
+        addressee: true
       },
       where: {
         OR: [
-          { user1_id: data.userId },
-          { user2_id: data.userId }
+          { requester_id: data.userId },
+          { addressee_id: data.userId }
         ]
       }
     });
@@ -123,25 +121,56 @@ export class FriendshipRepository implements IFriendshipRepository {
 
   async findAllByStatusForUser(data: FindAllByStatusForUserDto): Promise<Friendship[]> {
     return await this.prisma.friendship.findMany({
+      include: {
+        requester: true,
+        addressee: true
+      },
       where: {
         OR: [
-          { user1_id: data.userId, status: data.status },
-          { user2_id: data.userId, status: data.status }
+          { requester_id: data.userId, status: data.status },
+          { addressee_id: data.userId, status: data.status }
         ]
       }
     });
   }
 
-  async isBlocked(data: IsBlockedDto): Promise<boolean> {
-    const friendship = await this.prisma.friendship.findUnique({
+  // Returns true if blocker_id has blocked target_id (directional)
+  async isBlockedBy(data: IsBlockedDto): Promise<boolean> {
+    const friendship = await this.prisma.friendship.findFirst({
       where: {
-        user1_id_user2_id: {
-          user1_id: data.userId1,
-          user2_id: data.userId2
-        },
+        requester_id: data.blocker_id,
+        addressee_id: data.target_id,
         status: 'BLOCKED'
       }
     });
     return !!friendship;
+  }
+
+  // Creates or updates a relationship so that blocker_id is the requester with BLOCKED status.
+  // If a friendship already exists in either direction, it is replaced with a new directional block.
+  async blockUser(data: BlockUserDto): Promise<Friendship> {
+    await this.prisma.friendship.deleteMany({
+      where: {
+        OR: [
+          { requester_id: data.blocker_id, addressee_id: data.blocked_id },
+          { requester_id: data.blocked_id, addressee_id: data.blocker_id }
+        ]
+      }
+    });
+
+    try {
+      return await this.prisma.friendship.create({
+        data: {
+          requester_id: data.blocker_id,
+          addressee_id: data.blocked_id,
+          status: 'BLOCKED'
+        }
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        throw new Error.DatabaseError('Error blocking user');
+      }
+      throw error;
+    }
   }
 }
