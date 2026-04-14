@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, } from 'react';
-import { IAck, IChatMessage, IChatService } from '../../shared/types/chat';
+import { IAck, IMessage, IChatService } from '../../shared/types/chat';
 import { ChatService } from '../../shared/api/chat';
 
 const service = new ChatService();
@@ -47,11 +47,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             throw e
         }
     }
+
+    async function sendMessage(data: IMessage) {
+        try {
+            await service.sendMessage(data);
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e
+        }
+    }
+
     return (
         <ChatServiceContext.Provider value={{
             getChannels,
             getChannelMessages,
             setAck,
+            sendMessage,
         }}>
             {children}
         </ChatServiceContext.Provider >

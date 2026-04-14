@@ -1,15 +1,11 @@
-import { JSX, useEffect, useState } from "react"
+import { FormEvent, JSX, ReactNode, useEffect, useState } from "react"
 import { IChatMessage } from "../../shared/types/chat.ts";
 import { useChatService } from "../../components/providers/Chat.tsx";
 import { ChatContainer } from "./ChatContainer.tsx";
+import { RenderAckMessage, RenderMessage, RenderUnknownMessageType } from "./RenderMessage.tsx";
+import { MessageForm } from "./MessageForm.tsx";
 
-// NOTE: GET /chat/channels/:channelId/messages to get all messages of selected channel
-// if notification is sent for every message received then 
-//      re-render chat when notification is received
-//      or safe message in state.
-// else
-//      re-render chat with time interval
-export function Chat({ currentChat }: { currentChat: string | null }): JSX.Element {
+export function Chat({ channelId }: { channelId: string }): JSX.Element {
     const service = useChatService();
     const [chat, setChat] = useState<Array<IChatMessage>>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -17,11 +13,11 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
 
     useEffect(() => {
         async function getChat() {
-            if (currentChat) {
+            if (channelId) {
                 try {
                     setLoading(true)
                     setError(false)
-                    const result = await service.getChannelMessages(currentChat);
+                    const result = await service.getChannelMessages(channelId);
                     setChat(result);
                 } catch (e: any) {
                     console.error(e);
@@ -33,75 +29,74 @@ export function Chat({ currentChat }: { currentChat: string | null }): JSX.Eleme
         }
         getChat();
 
-    }, [currentChat])
+    }, [channelId])
 
-    async function sendAck(messageId: string, response: boolean) {
-        try {
-            await service.setAck({ messageId, response });
-        } catch (e: any) {
-            console.error(e);
-        }
-    }
 
     function ListMessages({ chat }: { chat: Array<IChatMessage> }) {
-        const listItems = chat.map(item =>
-            <li key={item.id}>
-                <br />
-                <div className="border border-white flex justify-between">
-                    <div></div>
-                    <div className="flex flex-col">
-                        <div>
-                            {item.content}
-                        </div>
-                        <br />
-                        <div className="flex justify-between">
-                            <div></div>
-                            <div className="flex justify-around w-1/4">
-                                <button onClick={() => sendAck(item.id, true)} className="bg-green-500">Accept</button>
-                                <div />
-                                <button onClick={() => sendAck(item.id, false)} className="bg-red-500">Cancel</button>
-                            </div>
-
-                            <div></div>
-                        </div>
-                        <br />
-                    </div>
-                    <div></div>
-                </div>
-            </li>
-        );
-        return <ul>{listItems}</ul>;
+        const listItems = chat.map(item => {
+            if (item.type === 'SYSTEM') {
+                return (
+                    <RenderAckMessage item={item} />
+                )
+            } else if (item.type === 'TEXT') {
+                return (
+                    <RenderMessage item={item} />
+                )
+            }
+            return (
+                <RenderUnknownMessageType item={item} />
+            )
+        });
+        return <ul>{listItems.reverse()}</ul>;
     }
 
 
-    if (!currentChat) {
+    if (!channelId) {
         return (
-            <ChatContainer>
-                <div>select chat</div>
-            </ChatContainer>
+            <MessengerContainer>
+                <ChatContainer>
+                    <div>select chat</div>
+                </ChatContainer>
+            </MessengerContainer>
         )
     }
 
     if (loading) {
         return (
-            <ChatContainer>
-                <div>loading</div>
-            </ChatContainer>
+            <MessengerContainer>
+                <ChatContainer>
+                    <div>loading</div>
+                </ChatContainer>
+            </MessengerContainer>
         )
     }
 
     if (error) {
         return (
-            <ChatContainer>
-                <div>error</div>
-            </ChatContainer>
+            <MessengerContainer>
+                <ChatContainer>
+                    <div>error</div>
+                </ChatContainer>
+            </MessengerContainer>
         )
     }
 
     return (
-        <ChatContainer>
-            <ListMessages chat={chat} />
-        </ChatContainer>
+        <MessengerContainer>
+            <ChatContainer>
+                <ListMessages chat={chat} />
+            </ChatContainer>
+            <MessageForm channelId={channelId} />
+        </MessengerContainer>
+    )
+}
+
+
+export function MessengerContainer({ children }: { children: ReactNode }) {
+    return (
+        <div id="messenger-container" className="flex flex-col w-4/6 min-h-full">
+            {children}
+        </div>
     )
 }
 
