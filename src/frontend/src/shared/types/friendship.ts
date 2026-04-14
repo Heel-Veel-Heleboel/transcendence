@@ -63,6 +63,6 @@ export function responseToFriendship(
     updated_at: response.updated_at,
     userId: isRequester ? response.addressee_id : response.requester_id,
     userName: isRequester ? response.addressee.name : response.requester.name,
-    isRequester,
+    isRequester
   };
 }

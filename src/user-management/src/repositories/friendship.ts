@@ -11,7 +11,7 @@ import {
   FindAllByStatusForUserDto,
   IsBlockedDto,
   FriendshipDto,
-  BlockUserDto,
+  BlockUserDto
 } from '../dto/friendship.js';
 
 

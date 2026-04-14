@@ -9,7 +9,7 @@ import {
   IsBlockedDto,
   FindAllByStatusForUserDto,
   FriendshipDto,
-  BlockUserDto,
+  BlockUserDto
 } from '../dto/friendship.js';
 import { ApiGatewayClient, WebSocketEvent  } from '../client/api-gateway.js';
 import * as Error from '../error/user-management.js';
@@ -36,7 +36,7 @@ export class FriendshipService {
 
     const friendship = await this.friendshipRepository.create({
       requester_id: data.requester_id,
-      addressee_id: data.addressee_id,
+      addressee_id: data.addressee_id
     });
 
     const event: WebSocketEvent = {
