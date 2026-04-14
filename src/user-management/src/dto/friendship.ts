@@ -1,8 +1,9 @@
 import { FriendshipStatus } from '../../generated/prisma/client.js';
 
 export interface CreateFriendshipDto {
-  user1_id: number;
-  user2_id: number;
+  requester_id: number;
+  addressee_id: number;
+  status?: FriendshipStatus;
 }
 
 
@@ -16,6 +17,8 @@ export interface DeleteFriendshipDto {
 export interface UpdateFriendshipStatusDto {
   id: number;
   status: FriendshipStatus;
+  requester_id?: number;
+  addressee_id?: number;
 }
 
 
@@ -25,11 +28,6 @@ export interface GetFriendshipDto {
 }
 
 
-
-export interface FindByUsersDto {
-  userId1: number;
-  userId2: number;
-}
 
 export interface FriendshipDto {
   userId1: number;
@@ -52,6 +50,13 @@ export interface FindAllByStatusForUserDto {
 
 
 export interface IsBlockedDto {
-  userId1: number;
-  userId2: number;
+  blocker_id: number;
+  target_id: number;
+}
+
+
+
+export interface BlockUserDto {
+  blocker_id: number;
+  blocked_id: number;
 }
