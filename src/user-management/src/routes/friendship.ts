@@ -8,8 +8,10 @@ import {
   FindAllForUserSchema,
   IsBlockedSchema,
   FindAllByStatusForUserSchema,
-  FriendshipSchema
+  FriendshipSchema,
+  BlockUserSchema,
 } from '../schemas/friendship.js';
+import { Type } from '@fastify/type-provider-typebox';
 
 export async function friendshipRoutes(
   fastify: FastifyInstance,
@@ -27,9 +29,29 @@ export async function friendshipRoutes(
     handler: friendController.deleteFriendship.bind(friendController)
   });
 
+  fastify.delete('/cancel', {
+    schema: {
+      body: Type.Object({
+        friendship_id: Type.Number(),
+        requester_id: Type.Number(),
+      })
+    },
+    handler: friendController.cancelFriendshipRequest.bind(friendController)
+  });
+
   fastify.patch('/update-status', {
     schema: { body: UpdateFriendshipStatusSchema },
     handler: friendController.updateFriendshipStatus.bind(friendController)
+  });
+
+  fastify.post('/block', {
+    schema: { body: BlockUserSchema },
+    handler: friendController.blockUser.bind(friendController)
+  });
+
+  fastify.delete('/unblock', {
+    schema: { body: BlockUserSchema },
+    handler: friendController.unblockUser.bind(friendController)
   });
 
   fastify.get('/find-by-id/:id', {
@@ -52,9 +74,8 @@ export async function friendshipRoutes(
     handler: friendController.findAllByStatusForUser.bind(friendController)
   });
 
-  fastify.get('/is-blocked/:userId1/:userId2', {
+  fastify.get('/is-blocked-by/:blocker_id/:target_id', {
     schema: { params: IsBlockedSchema },
-    handler: friendController.isBlocked.bind(friendController)
+    handler: friendController.isBlockedBy.bind(friendController)
   });
 }
-
