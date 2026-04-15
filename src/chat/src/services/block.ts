@@ -4,7 +4,7 @@ export class BlockService {
   constructor(
     private readonly logger?: { info: Function; error: Function; warn: Function }
   ) {
-    this.userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:3001';
+    this.userServiceUrl = process.env.USER_MANAGEMENT_URL || 'http://localhost:3004';
   }
 
   // Returns true if either user has blocked the other (prevents messaging in either direction)

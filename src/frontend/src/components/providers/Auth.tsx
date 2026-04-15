@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         const refreshIntercept = api.interceptors.response.use((config) => {
             return config;
         }, async (error) => {
-            if (error.response?.status === 403) {
+            if (error.response?.status === 401) {
                 if (retry) {
                     setRetry(false);
                     return Promise.reject(error);
