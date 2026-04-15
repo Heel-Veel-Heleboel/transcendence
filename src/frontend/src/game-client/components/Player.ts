@@ -11,6 +11,7 @@ import {
 export class Player implements IPlayer {
   public mesh: AbstractMesh;
   public lifespan: number;
+  public score: number;
   public mana: number;
   public goalPosition: Vector3;
   public goalDimensions: Vector3;
@@ -41,8 +42,9 @@ export class Player implements IPlayer {
     material.wireframe = true;
     player.material = material;
     this.mesh = player;
-    this.lifespan = gameConfig.playerLifespanStart;
-    this.mana = gameConfig.playerManaStart;
+    this.lifespan = 100;
+    this.mana = 0;
+    this.score = 0;
   }
 
   dispose(): void {

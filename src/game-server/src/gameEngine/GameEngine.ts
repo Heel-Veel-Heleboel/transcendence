@@ -3,9 +3,18 @@ import { renderLoop } from '#gameEngine/Render.js';
 import { Ball } from '#entities/Ball.js';
 import { Arena } from '#entities/Arena.js';
 import { createArena, createCamera, createLight } from '#gameEngine/Create.js';
-import { NullEngine, Scene, Camera, Light } from '@babylonjs/core';
+import {
+  NullEngine,
+  Scene,
+  Camera,
+  Light,
+  Observable,
+  IPhysicsCollisionEvent,
+  Observer
+} from '@babylonjs/core';
 import XMLHttpRequest from 'xmlhttprequest-ssl';
 import { GameRoom } from '#rooms/GameRoom.js';
+import { setTimeout } from 'timers/promises';
 global.XMLHttpRequest = XMLHttpRequest;
 
 export class GameEngine {
@@ -23,6 +32,9 @@ export class GameEngine {
   //@ts-ignore
   private _light!: Light;
 
+  private _observable1: Observer<IPhysicsCollisionEvent>;
+  private _observable2: Observer<IPhysicsCollisionEvent>;
+
   constructor(gameRoom: GameRoom) {
     this.gameRoom = gameRoom;
   }
@@ -31,6 +43,7 @@ export class GameEngine {
     this.engine = new NullEngine();
     const scene = new Scene(this.engine);
 
+    await setTimeout(1000);
     await initializePhysics(scene);
     this.scene = await this.initScene(scene);
 
@@ -44,17 +57,22 @@ export class GameEngine {
     this.arena = createArena();
     await this.arena.initMesh(scene);
 
+    console.log(this.arena.goal_1.aggregate.transformNode.position);
+    console.log(this.arena.goal_2.aggregate.transformNode.position);
+
     const observable_1 =
       this.arena.goal_1.aggregate.body.getCollisionObservable();
-    observable_1.add(_collisionEvent => {
+    this._observable1 = observable_1.add(_collisionEvent => {
       console.log('goal_1');
     });
 
     const observable_2 =
       this.arena.goal_2.aggregate.body.getCollisionObservable();
-    observable_2.add(_collisionEvent => {
+    this._observable2 = observable_2.add(_collisionEvent => {
       console.log('goal_2');
     });
+    console.log(this._observable1);
+    console.log(this._observable2);
 
     // NOTE: next lines probably not needed in server
     // scene.onBeforeRenderObservable.add(this.draw(this));

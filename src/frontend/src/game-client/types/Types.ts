@@ -81,6 +81,7 @@ export interface IKeyManager {
 export interface IPlayer {
   mesh: AbstractMesh;
   lifespan: number;
+  score: number;
   goalDimensions: Vector3;
   goalPosition: Vector3;
   ratioDiv: number;

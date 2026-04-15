@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useContext, useState } from 'react';
 import { Client, Room } from '@colyseus/sdk';
+import { useAuth } from './Auth';
 
 export interface RoomContextType {
     isConnecting: boolean;
@@ -23,6 +24,7 @@ let hasActiveJoinRequest: boolean = false;
 const client = new Client(import.meta.env.VITE_GAME_URL ?? 'http://localhost:2567');
 
 export function RoomProvider({ children }: { children: ReactNode }) {
+    const auth = useAuth();
     const [joinError, setJoinError] = useState<boolean>(false);
     const [isConnecting, setIsConnecting] = useState<boolean>(false);
     const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -37,7 +39,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
         try {
             room = await client
-                .joinById(roomId);
+                .joinById(roomId, { userId: Number(auth.userId) });
             console.log('Connected to roomId: ' + room.roomId);
         } catch (e) {
             setJoinError(true);

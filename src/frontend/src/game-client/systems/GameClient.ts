@@ -118,7 +118,8 @@ export class GameClient {
   private draw(g: GameClient) {
     return () => {
       try {
-        if (typeof g.prota === 'undefined') return;
+        if (typeof g.prota === 'undefined' || typeof g.anta === 'undefined')
+          return;
         if (!(g.frameCount % 600)) {
           // console.log(g.balls);
         }
@@ -135,6 +136,7 @@ export class GameClient {
         ) {
           g.keyManager.resolve();
         }
+        g.prota.hud.update(g.prota, g.anta);
         g.frameCount++;
       } catch (e: any) {
         console.error(e);
@@ -209,6 +211,9 @@ export class GameClient {
               entity.dimY,
               entity.dimZ
             ),
+            lifespan: entity.lifespan,
+            mana: entity.mana,
+            score: entity.score,
             hud: g.hud,
             room: g.room
           };
@@ -236,6 +241,9 @@ export class GameClient {
               entity.dimY,
               entity.dimZ
             ),
+            lifespan: entity.lifespan,
+            mana: entity.mana,
+            score: 0,
             keys: {
               length: entity.keyLength
             }
@@ -250,6 +258,7 @@ export class GameClient {
           player.mesh.position.z = entity.posZ;
           player.lifespan = entity.lifespan;
           player.mana = entity.mana;
+          player.score = entity.score;
         });
       }
     );

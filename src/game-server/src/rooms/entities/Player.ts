@@ -22,6 +22,7 @@ export class Player extends Schema implements IPlayer {
   @type('number') keyLength: number;
   @type('number') lifespan: number;
   @type('number') mana: number;
+  @type('number') score: number;
 
   public physicsMesh: PhysicsMesh;
   public goalPosition: Vector3;
@@ -66,8 +67,9 @@ export class Player extends Schema implements IPlayer {
     aggregate.body.setAngularDamping(0.0);
     aggregate.body.setLinearDamping(0.0);
     this.physicsMesh = { mesh: padel, aggregate: aggregate };
-    this.lifespan = 1000;
+    this.lifespan = 100;
     this.mana = 0;
+    this.score = 0;
   }
 
   move(coord: { x: number; y: number }) {
@@ -78,8 +80,27 @@ export class Player extends Schema implements IPlayer {
     );
   }
 
-  decreaseLife(amount: number): void {
-    this.lifespan = this.lifespan - amount;
+  updateMana(n: number): void {
+    const newValue = this.mana + n;
+    if (this.isOverflow(newValue)) {
+      return;
+    }
+    this.mana = newValue;
+  }
+
+  updateLife(n: number): void {
+    const newValue = this.lifespan + n;
+    if (this.isOverflow(newValue)) {
+      return;
+    }
+    this.lifespan = newValue;
+  }
+
+  isOverflow(n: number): boolean {
+    if (n > 100) {
+      return true;
+    }
+    return false;
   }
 
   update(): void {

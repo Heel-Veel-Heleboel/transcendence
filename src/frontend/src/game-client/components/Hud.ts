@@ -5,16 +5,20 @@ import { Scene } from '@babylonjs/core';
 import gameConfig from '../utils/GameConfig';
 import Errors from '../utils/Error';
 import { createAdvancedDynamicTexture } from '../utils/Create';
+import { Antagonist } from './Antagonist';
+import p5 from 'p5';
+import { Protagonist } from './Protagonist';
 
 /* v8 ignore start */
 export class Hud implements IHud {
-  public proScore!: Control;
-  public antaScore!: Control;
+  public proScore!: GUI.TextBlock;
+  public antaScore!: GUI.TextBlock;
   public proHealthMeter!: Control;
   public antaHealthMeter!: Control;
   public proManaMeter!: Control;
   public antaManaMeter!: Control;
   private _manaWidth!: number;
+  private _healthWidth!: number;
   private _texture!: AdvancedDynamicTexture;
   private _gameMode!: string;
 
@@ -29,6 +33,18 @@ export class Hud implements IHud {
     // INFO: ideal width/height is set to insure good initialization
     this.texture.idealWidth = gameConfig.guiTextureWidth;
     this.texture.idealHeight = gameConfig.guiTextureHeight;
+  }
+
+  public update(pro: Protagonist, anta: Antagonist) {
+    if (this._gameMode === 'powerup') {
+      this.changeProHealth(pro.lifespan);
+      this.changeProMana(pro.mana);
+      this.changeAntaHealth(anta.lifespan);
+      this.changeAntaMana(anta.mana);
+    } else if (this._gameMode === 'classic') {
+      this.changeProScore(pro.score);
+      this.changeAntaScore(anta.score);
+    }
   }
 
   async init() {
@@ -106,6 +122,7 @@ export class Hud implements IHud {
     const healthContainerColor = 'red';
     const healthColor = 'yellow';
     const healthWidth = 0.4;
+    this._healthWidth = healthWidth * 100;
     const healthHeight = 0.025;
 
     const manaLeft = '35';
@@ -292,8 +309,10 @@ export class Hud implements IHud {
   }
 
   private initializeClassicControls() {
-    const proScore = this.texture.getControlByName('proScore');
-    const antaScore = this.texture.getControlByName('antaScore');
+    const proScore = this.texture.getControlByName('proScore') as GUI.TextBlock;
+    const antaScore = this.texture.getControlByName(
+      'antaScore'
+    ) as GUI.TextBlock;
     if (!proScore || !antaScore) {
       throw new Error(Errors.MISSING_HUD_CONTROL);
     }
@@ -301,30 +320,38 @@ export class Hud implements IHud {
     this.antaScore = antaScore;
   }
 
-  changeHealth(n: number) {
-    this.changeControl(this.proHealthMeter, n);
+  changeProScore(n: number) {
+    this.proScore.text = String(n);
   }
 
-  changeMana(n: number) {
-    this.changeControl(this.proManaMeter, n);
-    this.changeControl(this.antaManaMeter, n);
+  changeAntaScore(n: number) {
+    this.antaScore.text = String(n);
   }
 
-  private changeControl(control: Control, n: number) {
+  changeProHealth(n: number) {
+    this.changeControl(this.proHealthMeter, this._healthWidth, n);
+  }
+
+  changeProMana(n: number) {
+    this.changeControl(this.proManaMeter, this._manaWidth, n);
+  }
+
+  changeAntaHealth(n: number) {
+    this.changeControl(this.antaHealthMeter, this._healthWidth, n);
+  }
+
+  changeAntaMana(n: number) {
+    this.changeControl(this.antaManaMeter, this._manaWidth, n);
+  }
+
+  private changeControl(control: Control, range: number, n: number) {
     if (typeof control.width === 'string') {
-      const value = parseFloat(control.width);
-      const newValue = this.checkEdges(value + n);
-      control.width = newValue + '%';
+      const value = p5.prototype.map(n, 0, 100, 0, range);
+      control.width = value + '%';
     } else if (typeof control.width === 'number') {
-      const newValue = this.checkEdges(control.width + n);
-      control.width = newValue;
+      const value = p5.prototype.map(n, 0, 100, 0, range);
+      control.width = value;
     }
-  }
-
-  private checkEdges(value: number) {
-    let newValue = Math.min(this._manaWidth, value);
-    newValue = Math.max(0, newValue);
-    return newValue;
   }
 
   private set texture(texture: AdvancedDynamicTexture) {
