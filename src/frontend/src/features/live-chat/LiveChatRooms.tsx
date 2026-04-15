@@ -50,10 +50,17 @@ export function LiveChatRooms({ setChannelId, chatUpdate }: { setChannelId: Disp
         return channel.name ?? 'Group Chat';
     }
 
+    function handleChannelClick(channelId: string) {
+        setChannelId(channelId);
+        setChannels((prev: Array<IChat>) => prev.map((c: IChat) => c.id === channelId ? { ...c, unreadCount: 0 } : c));
+        service.markChannelRead(channelId).catch(() => {});
+    }
+
     function List({ channels }: { channels: Array<IChat> }) {
-        // TODO: make seperate unread counter component
         const listItems = channels.map(item =>
-            <li onClick={() => { setChannelId(item.id) }} key={item.id}>{channelDisplayName(item)} {item.unreadCount ? `unread:${item.unreadCount}` : null}</li>
+            <li onClick={() => handleChannelClick(item.id)} key={item.id}>
+                {channelDisplayName(item)}{item.unreadCount ? ` (${item.unreadCount})` : null}
+            </li>
         );
         return <ul>{listItems}</ul>;
     }

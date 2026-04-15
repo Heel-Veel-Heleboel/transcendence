@@ -219,6 +219,9 @@ export class ChatService {
       content
     });
 
+    const usernames = this.userClient ? await this.userClient.getUsernames([senderId]) : new Map<number, string>();
+    const senderUsername = usernames.get(senderId) ?? null;
+
     await Promise.all([
       this.notificationService.notifyChannelMembers(channelId, {
         type: 'chat:message',
@@ -226,6 +229,7 @@ export class ChatService {
         message: {
           id: message.id,
           senderId: message.senderId,
+          senderUsername,
           content: message.content,
           type: message.type,
           createdAt: message.createdAt.toISOString()
@@ -234,7 +238,7 @@ export class ChatService {
       this.channelDao.markRead(channelId, senderId)
     ]);
 
-    return message;
+    return { ...message, senderUsername };
   }
 
   async getMessages(channelId: string, userId: number, cursor?: string, limit?: number) {
@@ -242,15 +246,21 @@ export class ChatService {
     if (!isMember) throw new ChatError(403, 'Not a member of this channel');
 
     const blockedIds = await this.blockService.getBlockedUserIds(userId);
-    const messages = await this.messageDao.findByChannel(channelId, { cursor, limit });
+    let messages = await this.messageDao.findByChannel(channelId, { cursor, limit });
 
     if (blockedIds.length > 0) {
-      return messages.filter(
+      messages = messages.filter(
         (m: { type: string; senderId: number }) => m.type === 'SYSTEM' || !blockedIds.includes(m.senderId)
       );
     }
 
-    return messages;
+    const senderIds = Array.from(new Set(messages.map((m: { senderId: number }) => m.senderId)));
+    const usernames = this.userClient ? await this.userClient.getUsernames(senderIds) : new Map<number, string>();
+
+    return messages.map((m: { senderId: number }) => ({
+      ...m,
+      senderUsername: usernames.get(m.senderId) ?? null
+    }));
   }
 
   // ── Match Acknowledgement ─────────────────────────────────
