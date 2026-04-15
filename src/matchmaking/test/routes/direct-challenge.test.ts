@@ -102,7 +102,9 @@ describe('Direct Challenge Routes', () => {
         'match-abc',
         [1, 2],
         'classic',
-        expect.any(Date)
+        expect.any(Date),
+        undefined,
+        'alice'
       );
     });
 
