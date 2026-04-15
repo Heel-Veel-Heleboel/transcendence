@@ -37,6 +37,16 @@ export class ChatService {
     return response;
   }
 
+  async createOrGetDMChannel(targetUserId: number) {
+    const config = {
+      url: this.base + '/channels',
+      method: 'POST',
+      data: { type: 'DM', targetUserId }
+    } as AxiosRequestConfig;
+    const response = await api(config);
+    return response.data;
+  }
+
   async sendMessage(data: IMessage) {
     const config = {
       url: this.base + `/channels/${data.channelId}/messages`,
