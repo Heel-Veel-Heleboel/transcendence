@@ -95,7 +95,7 @@ export class GameClient {
   }
 
   private async initScene(scene: Scene) {
-    this.hud = new Hud('guiTexture.json', scene);
+    this.hud = new Hud(this.gameMode, scene);
     await this.hud.init();
 
     if (process.env.NODE_ENV !== 'production') {
@@ -126,8 +126,8 @@ export class GameClient {
           const ball = entity[1];
           if (ball) {
             g.prota.hitIndicator.detectIncomingHits(ball);
+            ball.update();
           }
-          ball.update();
         }
         if (
           g.keyManager.deltaTime !== 0 &&
@@ -135,7 +135,6 @@ export class GameClient {
         ) {
           g.keyManager.resolve();
         }
-        g.prota.hud.changeMana(0.01);
         g.frameCount++;
       } catch (e: any) {
         console.error(e);

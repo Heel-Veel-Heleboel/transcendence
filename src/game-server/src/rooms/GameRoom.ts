@@ -70,7 +70,6 @@ export class GameRoom extends Room {
   }
 
   async sendResult() {
-    // NOTE: send game result
     try {
       // TODO: implement logic for picking winnerId
       const winner = this.player1Id;
