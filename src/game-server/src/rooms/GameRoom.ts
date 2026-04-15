@@ -56,15 +56,8 @@ export class GameRoom extends Room {
     this.deadline = options.deadline ? new Date(options.deadline) : null;
     this.isGoldenGame = options.isGoldenGame ?? false;
 
-    console.log('ids');
-    console.log(this.player1Id);
-    console.log(this.player2Id);
     this.engine = new GameEngine(this);
     await this.engine.initGame();
-    await setTimeout(1000);
-    // setTimeout(() => {
-    //   this.gameFinished = true;
-    // }, 10000);
     this.setSimulationInterval(deltaTime => this.update(deltaTime));
   }
 
@@ -105,10 +98,8 @@ export class GameRoom extends Room {
     }
   }
 
-  async onJoin(client: Client, _options: any) {
+  onJoin(client: Client, _options: any) {
     console.log(client.sessionId, 'joined!');
-    console.log(client);
-    console.log(_options);
 
     const hostConfig = {
       keys: {
@@ -148,30 +139,22 @@ export class GameRoom extends Room {
     ball.lifespan = 1000;
     ball.id = this.id;
     ball.x = 0;
-    if (_options.userId === this.player1Id) {
-      ball.y = 0;
-    } else {
-      ball.y = 1;
-    }
+    ball.y = 0;
     ball.z = 0;
     ball.linearVelocityX = 0;
     ball.linearVelocityY = 0;
     ball.linearVelocityZ = 0;
     ball.physicsMesh.aggregate.body.applyForce(
       new Vector3(
-        // Math.random() * 100,
-        // Math.random() * 100,
-        // Math.random() * 100
-        0,
-        0,
-        -25
+        Math.random() * 100,
+        Math.random() * 100,
+        Math.random() * 100
       ),
       ball.physicsMesh.mesh.absolutePosition
     );
     this.id++;
     console.log('adding hack');
     this.state.balls.set(client.sessionId, ball);
-    await setTimeout(500);
   }
 
   onLeave(client: Client, code: CloseCode) {
