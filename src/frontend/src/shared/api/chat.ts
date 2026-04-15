@@ -44,6 +44,6 @@ export class ChatService {
       data: { content: data.content }
     } as AxiosRequestConfig;
     const response = await api(config);
-    return response;
+    return response.data;
   }
 }

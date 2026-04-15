@@ -6,6 +6,7 @@ import { CONFIG } from "../../shared/config/AppConfig";
 
 export function useNotifications() {
     const [chatUpdate, setChatUpdate] = useState<number>(0);
+    const [messageUpdate, setMessageUpdate] = useState<number>(0);
     const [matchUpdate, setMatchUpdate] = useState<number>(0);
     const [tournamentUpdate, setTournamentUpdate] = useState<number>(0);
     const [friendshipUpdate, setFriendshipUpdate] = useState<number>(0);
@@ -41,7 +42,9 @@ export function useNotifications() {
                     if (msg.type === 'FRIENDSHIP_REQUEST') {
                         setFriendshipUpdate(event.timeStamp);
                     }
-                    // handle chat:message, chat:match_ack_required, etc.
+                    if (msg.type === 'chat:message') {
+                        setMessageUpdate(event.timeStamp);
+                    }
                 },
                 onClose: (event) => {
                     // optionally reconnect if not intentional close
@@ -50,5 +53,5 @@ export function useNotifications() {
                     }
                 }
             });
-    return { ws: notif, chatUpdate: chatUpdate, tournamentUpdate: tournamentUpdate, matchUpdate: matchUpdate, friendshipUpdate: friendshipUpdate }
+    return { ws: notif, chatUpdate: chatUpdate, messageUpdate: messageUpdate, tournamentUpdate: tournamentUpdate, matchUpdate: matchUpdate, friendshipUpdate: friendshipUpdate }
 }

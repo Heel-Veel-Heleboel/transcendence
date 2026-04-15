@@ -1,6 +1,5 @@
 import { Dispatch, JSX, useState, SetStateAction, useEffect } from "react";
 import { useChatService } from "../../components/providers/Chat";
-import { useNotifications } from "../../components/hooks/Notifications";
 import { LiveChatRoomsContainer } from "./LiveChatRoomsContainer";
 import { IChat } from "../../shared/types/chat";
 
@@ -16,11 +15,10 @@ import { IChat } from "../../shared/types/chat";
 // user1 x
 // user2 o
 // also option to delete chat or leave groupchat if implemented in chat-service
-// 
-export function LiveChatRooms({ setChannelId }: { setChannelId: Dispatch<SetStateAction<string>> }): JSX.Element {
+//
+export function LiveChatRooms({ setChannelId, chatUpdate }: { setChannelId: Dispatch<SetStateAction<string>>, chatUpdate: number }): JSX.Element {
 
     const service = useChatService();
-    const notif = useNotifications();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
     const [channels, setChannels] = useState<Array<IChat>>([]);
@@ -40,7 +38,7 @@ export function LiveChatRooms({ setChannelId }: { setChannelId: Dispatch<SetStat
             }
         }
         getChannels();
-    }, [notif.chatUpdate]);
+    }, [chatUpdate]);
 
     function List({ channels }: { channels: Array<IChat> }) {
         // TODO: make seperate unread counter component
