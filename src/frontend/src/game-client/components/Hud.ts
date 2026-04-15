@@ -12,6 +12,7 @@ export class Hud implements IHud {
   public antaHealthMeter!: Control;
   public proManaMeter!: Control;
   public antaManaMeter!: Control;
+  private _manaWidth!: number;
   private _texture!: AdvancedDynamicTexture;
   private _filePath!: string;
 
@@ -39,9 +40,12 @@ export class Hud implements IHud {
 
       const manaLeft = '35';
       const manaTop = '46.5';
-      const manaColor = 'red';
+      const manaContainerColor = 'lightblue';
+      const manaColor = 'blue';
       const manaWidth = 0.25;
+      this._manaWidth = manaWidth * 100;
       const manaHeight = 0.025;
+      let width;
 
       const proHealthMeter = new GUI.Rectangle('proHealthMeter');
       proHealthMeter.left = `-${healthLeft}%`;
@@ -51,14 +55,23 @@ export class Hud implements IHud {
       proHealthMeter.height = healthHeight;
       this.texture.addControl(proHealthMeter);
 
+      const proManaContainer = new GUI.Rectangle('proManaContainer');
+      proManaContainer.left = `-${manaLeft}%`;
+      proManaContainer.top = `${manaTop}%`;
+      proManaContainer.width = manaWidth;
+      proManaContainer.background = manaContainerColor;
+      proManaContainer.height = manaHeight;
+      this.texture.addControl(proManaContainer);
+
       const proManaMeter = new GUI.Rectangle('proManaMeter');
-      proManaMeter.left = `-${manaLeft}%`;
+      proManaMeter.left = `${String(50 - Number(manaLeft) - (manaWidth * 100) / 2)}%`;
       proManaMeter.top = `${manaTop}%`;
-      proManaMeter.width = manaWidth;
+      proManaMeter.horizontalAlignment = 0;
+      proManaMeter.width = 0;
+      proManaMeter.background = manaColor;
       proManaMeter.height = manaHeight;
       this.texture.addControl(proManaMeter);
 
-      let width;
       const leftProManaBorder = -Number(manaLeft) - (manaWidth * 100) / 2;
       const proManaMeterPower1 = new GUI.Rectangle('proManaMeterPower1');
       width = (manaWidth / 4) * 1;
@@ -92,10 +105,20 @@ export class Hud implements IHud {
       antaHealthMeter.height = healthHeight;
       this.texture.addControl(antaHealthMeter);
 
+      const antaManaContainer = new GUI.Rectangle('antaManaContainer');
+      antaManaContainer.left = `${manaLeft}%`;
+      antaManaContainer.top = `${manaTop}%`;
+      antaManaContainer.width = manaWidth;
+      antaManaContainer.background = manaContainerColor;
+      antaManaContainer.height = manaHeight;
+      this.texture.addControl(antaManaContainer);
+
       const antaManaMeter = new GUI.Rectangle('antaManaMeter');
-      antaManaMeter.left = `${manaLeft}%`;
+      antaManaMeter.left = `-${String(50 - Number(manaLeft) - (manaWidth * 100) / 2)}%`;
       antaManaMeter.top = `${manaTop}%`;
-      antaManaMeter.width = manaWidth;
+      antaManaMeter.horizontalAlignment = 1;
+      antaManaMeter.width = 0;
+      antaManaMeter.background = manaColor;
       antaManaMeter.height = manaHeight;
       this.texture.addControl(antaManaMeter);
 
@@ -155,17 +178,26 @@ export class Hud implements IHud {
       console.error(e);
       throw new Error(Errors.FAILED_HUD_IMPORT);
     }
-    // this.initializeControls();
+    this.initializeControls();
   }
 
   private initializeControls() {
     const proHealthMeter = this.texture.getControlByName('proHealthMeter');
     const proManaMeter = this.texture.getControlByName('proManaMeter');
-    if (!proHealthMeter || !proManaMeter) {
+    const antaHealthMeter = this.texture.getControlByName('antaHealthMeter');
+    const antaManaMeter = this.texture.getControlByName('antaManaMeter');
+    if (
+      !proHealthMeter ||
+      !proManaMeter ||
+      !antaHealthMeter ||
+      !antaManaMeter
+    ) {
       throw new Error(Errors.MISSING_HUD_CONTROL);
     }
     this.proHealthMeter = proHealthMeter;
     this.proManaMeter = proManaMeter;
+    this.antaHealthMeter = antaHealthMeter;
+    this.antaManaMeter = antaManaMeter;
   }
 
   changeHealth(n: number) {
@@ -174,6 +206,7 @@ export class Hud implements IHud {
 
   changeMana(n: number) {
     this.changeControl(this.proManaMeter, n);
+    this.changeControl(this.antaManaMeter, n);
   }
 
   private changeControl(control: Control, n: number) {
@@ -188,7 +221,7 @@ export class Hud implements IHud {
   }
 
   private checkEdges(value: number) {
-    let newValue = Math.min(100, value);
+    let newValue = Math.min(this._manaWidth, value);
     newValue = Math.max(0, newValue);
     return newValue;
   }

@@ -135,7 +135,7 @@ export class GameClient {
         ) {
           g.keyManager.resolve();
         }
-        // g.prota.hud.changeMana(0.01);
+        g.prota.hud.changeMana(0.01);
         g.frameCount++;
       } catch (e: any) {
         console.error(e);
