@@ -151,6 +151,7 @@ export function UserDropDown({ profile, setChannelId }: { profile: IUser, setCha
                 {status === FriendshipStatus.ACCEPTED && <Unfriend profile={profile} />}
                 {status === FriendshipStatus.REJECTED && <SendFriendshipRequest profile={profile} />}
                 <SendMessage profile={profile} setChannelId={setChannelId} />
+                {status !== FriendshipStatus.BLOCKED && <SendGameInvite profile={profile} />}
                 {iBlockedThem
                     ? <UnBlockUser blocker_id={Number(auth.userId)} blocked_id={profile.id} onSuccess={loadFriendship} />
                     : <BlockUser blocker_id={Number(auth.userId)} blocked_id={profile.id} onSuccess={loadFriendship} />
