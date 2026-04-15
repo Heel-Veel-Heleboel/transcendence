@@ -1,7 +1,8 @@
 import { Dispatch, FormEvent, JSX, useState, SetStateAction, useEffect, ReactNode } from "react"
 import { useUserService } from "../../components/providers/User";
+import { useAuth } from "../../components/providers/Auth";
 import { IUser } from "../../shared/types/user";
-import { DEFAULT_FRIENDSHIP, DEFAULT_USER } from "../../shared/constants/defaults";
+import { DEFAULT_USER } from "../../shared/constants/defaults";
 import { VISITOR_PAGE_REDIRECTION } from "../../shared/constants/navigation";
 import { useNavigate } from "react-router-dom";
 import { FriendshipStatus, IFriendship } from "../../shared/types/friendship";
@@ -116,20 +117,25 @@ export function UserSearchResult({ profile, setChannelId }: { profile: IUser, se
 export function UserDropDown({ profile, setChannelId }: { profile: IUser, setChannelId: Dispatch<SetStateAction<string>> }) {
     const navigate = useNavigate();
     const service = useUserService();
-    const [friendship, setFriendship] = useState<IFriendship>(DEFAULT_FRIENDSHIP);
+    const auth = useAuth();
+    const [friendship, setFriendship] = useState<IFriendship | null>(null);
+
+    async function loadFriendship() {
+        try {
+            const result = await service.getFriendship(String(profile.id));
+            setFriendship(result);
+        } catch (e: any) {
+            console.error(e);
+        }
+    }
 
     useEffect(() => {
-        async function getFriendship() {
-            try {
-                service.getFriendship(String(profile.id))
-                setFriendship(friendship);
-            } catch (e: any) {
-                console.error(e);
-            }
-        }
+        loadFriendship();
+    }, [profile.id]);
 
-        getFriendship()
-    }, [])
+    const status = friendship?.status ?? FriendshipStatus.UNDEFINED;
+    // Directional: only the one who initiated the block is the requester
+    const iBlockedThem = friendship?.status === FriendshipStatus.BLOCKED && friendship.isRequester === true;
 
     return (
         <div id="user-dropdown" className="flex flex-col">
@@ -138,46 +144,17 @@ export function UserDropDown({ profile, setChannelId }: { profile: IUser, setCha
                     show profile
                 </button>
             </div>
-            {friendship.status === FriendshipStatus.UNDEFINED ?
-                <UserDropDownContainer>
-                    <SendFriendshipRequest profile={profile} />
-                    <SendMessage profile={profile} setChannelId={setChannelId} />
-                    <BlockUser profile={profile} />
-                </UserDropDownContainer>
-                : null
-            }
-            {friendship.status === FriendshipStatus.PENDING ?
-                <UserDropDownContainer>
-                    <CancelFriendshipRequest profile={profile} />
-                    <SendMessage profile={profile} setChannelId={setChannelId} />
-                    <BlockUser profile={profile} />
-                </UserDropDownContainer>
-                : null
-            }
-            {friendship.status === FriendshipStatus.ACCEPTED ?
-                <UserDropDownContainer>
-                    <Unfriend profile={profile} />
-                    <SendMessage profile={profile} setChannelId={setChannelId} />
-                    <BlockUser profile={profile} />
-                </UserDropDownContainer>
-                : null
-            }
-            {friendship.status === FriendshipStatus.REJECTED ?
-                <UserDropDownContainer>
-                    <SendFriendshipRequest profile={profile} />
-                    <SendMessage profile={profile} setChannelId={setChannelId} />
-                    <BlockUser profile={profile} />
-                </UserDropDownContainer>
-                : null
-            }
-            {friendship.status === FriendshipStatus.BLOCKED ?
-                <UserDropDownContainer>
-                    <SendFriendshipRequest profile={profile} />
-                    <SendMessage profile={profile} setChannelId={setChannelId} />
-                    <UnBlockUser profile={profile} />
-                </UserDropDownContainer>
-                : null
-            }
+            <UserDropDownContainer>
+                {status === FriendshipStatus.UNDEFINED && <SendFriendshipRequest profile={profile} />}
+                {status === FriendshipStatus.PENDING && <CancelFriendshipRequest profile={profile} />}
+                {status === FriendshipStatus.ACCEPTED && <Unfriend profile={profile} />}
+                {status === FriendshipStatus.REJECTED && <SendFriendshipRequest profile={profile} />}
+                <SendMessage profile={profile} setChannelId={setChannelId} />
+                {iBlockedThem
+                    ? <UnBlockUser blocker_id={Number(auth.userId)} blocked_id={profile.id} onSuccess={loadFriendship} />
+                    : <BlockUser blocker_id={Number(auth.userId)} blocked_id={profile.id} onSuccess={loadFriendship} />
+                }
+            </UserDropDownContainer>
         </div>
     )
 }
@@ -248,12 +225,13 @@ export function Unfriend({ profile }: { profile: IUser }) {
     )
 }
 
-export function BlockUser({ profile }: { profile: IUser }) {
+export function BlockUser({ blocker_id, blocked_id, onSuccess }: { blocker_id: number, blocked_id: number, onSuccess: () => void }) {
     const service = useUserService();
 
     async function block() {
         try {
-            await service.setFriendshipStatus({ id: String(profile.id), status: FriendshipStatus.BLOCKED });
+            await service.blockUser({ blocker_id, blocked_id });
+            onSuccess();
         } catch (e: any) {
             console.error(e);
             alert('failed to block');
@@ -267,12 +245,13 @@ export function BlockUser({ profile }: { profile: IUser }) {
     )
 }
 
-export function UnBlockUser({ profile }: { profile: IUser }) {
+export function UnBlockUser({ blocker_id, blocked_id, onSuccess }: { blocker_id: number, blocked_id: number, onSuccess: () => void }) {
     const service = useUserService();
 
     async function unBlock() {
         try {
-            await service.setFriendshipStatus({ id: String(profile.id), status: FriendshipStatus.PENDING });
+            await service.unblockUser({ blocker_id, blocked_id });
+            onSuccess();
         } catch (e: any) {
             console.error(e);
             alert('failed to unblock');
