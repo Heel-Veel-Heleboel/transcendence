@@ -34,7 +34,8 @@ export class Hud implements IHud {
     try {
       const healthLeft = '25';
       const healthTop = '46.5';
-      const healthColor = 'red';
+      const healthContainerColor = 'red';
+      const healthColor = 'yellow';
       const healthWidth = 0.4;
       const healthHeight = 0.025;
 
@@ -47,9 +48,18 @@ export class Hud implements IHud {
       const manaHeight = 0.025;
       let width;
 
+      const proHealthContainer = new GUI.Rectangle('proHealthContainer');
+      proHealthContainer.left = `-${healthLeft}%`;
+      proHealthContainer.top = `-${healthTop}%`;
+      proHealthContainer.background = healthContainerColor;
+      proHealthContainer.width = healthWidth;
+      proHealthContainer.height = healthHeight;
+      this.texture.addControl(proHealthContainer);
+
       const proHealthMeter = new GUI.Rectangle('proHealthMeter');
-      proHealthMeter.left = `-${healthLeft}%`;
+      proHealthMeter.left = `${String(50 - Number(healthLeft) - (healthWidth * 100) / 2)}%`;
       proHealthMeter.top = `-${healthTop}%`;
+      proHealthMeter.horizontalAlignment = 0;
       proHealthMeter.background = healthColor;
       proHealthMeter.width = healthWidth;
       proHealthMeter.height = healthHeight;
@@ -97,9 +107,18 @@ export class Hud implements IHud {
       proManaMeterPower3.height = manaHeight;
       this.texture.addControl(proManaMeterPower3);
 
+      const antaHealthContainer = new GUI.Rectangle('antaHealthContainer');
+      antaHealthContainer.left = `${healthLeft}%`;
+      antaHealthContainer.top = `-${healthTop}%`;
+      antaHealthContainer.background = healthContainerColor;
+      antaHealthContainer.width = healthWidth;
+      antaHealthContainer.height = healthHeight;
+      this.texture.addControl(antaHealthContainer);
+
       const antaHealthMeter = new GUI.Rectangle('antaHealthMeter');
-      antaHealthMeter.left = `${healthLeft}%`;
+      antaHealthMeter.left = `-${String(50 - Number(healthLeft) - (healthWidth * 100) / 2)}%`;
       antaHealthMeter.top = `-${healthTop}%`;
+      antaHealthMeter.horizontalAlignment = 1;
       antaHealthMeter.background = healthColor;
       antaHealthMeter.width = healthWidth;
       antaHealthMeter.height = healthHeight;
