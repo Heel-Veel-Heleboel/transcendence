@@ -193,6 +193,14 @@ export class Hud implements IHud {
       antaName.width = 0.25;
       antaName.height = 0.025;
       this.texture.addControl(antaName);
+
+      const logo = new GUI.Image('logo', '/powerup.png');
+      logo.left = '0';
+      logo.top = '-47.5%';
+      logo.width = 0.05;
+      logo.height = 0.05;
+      logo.stretch = GUI.Image.STRETCH_UNIFORM;
+      this.texture.addControl(logo);
     } catch (e: any) {
       console.error(e);
       throw new Error(Errors.FAILED_HUD_IMPORT);
