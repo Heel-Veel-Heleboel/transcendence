@@ -58,6 +58,32 @@ export class Hud implements IHud {
       proManaMeter.height = manaHeight;
       this.texture.addControl(proManaMeter);
 
+      let width;
+      const leftProManaBorder = -Number(manaLeft) - (manaWidth * 100) / 2;
+      const proManaMeterPower1 = new GUI.Rectangle('proManaMeterPower1');
+      width = (manaWidth / 4) * 1;
+      proManaMeterPower1.left = `${String(leftProManaBorder + (width * 100) / 2)}%`;
+      proManaMeterPower1.top = `${manaTop}%`;
+      proManaMeterPower1.width = width;
+      proManaMeterPower1.height = manaHeight;
+      this.texture.addControl(proManaMeterPower1);
+
+      const proManaMeterPower2 = new GUI.Rectangle('proManaMeterPower2');
+      width = (manaWidth / 4) * 2;
+      proManaMeterPower2.left = `${String(leftProManaBorder + (width * 100) / 2)}%`;
+      proManaMeterPower2.top = `${manaTop}%`;
+      proManaMeterPower2.width = width;
+      proManaMeterPower2.height = manaHeight;
+      this.texture.addControl(proManaMeterPower2);
+
+      const proManaMeterPower3 = new GUI.Rectangle('proManaMeterPower3');
+      width = (manaWidth / 4) * 3;
+      proManaMeterPower3.left = `${String(leftProManaBorder + (width * 100) / 2)}%`;
+      proManaMeterPower3.top = `${manaTop}%`;
+      proManaMeterPower3.width = width;
+      proManaMeterPower3.height = manaHeight;
+      this.texture.addControl(proManaMeterPower3);
+
       const antaHealthMeter = new GUI.Rectangle('antaHealthMeter');
       antaHealthMeter.left = `${healthLeft}%`;
       antaHealthMeter.top = `-${healthTop}%`;
@@ -73,7 +99,6 @@ export class Hud implements IHud {
       antaManaMeter.height = manaHeight;
       this.texture.addControl(antaManaMeter);
 
-      let width;
       const leftAntaManaBorder = Number(manaLeft) - (manaWidth * 100) / 2;
       const antaManaMeterPower1 = new GUI.Rectangle('antaManaMeterPower1');
       width = (manaWidth / 4) * 1;
