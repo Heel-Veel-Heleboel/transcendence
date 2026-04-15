@@ -265,7 +265,7 @@ export class Hud implements IHud {
 
     const logo = new GUI.Image('logo', '/powerup.png');
     logo.left = '0';
-    logo.top = '-45%';
+    logo.top = '-46.5%';
     logo.width = 0.05;
     logo.height = 0.05;
     logo.stretch = GUI.Image.STRETCH_UNIFORM;
