@@ -26,7 +26,8 @@ export class ChatServiceClient {
     playerIds: number[],
     gameMode: string,
     expiresAt: Date,
-    tournament?: { id: number; name: string }
+    tournament?: { id: number; name: string },
+    challengerUsername?: string
   ): Promise<void> {
     const response = await fetch(`${this.chatServiceUrl}/chat/internal/match-ack`, {
       method: 'POST',
@@ -36,7 +37,8 @@ export class ChatServiceClient {
         playerIds,
         gameMode,
         expiresAt: expiresAt.toISOString(),
-        ...(tournament && { tournamentId: tournament.id, tournamentName: tournament.name })
+        ...(tournament && { tournamentId: tournament.id, tournamentName: tournament.name }),
+        ...(challengerUsername && { challengerUsername })
       })
     });
 

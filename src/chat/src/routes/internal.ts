@@ -30,7 +30,8 @@ export async function registerInternalRoutes(
         body.gameMode,
         body.expiresAt,
         body.tournamentId,
-        body.tournamentName
+        body.tournamentName,
+        body.challengerUsername
       );
       request.log.info(
         { matchId: body.matchId, channelId: result.channel.id, messageId: result.message.id, playerIds: body.playerIds },

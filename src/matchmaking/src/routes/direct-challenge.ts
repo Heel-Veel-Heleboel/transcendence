@@ -84,7 +84,9 @@ export async function registerDirectChallengeRoutes(
         match.id,
         [challengerId, inviteeId],
         gameMode,
-        deadline
+        deadline,
+        undefined,
+        challengerUsername
       ).catch(err => {
         request.log.error({ err, matchId: match.id }, 'Failed to send match-ack for direct challenge');
       });

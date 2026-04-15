@@ -51,6 +51,7 @@ export interface SendMatchAckRequest {
   expiresAt: string;
   tournamentId?: number;
   tournamentName?: string;
+  challengerUsername?: string;
 }
 
 export interface SystemMessageRequest {
