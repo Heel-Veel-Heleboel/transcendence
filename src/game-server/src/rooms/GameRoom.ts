@@ -33,6 +33,8 @@ export class GameRoom extends Room {
   player2Id: number;
   player1Username: string;
   player2Username: string;
+  player1SessionId: string;
+  player2SessionId: string;
   gameMode: string;
   tournamentId: number | null;
   deadline: Date | null;
@@ -129,10 +131,37 @@ export class GameRoom extends Room {
     };
     if (_options.userId === this.player1Id) {
       const player = new Player(hostConfig, this.engine.scene);
+      this.player1SessionId = client.sessionId;
       this.state.players.set(client.sessionId, player);
     } else if (_options.userId === this.player2Id) {
       const player = new Player(guestConfig, this.engine.scene);
+      this.player2SessionId = client.sessionId;
       this.state.players.set(client.sessionId, player);
+    }
+    if (this.state.players.size === 2) {
+      const player1 = this.state.players.get(this.player1SessionId);
+      const player2 = this.state.players.get(this.player2SessionId);
+
+      const observable1 =
+        this.engine.arena.goal_1.aggregate.body.getCollisionObservable();
+      observable1.add(_collisionEvent => {
+        if (this.gameMode === 'classic') {
+          player2.score += 1;
+        } else if (this.gameMode === 'powerup') {
+          player1.lifespan -= 20;
+        }
+        console.log('goal_1');
+      });
+      const observable2 =
+        this.engine.arena.goal_2.aggregate.body.getCollisionObservable();
+      observable2.add(_collisionEvent => {
+        if (this.gameMode === 'classic') {
+          player1.score += 1;
+        } else if (this.gameMode === 'powerup') {
+          player2.lifespan -= 20;
+        }
+        console.log('goal_2');
+      });
     }
     const ball = createBall(this.engine.scene, new Vector3(0, 0, 0), 1);
 

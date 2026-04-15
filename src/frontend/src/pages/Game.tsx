@@ -52,7 +52,7 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
         const initializeGame = async () => {
             if (room) {
                 try {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     await game?.initGame();
                     if (!game) {
                         throw new Error('game init fail');
