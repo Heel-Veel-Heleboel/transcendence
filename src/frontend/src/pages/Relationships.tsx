@@ -10,6 +10,7 @@ import { RelationsContainer } from "../features/relationships/RelationsContainer
 import { FriendshipList } from "../features/relationships/FriendshipList";
 import { FriendshipRequests } from "../features/relationships/FriendshipRequests";
 import { Blocked } from "../features/relationships/Blocked";
+import { useNotifications } from "../components/hooks/Notifications";
 
 
 export function Relationships(): JSX.Element {
@@ -24,33 +25,34 @@ export function Relationships(): JSX.Element {
 
 export function RelationshipsContent(): JSX.Element {
     const [friendships, setFriendships] = useState<Array<IFriendship>>([])
+    const notif = useNotifications();
+
+    async function getFriendships() {
+        try {
+            const currentUserId = getCookie(CONFIG.USERID_COOKIE_NAME);
+            const result = await api<IFriendshipResponse[]>({
+                url: CONFIG.REQUEST_FRIEND_LIST + currentUserId
+            })
+            const friendships = result.data.map((friendship: IFriendshipResponse) => {
+                return responseToFriendship(friendship, Number(currentUserId));
+            })
+            console.log('friendslist');
+            console.log(friendships);
+            setFriendships(friendships)
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     useEffect(() => {
-        async function getFriendships() {
-            try {
-                const currentUserId = getCookie(CONFIG.USERID_COOKIE_NAME);
-                const result = await api<IFriendshipResponse[]>({
-                    url: CONFIG.REQUEST_FRIEND_LIST + currentUserId
-                })
-                const friendships = result.data.map((friendship: IFriendshipResponse) => {
-                    return responseToFriendship(friendship, Number(currentUserId));
-                })
-                console.log('friendslist');
-                console.log(friendships);
-                setFriendships(friendships)
-            } catch (error) {
-                console.error(error);
-            }
-        }
         getFriendships();
-    }, [])
+    }, [notif.friendshipUpdate])
 
     return (
         <RelationsContainer >
-            <FriendshipList friends={friendships.filter((friendship) => friendship.status === 'ACCEPTED')} />
-            <FriendshipRequests requests={friendships.filter((friendship) => friendship.status === 'PENDING')} />
-            <Blocked blocks={friendships.filter((friendship) => friendship.status === 'BLOCKED')} />
+            <FriendshipList friends={friendships.filter((friendship) => friendship.status === 'ACCEPTED')} onRefresh={getFriendships} />
+            <FriendshipRequests requests={friendships.filter((friendship) => friendship.status === 'PENDING')} onRefresh={getFriendships} />
+            <Blocked blocks={friendships.filter((friendship) => friendship.status === 'BLOCKED')} onRefresh={getFriendships} />
         </RelationsContainer >
     )
 }
-

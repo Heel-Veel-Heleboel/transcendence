@@ -5,8 +5,11 @@ export interface IFriendship {
   id: number;
   status: string;
   updated_at: string;
+  // The other user in the relationship
   userId: number;
   userName: string;
+  // True if current user sent the request / is the blocker
+  isRequester: boolean;
 }
 
 export interface IFriendshipResponse {
@@ -14,10 +17,10 @@ export interface IFriendshipResponse {
   id: number;
   status: string;
   updated_at: string;
-  user1_id: number;
-  user2_id: number;
-  user1: IUser;
-  user2: IUser;
+  requester_id: number;
+  addressee_id: number;
+  requester: IUser;
+  addressee: IUser;
 }
 
 export interface IFriendshipBetween {
@@ -28,6 +31,17 @@ export interface IFriendshipBetween {
 export interface ISetFriendshipStatus {
   id: string;
   status: string;
+  addressee_id?: number;
+}
+
+export interface IBlockUser {
+  blocker_id: number;
+  blocked_id: number;
+}
+
+export interface ICancelRequest {
+  friendship_id: number;
+  requester_id: number;
 }
 
 export const FriendshipStatus = {
@@ -40,16 +54,16 @@ export const FriendshipStatus = {
 
 export function responseToFriendship(
   response: IFriendshipResponse,
-  userId: number
-) {
+  currentUserId: number
+): IFriendship {
+  const isRequester = currentUserId === response.requester_id;
   return {
     created_at: response.created_at,
     id: response.id,
     status: response.status,
     updated_at: response.updated_at,
-    userId:
-      userId === response.user1_id ? response.user2_id : response.user1_id,
-    userName:
-      userId === response.user1_id ? response.user2.name : response.user1.name
+    userId: isRequester ? response.addressee_id : response.requester_id,
+    userName: isRequester ? response.addressee.name : response.requester.name,
+    isRequester
   };
 }

@@ -35,7 +35,8 @@ export const DEFAULT_FRIENDSHIP: IFriendship = {
   status: 'UNDEFINED',
   updated_at: '0',
   userId: 0,
-  userName: 'mysterio'
+  userName: 'mysterio',
+  isRequester: false
 };
 
 export const DEFAULT_MATCH: IMatch = {

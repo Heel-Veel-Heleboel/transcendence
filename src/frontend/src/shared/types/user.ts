@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import { IFriendship, ISetFriendshipStatus } from './friendship';
+import { IBlockUser, ICancelRequest, IFriendship, ISetFriendshipStatus } from './friendship';
 
 export interface IUserStatus {
   activity_status: string;
@@ -35,9 +35,12 @@ export interface IUserService {
   getUserByName: (name: string) => Promise<IUser>;
   getProfile: (userId: string) => Promise<AxiosResponse>;
   getProfileAvatar: (url: string) => Promise<AxiosResponse>;
-  getFriendship: (userId: string) => Promise<IFriendship>;
+  getFriendship: (userId: string) => Promise<IFriendship | null>;
   setFriendship: (userId: string) => Promise<AxiosResponse>;
   setFriendshipStatus: (data: ISetFriendshipStatus) => Promise<AxiosResponse>;
+  cancelFriendshipRequest: (data: ICancelRequest) => Promise<AxiosResponse>;
+  blockUser: (data: IBlockUser) => Promise<AxiosResponse>;
+  unblockUser: (data: IBlockUser) => Promise<AxiosResponse>;
   setProfileAvatar: (data: FormData) => Promise<AxiosResponse>;
   setUsername: (user_name: string) => Promise<AxiosResponse>;
   setEmail: (user_email: string) => Promise<AxiosResponse>;
