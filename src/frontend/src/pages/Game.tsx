@@ -43,6 +43,12 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
     const onRender = (_scene: Scene) => { }
 
     useEffect(() => {
+        if (roomProv?.isDropped) {
+            throw new Error('lost connection')
+        }
+    }, [roomProv?.isDropped])
+
+    useEffect(() => {
         const initializeGame = async () => {
             if (room) {
                 try {
