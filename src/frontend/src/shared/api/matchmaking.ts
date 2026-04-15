@@ -1,6 +1,6 @@
 import { AxiosRequestConfig } from 'axios';
 import api from './api';
-import { ISetTournament } from '../types/matchmaking';
+import { IDirectChallenge, ISetTournament } from '../types/matchmaking';
 
 export class MatchmakingService {
   private base: string;
@@ -116,6 +116,19 @@ export class MatchmakingService {
     const config = {
       url: this.base + '/powerup/leave',
       method: 'POST'
+    } as AxiosRequestConfig;
+    const response = await api(config);
+    return response;
+  }
+
+  async sendDirectChallenge(data: IDirectChallenge) {
+    const config = {
+      url: this.base + '/direct-challenge',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: JSON.stringify(data)
     } as AxiosRequestConfig;
     const response = await api(config);
     return response;

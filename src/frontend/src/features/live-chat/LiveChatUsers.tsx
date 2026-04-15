@@ -7,6 +7,7 @@ import { VISITOR_PAGE_REDIRECTION } from "../../shared/constants/navigation";
 import { useNavigate } from "react-router-dom";
 import { FriendshipStatus, IFriendship } from "../../shared/types/friendship";
 import { useChatService } from "../../components/providers/Chat";
+import { useMatchMakingService } from "../../components/providers/Match";
 
 export function LiveChatUsers({ setChannelId }: { setChannelId: Dispatch<SetStateAction<string>> }): JSX.Element {
     const [profile, setProfile] = useState<IUser>(DEFAULT_USER);
@@ -285,4 +286,42 @@ export function SendMessage({ profile, setChannelId }: { profile: IUser, setChan
         </button>
     )
 
+}
+
+export function SendGameInvite({ profile }: { profile: IUser }) {
+    const service = useMatchMakingService();
+    const [expanded, setExpanded] = useState<boolean>(false);
+
+    async function invite(gameMode: string) {
+        try {
+            await service.sendDirectChallenge({
+                inviteeId: profile.id,
+                inviteeUsername: profile.name,
+                gameMode
+            });
+            setExpanded(false);
+        } catch (e: any) {
+            console.error(e);
+            alert('failed to send game invite');
+        }
+    }
+
+    return (
+        <div>
+            <button id='send-game-invite' onClick={() => setExpanded(!expanded)} className="text-left">
+                send game invite
+            </button>
+            {expanded ?
+                <div className="flex flex-col pl-2">
+                    <button id='invite-classic' onClick={() => invite('classic')} className="text-left">
+                        classic
+                    </button>
+                    <button id='invite-powerup' onClick={() => invite('powerup')} className="text-left">
+                        powerup
+                    </button>
+                </div>
+                : null
+            }
+        </div>
+    )
 }
