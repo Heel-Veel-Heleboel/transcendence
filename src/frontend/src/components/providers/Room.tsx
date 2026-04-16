@@ -72,6 +72,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
                 setError(code);
             } else if (code === closeCodes.FAILED_TO_JOIN) {
                 setError(code);
+            } else if (code === closeCodes.STARTUP_FAIL) {
+                setError(code);
             }
         });
 

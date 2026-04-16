@@ -60,6 +60,9 @@ export class GameRoom extends Room {
       ) {
         return;
       }
+      if (data.payload === 'init-fail') {
+        this.sendCancelResult(closeCodes.STARTUP_FAIL);
+      }
       if (data.payload === 'crash') {
         this.sendResult(closeCodes.CLIENT_GAME_CRASH);
       }
@@ -228,13 +231,21 @@ export class GameRoom extends Room {
         }
       );
       if (code) {
-        this.player1Client.leave(code);
-        this.player2Client.leave(code);
+        if (typeof this.player1Client !== 'undefined') {
+          this.player1Client.leave(code);
+        }
+        if (typeof this.player2Client !== 'undefined') {
+          this.player2Client.leave(code);
+        }
       }
     } catch (e: any) {
       console.error(e);
-      this.player1Client.leave(closeCodes.FAILED_TO_FINISH);
-      this.player2Client.leave(closeCodes.FAILED_TO_FINISH);
+      if (typeof this.player1Client !== 'undefined') {
+        this.player1Client.leave(closeCodes.FAILED_TO_FINISH);
+      }
+      if (typeof this.player2Client !== 'undefined') {
+        this.player2Client.leave(closeCodes.FAILED_TO_FINISH);
+      }
     } finally {
       this.disconnect();
     }

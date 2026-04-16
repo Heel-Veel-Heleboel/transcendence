@@ -14,6 +14,7 @@ export const closeCodes = {
   MAY_TRY_RECONNECT: 4010, //     Server shutdown in dev mode (allows reconnect)
   FAILED_TO_FINISH: 4011, //      Server failed to send match result
   CLIENT_GAME_CRASH: 4012, //     One of the clients had a game crash caused by internal code
-  SERVER_ERROR: 4013, //           Server encounterd internal error for which game has to be cancelled
-  FAILED_TO_JOIN: 4014 //         Not all necessary players joined room on time, therefore game got cancelled
+  SERVER_ERROR: 4013, //          Server encounterd internal error for which game has to be cancelled
+  FAILED_TO_JOIN: 4014, //        Not all necessary players joined room on time, therefore game got cancelled
+  STARTUP_FAIL: 4015 //           Game cancelled due to faulty initialization
 };

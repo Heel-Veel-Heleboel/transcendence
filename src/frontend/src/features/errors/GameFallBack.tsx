@@ -41,6 +41,11 @@ export function GameFallback({ error }: FallbackProps): JSX.Element {
             content = 'not all necessary players managed to join in time'
             break;
 
+        case closeCodes.STARTUP_FAIL:
+            header = 'Game canceled'
+            content = 'game failed to initialize correctly, match has been cancelled'
+            break;
+
         default:
             break;
     }
