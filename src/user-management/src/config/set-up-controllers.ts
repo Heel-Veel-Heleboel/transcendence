@@ -26,7 +26,7 @@ export function composeDependencies() {
   const prisma = getPrismaClient();
 
   const authClient = new AuthClient(env.AUTH_SERVICE_URL, 1000);
-  const apiGatewayClient = new ApiGatewayClient(env.API_GATEWAY_URL, 1000);
+  const apiGatewayClient = new ApiGatewayClient(env.GATEWAY_URL, 1000);
   const userRepository = new UserRepository(prisma);
   const profRepository = new ProfileRepository(prisma);
   const friendRepository = new FriendshipRepository(prisma);
