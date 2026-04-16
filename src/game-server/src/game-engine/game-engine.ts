@@ -1,8 +1,8 @@
-import { initializePhysics } from '#gameEngine/Physics.js';
-import { renderLoop } from '#gameEngine/Render.js';
-import { Ball } from '#entities/Ball.js';
-import { Arena } from '#entities/Arena.js';
-import { createArena, createCamera, createLight } from '#gameEngine/Create.js';
+import { initializePhysics } from '#game-engine/physics.js';
+import { renderLoop } from '#game-engine/render.js';
+import { Hack } from '#entities/hack.js';
+import { Arena } from '#entities/arena.js';
+import { createArena, createCamera, createLight } from '#game-engine/create.js';
 import { NullEngine, Scene, Camera, Light } from '@babylonjs/core';
 import XMLHttpRequest from 'xmlhttprequest-ssl';
 import { GameRoom } from '#rooms/GameRoom.js';
@@ -15,8 +15,7 @@ export class GameEngine {
   private _gameRoom!: GameRoom;
   //
   private _arena!: Arena;
-  // private _player!: Player;
-  private _balls!: Map<string, Ball>;
+  private _hacks!: Map<string, Hack>;
   //
   //@ts-ignore
   private _camera!: Camera;
@@ -29,9 +28,14 @@ export class GameEngine {
 
   async initGame() {
     this.engine = new NullEngine();
+
+    console.log(`Room: ${this.gameRoom.roomId} - creating scene`);
     const scene = new Scene(this.engine);
 
+    console.log(`Room: ${this.gameRoom.roomId} - initializing physics`);
     await initializePhysics(scene);
+
+    console.log(`Room: ${this.gameRoom.roomId} - initializing scene`);
     this.scene = await this.initScene(scene);
 
     renderLoop(this);
@@ -39,8 +43,11 @@ export class GameEngine {
 
   /* v8 ignore start */
   async initScene(scene: Scene) {
+    console.log(`Room: ${this.gameRoom.roomId} - creating camera and lights`);
     this.camera = createCamera(scene, 40);
     this.light = createLight(scene);
+
+    console.log(`Room: ${this.gameRoom.roomId} - initializing arena`);
     this.arena = createArena();
     await this.arena.initMesh(scene);
 
@@ -63,11 +70,8 @@ export class GameEngine {
   set arena(arena: Arena) {
     this._arena = arena;
   }
-  // set player(player: Player) {
-  //   this._player = player;
-  // }
-  set balls(balls: Map<string, Ball>) {
-    this._balls = balls;
+  set hacks(hacks: Map<string, Hack>) {
+    this._hacks = hacks;
   }
   set camera(camera: Camera) {
     this._camera = camera;
@@ -91,11 +95,8 @@ export class GameEngine {
   get arena(): Arena {
     return this._arena;
   }
-  // get player(): Player {
-  //   return this._player;
-  // }
-  get balls(): Map<string, Ball> {
-    return this._balls;
+  get hacks(): Map<string, Hack> {
+    return this._hacks;
   }
   get camera(): Camera {
     return this._camera;

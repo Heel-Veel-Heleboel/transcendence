@@ -1,11 +1,13 @@
 import { Room, Client, CloseCode } from 'colyseus';
 import { setTimeout } from 'timers/promises';
 import { GameRoomState } from '#schema/GameRoomState.js';
-import { createBall } from '#gameEngine/Create.js';
-import { GameEngine } from '#gameEngine/GameEngine.js';
+import { createHack } from '#game-engine/create.js';
+import { GameEngine } from '#game-engine/game-engine.js';
 import { Vector3 } from '@babylonjs/core';
-import { Player } from './entities/Player.js';
-import { renderLoop } from '#gameEngine/Render.js';
+import { Player } from './entities/player.js';
+import { renderLoop } from '#game-engine/render.js';
+import { getGuestConfig, getHostConfig } from './entities/config.js';
+import { closeCodes } from '#types/close-codes.js';
 
 interface GameRoomOptions {
   matchId: string;
@@ -27,6 +29,7 @@ export class GameRoom extends Room {
   id = 0;
   gameFinished = false;
   hasCrashed = false;
+  isSendingResult = false;
 
   // Match context — used when reporting the result back to matchmaking
   matchId: string;
@@ -45,10 +48,24 @@ export class GameRoom extends Room {
     'set-position': (client: Client, data: any) => {
       const player = this.state.players.get(client.sessionId);
       player.move({ x: data.x, y: data.y });
+    },
+    client_error: (client: Client, data: any) => {
+      if (
+        !(
+          client.sessionId === this.player1SessionId ||
+          client.sessionId === this.player2SessionId
+        )
+      ) {
+        return;
+      }
+      if (data.payload === 'crash') {
+        this.sendResult(closeCodes.CLIENT_GAME_CRASH);
+      }
     }
   };
 
   async onCreate(options: GameRoomOptions) {
+    console.log(`Room: ${this.roomId} - creation of room`);
     this.matchId = options.matchId;
     this.player1Id = options.player1Id;
     this.player2Id = options.player2Id;
@@ -59,7 +76,9 @@ export class GameRoom extends Room {
     this.deadline = options.deadline ? new Date(options.deadline) : null;
     this.isGoldenGame = options.isGoldenGame ?? false;
 
+    console.log(`Room: ${this.roomId}: creating game engine`);
     this.engine = new GameEngine(this);
+    console.log(`Room: ${this.roomId}: initializing game`);
     await this.engine.initGame();
     this.setSimulationInterval(deltaTime => this.update(deltaTime));
   }
@@ -75,129 +94,189 @@ export class GameRoom extends Room {
     }
   }
 
-  async sendResult() {
+  async sendResult(closeCode?: number) {
+    if (this.isSendingResult) {
+      return;
+    }
     try {
-      // TODO: implement logic for picking winnerId
-      const winner = this.player1Id;
-      const response = await fetch(
+      this.isSendingResult = true;
+      console.log(
+        `Room: ${this.roomId} - sending result of ${this.matchId} to matchmaking service`
+      );
+      const player1 = this.state.players.get(this.player1SessionId);
+      const player2 = this.state.players.get(this.player2SessionId);
+
+      let winner;
+      let score1;
+      let score2;
+
+      if (this.gameMode === 'classic') {
+        winner =
+          player1.score > player2.score ? this.player1Id : this.player2Id;
+        score1 = player1.score;
+        score2 = player2.score;
+      } else if (this.gameMode === 'powerup') {
+        winner = player1.isDead ? this.player2Id : this.player1Id;
+        score1 = winner === this.player1Id ? 3 : 0;
+        score2 = winner === this.player2Id ? 3 : 0;
+      }
+
+      await fetch(
         `http://matchmaking:3005/matchmaking/match/${this.matchId}/result`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             winnerId: winner,
-            player1Score: 1,
-            player2Score: 2,
+            player1Score: score1,
+            player2Score: score2,
             isFinished: true
           })
         }
       );
-      console.log(response);
     } catch (e: any) {
       console.error(e);
-      // TODO: notify client that server could not finish game correctly.
+      this.disconnect(closeCodes.FAILED_TO_FINISH);
+    } finally {
+      if (closeCode) {
+        this.disconnect(closeCode);
+      } else {
+        this.disconnect();
+      }
+    }
+  }
+
+  async sendDisconnectResult() {
+    try {
+      this.isSendingResult = true;
+      console.log(
+        `Room: ${this.roomId} - sending disconnect result of ${this.matchId} to matchmaking service`
+      );
+      const player1 = this.state.players.get(this.player1SessionId);
+      const player2 = this.state.players.get(this.player2SessionId);
+
+      const winner = !player1.connected
+        ? this.player1Id
+        : player2.connected
+          ? this.player2Id
+          : 0;
+
+      if (!winner) {
+        this.isSendingResult = false;
+        this.sendResult();
+        return;
+      }
+
+      await fetch(
+        `http://matchmaking:3005/matchmaking/match/${this.matchId}/result`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            winnerId: winner,
+            player1Score: winner === this.player1Id ? 5 : 0,
+            player2Score: winner === this.player2Id ? 5 : 0,
+            isFinished: false
+          })
+        }
+      );
+    } catch (e: any) {
+      console.error(e);
+      this.disconnect(closeCodes.FAILED_TO_FINISH);
     } finally {
       this.disconnect();
     }
   }
 
   onJoin(client: Client, _options: any) {
-    console.log(client.sessionId, 'joined!');
-    setTimeout(1000);
+    console.log(`Room: ${this.roomId} - Client ${client.sessionId} joined!`);
+    setTimeout(1000); // INFO: wait to insure proper intialization
 
-    const hostConfig = {
-      keys: {
-        columns: 'qwaszx',
-        rows: 'erdfcv',
-        length: 6,
-        precisionKeys: 'ArrowUp;ArrowDown;ArrowLeft;ArrowRight'
-      },
-      goalPosition: this.engine.arena.goal_1.mesh.absolutePosition,
-      goalDimensions: this.engine.arena.goal_1.mesh
-        .getBoundingInfo()
-        .boundingBox.extendSizeWorld.scale(2),
-      isHost: true
-    };
-    const guestConfig = {
-      keys: {
-        columns: 'qwaszx',
-        rows: 'erdfcv',
-        length: 6,
-        precisionKeys: 'ArrowUp;ArrowDown;ArrowLeft;ArrowRight'
-      },
-      goalPosition: this.engine.arena.goal_2.mesh.absolutePosition,
-      goalDimensions: this.engine.arena.goal_2.mesh
-        .getBoundingInfo()
-        .boundingBox.extendSizeWorld.scale(2),
-      isHost: false
-    };
     if (_options.userId === this.player1Id) {
-      const player = new Player(hostConfig, this.engine.scene);
+      console.log(
+        `Room: ${this.roomId} - initializing player1 with id:${this.player1Id}!`
+      );
+      const player = new Player(
+        getHostConfig(this.engine.arena.goal_1),
+        this.engine.scene
+      );
       this.player1SessionId = client.sessionId;
       this.state.players.set(client.sessionId, player);
     } else if (_options.userId === this.player2Id) {
-      const player = new Player(guestConfig, this.engine.scene);
+      console.log(
+        `Room: ${this.roomId} - initializing player2 with id:${this.player2Id}!`
+      );
+      const player = new Player(
+        getGuestConfig(this.engine.arena.goal_2),
+        this.engine.scene
+      );
       this.player2SessionId = client.sessionId;
       this.state.players.set(client.sessionId, player);
     }
-    const ball = createBall(this.engine.scene, new Vector3(0, 0, 0), 1);
+    const hack = createHack(this.engine.scene, new Vector3(0, 0, 0), 1);
 
-    ball.lifespan = 1000;
-    ball.id = this.id;
-    ball.x = 0;
-    ball.y = 0;
-    ball.z = 0;
-    ball.linearVelocityX = 0;
-    ball.linearVelocityY = 0;
-    ball.linearVelocityZ = 0;
-    ball.physicsMesh.aggregate.body.applyForce(
+    hack.lifespan = 1000;
+    hack.id = this.id;
+    hack.x = 0;
+    hack.y = 0;
+    hack.z = 0;
+    hack.linearVelocityX = 0;
+    hack.linearVelocityY = 0;
+    hack.linearVelocityZ = 0;
+    hack.physicsMesh.aggregate.body.applyForce(
       new Vector3(
         Math.random() * 100,
         Math.random() * 100,
         Math.random() * 100
       ),
-      ball.physicsMesh.mesh.absolutePosition
+      hack.physicsMesh.mesh.absolutePosition
     );
     this.id++;
-    console.log('adding hack');
-    this.state.balls.set(client.sessionId, ball);
+    this.state.hacks.set(client.sessionId, hack);
     if (this.state.players.size === 2) {
-      const player1 = this.state.players.get(this.player1SessionId);
-      const player2 = this.state.players.get(this.player2SessionId);
+      this.initializeObservers();
+    }
+  }
 
-      const observable1 =
-        this.engine.arena.goal_1.aggregate.body.getCollisionObservable();
-      observable1.add(_collisionEvent => {
-        if (this.gameMode === 'classic') {
-          player2.score += 1;
-        } else if (this.gameMode === 'powerup') {
-          player1.lifespan -= 20;
-        }
-        console.log('goal_1');
-      });
-      const observable2 =
-        this.engine.arena.goal_2.aggregate.body.getCollisionObservable();
-      observable2.add(_collisionEvent => {
-        if (this.gameMode === 'classic') {
-          player1.score += 1;
-        } else if (this.gameMode === 'powerup') {
-          player2.lifespan -= 20;
-        }
-        console.log('goal_2');
-      });
+  onDrop(client: Client<any>, code?: number): void | Promise<any> {
+    console.log(
+      `Room: ${this.roomId} - Client ${client.sessionId} dropped (code: ${code})`
+    );
+    this.allowReconnection(client, 5);
+
+    const player = this.state.players.get(client.sessionId);
+    if (player) {
+      player.connected = false;
+    }
+    this.engine.engine.stopRenderLoop();
+  }
+
+  onReconnect(client: Client<any>): void | Promise<any> {
+    console.log(
+      `Room: ${this.roomId} - Client ${client.sessionId} reconnected!`
+    );
+
+    const player = this.state.players.get(client.sessionId);
+    if (player) {
+      player.connected = true;
+      renderLoop(this.engine);
     }
   }
 
   onLeave(client: Client, code: CloseCode) {
-    /**
-     * Called when a client leaves the room.
-     */
-    console.log(client.sessionId, 'left!', code);
+    console.log(
+      `Room: ${this.roomId} - Client ${client.sessionId} left (code: ${code})`
+    );
 
-    const ball = this.state.balls.get(client.sessionId);
-    if (ball) {
-      ball.dispose();
-      this.state.balls.delete(client.sessionId);
+    if (code === closeCodes.FAILED_TO_RECONNECT) {
+      this.sendDisconnectResult();
+      return;
+    }
+
+    const hack = this.state.hacks.get(client.sessionId);
+    if (hack) {
+      hack.dispose();
+      this.state.hacks.delete(client.sessionId);
     }
     const player = this.state.players.get(client.sessionId);
     if (player) {
@@ -205,24 +284,42 @@ export class GameRoom extends Room {
       this.state.players.delete(client.sessionId);
     }
     client.leave();
-    this.gameFinished = true;
   }
 
   onDispose() {
-    /**
-     * Called when the room is disposed.
-     */
     this.engine.scene.dispose();
-    console.log('room', this.roomId, 'disposing...');
+    console.log(`Room: ${this.roomId} - disposing of room`);
   }
 
-  onDrop(client: Client<any>, code?: number): void | Promise<any> {
-    this.allowReconnection(client, 5);
-    this.engine.engine.stopRenderLoop();
+  onUncaughtException(err: Error, methodName: string) {
+    console.error('An error ocurred in', methodName, ':', err);
+    console.error('Server shutdown');
   }
 
-  onReconnect(client: Client<any>): void | Promise<any> {
-    console.log(`Client ${client.sessionId} reconnected!`);
-    renderLoop(this.engine);
+  initializeObservers() {
+    const player1 = this.state.players.get(this.player1SessionId);
+    const player2 = this.state.players.get(this.player2SessionId);
+
+    console.log(`Room: ${this.roomId} - initializing observers`);
+    const observable1 =
+      this.engine.arena.goal_1.aggregate.body.getCollisionObservable();
+    observable1.add(_collisionEvent => {
+      if (this.gameMode === 'classic') {
+        player2.score += 1;
+      } else if (this.gameMode === 'powerup') {
+        player1.lifespan -= 20;
+      }
+      console.log(`Room: ${this.roomId} - goal 1`);
+    });
+    const observable2 =
+      this.engine.arena.goal_2.aggregate.body.getCollisionObservable();
+    observable2.add(_collisionEvent => {
+      if (this.gameMode === 'classic') {
+        player1.score += 1;
+      } else if (this.gameMode === 'powerup') {
+        player2.lifespan -= 20;
+      }
+      console.log(`Room: ${this.roomId} - goal 2`);
+    });
   }
 }

@@ -48,9 +48,9 @@
         "xmlhttprequest-ssl": "^4.0.0"
     },
     "imports": {
-        "#gameEngine/*": {
-            "node": "./build/src/gameEngine/*",
-            "default": "./src/gameEngine/*"
+        "#game-engine/*": {
+            "node": "./build/src/game-engine/*",
+            "default": "./src/game-engine/*"
         },
         "#rooms/*": {
             "node": "./build/src/rooms/*",

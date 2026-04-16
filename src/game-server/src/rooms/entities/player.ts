@@ -1,4 +1,3 @@
-import { IPlayer, IPlayerConfig, PhysicsMesh } from '#types/Common.js';
 import { Schema, type } from '@colyseus/schema';
 import {
   Scene,
@@ -7,6 +6,8 @@ import {
   PhysicsAggregate,
   PhysicsShapeType
 } from '@babylonjs/core';
+import { IPlayer, IPlayerConfig } from '#types/player.js';
+import { PhysicsMesh } from '#types/physics.js';
 
 /* v8 ignore start */
 export class Player extends Schema implements IPlayer {
@@ -23,12 +24,14 @@ export class Player extends Schema implements IPlayer {
   @type('number') lifespan: number;
   @type('number') mana: number;
   @type('number') score: number;
+  @type('boolean') connected: boolean;
 
   public physicsMesh: PhysicsMesh;
   public goalPosition: Vector3;
   public goalDimensions: Vector3;
   public ratioDiv: number;
   public isHost: boolean;
+  public isDead: boolean;
 
   constructor(config: IPlayerConfig, scene: Scene) {
     super();
@@ -70,6 +73,8 @@ export class Player extends Schema implements IPlayer {
     this.lifespan = 100;
     this.mana = 0;
     this.score = 0;
+    this.connected = true;
+    this.isDead = false;
   }
 
   move(coord: { x: number; y: number }) {

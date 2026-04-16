@@ -1,4 +1,3 @@
-import { IBall, PhysicsMesh } from '#types/Common.js';
 import { Schema, type } from '@colyseus/schema';
 import {
   Mesh,
@@ -7,9 +6,11 @@ import {
   PhysicsAggregate,
   PhysicsShapeType
 } from '@babylonjs/core';
+import { IHack } from '#types/hack.js';
+import { PhysicsMesh } from '#types/physics.js';
 
 /* v8 ignore start */
-export class Ball extends Schema implements IBall {
+export class Hack extends Schema implements IHack {
   @type('number') lifespan: number;
   @type('number') id: number;
   @type('number') x: number;

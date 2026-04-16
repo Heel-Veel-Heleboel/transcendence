@@ -10,14 +10,12 @@ import { GameCrash } from '../features/errors/GameCrash';
 
 
 /* v8 ignore start */
-// NOTE: potential implementation of tests https://humblesoftware.github.io/js-imagediff/test.html
 
 export function Game(): JSX.Element | null {
     const { gameMode, matchId, roomId } = useParams();
 
     if (typeof gameMode === 'undefined' || typeof matchId === 'undefined' || typeof roomId === 'undefined')
         throw new Error('uri error');
-    console.log(gameMode + ' ' + matchId + ' ' + roomId);
     return (
         <ErrorBoundary FallbackComponent={GameCrash}>
             <GameRender gameMode={gameMode} matchId={matchId} roomId={roomId} />
@@ -41,12 +39,6 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
     }
 
     const onRender = (_scene: Scene) => { }
-
-    useEffect(() => {
-        if (roomProv?.reconnectionFailure) {
-            throw new Error('lost connection')
-        }
-    }, [roomProv?.reconnectionFailure])
 
     useEffect(() => {
         const initializeGame = async () => {
@@ -80,11 +72,15 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
     useEffect(() => {
         // NOTE: disconnect from room with crashcode
         //  game-server will report crash to matchmaking
-    }, [error]);
+        if (error) {
+            room?.send('client_error', { payload: 'crash' });
+            throw error;
+        }
+        if (roomProv?.error) {
+            throw new Error(roomProv.error)
+        }
+    }, [error, roomProv?.error]);
 
-    if (error) {
-        throw error;
-    }
     return (
         <div id='game-container' className="h-full w-full">
             <SceneComponent id='game-canvas' antialias onSceneReady={onSceneReady} onRender={onRender} adaptToDeviceRatio className="h-full w-full" />
