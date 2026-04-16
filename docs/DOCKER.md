@@ -68,7 +68,6 @@ USER_MANAGEMENT_URL=http://user-management:3004
 CHAT_SERVICE_URL=http://chat:3006
 MATCHMAKING_URL=http://matchmaking:3005
 GAME_SERVER_URL=http://game-server:2567
-API_GATEWAY_URL=http://api-gateway:3000
 GATEWAY_URL=http://api-gateway:3000
 
 NODE_ENV=production
