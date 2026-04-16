@@ -43,16 +43,15 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
     const onRender = (_scene: Scene) => { }
 
     useEffect(() => {
-        if (roomProv?.isDropped) {
+        if (roomProv?.reconnectionFailure) {
             throw new Error('lost connection')
         }
-    }, [roomProv?.isDropped])
+    }, [roomProv?.reconnectionFailure])
 
     useEffect(() => {
         const initializeGame = async () => {
             if (room) {
                 try {
-                    await new Promise(resolve => setTimeout(resolve, 500));
                     await game?.initGame();
                     if (!game) {
                         throw new Error('game init fail');

@@ -44,18 +44,6 @@ export class GameEngine {
     this.arena = createArena();
     await this.arena.initMesh(scene);
 
-    const observable_1 =
-      this.arena.goal_1.aggregate.body.getCollisionObservable();
-    observable_1.add(_collisionEvent => {
-      console.log('goal_1');
-    });
-
-    const observable_2 =
-      this.arena.goal_2.aggregate.body.getCollisionObservable();
-    observable_2.add(_collisionEvent => {
-      console.log('goal_2');
-    });
-
     return scene;
   }
 

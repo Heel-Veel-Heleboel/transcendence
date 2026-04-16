@@ -5,6 +5,7 @@ import { createBall } from '#gameEngine/Create.js';
 import { GameEngine } from '#gameEngine/GameEngine.js';
 import { Vector3 } from '@babylonjs/core';
 import { Player } from './entities/Player.js';
+import { renderLoop } from '#gameEngine/Render.js';
 
 interface GameRoomOptions {
   matchId: string;
@@ -102,6 +103,7 @@ export class GameRoom extends Room {
 
   onJoin(client: Client, _options: any) {
     console.log(client.sessionId, 'joined!');
+    setTimeout(1000);
 
     const hostConfig = {
       keys: {
@@ -138,6 +140,27 @@ export class GameRoom extends Room {
       this.player2SessionId = client.sessionId;
       this.state.players.set(client.sessionId, player);
     }
+    const ball = createBall(this.engine.scene, new Vector3(0, 0, 0), 1);
+
+    ball.lifespan = 1000;
+    ball.id = this.id;
+    ball.x = 0;
+    ball.y = 0;
+    ball.z = 0;
+    ball.linearVelocityX = 0;
+    ball.linearVelocityY = 0;
+    ball.linearVelocityZ = 0;
+    ball.physicsMesh.aggregate.body.applyForce(
+      new Vector3(
+        Math.random() * 100,
+        Math.random() * 100,
+        Math.random() * 100
+      ),
+      ball.physicsMesh.mesh.absolutePosition
+    );
+    this.id++;
+    console.log('adding hack');
+    this.state.balls.set(client.sessionId, ball);
     if (this.state.players.size === 2) {
       const player1 = this.state.players.get(this.player1SessionId);
       const player2 = this.state.players.get(this.player2SessionId);
@@ -163,27 +186,6 @@ export class GameRoom extends Room {
         console.log('goal_2');
       });
     }
-    const ball = createBall(this.engine.scene, new Vector3(0, 0, 0), 1);
-
-    ball.lifespan = 1000;
-    ball.id = this.id;
-    ball.x = 0;
-    ball.y = 0;
-    ball.z = 0;
-    ball.linearVelocityX = 0;
-    ball.linearVelocityY = 0;
-    ball.linearVelocityZ = 0;
-    ball.physicsMesh.aggregate.body.applyForce(
-      new Vector3(
-        Math.random() * 100,
-        Math.random() * 100,
-        Math.random() * 100
-      ),
-      ball.physicsMesh.mesh.absolutePosition
-    );
-    this.id++;
-    console.log('adding hack');
-    this.state.balls.set(client.sessionId, ball);
   }
 
   onLeave(client: Client, code: CloseCode) {
@@ -212,5 +214,15 @@ export class GameRoom extends Room {
      */
     this.engine.scene.dispose();
     console.log('room', this.roomId, 'disposing...');
+  }
+
+  onDrop(client: Client<any>, code?: number): void | Promise<any> {
+    this.allowReconnection(client, 5);
+    this.engine.engine.stopRenderLoop();
+  }
+
+  onReconnect(client: Client<any>): void | Promise<any> {
+    console.log(`Client ${client.sessionId} reconnected!`);
+    renderLoop(this.engine);
   }
 }
