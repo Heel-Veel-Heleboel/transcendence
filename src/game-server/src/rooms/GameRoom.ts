@@ -50,7 +50,6 @@ export class GameRoom extends Room {
     'set-position': (client: Client, data: any) => {
       const player = this.state.players.get(client.sessionId);
       player.move({ x: data.x, y: data.y });
-      throw new Error('test');
     },
     'client-error': (client: Client, data: any) => {
       if (
@@ -84,6 +83,11 @@ export class GameRoom extends Room {
     console.log(`room: ${this.roomId} - initializing game`);
     await this.engine.initGame();
     this.setSimulationInterval(deltaTime => this.update(deltaTime));
+    this.clock.setTimeout(() => {
+      if (this.state.players.size != 2) {
+        this.sendCancelResult(closeCodes.FAILED_TO_JOIN);
+      }
+    }, 10000);
   }
 
   update(_deltaTime: number) {

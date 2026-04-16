@@ -36,6 +36,11 @@ export function GameFallback({ error }: FallbackProps): JSX.Element {
             content = 'an error on the server caused the game to be cancelled, it will not count towards your stats'
             break;
 
+        case closeCodes.FAILED_TO_JOIN:
+            header = 'Game canceled'
+            content = 'not all necessary players managed to join in time'
+            break;
+
         default:
             break;
     }

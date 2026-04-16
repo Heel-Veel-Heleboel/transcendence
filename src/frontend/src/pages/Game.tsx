@@ -55,6 +55,7 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
                         throw new Error('game init fail');
                     }
                     game.initRoom(room);
+                    throw new Error('game init fail');
                 } catch (e: any) {
                     console.error(e);
                     setError(new Error('0'))
@@ -78,7 +79,12 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
     useEffect(() => {
         if (error) {
             room?.send('client-error', { payload: 'crash' });
-            throw new Error('1');
+            if (error.message === '0') {
+                throw error
+            }
+            else {
+                throw new Error('1');
+            }
         }
         if (roomProv?.error) {
             throw new Error(String(roomProv.error))
