@@ -46,6 +46,11 @@ export function GameFallback({ error }: FallbackProps): JSX.Element {
             content = 'game failed to initialize correctly, match has been cancelled'
             break;
 
+        case closeCodes.CANNOT_JOIN_ROOM:
+            header = 'Cannot join game room'
+            content = 'The current room you are trying to join is not available'
+            break;
+
         default:
             break;
     }

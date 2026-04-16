@@ -45,7 +45,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             setJoinedGame(true);
             console.log('Connected to roomId: ' + room.roomId);
         } catch (e) {
-            setError(closeCodes.FAILED_TO_JOIN);
+            setError(closeCodes.CANNOT_JOIN_ROOM);
             setIsConnecting(false);
             return;
 

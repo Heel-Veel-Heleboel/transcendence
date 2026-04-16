@@ -16,5 +16,6 @@ export const closeCodes = {
   CLIENT_GAME_CRASH: 4012, //     One of the clients had a game crash caused by internal code
   SERVER_ERROR: 4013, //          Server encounterd internal error for which game has to be cancelled
   FAILED_TO_JOIN: 4014, //        Not all necessary players joined room on time, therefore game got cancelled
-  STARTUP_FAIL: 4015 //           Game cancelled due to faulty initialization
+  STARTUP_FAIL: 4015, //           Game cancelled due to faulty initialization
+  CANNOT_JOIN_ROOM: 4016 //       Room cannot be joined at the moment
 };

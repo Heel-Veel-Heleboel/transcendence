@@ -55,10 +55,6 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
                         throw new Error('game init fail');
                     }
                     game.initRoom(room);
-                    const flip = Math.floor((Math.random() * 100)) % 2
-                    console.log(flip);
-                    if (flip)
-                        throw new Error('game init fail');
                 } catch (e: any) {
                     console.error(e);
                     setError(new Error('0'))
