@@ -13,5 +13,6 @@ export const closeCodes = {
   FAILED_TO_RECONNECT: 4003, //   All reconnection attempts failed
   MAY_TRY_RECONNECT: 4010, //     Server shutdown in dev mode (allows reconnect)
   FAILED_TO_FINISH: 4011, //      Server failed to send match result
-  CLIENT_GAME_CRASH: 4012 //      One of the clients had a game crash caused by internal code
+  CLIENT_GAME_CRASH: 4012, //     One of the clients had a game crash caused by internal code
+  SERVER_ERROR: 4013 //           Server encounterd internal error for which game has to be cancelled
 };

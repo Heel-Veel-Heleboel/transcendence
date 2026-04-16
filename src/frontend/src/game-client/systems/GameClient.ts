@@ -121,9 +121,6 @@ export class GameClient {
         if (typeof g.prota === 'undefined' || typeof g.anta === 'undefined')
           return;
 
-        if (this.frameCount > 1000) {
-          throw new Error('gamecrash');
-        }
         for (const entity of g.hacks) {
           const ball = entity[1];
           if (ball) {

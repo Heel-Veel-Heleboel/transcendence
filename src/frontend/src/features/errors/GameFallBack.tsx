@@ -31,6 +31,11 @@ export function GameFallback({ error }: FallbackProps): JSX.Element {
             content = 'due to opponent disconnection you automatically win the match'
             break;
 
+        case closeCodes.SERVER_ERROR:
+            header = 'Game canceled due to server error'
+            content = 'an error on the server caused the game to be cancelled, it will not count towards your stats'
+            break;
+
         default:
             break;
     }

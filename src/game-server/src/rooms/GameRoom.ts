@@ -50,6 +50,7 @@ export class GameRoom extends Room {
     'set-position': (client: Client, data: any) => {
       const player = this.state.players.get(client.sessionId);
       player.move({ x: data.x, y: data.y });
+      throw new Error('test');
     },
     'client-error': (client: Client, data: any) => {
       if (
@@ -206,6 +207,35 @@ export class GameRoom extends Room {
     }
   }
 
+  async sendCancelResult(code?: number) {
+    try {
+      this.isSendingResult = true;
+      console.log(
+        `room: ${this.roomId} - sending cancel result of ${this.matchId} to matchmaking service`
+      );
+      await fetch(
+        `http://matchmaking:3005/matchmaking/match/${this.matchId}/result`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            isFinished: false
+          })
+        }
+      );
+      if (code) {
+        this.player1Client.leave(code);
+        this.player2Client.leave(code);
+      }
+    } catch (e: any) {
+      console.error(e);
+      this.player1Client.leave(closeCodes.FAILED_TO_FINISH);
+      this.player2Client.leave(closeCodes.FAILED_TO_FINISH);
+    } finally {
+      this.disconnect();
+    }
+  }
+
   onJoin(client: Client, _options: any) {
     console.log(`room: ${this.roomId} - client: ${client.sessionId} joined!`);
     setTimeout(2000); // INFO: wait to insure proper intialization
@@ -319,8 +349,13 @@ export class GameRoom extends Room {
   }
 
   onUncaughtException(err: Error, methodName: string) {
-    console.error('An error ocurred in', methodName, ':', err);
-    console.error('Server shutdown');
+    console.error(
+      `room: ${this.roomId} - an error ocurred in`,
+      methodName,
+      ':',
+      err
+    );
+    this.sendCancelResult(closeCodes.SERVER_ERROR);
   }
 
   initializeObservers() {
