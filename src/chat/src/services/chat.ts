@@ -198,7 +198,7 @@ export class ChatService {
 
   // ── Messages ──────────────────────────────────────────────
 
-  async sendMessage(channelId: string, senderId: number, content: string) {
+  async sendMessage(channelId: string, senderId: number, content: string, senderUsername: string | null = null) {
     const channel = await this.channelDao.findById(channelId);
     if (!channel) throw new ChatError(404, 'Channel not found');
 
@@ -216,11 +216,9 @@ export class ChatService {
     const message = await this.messageDao.create({
       channelId,
       senderId,
+      senderUsername,
       content
     });
-
-    const usernames = this.userClient ? await this.userClient.getUsernames([senderId]) : new Map<number, string>();
-    const senderUsername = usernames.get(senderId) ?? null;
 
     await Promise.all([
       this.notificationService.notifyChannelMembers(channelId, {
@@ -254,13 +252,7 @@ export class ChatService {
       );
     }
 
-    const senderIds = Array.from(new Set(messages.map((m: { senderId: number }) => m.senderId)));
-    const usernames = this.userClient ? await this.userClient.getUsernames(senderIds) : new Map<number, string>();
-
-    return messages.map((m: { senderId: number }) => ({
-      ...m,
-      senderUsername: usernames.get(m.senderId) ?? null
-    }));
+    return messages;
   }
 
   // ── Match Acknowledgement ─────────────────────────────────

@@ -17,7 +17,12 @@ import { IChat } from "../../shared/types/chat";
 // user2 o
 // also option to delete chat or leave groupchat if implemented in chat-service
 //
-export function LiveChatRooms({ setChannelId, chatUpdate }: { setChannelId: Dispatch<SetStateAction<string>>, chatUpdate: number }): JSX.Element {
+export function LiveChatRooms({ setChannelId, chatUpdate, openChannelId, lastMessageChannelId }: {
+    setChannelId: Dispatch<SetStateAction<string>>,
+    chatUpdate: number,
+    openChannelId: string,
+    lastMessageChannelId: string | null
+}): JSX.Element {
 
     const service = useChatService();
     const auth = useAuth();
@@ -41,6 +46,13 @@ export function LiveChatRooms({ setChannelId, chatUpdate }: { setChannelId: Disp
         }
         getChannels();
     }, [chatUpdate]);
+
+    useEffect(() => {
+        if (!lastMessageChannelId || lastMessageChannelId === openChannelId) return;
+        setChannels((prev: Array<IChat>) => prev.map((c: IChat) =>
+            c.id === lastMessageChannelId ? { ...c, unreadCount: c.unreadCount + 1 } : c
+        ));
+    }, [lastMessageChannelId]);
 
     function channelDisplayName(channel: IChat): string {
         if (channel.type === 'DM') {
