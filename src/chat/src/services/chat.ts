@@ -199,8 +199,19 @@ export class ChatService {
   // ── Messages ──────────────────────────────────────────────
 
   async sendMessage(channelId: string, senderId: number, content: string) {
-    const isMember = await this.channelDao.isMember(channelId, senderId);
+    const channel = await this.channelDao.findById(channelId);
+    if (!channel) throw new ChatError(404, 'Channel not found');
+
+    const isMember = channel.members.some((m: { userId: number }) => m.userId === senderId);
     if (!isMember) throw new ChatError(403, 'Not a member of this channel');
+
+    if (channel.type === 'DM') {
+      const otherId = channel.members.find((m: { userId: number }) => m.userId !== senderId)?.userId;
+      if (otherId !== undefined) {
+        const blocked = await this.blockService.isBlocked(senderId, otherId);
+        if (blocked) throw new ChatError(403, 'Cannot send message to this user');
+      }
+    }
 
     const message = await this.messageDao.create({
       channelId,

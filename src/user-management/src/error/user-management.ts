@@ -32,6 +32,20 @@ export class FriendshipNotFoundError extends Error {
   }
 }
 
+export class BlockedByUserError extends Error {
+  constructor() {
+    super();
+    this.name = 'BlockedByUserError';
+  }
+}
+
+export class NotAuthorizedError extends Error {
+  constructor() {
+    super();
+    this.name = 'NotAuthorizedError';
+  }
+}
+
 export class DatabaseError extends Error {
   constructor(msg?: string) {
     super(msg);

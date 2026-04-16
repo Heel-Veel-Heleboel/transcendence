@@ -80,10 +80,12 @@ export function RenderMessageDate({ item }: { item: IChatMessage }) {
     const hours = date.getHours();
     const minutes = date.getMinutes();
     const seconds = date.getSeconds();
+    const formattedHours = hours < 10 ? '0' + hours.toString() : hours.toString();
+    const formattedMinutes = minutes < 10 ? '0' + minutes.toString() : minutes.toString();
     const formattedSeconds = seconds < 10 ? '0' + seconds.toString() : seconds.toString();
     return (
         <div id={`message-date-${item.id}`} className="w-1/9">
-            {'[' + hours + ':' + minutes + ':' + formattedSeconds + ']'}
+            {'[' + formattedHours + ':' + formattedMinutes + ':' + formattedSeconds + ']'}
         </div>
     )
 }

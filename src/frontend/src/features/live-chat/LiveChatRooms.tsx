@@ -1,6 +1,6 @@
 import { Dispatch, JSX, useState, SetStateAction, useEffect } from "react";
 import { useChatService } from "../../components/providers/Chat";
-import { useNotifications } from "../../components/hooks/Notifications";
+import { useAuth } from "../../components/providers/Auth";
 import { LiveChatRoomsContainer } from "./LiveChatRoomsContainer";
 import { IChat } from "../../shared/types/chat";
 
@@ -16,11 +16,11 @@ import { IChat } from "../../shared/types/chat";
 // user1 x
 // user2 o
 // also option to delete chat or leave groupchat if implemented in chat-service
-// 
-export function LiveChatRooms({ setChannelId }: { setChannelId: Dispatch<SetStateAction<string>> }): JSX.Element {
+//
+export function LiveChatRooms({ setChannelId, chatUpdate }: { setChannelId: Dispatch<SetStateAction<string>>, chatUpdate: number }): JSX.Element {
 
     const service = useChatService();
-    const notif = useNotifications();
+    const auth = useAuth();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
     const [channels, setChannels] = useState<Array<IChat>>([]);
@@ -40,12 +40,20 @@ export function LiveChatRooms({ setChannelId }: { setChannelId: Dispatch<SetStat
             }
         }
         getChannels();
-    }, [notif.chatUpdate]);
+    }, [chatUpdate]);
+
+    function channelDisplayName(channel: IChat): string {
+        if (channel.type === 'DM') {
+            const other = channel.members.find(m => m.userId !== Number(auth.userId));
+            return other?.username ?? 'DM';
+        }
+        return channel.name ?? 'Group Chat';
+    }
 
     function List({ channels }: { channels: Array<IChat> }) {
         // TODO: make seperate unread counter component
         const listItems = channels.map(item =>
-            <li onClick={() => { setChannelId(item.id) }} key={0}>{item.id} {item.unreadCount ? `unread:${item.unreadCount}` : null}</li>
+            <li onClick={() => { setChannelId(item.id) }} key={item.id}>{channelDisplayName(item)} {item.unreadCount ? `unread:${item.unreadCount}` : null}</li>
         );
         return <ul>{listItems}</ul>;
     }

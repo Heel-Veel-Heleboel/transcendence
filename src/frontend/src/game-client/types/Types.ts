@@ -14,8 +14,10 @@ export interface HitIndicatorConfig {
 }
 
 export interface IHud {
-  healthMeter: Control;
-  manaMeter: Control;
+  proHealthMeter: Control;
+  proManaMeter: Control;
+  antaHealthMeter: Control;
+  antaManaMeter: Control;
 }
 
 export interface IPlayerConfig {

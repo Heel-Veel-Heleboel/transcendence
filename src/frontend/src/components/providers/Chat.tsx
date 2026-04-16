@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, } from 'react';
-import { IAck, IMessage, IChatService } from '../../shared/types/chat';
+import { IAck, IMessage, IChatService, IChat } from '../../shared/types/chat';
 import { ChatService } from '../../shared/api/chat';
 
 const service = new ChatService();
@@ -50,10 +50,19 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
     async function sendMessage(data: IMessage) {
         try {
-            await service.sendMessage(data);
+            return await service.sendMessage(data);
         } catch (e: any) {
             console.error(e);
             // TODO: add error handling
+            throw e
+        }
+    }
+
+    async function createOrGetDMChannel(targetUserId: number): Promise<IChat> {
+        try {
+            return await service.createOrGetDMChannel(targetUserId);
+        } catch (e: any) {
+            console.error(e);
             throw e
         }
     }
@@ -64,6 +73,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             getChannelMessages,
             setAck,
             sendMessage,
+            createOrGetDMChannel,
         }}>
             {children}
         </ChatServiceContext.Provider >

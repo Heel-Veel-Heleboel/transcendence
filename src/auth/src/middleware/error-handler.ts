@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest, FastifyError } from 'fastify';
 import { AuthenticationError, AuthorizationError,  ResourceConflictError, ResourceNotFoundError } from '../error/auth.js';
+import { AUTH_ERROR_MESSAGES } from '../constants/auth.js';
 
 
 interface ValidationError {
@@ -29,6 +30,13 @@ export function authErrorHandler(
   request.log.error({ err: error }, 'Authentication/Authorization error occurred');
 
   if (error instanceof AuthenticationError) {
+    if (error.message === AUTH_ERROR_MESSAGES.TWO_FACTOR_REQUIRED) {
+      return reply.status(420).send({
+        statusCode: 420,
+        error: 'Two Factor Required',
+        message: error.message
+      });
+    }
     return reply.status(401).send({
       statusCode: 401,
       error: 'Unauthorized',

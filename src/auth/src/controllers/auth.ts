@@ -36,7 +36,7 @@ export class AuthController {
       path: '/',
       maxAge: getJwtConfig().expirationRefreshToken,
       sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production'
+      secure: process.env.COOKIE_SECURE === 'true'
     });
 
     return reply.code(200).send(safeUser);
@@ -66,7 +66,7 @@ export class AuthController {
       path: '/',
       maxAge: 0,
       sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production'
+      secure: process.env.COOKIE_SECURE === 'true'
     });
 
     return reply.code(204).send();
@@ -105,7 +105,7 @@ export class AuthController {
       path: '/',
       maxAge: getJwtConfig().expirationRefreshToken,
       sameSite: 'strict',
-      secure: process.env.NODE_ENV === 'production'
+      secure: process.env.COOKIE_SECURE === 'true'
     });
 
     return reply.code(200).send(access_token);

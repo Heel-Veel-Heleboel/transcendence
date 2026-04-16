@@ -29,6 +29,7 @@ import { Protagonist } from '../components/Protagonist';
 import { Antagonist } from '../components/Antagonist';
 import gameConfig from '../utils/GameConfig.ts';
 import { Dispatch, SetStateAction } from 'react';
+import * as INSPECTOR from '@babylonjs/inspector';
 
 /* v8 ignore start */
 export class GameClient {
@@ -109,6 +110,8 @@ export class GameClient {
     this.balls = new Map<string, Hack>();
 
     scene.onBeforeRenderObservable.add(this.draw(this));
+
+    INSPECTOR.Inspector.Show(scene, {});
     return scene;
   }
 
@@ -132,7 +135,7 @@ export class GameClient {
         ) {
           g.keyManager.resolve();
         }
-        // g.prota.hud.changeMana(0.01);
+        g.prota.hud.changeMana(0.01);
         g.frameCount++;
       } catch (e: any) {
         console.error(e);

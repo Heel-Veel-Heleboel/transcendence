@@ -60,9 +60,8 @@ export function App() {
                                     <Route element={<PrivateRoutes />}>
                                         <Route path={HOME_PAGE} element={<Home />} />
                                         <Route path={PROFILE_PAGE} >
-                                            <Route path={USER_PAGE} element={<Profile />} >
-                                                <Route path={RELATIONSHIPS_PAGE} element={<Relationships />} />
-                                            </Route>
+                                            <Route path={USER_PAGE} element={<Profile />} />
+                                            <Route path={USER_PAGE + '/' + RELATIONSHIPS_PAGE} element={<Relationships />} />
                                             <Route path={VISITOR_PAGE} element={<VisitorProfile />} />
                                         </Route >
                                         <Route path={TOURNAMENT_BASE} >

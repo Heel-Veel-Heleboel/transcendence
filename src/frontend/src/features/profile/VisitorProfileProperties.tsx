@@ -1,48 +1,56 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useUserService } from "../../components/providers/User";
 import { ProfilePropertiesPrimaryContainer } from "./ProfileProperties";
 import { AddFriend } from "./AddFriend";
 import { BlockUser } from "./BlockUser";
 import { IFriendship } from "../../shared/types/friendship";
-import { DEFAULT_FRIENDSHIP } from "../../shared/constants/defaults";
 
 export function VisitorProfilePropertiesPrimary({ userId }: { userId: string }) {
     const service = useUserService();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
-    const [friendship, setFriendship] = useState<IFriendship>(DEFAULT_FRIENDSHIP);
+    const [friendship, setFriendship] = useState<IFriendship | null>(null);
+
+    const refresh = useCallback(async () => {
+        try {
+            const result = await service.getFriendship(userId);
+            setFriendship(result);
+            setError(false);
+        } catch (e: any) {
+            // 404 means no relationship exists yet — not an error
+            if (e?.response?.status === 404) {
+                setFriendship(null);
+            } else {
+                setError(true);
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, [userId])
 
     useEffect(() => {
-        async function getUser() {
-            try {
-                const result = await service.getFriendship(userId);
-                setFriendship(result);
-            } catch (e: any) {
-                setError(true);
-            } finally {
-                setLoading(false);
-            }
-        }
-        getUser();
-    }, [])
+        refresh();
+    }, [refresh])
 
     if (loading) {
-        <ProfilePropertiesPrimaryContainer>
-            <div>loading</div>
-        </ProfilePropertiesPrimaryContainer>
+        return (
+            <ProfilePropertiesPrimaryContainer>
+                <div>loading</div>
+            </ProfilePropertiesPrimaryContainer>
+        );
     }
     if (error) {
-        <ProfilePropertiesPrimaryContainer>
-            <div>error</div>
-        </ProfilePropertiesPrimaryContainer>
+        return (
+            <ProfilePropertiesPrimaryContainer>
+                <div>error</div>
+            </ProfilePropertiesPrimaryContainer>
+        );
     }
 
     return (
         <ProfilePropertiesPrimaryContainer>
-            <AddFriend friendship={friendship} userId={userId} />
-            <BlockUser friendship={friendship} />
+            <AddFriend friendship={friendship} userId={userId} onRefresh={refresh} />
+            <BlockUser friendship={friendship} userId={userId} onRefresh={refresh} />
         </ProfilePropertiesPrimaryContainer>
     )
 }
-
-

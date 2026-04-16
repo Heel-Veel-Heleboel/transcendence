@@ -1,15 +1,16 @@
-import { FormEvent, JSX, ReactNode, useEffect, useState } from "react"
+import { JSX, ReactNode, useEffect, useRef, useState } from "react"
 import { IChatMessage } from "../../shared/types/chat.ts";
 import { useChatService } from "../../components/providers/Chat.tsx";
 import { ChatContainer } from "./ChatContainer.tsx";
 import { RenderAckMessage, RenderMessage, RenderUnknownMessageType } from "./RenderMessage.tsx";
 import { MessageForm } from "./MessageForm.tsx";
 
-export function Chat({ channelId }: { channelId: string }): JSX.Element {
+export function Chat({ channelId, messageUpdate }: { channelId: string, messageUpdate: number }): JSX.Element {
     const service = useChatService();
     const [chat, setChat] = useState<Array<IChatMessage>>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
+    const bottomRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         async function getChat() {
@@ -18,7 +19,7 @@ export function Chat({ channelId }: { channelId: string }): JSX.Element {
                     setLoading(true)
                     setError(false)
                     const result = await service.getChannelMessages(channelId);
-                    setChat(result);
+                    setChat([...result].reverse());
                 } catch (e: any) {
                     console.error(e);
                     setError(e);
@@ -29,8 +30,15 @@ export function Chat({ channelId }: { channelId: string }): JSX.Element {
         }
         getChat();
 
-    }, [channelId])
+    }, [channelId, messageUpdate])
 
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [chat]);
+
+    function handleMessageAdded(msg: IChatMessage) {
+        setChat(prev => [...prev, msg]);
+    }
 
     function ListMessages({ chat }: { chat: Array<IChatMessage> }) {
         const listItems = chat.map(item => {
@@ -47,7 +55,7 @@ export function Chat({ channelId }: { channelId: string }): JSX.Element {
                 <RenderUnknownMessageType item={item} />
             )
         });
-        return <ul>{listItems.reverse()}</ul>;
+        return <><ul>{listItems}</ul><div ref={bottomRef} /></>;
     }
 
 
@@ -86,7 +94,7 @@ export function Chat({ channelId }: { channelId: string }): JSX.Element {
             <ChatContainer>
                 <ListMessages chat={chat} />
             </ChatContainer>
-            <MessageForm channelId={channelId} />
+            <MessageForm channelId={channelId} onMessageAdded={handleMessageAdded} />
         </MessengerContainer>
     )
 }
@@ -99,4 +107,3 @@ export function MessengerContainer({ children }: { children: ReactNode }) {
         </div>
     )
 }
-
