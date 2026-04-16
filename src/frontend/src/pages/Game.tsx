@@ -5,19 +5,25 @@ import { GameClient } from '../game-client/systems/GameClient';
 import { useRoom } from '../components/providers/Room';
 import { Room } from '@colyseus/sdk';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useParams } from 'react-router-dom';
-import { GameCrash } from '../features/errors/GameCrash';
+import { useNavigate, useParams } from 'react-router-dom';
+import { GameFallback } from '../features/errors/GameFallBack';
+import { HOME_NAVIGATION } from '../shared/constants/navigation';
 
 
 /* v8 ignore start */
 
 export function Game(): JSX.Element | null {
     const { gameMode, matchId, roomId } = useParams();
+    const navigate = useNavigate();
 
-    if (typeof gameMode === 'undefined' || typeof matchId === 'undefined' || typeof roomId === 'undefined')
-        throw new Error('uri error');
+    if (typeof gameMode === 'undefined' || typeof matchId === 'undefined' || typeof roomId === 'undefined') {
+        alert('Invalid page access');
+        navigate(HOME_NAVIGATION);
+        return null;
+    }
+
     return (
-        <ErrorBoundary FallbackComponent={GameCrash}>
+        <ErrorBoundary FallbackComponent={GameFallback}>
             <GameRender gameMode={gameMode} matchId={matchId} roomId={roomId} />
         </ErrorBoundary>
     )
@@ -34,7 +40,7 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
             setGame(new GameClient(scene, gameMode, matchId, setError))
         } catch (e: any) {
             console.error(e);
-            setError(new Error('game-client construction error'))
+            setError(new Error('0'))
         }
     }
 
@@ -51,7 +57,7 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
                     game.initRoom(room);
                 } catch (e: any) {
                     console.error(e);
-                    setError(new Error('game initialization error'));
+                    setError(new Error('0'))
                 }
             }
         };
@@ -70,14 +76,12 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
     }, [roomProv]);
 
     useEffect(() => {
-        // NOTE: disconnect from room with crashcode
-        //  game-server will report crash to matchmaking
         if (error) {
-            room?.send('client_error', { payload: 'crash' });
-            throw error;
+            room?.send('client-error', { payload: 'crash' });
+            throw new Error('1');
         }
         if (roomProv?.error) {
-            throw new Error(roomProv.error)
+            throw new Error(String(roomProv.error))
         }
     }, [error, roomProv?.error]);
 

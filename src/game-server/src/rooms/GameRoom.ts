@@ -39,6 +39,8 @@ export class GameRoom extends Room {
   player2Username: string;
   player1SessionId: string;
   player2SessionId: string;
+  player1Client: Client;
+  player2Client: Client;
   gameMode: string;
   tournamentId: number | null;
   deadline: Date | null;
@@ -49,7 +51,7 @@ export class GameRoom extends Room {
       const player = this.state.players.get(client.sessionId);
       player.move({ x: data.x, y: data.y });
     },
-    client_error: (client: Client, data: any) => {
+    'client-error': (client: Client, data: any) => {
       if (
         !(
           client.sessionId === this.player1SessionId ||
@@ -65,7 +67,7 @@ export class GameRoom extends Room {
   };
 
   async onCreate(options: GameRoomOptions) {
-    console.log(`Room: ${this.roomId} - creation of room`);
+    console.log(`room: ${this.roomId} - creation of room`);
     this.matchId = options.matchId;
     this.player1Id = options.player1Id;
     this.player2Id = options.player2Id;
@@ -76,9 +78,9 @@ export class GameRoom extends Room {
     this.deadline = options.deadline ? new Date(options.deadline) : null;
     this.isGoldenGame = options.isGoldenGame ?? false;
 
-    console.log(`Room: ${this.roomId}: creating game engine`);
+    console.log(`room: ${this.roomId} - creating game engine`);
     this.engine = new GameEngine(this);
-    console.log(`Room: ${this.roomId}: initializing game`);
+    console.log(`room: ${this.roomId} - initializing game`);
     await this.engine.initGame();
     this.setSimulationInterval(deltaTime => this.update(deltaTime));
   }
@@ -101,7 +103,7 @@ export class GameRoom extends Room {
     try {
       this.isSendingResult = true;
       console.log(
-        `Room: ${this.roomId} - sending result of ${this.matchId} to matchmaking service`
+        `room: ${this.roomId} - sending result of ${this.matchId} to matchmaking service`
       );
       const player1 = this.state.players.get(this.player1SessionId);
       const player2 = this.state.players.get(this.player2SessionId);
@@ -112,11 +114,25 @@ export class GameRoom extends Room {
 
       if (this.gameMode === 'classic') {
         winner =
-          player1.score > player2.score ? this.player1Id : this.player2Id;
+          player1.score > player2.score
+            ? this.player1Id
+            : player2.score > player1.score
+              ? this.player2Id
+              : player1.score === player2.score
+                ? this.player1Id
+                : this.player2Id;
         score1 = player1.score;
         score2 = player2.score;
       } else if (this.gameMode === 'powerup') {
-        winner = player1.isDead ? this.player2Id : this.player1Id;
+        winner = player1.isDead
+          ? this.player2Id
+          : player2.isDead
+            ? this.player1Id
+            : player1.lifespan > player2.lifespan
+              ? this.player1Id
+              : player1.lifespan === player2.lifespan
+                ? this.player1Id
+                : this.player2Id;
         score1 = winner === this.player1Id ? 3 : 0;
         score2 = winner === this.player2Id ? 3 : 0;
       }
@@ -134,15 +150,16 @@ export class GameRoom extends Room {
           })
         }
       );
+      if (closeCode) {
+        this.player1Client.leave(closeCode);
+        this.player2Client.leave(closeCode);
+      }
     } catch (e: any) {
       console.error(e);
-      this.disconnect(closeCodes.FAILED_TO_FINISH);
+      this.player1Client.leave(closeCodes.FAILED_TO_FINISH);
+      this.player2Client.leave(closeCodes.FAILED_TO_FINISH);
     } finally {
-      if (closeCode) {
-        this.disconnect(closeCode);
-      } else {
-        this.disconnect();
-      }
+      this.disconnect();
     }
   }
 
@@ -150,12 +167,12 @@ export class GameRoom extends Room {
     try {
       this.isSendingResult = true;
       console.log(
-        `Room: ${this.roomId} - sending disconnect result of ${this.matchId} to matchmaking service`
+        `room: ${this.roomId} - sending disconnect result of ${this.matchId} to matchmaking service`
       );
       const player1 = this.state.players.get(this.player1SessionId);
       const player2 = this.state.players.get(this.player2SessionId);
 
-      const winner = !player1.connected
+      const winner = player1.connected
         ? this.player1Id
         : player2.connected
           ? this.player2Id
@@ -182,34 +199,37 @@ export class GameRoom extends Room {
       );
     } catch (e: any) {
       console.error(e);
-      this.disconnect(closeCodes.FAILED_TO_FINISH);
+      this.player1Client.leave(closeCodes.FAILED_TO_FINISH);
+      this.player2Client.leave(closeCodes.FAILED_TO_FINISH);
     } finally {
       this.disconnect();
     }
   }
 
   onJoin(client: Client, _options: any) {
-    console.log(`Room: ${this.roomId} - Client ${client.sessionId} joined!`);
-    setTimeout(1000); // INFO: wait to insure proper intialization
+    console.log(`room: ${this.roomId} - client: ${client.sessionId} joined!`);
+    setTimeout(2000); // INFO: wait to insure proper intialization
 
     if (_options.userId === this.player1Id) {
       console.log(
-        `Room: ${this.roomId} - initializing player1 with id:${this.player1Id}!`
+        `room: ${this.roomId} - initializing player1 with id:${this.player1Id}`
       );
       const player = new Player(
         getHostConfig(this.engine.arena.goal_1),
         this.engine.scene
       );
       this.player1SessionId = client.sessionId;
+      this.player1Client = client;
       this.state.players.set(client.sessionId, player);
     } else if (_options.userId === this.player2Id) {
       console.log(
-        `Room: ${this.roomId} - initializing player2 with id:${this.player2Id}!`
+        `room: ${this.roomId} - initializing player2 with id:${this.player2Id}`
       );
       const player = new Player(
         getGuestConfig(this.engine.arena.goal_2),
         this.engine.scene
       );
+      this.player2Client = client;
       this.player2SessionId = client.sessionId;
       this.state.players.set(client.sessionId, player);
     }
@@ -240,7 +260,7 @@ export class GameRoom extends Room {
 
   onDrop(client: Client<any>, code?: number): void | Promise<any> {
     console.log(
-      `Room: ${this.roomId} - Client ${client.sessionId} dropped (code: ${code})`
+      `room: ${this.roomId} - client ${client.sessionId} dropped (code: ${code})`
     );
     this.allowReconnection(client, 5);
 
@@ -253,7 +273,7 @@ export class GameRoom extends Room {
 
   onReconnect(client: Client<any>): void | Promise<any> {
     console.log(
-      `Room: ${this.roomId} - Client ${client.sessionId} reconnected!`
+      `room: ${this.roomId} - client ${client.sessionId} reconnected!`
     );
 
     const player = this.state.players.get(client.sessionId);
@@ -265,15 +285,22 @@ export class GameRoom extends Room {
 
   onLeave(client: Client, code: CloseCode) {
     console.log(
-      `Room: ${this.roomId} - Client ${client.sessionId} left (code: ${code})`
+      `room: ${this.roomId} - client ${client.sessionId} left (code: ${code})`
     );
 
-    if (code === closeCodes.FAILED_TO_RECONNECT) {
-      this.sendDisconnectResult();
-      return;
+    switch (code) {
+      case closeCodes.FAILED_TO_RECONNECT:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.GOING_AWAY:
+        this.sendDisconnectResult();
+        break;
+      default:
+        break;
     }
 
     const hack = this.state.hacks.get(client.sessionId);
+    client.leave();
     if (hack) {
       hack.dispose();
       this.state.hacks.delete(client.sessionId);
@@ -288,7 +315,7 @@ export class GameRoom extends Room {
 
   onDispose() {
     this.engine.scene.dispose();
-    console.log(`Room: ${this.roomId} - disposing of room`);
+    console.log(`room: ${this.roomId} - disposing of room`);
   }
 
   onUncaughtException(err: Error, methodName: string) {
@@ -300,7 +327,7 @@ export class GameRoom extends Room {
     const player1 = this.state.players.get(this.player1SessionId);
     const player2 = this.state.players.get(this.player2SessionId);
 
-    console.log(`Room: ${this.roomId} - initializing observers`);
+    console.log(`room: ${this.roomId} - initializing observers`);
     const observable1 =
       this.engine.arena.goal_1.aggregate.body.getCollisionObservable();
     observable1.add(_collisionEvent => {
@@ -309,7 +336,7 @@ export class GameRoom extends Room {
       } else if (this.gameMode === 'powerup') {
         player1.lifespan -= 20;
       }
-      console.log(`Room: ${this.roomId} - goal 1`);
+      console.log(`room: ${this.roomId} - goal 1`);
     });
     const observable2 =
       this.engine.arena.goal_2.aggregate.body.getCollisionObservable();
@@ -319,7 +346,7 @@ export class GameRoom extends Room {
       } else if (this.gameMode === 'powerup') {
         player2.lifespan -= 20;
       }
-      console.log(`Room: ${this.roomId} - goal 2`);
+      console.log(`room: ${this.roomId} - goal 2`);
     });
   }
 }

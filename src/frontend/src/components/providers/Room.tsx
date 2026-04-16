@@ -9,7 +9,7 @@ export interface RoomContextType {
     isReconnecting: boolean;
     room: Room;
     join: (roomId: string) => void;
-    error: string;
+    error: number;
 }
 
 export const RoomContext = createContext<RoomContextType | null>(null);
@@ -24,14 +24,16 @@ const client = new Client(import.meta.env.VITE_GAME_URL ?? 'http://localhost:256
 
 export function RoomProvider({ children }: { children: ReactNode }) {
     const auth = useAuth();
+    const [joinedGame, setJoinedGame] = useState<boolean>(false);
     const [isConnecting, setIsConnecting] = useState<boolean>(false);
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const [isReconnecting, setIsReconnecting] = useState<boolean>(false);
-    const [error, setError] = useState<string>('');
+    const [error, setError] = useState<number>(0);
 
     const join = async (roomId: string) => {
         if (hasActiveJoinRequest) { return; }
         if (isConnected) { return; }
+        if (joinedGame) { return; }
         hasActiveJoinRequest = true;
 
         setIsConnecting(true);
@@ -40,9 +42,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             await new Promise(resolve => setTimeout(resolve, 1000)); // INFO: wait for proper game-server initialization
             room = await client
                 .joinById(roomId, { userId: Number(auth.userId) });
+            setJoinedGame(true);
             console.log('Connected to roomId: ' + room.roomId);
         } catch (e) {
-            setError('failed to join room');
+            setError(closeCodes.FAILED_TO_JOIN);
             setIsConnecting(false);
             return;
 
@@ -62,9 +65,9 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             setIsConnected(false);
 
             if (code === closeCodes.FAILED_TO_RECONNECT) {
-                setError('failed to reconnect');
-            } else if (code == - closeCodes.FAILED_TO_FINISH) {
-                setError('failed to process match result');
+                setError(code);
+            } else if (code === closeCodes.FAILED_TO_FINISH) {
+                setError(code);
             }
         });
 

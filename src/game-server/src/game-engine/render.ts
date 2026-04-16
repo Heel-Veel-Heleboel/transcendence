@@ -1,7 +1,7 @@
 import { GameEngine } from './game-engine.js';
 
 export function renderLoop(gameEngine: GameEngine) {
-  console.log(`Room: ${gameEngine.gameRoom.roomId} - starting render loop`);
+  console.log(`room: ${gameEngine.gameRoom.roomId} - starting render loop`);
   gameEngine.engine.runRenderLoop(() => {
     gameEngine.gameRoom.state.hacks.forEach((value, _key) => {
       value.update();

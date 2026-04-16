@@ -46,7 +46,7 @@ export class GameClient {
   private _antagonist!: Antagonist;
   private _hud!: Hud;
   private _keyManager!: KeyManager;
-  private _balls!: Map<string, Hack>;
+  private _hacks!: Map<string, Hack>;
   private _room!: Room;
 
   //@ts-ignore
@@ -107,7 +107,7 @@ export class GameClient {
     this.arena = new Arena();
     await this.arena.initMesh(scene);
 
-    this.balls = new Map<string, Hack>();
+    this.hacks = new Map<string, Hack>();
 
     scene.onBeforeRenderObservable.add(this.draw(this));
 
@@ -120,10 +120,11 @@ export class GameClient {
       try {
         if (typeof g.prota === 'undefined' || typeof g.anta === 'undefined')
           return;
-        if (!(g.frameCount % 600)) {
-          // console.log(g.balls);
+
+        if (this.frameCount > 1000) {
+          throw new Error('gamecrash');
         }
-        for (const entity of g.balls) {
+        for (const entity of g.hacks) {
           const ball = entity[1];
           if (ball) {
             g.prota.hitIndicator.detectIncomingHits(ball);
@@ -157,118 +158,94 @@ export class GameClient {
   }
 
   initHacksStateCallbacks(callbacks: any, g: GameClient) {
-    callbacks.onAdd(
-      gameConfig.hacksState,
-      (entity: any, _sessionId: unknown) => {
-        const hack = createHack(
-          this.scene,
-          createVector3(entity.x, entity.y, entity.z),
-          gameConfig.hackSize
-        );
-        g.balls.set(entity.id, hack);
-        callbacks.onChange(entity, () => {
-          const hack = g.balls.get(entity.id);
-          if (hack) {
-            const pos = createVector3(entity.x, entity.y, entity.z);
-            const lv = createVector3(
-              entity.linearVelocityX,
-              entity.linearVelocityY,
-              entity.linearVelocityZ
-            );
-            hack.mesh.setAbsolutePosition(pos);
-            hack.linearVelocity = lv;
-            lv.normalize();
-          }
-        });
-      }
-    );
-    callbacks.onRemove(
-      gameConfig.hacksState,
-      (entity: any, _sessionId: unknown) => {
-        const hack = g.balls.get(entity.id);
+    callbacks.onAdd('hacks', (entity: any, _sessionId: unknown) => {
+      const hack = createHack(
+        this.scene,
+        createVector3(entity.x, entity.y, entity.z),
+        gameConfig.hackSize
+      );
+      g.hacks.set(entity.id, hack);
+      callbacks.onChange(entity, () => {
+        const hack = g.hacks.get(entity.id);
         if (hack) {
-          hack.dispose();
+          const pos = createVector3(entity.x, entity.y, entity.z);
+          const lv = createVector3(
+            entity.linearVelocityX,
+            entity.linearVelocityY,
+            entity.linearVelocityZ
+          );
+          hack.mesh.setAbsolutePosition(pos);
+          hack.linearVelocity = lv;
+          lv.normalize();
         }
+      });
+    });
+    callbacks.onRemove('hacks', (entity: any, _sessionId: unknown) => {
+      const hack = g.hacks.get(entity.id);
+      if (hack) {
+        hack.dispose();
       }
-    );
+    });
   }
 
   initPlayersStateCallbacks(callbacks: any, g: GameClient) {
-    callbacks.onAdd(
-      gameConfig.playersState,
-      (entity: any, sessionId: unknown) => {
-        if (sessionId === g.room.sessionId) {
-          const config = {
-            keys: {
-              columns: entity.columns,
-              rows: entity.rows,
-              length: entity.keyLength,
-              precisionKeys: entity.precisionKeys
-            },
-            goalPosition: createVector3(entity.posX, entity.posY, entity.posZ),
-            goalDimensions: createVector3(
-              entity.dimX,
-              entity.dimY,
-              entity.dimZ
-            ),
-            lifespan: entity.lifespan,
-            mana: entity.mana,
-            score: entity.score,
-            hud: g.hud,
-            room: g.room
-          };
+    callbacks.onAdd('players', (entity: any, sessionId: unknown) => {
+      if (sessionId === g.room.sessionId) {
+        const config = {
+          keys: {
+            columns: entity.columns,
+            rows: entity.rows,
+            length: entity.keyLength,
+            precisionKeys: entity.precisionKeys
+          },
+          goalPosition: createVector3(entity.posX, entity.posY, entity.posZ),
+          goalDimensions: createVector3(entity.dimX, entity.dimY, entity.dimZ),
+          lifespan: entity.lifespan,
+          mana: entity.mana,
+          score: entity.score,
+          hud: g.hud,
+          room: g.room
+        };
 
-          const player = new Protagonist(config, g.scene);
-          g.prota = player;
-          g.prota.initGridHints(g.scene);
-          if (g.prota.keyGrid.rotation) {
-            const pos = g.camera.position;
-            const camera = g.camera as ArcRotateCamera;
-            camera.setPosition(createVector3(pos.x, pos.y, pos.z * -1));
-          }
-
-          const keyManager = new KeyManager(
-            g.scene,
-            () => g.frameCount,
-            g.prota
-          );
-          g.keyManager = keyManager;
-        } else {
-          const config = {
-            goalPosition: createVector3(entity.posX, entity.posY, entity.posZ),
-            goalDimensions: createVector3(
-              entity.dimX,
-              entity.dimY,
-              entity.dimZ
-            ),
-            lifespan: entity.lifespan,
-            mana: entity.mana,
-            score: 0,
-            keys: {
-              length: entity.keyLength
-            }
-          };
-          const player = new Antagonist(config, g.scene);
-          g.anta = player;
+        const player = new Protagonist(config, g.scene);
+        g.prota = player;
+        g.prota.initGridHints(g.scene);
+        if (g.prota.keyGrid.rotation) {
+          const pos = g.camera.position;
+          const camera = g.camera as ArcRotateCamera;
+          camera.setPosition(createVector3(pos.x, pos.y, pos.z * -1));
         }
-        callbacks.onChange(entity, () => {
-          const player = sessionId === g.room.sessionId ? g.prota : g.anta;
-          player.mesh.position.x = entity.posX;
-          player.mesh.position.y = entity.posY;
-          player.mesh.position.z = entity.posZ;
-          player.lifespan = entity.lifespan;
-          player.mana = entity.mana;
-          player.score = entity.score;
-        });
+
+        const keyManager = new KeyManager(g.scene, () => g.frameCount, g.prota);
+        g.keyManager = keyManager;
+      } else {
+        const config = {
+          goalPosition: createVector3(entity.posX, entity.posY, entity.posZ),
+          goalDimensions: createVector3(entity.dimX, entity.dimY, entity.dimZ),
+          lifespan: entity.lifespan,
+          mana: entity.mana,
+          score: 0,
+          keys: {
+            length: entity.keyLength
+          }
+        };
+        const player = new Antagonist(config, g.scene);
+        g.anta = player;
       }
-    );
-    callbacks.onRemove(
-      gameConfig.playersState,
-      (_entity: any, sessionId: unknown) => {
+      callbacks.onChange(entity, () => {
         const player = sessionId === g.room.sessionId ? g.prota : g.anta;
-        player.dispose();
-      }
-    );
+        player.mesh.position.x = entity.posX;
+        player.mesh.position.y = entity.posY;
+        player.mesh.position.z = entity.posZ;
+        player.lifespan = entity.lifespan;
+        player.mana = entity.mana;
+        player.score = entity.score;
+      });
+    });
+    callbacks.onRemove('players', (_entity: any, sessionId: unknown) => {
+      const player = sessionId === g.room.sessionId ? g.prota : g.anta;
+      player.dispose();
+    });
   }
 
   private set defaultScene(defaultScene: Scene) {
@@ -307,8 +284,8 @@ export class GameClient {
   private set keyManager(keyManager: KeyManager) {
     this._keyManager = keyManager;
   }
-  private set balls(balls: Map<string, Hack>) {
-    this._balls = balls;
+  private set hacks(hacks: Map<string, Hack>) {
+    this._hacks = hacks;
   }
   private set room(room: Room) {
     this._room = room;
@@ -360,8 +337,8 @@ export class GameClient {
   private get keyManager(): KeyManager {
     return this._keyManager;
   }
-  private get balls(): Map<string, Hack> {
-    return this._balls;
+  private get hacks(): Map<string, Hack> {
+    return this._hacks;
   }
   private get room(): Room {
     return this._room;

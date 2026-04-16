@@ -29,13 +29,13 @@ export class GameEngine {
   async initGame() {
     this.engine = new NullEngine();
 
-    console.log(`Room: ${this.gameRoom.roomId} - creating scene`);
+    console.log(`room: ${this.gameRoom.roomId} - creating scene`);
     const scene = new Scene(this.engine);
 
-    console.log(`Room: ${this.gameRoom.roomId} - initializing physics`);
+    console.log(`room: ${this.gameRoom.roomId} - initializing physics`);
     await initializePhysics(scene);
 
-    console.log(`Room: ${this.gameRoom.roomId} - initializing scene`);
+    console.log(`room: ${this.gameRoom.roomId} - initializing scene`);
     this.scene = await this.initScene(scene);
 
     renderLoop(this);
@@ -43,11 +43,11 @@ export class GameEngine {
 
   /* v8 ignore start */
   async initScene(scene: Scene) {
-    console.log(`Room: ${this.gameRoom.roomId} - creating camera and lights`);
+    console.log(`room: ${this.gameRoom.roomId} - creating camera and lights`);
     this.camera = createCamera(scene, 40);
     this.light = createLight(scene);
 
-    console.log(`Room: ${this.gameRoom.roomId} - initializing arena`);
+    console.log(`room: ${this.gameRoom.roomId} - initializing arena`);
     this.arena = createArena();
     await this.arena.initMesh(scene);
 
