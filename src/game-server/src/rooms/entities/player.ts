@@ -70,6 +70,9 @@ export class Player extends Schema implements IPlayer {
     aggregate.body.setAngularDamping(0.0);
     aggregate.body.setLinearDamping(0.0);
     this.physicsMesh = { mesh: padel, aggregate: aggregate };
+    this.posX = this.physicsMesh.mesh.absolutePosition.x;
+    this.posY = this.physicsMesh.mesh.absolutePosition.y;
+    this.posZ = this.physicsMesh.mesh.absolutePosition.z;
     this.lifespan = 100;
     this.mana = 0;
     this.score = 0;

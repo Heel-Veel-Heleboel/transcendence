@@ -47,33 +47,31 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
     const onRender = (_scene: Scene) => { }
 
     useEffect(() => {
-        const initializeGame = async () => {
-            if (room) {
+        function initializeRoom() {
+            if (game && room) {
+                game.initRoom(room);
+            }
+        }
+
+        initializeRoom();
+    }, [room])
+
+    useEffect(() => {
+
+        async function initializeGame() {
+            if (roomProv && game && !roomProv.isConnected) {
                 try {
-                    await game?.initGame();
-                    if (!game) {
-                        throw new Error('game init fail');
-                    }
-                    game.initRoom(room);
+                    await game.initGame();
+                    const newRoom = await roomProv.join(roomId);
+                    setRoom(newRoom);
                 } catch (e: any) {
                     console.error(e);
                     setError(new Error('0'))
                 }
             }
         };
-        if (room) {
-            initializeGame();
-        }
-
-    }, [room]);
-
-    useEffect(() => {
-        if (roomProv) {
-            roomProv.join(roomId);
-            const room = roomProv.room;
-            setRoom(room);
-        }
-    }, [roomProv]);
+        initializeGame();
+    }, [roomProv, game]);
 
     useEffect(() => {
         if (error) {
@@ -93,6 +91,34 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
 
     return (
         <div id='game-container' className="h-full w-full">
+            <div id='game-loading-screen' className='absolute w-full h-full z-9997'>
+                <div id='game-loading-text' className='w-full h-full text-white text-2xl text-center flex flex-col justify-around z-9999'>
+                    <div id='game-loading-text-animation'>
+                        loading...
+                        <img src="/ping-pong.gif"
+                            width='200'
+                            height='200'
+                            alt="ping pong animation"
+                            className='ml-auto mr-auto block'
+                        />
+                    </div>
+                </div>
+                <div id='game-loading-bg' className='absolute w-full h-full bg-black-600 z-9998 '></div>
+            </div>
+            <div id='game-reconnection-screen' className='absolute w-full h-full z-9997'>
+                <div id='game-reconnection-text' className='w-full h-full text-white text-2xl text-center flex flex-col justify-around z-9999 opacity-100'>
+                    <div id='game-reconnection-text-animation'>
+                        reconnecting...
+                        <img src="/ping-pong.gif"
+                            width='200'
+                            height='200'
+                            alt="ping pong animation"
+                            className='ml-auto mr-auto block'
+                        />
+                    </div>
+                </div>
+                <div id='game-reconnection-bg' className='absolute w-full h-full bg-gray-500 z-9998 opacity-50'></div>
+            </div>
             <SceneComponent id='game-canvas' antialias onSceneReady={onSceneReady} onRender={onRender} adaptToDeviceRatio className="h-full w-full" />
         </div>
     );

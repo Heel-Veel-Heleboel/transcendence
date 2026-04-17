@@ -37,8 +37,6 @@ export class GameEngine {
 
     console.log(`room: ${this.gameRoom.roomId} - initializing scene`);
     this.scene = await this.initScene(scene);
-
-    renderLoop(this);
   }
 
   /* v8 ignore start */

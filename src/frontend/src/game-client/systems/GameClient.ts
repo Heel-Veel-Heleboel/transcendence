@@ -30,6 +30,8 @@ import { Antagonist } from '../components/Antagonist';
 import gameConfig from '../utils/GameConfig.ts';
 import { Dispatch, SetStateAction } from 'react';
 import * as INSPECTOR from '@babylonjs/inspector';
+import { LoadingScreen } from '../utils/LoadingScreen.ts';
+import { ReconnectionScreen } from '../utils/ReconnectionScreen.ts';
 
 /* v8 ignore start */
 export class GameClient {
@@ -49,6 +51,10 @@ export class GameClient {
   private _hacks!: Map<string, Hack>;
   private _room!: Room;
 
+  private _initialized: boolean = false;
+  private _loadingScreen!: LoadingScreen;
+  private _reconnectionScreen!: ReconnectionScreen;
+
   //@ts-ignore
   private _camera!: Camera;
   //@ts-ignore
@@ -67,6 +73,8 @@ export class GameClient {
     this.gameMode = gameMode;
     this.matchId = matchId;
     this.setError = setError;
+    this.loadingScreen = new LoadingScreen();
+    this.reconnectionScreen = new ReconnectionScreen();
 
     // NOTE: Wraps class in Proxy to catch errors in every method
     return new Proxy(this, {
@@ -86,9 +94,14 @@ export class GameClient {
   }
 
   async initGame() {
+    if (this.initialized) {
+      return;
+    }
+    this.initialized = true;
     this.frameCount = 0;
     prepareImportGLTF(this.defaultScene);
     this.scene = await this.initScene(this.defaultScene);
+    this.displayLoadingScreen();
 
     debugLayerListener(this.scene);
     engineResizeListener(this.engine);
@@ -143,15 +156,17 @@ export class GameClient {
     };
   }
 
-  initRoom(room: Room) {
+  async initRoom(room: Room) {
     this.room = room;
-    this.initCallbacks(this.room, this);
+    this.initMessages(room, this);
+    this.initCallbacks(room, this);
+    this.clientAcknowledge(room);
   }
 
-  private initCallbacks(room: Room, g: GameClient) {
+  private async initCallbacks(room: Room, g: GameClient) {
     const callbacks = Callbacks.get(room);
-    this.initHacksStateCallbacks(callbacks, g);
     this.initPlayersStateCallbacks(callbacks, g);
+    this.initHacksStateCallbacks(callbacks, g);
   }
 
   initHacksStateCallbacks(callbacks: any, g: GameClient) {
@@ -245,6 +260,49 @@ export class GameClient {
     });
   }
 
+  initMessages(room: Room, _g: GameClient) {
+    room.onMessage('game-start', message => {
+      console.log('game-start');
+      console.log(message);
+      this.engine.hideLoadingUI();
+    });
+
+    room.onMessage('game-interrupted', message => {
+      console.log('game-interrupted');
+      console.log(message);
+      this.displayReconnectionScreen();
+    });
+
+    room.onMessage('game-restart', message => {
+      console.log('game-restart');
+      console.log(message);
+      this.engine.hideLoadingUI();
+    });
+
+    // INFO: might be used later
+    room.onMessage('game-finished', message => {
+      console.log(message);
+    });
+  }
+
+  async clientAcknowledge(room: Room) {
+    console.log('client-ack');
+    room.send('client-ack');
+    value;
+  }
+
+  displayLoadingScreen() {
+    this.engine.hideLoadingUI();
+    this.engine.loadingScreen = this.loadingScreen;
+    this.engine.displayLoadingUI();
+  }
+
+  displayReconnectionScreen() {
+    this.engine.hideLoadingUI();
+    this.engine.loadingScreen = this.reconnectionScreen;
+    this.engine.displayLoadingUI();
+  }
+
   private set defaultScene(defaultScene: Scene) {
     this._defaultScene = defaultScene;
   }
@@ -286,6 +344,15 @@ export class GameClient {
   }
   private set room(room: Room) {
     this._room = room;
+  }
+  private set initialized(value: boolean) {
+    this._initialized = value;
+  }
+  private set loadingScreen(loadingScreen: LoadingScreen) {
+    this._loadingScreen = loadingScreen;
+  }
+  private set reconnectionScreen(reconnectionScreen: ReconnectionScreen) {
+    this._reconnectionScreen = reconnectionScreen;
   }
   private set camera(camera: Camera) {
     this._camera = camera;
@@ -336,6 +403,15 @@ export class GameClient {
   }
   private get hacks(): Map<string, Hack> {
     return this._hacks;
+  }
+  private get initialized(): boolean {
+    return this.initialized;
+  }
+  private get loadingScreen(): LoadingScreen {
+    return this._loadingScreen;
+  }
+  private get reconnectionScreen(): ReconnectionScreen {
+    return this._reconnectionScreen;
   }
   private get room(): Room {
     return this._room;

@@ -8,7 +8,7 @@ export interface RoomContextType {
     isConnected: boolean;
     isReconnecting: boolean;
     room: Room;
-    join: (roomId: string) => void;
+    join: (roomId: string) => Promise<Room>;
     error: number;
 }
 
@@ -30,7 +30,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     const [isReconnecting, setIsReconnecting] = useState<boolean>(false);
     const [error, setError] = useState<number>(0);
 
-    const join = async (roomId: string) => {
+    async function join(roomId: string) {
         if (hasActiveJoinRequest) { return; }
         if (isConnected) { return; }
         if (joinedGame) { return; }
@@ -39,7 +39,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         setIsConnecting(true);
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000)); // INFO: wait for proper game-server initialization
             room = await client
                 .joinById(roomId, { userId: Number(auth.userId) });
             setJoinedGame(true);
@@ -96,7 +95,12 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         room.reconnection.minUptime = 0; //             Minimum uptime before auto-reconnect (default: 5000)
         room.reconnection.maxEnqueuedMessages = 10; //  Max buffered messages (default: 10)
 
+        room.onMessage('server-ready', message => {
+            console.log('server-ready');
+            console.log(message);
+        });
         setIsConnected(true);
+        return (room);
     };
 
     return (
