@@ -288,7 +288,6 @@ export class GameClient {
   async clientAcknowledge(room: Room) {
     console.log('client-ack');
     room.send('client-ack');
-    value;
   }
 
   displayLoadingScreen() {
