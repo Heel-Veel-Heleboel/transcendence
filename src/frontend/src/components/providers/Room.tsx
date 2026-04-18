@@ -33,6 +33,14 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     const [error, setError] = useState<number>(0);
     const navigate = useNavigate();
 
+    function reset() {
+        setJoinedGame(false);
+        setIsConnecting(false);
+        setIsConnected(false);
+        setIsReconnecting(false)
+        setError(0);
+    }
+
     async function join(roomId: string) {
         if (hasActiveJoinRequest) { return; }
         if (isConnected) { return; }
@@ -67,6 +75,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             setIsConnected(false);
 
             if (code === closeCodes.CONSENTED) {
+                reset();
                 navigate(HOME_NAVIGATION);
             }
             else if (code === closeCodes.FAILED_TO_RECONNECT) {
