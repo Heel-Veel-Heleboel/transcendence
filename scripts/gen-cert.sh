@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Generate a self-signed TLS certificate with Subject Alternative Names for
-# both localhost and the machine's LAN IP.
+# the project hostname, localhost, and the machine's LAN IP.
 #
 # Usage:
 #   bash scripts/gen-cert.sh [IP]
 #
 # If IP is omitted, the script detects the primary LAN IP automatically.
 # Output: certs/server.crt  certs/server.key
+
+HOSTNAME="transcendence-avs"
 
 set -euo pipefail
 
@@ -30,19 +32,25 @@ if [ -z "${HOST_IP:-}" ]; then
   exit 1
 fi
 
-echo "Generating cert for IP: $HOST_IP  (+ localhost / 127.0.0.1)"
+echo "Generating cert for: $HOSTNAME / $HOST_IP  (+ localhost / 127.0.0.1)"
 
+# RSA 2048 — universally supported by nginx, all browsers, and both OpenSSL and LibreSSL.
+# (Ed25519 certificates cause TLS handshake failures with nginx:alpine's OpenSSL build.)
 # Source: https://stackoverflow.com/a/41366949 (vog, CC BY-SA 4.0)
-openssl req -x509 -newkey ed25519 -days 3650 \
+openssl req -x509 -newkey rsa:2048 -days 3650 \
   -noenc \
   -keyout "$CERT_DIR/server.key" \
   -out    "$CERT_DIR/server.crt" \
-  -subj   "/CN=$HOST_IP" \
-  -addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:$HOST_IP"
+  -subj   "/CN=$HOSTNAME" \
+  -addext "subjectAltName=DNS:$HOSTNAME,DNS:localhost,IP:127.0.0.1,IP:$HOST_IP"
 
 echo "Done."
 echo "  $CERT_DIR/server.crt"
 echo "  $CERT_DIR/server.key"
 echo ""
-echo "Players will see a browser security warning — click Advanced → Proceed"
-echo "(or type 'thisisunsafe' in Chrome)."
+echo "Ensure '$HOSTNAME' resolves on every machine that will connect:"
+echo "  Host machine : echo '127.0.0.1  $HOSTNAME' | sudo tee -a /etc/hosts"
+echo "  Remote player: echo '$HOST_IP  $HOSTNAME' | sudo tee -a /etc/hosts"
+echo ""
+echo "Then open: https://$HOSTNAME"
+echo "Accept the self-signed certificate warning to continue."
