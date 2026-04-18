@@ -91,19 +91,37 @@ export class Player extends Schema implements IPlayer {
   }
 
   updateMana(n: number): void {
-    const newValue = this.mana + n;
-    if (this.isOverflow(newValue)) {
+    if (this.isDead) {
       return;
+    }
+    let newValue = this.mana + n;
+    if (this.isOverflow(newValue)) {
+      newValue = 100;
+    }
+    if (newValue < 0) {
+      newValue = 0;
+      this.isDead = true;
     }
     this.mana = newValue;
   }
 
   updateLife(n: number): void {
-    const newValue = this.lifespan + n;
-    if (this.isOverflow(newValue)) {
+    if (this.isDead) {
       return;
     }
+    let newValue = this.lifespan + n;
+    if (this.isOverflow(newValue)) {
+      newValue = 100;
+    }
+    if (newValue < 0) {
+      newValue = 0;
+      this.isDead = true;
+    }
     this.lifespan = newValue;
+  }
+
+  updateScore(n: number): void {
+    this.score += n;
   }
 
   isOverflow(n: number): boolean {

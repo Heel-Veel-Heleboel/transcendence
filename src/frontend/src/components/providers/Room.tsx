@@ -2,6 +2,8 @@ import { createContext, ReactNode, useContext, useState } from 'react';
 import { Client, Room } from '@colyseus/sdk';
 import { useAuth } from './Auth';
 import { closeCodes } from '../../shared/types/close-codes';
+import { useNavigate } from 'react-router-dom';
+import { HOME_NAVIGATION } from '../../shared/constants/navigation';
 
 export interface RoomContextType {
     isConnecting: boolean;
@@ -29,6 +31,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const [isReconnecting, setIsReconnecting] = useState<boolean>(false);
     const [error, setError] = useState<number>(0);
+    const navigate = useNavigate();
 
     async function join(roomId: string) {
         if (hasActiveJoinRequest) { return; }
@@ -63,7 +66,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             console.log(`Left room. Code: ${code}, Reason: ${reason}`);
             setIsConnected(false);
 
-            if (code === closeCodes.FAILED_TO_RECONNECT) {
+            if (code === closeCodes.CONSENTED) {
+                navigate(HOME_NAVIGATION);
+            }
+            else if (code === closeCodes.FAILED_TO_RECONNECT) {
                 setError(code);
             } else if (code === closeCodes.FAILED_TO_FINISH) {
                 setError(code);
@@ -74,6 +80,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             } else if (code === closeCodes.STARTUP_FAIL) {
                 setError(code);
             }
+
         });
 
         room.onDrop((code, reason) => {

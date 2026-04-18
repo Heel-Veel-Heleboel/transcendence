@@ -91,7 +91,28 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
 
     return (
         <div id='game-container' className="h-full w-full">
-            <div id='game-loading-screen' className='absolute w-full h-full z-9997'>
+            <div id='game-winner-screen' className='absolute w-full h-full z-9999'>
+                <div id='game-winner' className='w-full h-full text-white text-2xl text-center flex flex-col justify-around z-9999'>
+                    <div id='game-winner-container'>
+                        <div id='game-winner-text'></div>
+                        <div id='game-winner-image'>
+                            <br />
+                            <br />
+                            <img src="/winner.png"
+                                width='200'
+                                height='200'
+                                alt="winner throphy image"
+                                className='ml-auto mr-auto block'
+                            />
+                        </div>
+                        <br />
+                        <br />
+                        You will be redirected to home page in 10 seconds
+                    </div>
+                </div>
+                <div id='game-winner-bg' className='absolute w-full h-full bg-black z-9998'></div>
+            </div>
+            <div id='game-loading-screen' className='absolute w-full h-full z-9999'>
                 <div id='game-loading-text' className='w-full h-full text-white text-2xl text-center flex flex-col justify-around z-9999'>
                     <div id='game-loading-text-animation'>
                         loading...
@@ -103,7 +124,7 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
                         />
                     </div>
                 </div>
-                <div id='game-loading-bg' className='absolute w-full h-full bg-black-600 z-9998 '></div>
+                <div id='game-loading-bg' className='absolute w-full h-full bg-black z-9998'></div>
             </div>
             <div id='game-reconnection-screen' className='absolute w-full h-full z-9997'>
                 <div id='game-reconnection-text' className='w-full h-full text-white text-2xl text-center flex flex-col justify-around z-9999 opacity-100'>

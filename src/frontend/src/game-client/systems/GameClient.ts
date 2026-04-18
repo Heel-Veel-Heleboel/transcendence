@@ -32,6 +32,7 @@ import { Dispatch, SetStateAction } from 'react';
 import * as INSPECTOR from '@babylonjs/inspector';
 import { LoadingScreen } from '../utils/LoadingScreen.ts';
 import { ReconnectionScreen } from '../utils/ReconnectionScreen.ts';
+import { WinnerScreen } from '../utils/WinnerScreen.ts';
 
 /* v8 ignore start */
 export class GameClient {
@@ -54,6 +55,7 @@ export class GameClient {
   private _initialized: boolean = false;
   private _loadingScreen!: LoadingScreen;
   private _reconnectionScreen!: ReconnectionScreen;
+  private _winnerScreen!: WinnerScreen;
 
   //@ts-ignore
   private _camera!: Camera;
@@ -75,6 +77,7 @@ export class GameClient {
     this.setError = setError;
     this.loadingScreen = new LoadingScreen();
     this.reconnectionScreen = new ReconnectionScreen();
+    this.winnerScreen = new WinnerScreen();
 
     // NOTE: Wraps class in Proxy to catch errors in every method
     return new Proxy(this, {
@@ -283,9 +286,11 @@ export class GameClient {
       this.engine.hideLoadingUI();
     });
 
-    // INFO: might be used later
     room.onMessage('game-finished', message => {
+      console.log('game-finished');
       console.log(message);
+      this.winnerScreen.setText('winner: ' + message);
+      this.displayWinnerScreen();
     });
   }
 
@@ -303,6 +308,12 @@ export class GameClient {
   displayReconnectionScreen() {
     this.engine.hideLoadingUI();
     this.engine.loadingScreen = this.reconnectionScreen;
+    this.engine.displayLoadingUI();
+  }
+
+  displayWinnerScreen() {
+    this.engine.hideLoadingUI();
+    this.engine.loadingScreen = this.winnerScreen;
     this.engine.displayLoadingUI();
   }
 
@@ -356,6 +367,9 @@ export class GameClient {
   }
   private set reconnectionScreen(reconnectionScreen: ReconnectionScreen) {
     this._reconnectionScreen = reconnectionScreen;
+  }
+  private set winnerScreen(winnerScreen: WinnerScreen) {
+    this._winnerScreen = winnerScreen;
   }
   private set camera(camera: Camera) {
     this._camera = camera;
@@ -415,6 +429,9 @@ export class GameClient {
   }
   private get reconnectionScreen(): ReconnectionScreen {
     return this._reconnectionScreen;
+  }
+  private get winnerScreen(): WinnerScreen {
+    return this._winnerScreen;
   }
   private get room(): Room {
     return this._room;

@@ -117,6 +117,7 @@ export class GameRoom extends Room {
 
   update(_deltaTime: number) {
     if (this.gameFinished) {
+      this.engine.engine.stopRenderLoop();
       this.sendResult();
     }
     if (this.gameMode === 'powerup') {
@@ -130,16 +131,15 @@ export class GameRoom extends Room {
     if (this.isSendingResult) {
       return;
     }
+    let winner;
     try {
       this.isSendingResult = true;
-      this.broadcastGameFinish();
       console.log(
         `room: ${this.roomId} - sending result of ${this.matchId} to matchmaking service`
       );
       const player1 = this.state.players.get(this.player1SessionId);
       const player2 = this.state.players.get(this.player2SessionId);
 
-      let winner;
       let score1;
       let score2;
 
@@ -182,29 +182,41 @@ export class GameRoom extends Room {
         }
       );
       if (closeCode) {
-        this.player1Client.leave(closeCode);
-        this.player2Client.leave(closeCode);
+        if (this.player1Client) {
+          this.player1Client.leave(closeCode);
+        }
+        if (this.player2Client) {
+          this.player2Client.leave(closeCode);
+        }
       }
     } catch (e: any) {
       console.error(e);
-      this.player1Client.leave(closeCodes.FAILED_TO_FINISH);
-      this.player2Client.leave(closeCodes.FAILED_TO_FINISH);
+      if (this.player1Client) {
+        this.player1Client.leave(closeCodes.FAILED_TO_FINISH);
+      }
+      if (this.player2Client) {
+        this.player2Client.leave(closeCodes.FAILED_TO_FINISH);
+      }
     } finally {
-      this.disconnect();
+      const winnerName =
+        winner === this.player1Id
+          ? this.player1Username
+          : winner === this.player2Id
+            ? this.player2Username
+            : '?';
+      this.gameFinish(winnerName);
     }
   }
 
   async sendDisconnectResult() {
+    let winner;
     try {
       this.isSendingResult = true;
-      this.broadcastGameFinish();
       console.log(
         `room: ${this.roomId} - sending disconnect result of ${this.matchId} to matchmaking service`
       );
       const player1 = this.state.players.get(this.player1SessionId);
       const player2 = this.state.players.get(this.player2SessionId);
-
-      let winner;
 
       if (player1 && player2) {
         winner = player1.connected
@@ -246,7 +258,13 @@ export class GameRoom extends Room {
         this.player2Client.leave(closeCodes.FAILED_TO_FINISH);
       }
     } finally {
-      this.disconnect();
+      const winnerName =
+        winner === this.player1Id
+          ? this.player1Username
+          : winner === this.player2Id
+            ? this.player2Username
+            : '?';
+      this.gameFinish(winnerName);
     }
   }
 
@@ -326,11 +344,7 @@ export class GameRoom extends Room {
     hack.linearVelocityY = 0;
     hack.linearVelocityZ = 0;
     hack.physicsMesh.aggregate.body.applyForce(
-      new Vector3(
-        Math.random() * 100,
-        Math.random() * 100,
-        Math.random() * 100
-      ),
+      new Vector3(Math.random() * 10, 0, 25),
       hack.physicsMesh.mesh.absolutePosition
     );
     this.id++;
@@ -442,9 +456,12 @@ export class GameRoom extends Room {
         return;
       }
       if (this.gameMode === 'classic') {
-        player2.score += 1;
+        player2.updateScore(1);
+        if (player2.score >= 1) {
+          this.gameFinished = true;
+        }
       } else if (this.gameMode === 'powerup') {
-        player1.lifespan -= 20;
+        player1.updateLife(-20);
       }
       console.log(`room: ${this.roomId} - goal 1`);
     });
@@ -456,12 +473,29 @@ export class GameRoom extends Room {
       }
 
       if (this.gameMode === 'classic') {
-        player1.score += 1;
+        player1.updateScore(1);
+        if (player1.score >= 1) {
+          this.gameFinished = true;
+        }
       } else if (this.gameMode === 'powerup') {
-        player2.lifespan -= 20;
+        player2.updateLife(-20);
       }
       console.log(`room: ${this.roomId} - goal 2`);
     });
+  }
+
+  gameFinish(winner: string) {
+    this.broadcastGameFinish(winner);
+
+    this.clock.setTimeout(() => {
+      if (this.player1Client) {
+        this.player1Client.leave(closeCodes.CONSENTED);
+      }
+      if (this.player2Client) {
+        this.player2Client.leave(closeCodes.CONSENTED);
+      }
+      this.disconnect();
+    }, 10 * 1000);
   }
 
   broadcastGameStart() {
@@ -479,9 +513,9 @@ export class GameRoom extends Room {
     this.broadcast('game-restart', '');
   }
 
-  broadcastGameFinish() {
+  broadcastGameFinish(winner: string) {
     console.log(`room: ${this.roomId} - broadcasting game-finish`);
-    this.broadcast('game-finished', '');
+    this.broadcast('game-finished', winner);
   }
 
   broadcastShutdown() {
