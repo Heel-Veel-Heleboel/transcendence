@@ -1,9 +1,8 @@
 import { Room, Client, CloseCode } from 'colyseus';
-import { setTimeout } from 'node:timers/promises';
 import { GameRoomState } from '#schema/GameRoomState.js';
 import { createHack } from '#game-engine/create.js';
 import { GameEngine } from '#game-engine/game-engine.js';
-import { Vector3 } from '@babylonjs/core';
+import { PhysicsEventType, Vector3 } from '@babylonjs/core';
 import { Player } from './entities/player.js';
 import { renderLoop } from '#game-engine/render.js';
 import { getGuestConfig, getHostConfig } from './entities/config.js';
@@ -416,7 +415,10 @@ export class GameRoom extends Room {
     console.log(`room: ${this.roomId} - initializing observers`);
     const observable1 =
       this.engine.arena.goal_1.aggregate.body.getCollisionObservable();
-    observable1.add(_collisionEvent => {
+    observable1.add(collisionEvent => {
+      if (collisionEvent.type !== PhysicsEventType.COLLISION_STARTED) {
+        return;
+      }
       if (this.gameMode === 'classic') {
         player2.score += 1;
       } else if (this.gameMode === 'powerup') {
@@ -426,7 +428,11 @@ export class GameRoom extends Room {
     });
     const observable2 =
       this.engine.arena.goal_2.aggregate.body.getCollisionObservable();
-    observable2.add(_collisionEvent => {
+    observable2.add(collisionEvent => {
+      if (collisionEvent.type !== PhysicsEventType.COLLISION_STARTED) {
+        return;
+      }
+
       if (this.gameMode === 'classic') {
         player1.score += 1;
       } else if (this.gameMode === 'powerup') {
