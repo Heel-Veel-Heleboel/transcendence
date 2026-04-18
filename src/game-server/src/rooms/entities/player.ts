@@ -113,7 +113,7 @@ export class Player extends Schema implements IPlayer {
     if (this.isOverflow(newValue)) {
       newValue = 100;
     }
-    if (newValue < 0) {
+    if (newValue <= 0) {
       newValue = 0;
       this.isDead = true;
     }

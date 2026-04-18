@@ -116,14 +116,18 @@ export class GameRoom extends Room {
   }
 
   update(_deltaTime: number) {
-    if (this.gameFinished) {
-      this.engine.engine.stopRenderLoop();
-      this.sendResult();
-    }
     if (this.gameMode === 'powerup') {
       this.state.players.forEach((key, _value) => {
         key.updateMana(0.01);
+        if (key.isDead) {
+          this.gameFinished = true;
+        }
       });
+    }
+
+    if (this.gameFinished) {
+      this.engine.engine.stopRenderLoop();
+      this.sendResult();
     }
   }
 
@@ -344,7 +348,11 @@ export class GameRoom extends Room {
     hack.linearVelocityY = 0;
     hack.linearVelocityZ = 0;
     hack.physicsMesh.aggregate.body.applyForce(
-      new Vector3(Math.random() * 10, 0, 25),
+      new Vector3(
+        Math.random() * 100,
+        Math.random() * 100,
+        Math.random() * 100
+      ),
       hack.physicsMesh.mesh.absolutePosition
     );
     this.id++;
