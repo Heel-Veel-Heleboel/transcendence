@@ -404,7 +404,7 @@ export class GameClient {
     return this._hacks;
   }
   private get initialized(): boolean {
-    return this.initialized;
+    return this._initialized;
   }
   private get loadingScreen(): LoadingScreen {
     return this._loadingScreen;
