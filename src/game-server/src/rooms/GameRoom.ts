@@ -26,6 +26,7 @@ export class GameRoom extends Room {
   state = new GameRoomState();
   engine: GameEngine;
   id = 0;
+  frameCount = 0;
   gameFinished = false;
   hasCrashed = false;
   isSendingResult = false;
@@ -65,6 +66,7 @@ export class GameRoom extends Room {
       }
       if (this.player1Ack && this.player2Ack) {
         this.broadcastGameStart();
+        this.addHack();
         renderLoop(this.engine);
       }
     },
@@ -129,6 +131,41 @@ export class GameRoom extends Room {
       this.engine.engine.stopRenderLoop();
       this.sendResult();
     }
+
+    this.state.hacks.forEach((key, value) => {
+      if (key.isDead()) {
+        this.state.hacks.delete(value);
+      }
+    });
+
+    if (!(this.frameCount % 200)) {
+      this.addHack();
+    }
+
+    this.frameCount++;
+  }
+
+  addHack() {
+    const hack = createHack(this.engine.scene, new Vector3(0, 0, 0), 1);
+
+    hack.lifespan = 1000;
+    hack.id = this.id;
+    hack.x = 0;
+    hack.y = 0;
+    hack.z = 0;
+    hack.linearVelocityX = 0;
+    hack.linearVelocityY = 0;
+    hack.linearVelocityZ = 0;
+    hack.physicsMesh.aggregate.body.applyForce(
+      new Vector3(
+        Math.random() * 100,
+        Math.random() * 100,
+        Math.random() * 100
+      ),
+      hack.physicsMesh.mesh.absolutePosition
+    );
+    this.id++;
+    this.state.hacks.set(String(this.id), hack);
   }
 
   async sendResult(closeCode?: number) {
@@ -337,22 +374,6 @@ export class GameRoom extends Room {
       this.player2SessionId = client.sessionId;
       this.state.players.set(client.sessionId, player);
     }
-    const hack = createHack(this.engine.scene, new Vector3(0, 0, 0), 1);
-
-    hack.lifespan = 1000;
-    hack.id = this.id;
-    hack.x = 0;
-    hack.y = 0;
-    hack.z = 0;
-    hack.linearVelocityX = 0;
-    hack.linearVelocityY = 0;
-    hack.linearVelocityZ = 0;
-    hack.physicsMesh.aggregate.body.applyForce(
-      new Vector3(0, 0, 25),
-      hack.physicsMesh.mesh.absolutePosition
-    );
-    this.id++;
-    this.state.hacks.set(client.sessionId, hack);
     if (this.state.players.size === 2) {
       this.initializeObservers();
     }
@@ -408,11 +429,6 @@ export class GameRoom extends Room {
         break;
     }
 
-    const hack = this.state.hacks.get(client.sessionId);
-    if (hack) {
-      hack.dispose();
-      this.state.hacks.delete(client.sessionId);
-    }
     const player = this.state.players.get(client.sessionId);
     if (player) {
       player.dispose();

@@ -58,7 +58,7 @@ export class Hack extends Schema implements IHack {
   }
 
   update(): void {
-    // this.lifespan = this.lifespan - 1;
+    this.lifespan = this.lifespan - 1;
     this.x = this.physicsMesh.mesh.absolutePosition.x;
     this.y = this.physicsMesh.mesh.absolutePosition.y;
     this.z = this.physicsMesh.mesh.absolutePosition.z;
