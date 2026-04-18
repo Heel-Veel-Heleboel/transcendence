@@ -5,7 +5,8 @@ import {
   Camera,
   Light,
   Sound,
-  ArcRotateCamera
+  ArcRotateCamera,
+  Color3
 } from '@babylonjs/core';
 import {
   debugLayerListener,
@@ -111,6 +112,7 @@ export class GameClient {
   }
 
   private async initScene(scene: Scene) {
+    scene.ambientColor = new Color3(1, 1, 1);
     this.hud = new Hud(this.gameMode, scene);
     await this.hud.init();
 

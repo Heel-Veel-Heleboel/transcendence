@@ -44,10 +44,14 @@ export function createHack(scene: Scene, pos: Vector3, diameter: number) {
     },
     scene
   );
-  if (unitializedCheck(_hack)) {
+  const material = new StandardMaterial('hackMaterial', scene);
+  material.ambientColor = new Color3(0, 1, 0);
+  material.diffuseColor = new Color3(0, 1, 0);
+  if (unitializedCheck(_hack) || unitializedCheck(material)) {
     throw new Error(Errors.FAILED_MESH_INIT);
   }
   const hack = new Hack(_hack, pos);
+  hack.mesh.material = material;
   return hack;
 }
 

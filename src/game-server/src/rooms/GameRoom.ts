@@ -348,11 +348,7 @@ export class GameRoom extends Room {
     hack.linearVelocityY = 0;
     hack.linearVelocityZ = 0;
     hack.physicsMesh.aggregate.body.applyForce(
-      new Vector3(
-        Math.random() * 100,
-        Math.random() * 100,
-        Math.random() * 100
-      ),
+      new Vector3(0, 0, 25),
       hack.physicsMesh.mesh.absolutePosition
     );
     this.id++;
@@ -465,7 +461,7 @@ export class GameRoom extends Room {
       }
       if (this.gameMode === 'classic') {
         player2.updateScore(1);
-        if (player2.score >= 1) {
+        if (player2.score >= 11) {
           this.gameFinished = true;
         }
       } else if (this.gameMode === 'powerup') {
@@ -482,7 +478,7 @@ export class GameRoom extends Room {
 
       if (this.gameMode === 'classic') {
         player1.updateScore(1);
-        if (player1.score >= 1) {
+        if (player1.score >= 11) {
           this.gameFinished = true;
         }
       } else if (this.gameMode === 'powerup') {
