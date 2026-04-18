@@ -347,6 +347,10 @@ export class GameRoom extends Room {
     if (player) {
       player.connected = false;
     }
+    if (code === closeCodes.SERVER_SHUTDOWN) {
+      this.sendCancelResult();
+      return;
+    }
     this.engine.engine.stopRenderLoop();
     this.broadcastGameInterrupted();
   }
@@ -376,6 +380,9 @@ export class GameRoom extends Room {
       case closeCodes.GOING_AWAY:
         this.sendDisconnectResult();
         break;
+      case closeCodes.SERVER_SHUTDOWN:
+        this.sendCancelResult();
+        break;
       default:
         break;
     }
@@ -394,8 +401,8 @@ export class GameRoom extends Room {
   }
 
   onDispose() {
-    this.engine.scene.dispose();
     console.log(`room: ${this.roomId} - disposing of room`);
+    this.engine.scene.dispose();
   }
 
   onUncaughtException(err: Error, methodName: string) {
@@ -406,6 +413,18 @@ export class GameRoom extends Room {
       err
     );
     this.sendCancelResult(closeCodes.SERVER_ERROR);
+  }
+
+  onBeforeShutdown() {
+    if (this.player1Client) {
+      this.player1Client.leave(closeCodes.SERVER_ERROR);
+    }
+    if (this.player2Client) {
+      this.player2Client.leave(closeCodes.SERVER_ERROR);
+    }
+    this.sendCancelResult();
+
+    this.clock.setTimeout(() => this.disconnect(), 5 * 1000);
   }
 
   initializeObservers() {
@@ -460,5 +479,10 @@ export class GameRoom extends Room {
   broadcastGameFinish() {
     console.log(`room: ${this.roomId} - broadcasting game-finish`);
     this.broadcast('game-finished', '');
+  }
+
+  broadcastShutdown() {
+    console.log(`room: ${this.roomId} - broadcasting server-shutdown`);
+    this.broadcast('server-shutdown', '');
   }
 }

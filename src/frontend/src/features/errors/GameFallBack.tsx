@@ -51,6 +51,11 @@ export function GameFallback({ error }: FallbackProps): JSX.Element {
             content = 'The current room you are trying to join is not available'
             break;
 
+        case closeCodes.NO_STATUS_RECEIVED:
+            header = 'Lost connection with server'
+            content = `If game cannot continue due to server's fault then it will be canceled`
+            break;
+
         default:
             break;
     }
