@@ -17,6 +17,8 @@ export class Hud implements IHud {
   public antaHealthMeter!: Control;
   public proManaMeter!: Control;
   public antaManaMeter!: Control;
+  public proName!: GUI.TextBlock;
+  public antaName!: GUI.TextBlock;
   private _manaWidth!: number;
   private _healthWidth!: number;
   private _texture!: AdvancedDynamicTexture;
@@ -56,6 +58,7 @@ export class Hud implements IHud {
         this.initClassic();
         this.initializeClassicControls();
       }
+      this.initNames();
     } catch (e: any) {
       console.error(e);
       throw new Error(Errors.FAILED_HUD_IMPORT);
@@ -81,7 +84,6 @@ export class Hud implements IHud {
     antaScore.height = 0.05;
     this.texture.addControl(antaScore);
 
-    // TODO: truncate proName is name of user is to long
     const proName = new GUI.TextBlock('proName');
     proName.text = 'protagonist'.toUpperCase();
     proName.fontSize = 6;
@@ -94,7 +96,6 @@ export class Hud implements IHud {
     proName.height = 0.025;
     this.texture.addControl(proName);
 
-    // TODO: truncate proName is name of user is to long
     const antaName = new GUI.TextBlock('antaName');
     antaName.text = 'antagonist'.toUpperCase();
     antaName.fontSize = 6;
@@ -252,7 +253,6 @@ export class Hud implements IHud {
     antaManaMeterPower3.height = manaHeight;
     this.texture.addControl(antaManaMeterPower3);
 
-    // TODO: truncate proName is name of user is to long
     const proName = new GUI.TextBlock('proName');
     proName.text = 'protagonist'.toUpperCase();
     proName.fontSize = 6;
@@ -266,7 +266,6 @@ export class Hud implements IHud {
     proName.height = 0.025;
     this.texture.addControl(proName);
 
-    // TODO: truncate proName is name of user is to long
     const antaName = new GUI.TextBlock('antaName');
     antaName.text = 'antagonist'.toUpperCase();
     antaName.fontSize = 6;
@@ -318,6 +317,32 @@ export class Hud implements IHud {
     }
     this.proScore = proScore;
     this.antaScore = antaScore;
+  }
+
+  private initNames() {
+    const proName = this.texture.getControlByName('proName') as GUI.TextBlock;
+    const antaName = this.texture.getControlByName('antaName') as GUI.TextBlock;
+    if (!proName || !antaName) {
+      throw new Error(Errors.MISSING_HUD_CONTROL);
+    }
+    this.proName = proName;
+    this.antaName = antaName;
+  }
+
+  changeProName(name: string) {
+    if (name.length > 20) {
+      this.proName.text = name.substring(0, 19) + '.';
+    } else {
+      this.proName.text = name;
+    }
+  }
+
+  changeAntaName(name: string) {
+    if (name.length > 20) {
+      this.antaName.text = name.substring(0, 19) + '.';
+    } else {
+      this.antaName.text = name;
+    }
   }
 
   changeProScore(n: number) {

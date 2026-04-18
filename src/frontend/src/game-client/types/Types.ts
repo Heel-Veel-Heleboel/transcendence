@@ -26,6 +26,7 @@ export interface IPlayerConfig {
   keys: {
     length: number;
   };
+  username: string;
 }
 
 export interface IProtagonistConfig {
@@ -39,6 +40,7 @@ export interface IProtagonistConfig {
     precisionKeys: string;
   };
   room: Room;
+  username: string;
 }
 
 export interface IKeyGridKeys {
@@ -85,6 +87,7 @@ export interface IPlayer {
   goalDimensions: Vector3;
   goalPosition: Vector3;
   ratioDiv: number;
+  username: string;
 }
 
 export interface IProtagonist {

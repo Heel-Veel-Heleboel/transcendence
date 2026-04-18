@@ -16,6 +16,7 @@ export class Player implements IPlayer {
   public goalPosition: Vector3;
   public goalDimensions: Vector3;
   public ratioDiv: number;
+  public username: string;
 
   constructor(config: IPlayerConfig, scene: Scene) {
     this.goalPosition = config.goalPosition;
@@ -45,6 +46,7 @@ export class Player implements IPlayer {
     this.lifespan = 100;
     this.mana = 0;
     this.score = 0;
+    this.username = config.username;
   }
 
   dispose(): void {

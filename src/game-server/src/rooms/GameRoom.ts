@@ -106,12 +106,13 @@ export class GameRoom extends Room {
     this.setSimulationInterval(deltaTime => this.update(deltaTime));
     this.clock.setTimeout(() => {
       if (
-        this.state.players.size != 2 &&
-        (!this.player1Ack || !this.player2Ack)
+        this.state.players.size != 2 ||
+        !this.player1Ack ||
+        !this.player2Ack
       ) {
         this.sendCancelResult(closeCodes.FAILED_TO_JOIN);
       }
-    }, 15000);
+    }, 10 * 1000);
   }
 
   update(_deltaTime: number) {
@@ -295,6 +296,7 @@ export class GameRoom extends Room {
       );
       const player = new Player(
         getHostConfig(this.engine.arena.goal_1),
+        this.player1Username,
         this.engine.scene
       );
       this.player1SessionId = client.sessionId;
@@ -306,6 +308,7 @@ export class GameRoom extends Room {
       );
       const player = new Player(
         getGuestConfig(this.engine.arena.goal_2),
+        this.player2Username,
         this.engine.scene
       );
       this.player2Client = client;

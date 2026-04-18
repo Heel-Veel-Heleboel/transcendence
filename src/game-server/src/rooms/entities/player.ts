@@ -25,6 +25,7 @@ export class Player extends Schema implements IPlayer {
   @type('number') mana: number;
   @type('number') score: number;
   @type('boolean') connected: boolean;
+  @type('string') username: string;
 
   public physicsMesh: PhysicsMesh;
   public goalPosition: Vector3;
@@ -33,7 +34,7 @@ export class Player extends Schema implements IPlayer {
   public isHost: boolean;
   public isDead: boolean;
 
-  constructor(config: IPlayerConfig, scene: Scene) {
+  constructor(config: IPlayerConfig, username: string, scene: Scene) {
     super();
     this.columns = config.keys.columns;
     this.rows = config.keys.rows;
@@ -78,6 +79,7 @@ export class Player extends Schema implements IPlayer {
     this.score = 0;
     this.connected = true;
     this.isDead = false;
+    this.username = username;
   }
 
   move(coord: { x: number; y: number }) {

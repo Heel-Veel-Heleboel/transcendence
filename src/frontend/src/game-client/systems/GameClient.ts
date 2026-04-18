@@ -216,7 +216,8 @@ export class GameClient {
           mana: entity.mana,
           score: entity.score,
           hud: g.hud,
-          room: g.room
+          room: g.room,
+          username: entity.username
         };
 
         const player = new Protagonist(config, g.scene);
@@ -239,7 +240,8 @@ export class GameClient {
           score: 0,
           keys: {
             length: entity.keyLength
-          }
+          },
+          username: entity.username
         };
         const player = new Antagonist(config, g.scene);
         g.anta = player;
@@ -260,10 +262,12 @@ export class GameClient {
     });
   }
 
-  initMessages(room: Room, _g: GameClient) {
+  initMessages(room: Room, g: GameClient) {
     room.onMessage('game-start', message => {
       console.log('game-start');
       console.log(message);
+      g.hud.changeProName(g.prota.username);
+      g.hud.changeAntaName(g.anta.username);
       this.engine.hideLoadingUI();
     });
 
