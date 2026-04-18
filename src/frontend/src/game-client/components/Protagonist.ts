@@ -123,6 +123,10 @@ export class Protagonist extends Player implements IProtagonist {
     this.room.send('set-position', pos);
   }
 
+  powerMove(move: string) {
+    this.room.send(`powerup-${move}`);
+  }
+
   move(coord: { x: number; y: number }) {
     this.room.send('set-position', coord);
   }

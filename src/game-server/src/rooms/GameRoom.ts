@@ -66,7 +66,7 @@ export class GameRoom extends Room {
       }
       if (this.player1Ack && this.player2Ack) {
         this.broadcastGameStart();
-        this.addHack();
+        // this.addHack();
         renderLoop(this.engine);
       }
     },
@@ -85,6 +85,48 @@ export class GameRoom extends Room {
       }
       if (data.payload === 'crash') {
         this.sendResult(closeCodes.CLIENT_GAME_CRASH);
+      }
+    },
+    'powerup-1': (client: Client, _data: any) => {
+      if (this.gameMode === 'powerup') {
+        console.log(`room: ${this.roomId} - powerup-1 ${client.sessionId}`);
+        const player = this.state.players.get(client.sessionId);
+        if (player && player.mana >= 25) {
+          player.powerup1();
+        }
+      }
+    },
+    'powerup-2': (client: Client, _data: any) => {
+      if (this.gameMode === 'powerup') {
+        console.log(`room: ${this.roomId} - powerup-2 ${client.sessionId}`);
+        const player = this.state.players.get(client.sessionId);
+        if (player && player.mana >= 50) {
+          player.powerup2();
+          this.clock.setTimeout(() => {
+            player.powerup2Reset();
+          }, 30 * 1000);
+        }
+      }
+    },
+    'powerup-3': (client: Client, _data: any) => {
+      if (this.gameMode === 'powerup') {
+        console.log(`room: ${this.roomId} - powerup-3 ${client.sessionId}`);
+        const player = this.state.players.get(client.sessionId);
+        if (player && player.mana >= 75) {
+          player.powerup3();
+          this.clock.setTimeout(() => {
+            player.powerup3Reset();
+          }, 30 * 1000);
+        }
+      }
+    },
+    'powerup-4': (client: Client, _data: any) => {
+      if (this.gameMode === 'powerup') {
+        console.log(`room: ${this.roomId} - powerup-4 ${client.sessionId}`);
+        const player = this.state.players.get(client.sessionId);
+        if (player && player.mana >= 100) {
+          player.powerup4();
+        }
       }
     }
   };
@@ -133,13 +175,13 @@ export class GameRoom extends Room {
     }
 
     this.state.hacks.forEach((key, value) => {
-      if (key.isDead()) {
-        this.state.hacks.delete(value);
-      }
+      // if (key.isDead()) {
+      //   this.state.hacks.delete(value);
+      // }
     });
 
     if (!(this.frameCount % 200)) {
-      this.addHack();
+      // this.addHack();
     }
 
     this.frameCount++;

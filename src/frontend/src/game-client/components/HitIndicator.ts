@@ -85,8 +85,6 @@ export class HitIndicator {
         this.goalPosition,
         this.goalPosition
       );
-      console.log('distance');
-      console.log(hackGoalDistance);
       const material = hack.mesh.material as StandardMaterial;
       const amount = p5.prototype.map(
         hackGoalDistance,

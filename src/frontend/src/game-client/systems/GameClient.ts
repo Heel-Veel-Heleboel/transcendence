@@ -234,7 +234,12 @@ export class GameClient {
           camera.setPosition(createVector3(pos.x, pos.y, pos.z * -1));
         }
 
-        const keyManager = new KeyManager(g.scene, () => g.frameCount, g.prota);
+        const keyManager = new KeyManager(
+          g.scene,
+          () => g.frameCount,
+          g.prota,
+          this.gameMode
+        );
         g.keyManager = keyManager;
       } else {
         const config = {

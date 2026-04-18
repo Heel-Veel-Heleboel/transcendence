@@ -15,6 +15,8 @@ export class KeyManager implements IKeyManager {
   public buffer: string[];
   public deltaTime: number;
   public actions: Map<string, { x: number; y: number }>;
+  private powerMoves: string;
+  private gameMode: string;
   public precisionKeys: string;
   public player: Protagonist;
   private getFrameCount: Function;
@@ -24,15 +26,18 @@ export class KeyManager implements IKeyManager {
     scene: Scene,
     frameCountCallback: Function,
     player: Protagonist,
+    gameMode: string,
     windowFrames = 10
   ) {
     scene.onKeyboardObservable.add(this.onKeyDown.bind(this));
     this.windowFrames = windowFrames;
+    this.gameMode = gameMode;
     this.deltaTime = 0;
     this.buffer = [];
     this.getFrameCount = frameCountCallback;
     this.player = player;
     this.actions = player.keyGrid.grid;
+    this.powerMoves = '1234';
     this.precisionKeys = player.keyGrid.precisionKeys;
     this.precisionMove = player.ratioDiv / gameConfig.handlePrecisionRatio;
   }
@@ -59,36 +64,39 @@ export class KeyManager implements IKeyManager {
     const keys = this.precisionKeys.split(gameConfig.keyGridPrecisionSeperator);
     const index = keys.indexOf(key);
     switch (index) {
-    case 0:
-      if (checkUp(this.precisionMove, this.player)) {
+      case 0:
+        if (checkUp(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: 0, y: this.precisionMove });
         break;
-      }
-      this.player.movePrecise({ x: 0, y: this.precisionMove });
-      break;
-    case 1:
-      if (checkDown(this.precisionMove, this.player)) {
+      case 1:
+        if (checkDown(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: 0, y: -this.precisionMove });
         break;
-      }
-      this.player.movePrecise({ x: 0, y: -this.precisionMove });
-      break;
-    case 2:
-      if (checkLeft(this.precisionMove, this.player)) {
+      case 2:
+        if (checkLeft(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: -this.precisionMove, y: 0 });
         break;
-      }
-      this.player.movePrecise({ x: -this.precisionMove, y: 0 });
-      break;
-    case 3:
-      if (checkRight(this.precisionMove, this.player)) {
+      case 3:
+        if (checkRight(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: this.precisionMove, y: 0 });
         break;
-      }
-      this.player.movePrecise({ x: this.precisionMove, y: 0 });
-      break;
     }
   }
 
   resolve() {
     let sequenceKey = this.buffer.join('+');
     let sequencePresent = false;
+    if (this.gameMode === 'powerup' && this.powerMoves.includes(sequenceKey)) {
+      this.powerMove(sequenceKey);
+    }
     if (this.actions.has(sequenceKey)) {
       sequencePresent = true;
     } else if (this.actions.has(sequenceKey.split('').reverse().join(''))) {
@@ -100,6 +108,10 @@ export class KeyManager implements IKeyManager {
       if (coords) this.player.move(coords);
     }
     this.reset();
+  }
+
+  powerMove(move: string) {
+    this.player.powerMove(move);
   }
 
   reset() {

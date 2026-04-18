@@ -33,6 +33,8 @@ export class Player extends Schema implements IPlayer {
   public ratioDiv: number;
   public isHost: boolean;
   public isDead: boolean;
+  public manaRegen: number;
+  public isImmun: boolean;
 
   constructor(config: IPlayerConfig, username: string, scene: Scene) {
     super();
@@ -74,8 +76,9 @@ export class Player extends Schema implements IPlayer {
     this.posX = this.physicsMesh.mesh.absolutePosition.x;
     this.posY = this.physicsMesh.mesh.absolutePosition.y;
     this.posZ = this.physicsMesh.mesh.absolutePosition.z;
-    this.lifespan = 100;
+    this.lifespan = 50;
     this.mana = 0;
+    this.manaRegen = 0.01;
     this.score = 0;
     this.connected = true;
     this.isDead = false;
@@ -124,6 +127,10 @@ export class Player extends Schema implements IPlayer {
     this.score += n;
   }
 
+  updateManaRegen(n: number) {
+    this.manaRegen = n;
+  }
+
   isOverflow(n: number): boolean {
     if (n > 100) {
       return true;
@@ -135,6 +142,34 @@ export class Player extends Schema implements IPlayer {
     this.posX = this.physicsMesh.mesh.absolutePosition.x;
     this.posY = this.physicsMesh.mesh.absolutePosition.y;
     this.posZ = this.physicsMesh.mesh.absolutePosition.z;
+  }
+
+  powerup1() {
+    this.updateLife(20);
+    this.updateMana(-20);
+  }
+
+  powerup2() {
+    this.updateManaRegen(0.02);
+    this.updateMana(-50);
+  }
+
+  powerup2Reset() {
+    this.updateManaRegen(0.01);
+  }
+
+  powerup3() {
+    this.isImmun = true;
+    this.updateMana(-75);
+  }
+
+  powerup3Reset() {
+    this.isImmun = false;
+  }
+
+  powerup4() {
+    console.log('powerup4');
+    this.updateMana(-100);
   }
 
   dispose(): void {
