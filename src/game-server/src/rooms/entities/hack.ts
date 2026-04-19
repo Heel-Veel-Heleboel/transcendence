@@ -26,6 +26,7 @@ export class Hack extends Schema implements IHack {
     super();
     const mesh = ball;
     mesh.position = position;
+    this.setPosition(position);
     const aggregate = new PhysicsAggregate(
       mesh,
       PhysicsShapeType.SPHERE,

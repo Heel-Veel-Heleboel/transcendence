@@ -47,12 +47,6 @@ export function createPowerShot(
   diameter: number
 ) {
   const hack = createHack(scene, pos, diameter);
-  hack.x = hack.physicsMesh.mesh.position.x;
-  hack.y = hack.physicsMesh.mesh.position.y;
-  hack.z = hack.physicsMesh.mesh.position.z;
-  hack.linearVelocityX = 0;
-  hack.linearVelocityY = 0;
-  hack.linearVelocityZ = 0;
 
   hack.physicsMesh.aggregate.body.applyForce(
     force,

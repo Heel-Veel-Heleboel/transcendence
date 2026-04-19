@@ -1,4 +1,4 @@
-import { AbstractMesh, Scene, Vector3, Mesh } from '@babylonjs/core';
+import { AbstractMesh, Scene, Vector3, Mesh, Nullable } from '@babylonjs/core';
 import { KeyGrid } from '../systems/KeyGrid';
 import { Hud } from '../components/Hud';
 import { Control } from '@babylonjs/gui';
@@ -114,4 +114,11 @@ export interface IArena {
   arena: AbstractMesh;
   goal_1: AbstractMesh;
   goal_2: AbstractMesh;
+}
+
+export interface IBounces {
+  from: Vector3;
+  to: Vector3;
+  hit: boolean;
+  normal: Vector3;
 }

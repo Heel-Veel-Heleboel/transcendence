@@ -135,7 +135,23 @@ export class GameRoom extends Room {
         const player = this.state.players.get(client.sessionId);
         if (player && player.powerShots) {
           player.powerup4Shot();
-          createPowerShot(this.engine.scene, data.position, data.force, 1);
+          console.log(data);
+          const o = data.origin;
+          const d = data.direction;
+          const shot = createPowerShot(
+            this.engine.scene,
+            new Vector3(o._x, o._y, o._z),
+            new Vector3(d._x, d._y, d._z),
+            1
+          );
+          console.log(shot.physicsMesh.mesh.position);
+          console.log(shot.x);
+          console.log(shot.y);
+          console.log(shot.z);
+          shot.id = this.id;
+          this.state.hacks.set(String(this.id), shot);
+          console.log(this.state.hacks);
+          this.id++;
         }
       }
     }

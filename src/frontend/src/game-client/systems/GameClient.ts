@@ -5,7 +5,13 @@ import {
   Camera,
   Light,
   Sound,
-  Color3
+  Color3,
+  Ray,
+  Axis,
+  Vector3,
+  MeshBuilder,
+  LinesMesh,
+  PointerEventTypes
 } from '@babylonjs/core';
 import {
   debugLayerListener,
@@ -34,6 +40,7 @@ import * as INSPECTOR from '@babylonjs/inspector';
 import { LoadingScreen } from '../utils/LoadingScreen.ts';
 import { ReconnectionScreen } from '../utils/ReconnectionScreen.ts';
 import { WinnerScreen } from '../utils/WinnerScreen.ts';
+import { IBounces } from '../types/Types.ts';
 
 /* v8 ignore start */
 export class GameClient {
@@ -51,6 +58,7 @@ export class GameClient {
   private _hud!: Hud;
   private _keyManager!: KeyManager;
   private _hacks!: Map<string, Hack>;
+  private _powerUpLines!: LinesMesh | null;
   private _room!: Room;
 
   private _initialized: boolean = false;
@@ -129,6 +137,24 @@ export class GameClient {
 
     scene.onBeforeRenderObservable.add(this.draw(this));
 
+    scene.onPointerObservable.add(pointerInfo => {
+      console.log(pointerInfo.type);
+      switch (pointerInfo.type) {
+        case PointerEventTypes.POINTERDOWN:
+          if (this.gameMode === 'powerup' && this.prota.powerShots) {
+            const forwardRay = this.powerCamera.getForwardRay();
+            console.log(forwardRay);
+            this.room.send('powershot', {
+              origin: forwardRay.origin,
+              direction: forwardRay.direction.scale(50)
+            });
+          }
+
+          break;
+        default:
+          break;
+      }
+    });
     INSPECTOR.Inspector.Show(scene, {});
     return scene;
   }
@@ -142,8 +168,11 @@ export class GameClient {
         if (this.gameMode === 'powerup') {
           if (g.prota.powerShots) {
             this.protaPowerShotMode();
-          } else if (g.anta.powerShots) {
-            this.antaPowerShotMode();
+          }
+          if (this.powerUpLines && !g.prota.powerShots) {
+            this.switchToGoalCamera();
+            this.powerUpLines.dispose();
+            this.powerUpLines = null;
           }
         }
 
@@ -171,9 +200,79 @@ export class GameClient {
 
   protaPowerShotMode() {
     this.switchToPowerCamera();
+    const points = this.castBouncingRayFromCamera(this.powerCamera);
+    this.showBounces(points);
   }
 
-  antaPowerShotMode() {}
+  private showBounces(hits: IBounces[]) {
+    const bounceLines = [];
+    for (const seg of hits) {
+      bounceLines.push(seg.from);
+      bounceLines.push(seg.to);
+    }
+    if (this.powerUpLines) {
+      this.powerUpLines = MeshBuilder.CreateLines(
+        'bounceLines',
+        { points: bounceLines, instance: this.powerUpLines },
+        this.scene
+      );
+    } else {
+      this.powerUpLines = MeshBuilder.CreateLines(
+        'bounceLines',
+        { points: bounceLines, updatable: true },
+        this.scene
+      );
+    }
+  }
+
+  private reflect(dir: Vector3, normal: Vector3) {
+    const dot = Vector3.Dot(dir, normal);
+    return dir.subtract(normal.scale(2 * dot)).normalize();
+  }
+
+  // Cast bouncing ray from camera
+  castBouncingRayFromCamera(camera: Camera) {
+    const maxBounces = 3;
+    const epsilon = 1e-3; // offset to avoid self-intersection
+    const lengthPerStep = 10000;
+
+    const hits = [] as IBounces[]; // collect hit info: {point, normal, mesh, from, to}
+    const firstRay = camera.getForwardRay();
+    firstRay.origin.y -= 0.5;
+
+    let origin = firstRay.origin;
+    let dir = firstRay.direction;
+    for (let bounce = 0; bounce < maxBounces; bounce++) {
+      const to = origin.add(dir.scale(lengthPerStep));
+      const ray = new Ray(origin, dir, lengthPerStep);
+      const pickInfo = this.scene.pickWithRay(ray, _mesh => {
+        return true;
+      });
+      if (!pickInfo || !pickInfo.hit) {
+        hits.push({
+          from: origin.clone(),
+          to: to.clone(),
+          normal: Vector3.Zero(),
+          hit: false
+        });
+        break;
+      }
+      const p = pickInfo.pickedPoint?.clone();
+      const n =
+        pickInfo.getNormal(true) || pickInfo.getNormal(false) || Vector3.Up(); // normal at hit
+      if (p && n) {
+        hits.push({
+          from: origin.clone(),
+          to: p.clone(),
+          hit: true,
+          normal: n.clone()
+        });
+        dir = this.reflect(dir, n);
+        origin = p.add(dir.scale(epsilon));
+      }
+    }
+    return hits;
+  }
 
   async initRoom(room: Room) {
     this.room = room;
@@ -194,8 +293,14 @@ export class GameClient {
         createVector3(entity.x, entity.y, entity.z),
         gameConfig.hackSize
       );
+      console.log('in add');
+      console.log(entity);
+      console.log(g.hacks);
       g.hacks.set(entity.id, hack);
       callbacks.onChange(entity, () => {
+        console.log('in change');
+        console.log(entity);
+        console.log(g.hacks);
         const hack = g.hacks.get(entity.id);
         if (hack) {
           const pos = createVector3(entity.x, entity.y, entity.z);
@@ -381,6 +486,9 @@ export class GameClient {
   }
 
   switchToPowerCamera() {
+    if (this.scene.activeCamera === this.powerCamera) {
+      return;
+    }
     const canvas = this.engine.getRenderingCanvas();
     this.powerCamera.attachControl(canvas, true);
     this.scene.activeCamera = this.powerCamera;
@@ -429,6 +537,9 @@ export class GameClient {
   }
   private set hacks(hacks: Map<string, Hack>) {
     this._hacks = hacks;
+  }
+  private set powerUpLines(lines: LinesMesh | null) {
+    this._powerUpLines = lines;
   }
   private set room(room: Room) {
     this._room = room;
@@ -497,6 +608,9 @@ export class GameClient {
   }
   private get hacks(): Map<string, Hack> {
     return this._hacks;
+  }
+  private get powerUpLines() {
+    return this._powerUpLines;
   }
   private get initialized(): boolean {
     return this._initialized;
