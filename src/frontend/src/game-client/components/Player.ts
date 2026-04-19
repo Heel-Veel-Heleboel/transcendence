@@ -13,6 +13,7 @@ export class Player implements IPlayer {
   public lifespan: number;
   public score: number;
   public mana: number;
+  public powerShots: number;
   public goalPosition: Vector3;
   public goalDimensions: Vector3;
   public ratioDiv: number;
@@ -46,6 +47,7 @@ export class Player implements IPlayer {
     this.lifespan = 100;
     this.mana = 0;
     this.score = 0;
+    this.powerShots = 0;
     this.username = config.username;
   }
 

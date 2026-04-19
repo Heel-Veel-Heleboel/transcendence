@@ -40,6 +40,28 @@ export function createHack(scene: Scene, pos: Vector3, diameter: number) {
   return hack;
 }
 
+export function createPowerShot(
+  scene: Scene,
+  pos: Vector3,
+  force: Vector3,
+  diameter: number
+) {
+  const hack = createHack(scene, pos, diameter);
+  hack.x = hack.physicsMesh.mesh.position.x;
+  hack.y = hack.physicsMesh.mesh.position.y;
+  hack.z = hack.physicsMesh.mesh.position.z;
+  hack.linearVelocityX = 0;
+  hack.linearVelocityY = 0;
+  hack.linearVelocityZ = 0;
+
+  hack.physicsMesh.aggregate.body.applyForce(
+    force,
+    hack.physicsMesh.mesh.absolutePosition
+  );
+
+  return hack;
+}
+
 export function createLight(scene: Scene) {
   const light = new HemisphericLight('hemiLight', new Vector3(-1, 1, 0), scene);
   light.diffuse = new Color3(1, 0, 0);

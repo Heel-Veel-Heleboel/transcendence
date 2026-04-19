@@ -1,6 +1,6 @@
 import { Room, Client, CloseCode } from 'colyseus';
 import { GameRoomState } from '#schema/GameRoomState.js';
-import { createHack } from '#game-engine/create.js';
+import { createHack, createPowerShot } from '#game-engine/create.js';
 import { GameEngine } from '#game-engine/game-engine.js';
 import { PhysicsEventType, Vector3 } from '@babylonjs/core';
 import { Player } from './entities/player.js';
@@ -126,6 +126,16 @@ export class GameRoom extends Room {
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 100) {
           player.powerup4();
+        }
+      }
+    },
+    powershot: (client: Client, data: any) => {
+      if (this.gameMode === 'powerup') {
+        console.log(`room: ${this.roomId} - powershot ${client.sessionId}`);
+        const player = this.state.players.get(client.sessionId);
+        if (player && player.powerShots) {
+          player.powerup4Shot();
+          createPowerShot(this.engine.scene, data.position, data.force, 1);
         }
       }
     }

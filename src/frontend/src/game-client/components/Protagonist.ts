@@ -24,6 +24,7 @@ export class Protagonist extends Player implements IProtagonist {
   public hitIndicator: HitIndicator;
   public room: Room;
   public rotation: boolean;
+  public powerShotModePos: Vector3;
 
   constructor(config: IProtagonistConfig, scene: Scene) {
     super(config, scene);
@@ -72,6 +73,8 @@ export class Protagonist extends Player implements IProtagonist {
       gridMaterial.gridRatio = this.goalDimensions.x / this.ratioDiv;
     }
     this.keyGridMesh.material = gridMaterial;
+    this.powerShotModePos = config.goalPosition.clone();
+    this.powerShotModePos.y += this.goalDimensions.y;
   }
 
   async initGridHints(scene: Scene) {

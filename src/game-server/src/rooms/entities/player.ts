@@ -24,6 +24,7 @@ export class Player extends Schema implements IPlayer {
   @type('number') lifespan: number;
   @type('number') mana: number;
   @type('number') score: number;
+  @type('number') powerShots: number;
   @type('boolean') connected: boolean;
   @type('string') username: string;
 
@@ -77,7 +78,7 @@ export class Player extends Schema implements IPlayer {
     this.posY = this.physicsMesh.mesh.absolutePosition.y;
     this.posZ = this.physicsMesh.mesh.absolutePosition.z;
     this.lifespan = 50;
-    this.mana = 0;
+    this.mana = 100;
     this.manaRegen = 0.01;
     this.score = 0;
     this.connected = true;
@@ -170,6 +171,13 @@ export class Player extends Schema implements IPlayer {
   powerup4() {
     console.log('powerup4');
     this.updateMana(-100);
+    this.powerShots = 5;
+  }
+
+  powerup4Shot() {
+    if (this.powerShots > 0) {
+      this.powerShots--;
+    }
   }
 
   dispose(): void {

@@ -84,6 +84,7 @@ export interface IPlayer {
   mesh: AbstractMesh;
   lifespan: number;
   score: number;
+  powerShots: number;
   goalDimensions: Vector3;
   goalPosition: Vector3;
   ratioDiv: number;

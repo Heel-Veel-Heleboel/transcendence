@@ -5,7 +5,6 @@ import {
   Camera,
   Light,
   Sound,
-  ArcRotateCamera,
   Color3
 } from '@babylonjs/core';
 import {
@@ -16,9 +15,10 @@ import { prepareImportGLTF } from '../utils/Loaders';
 import {
   createBgMusic,
   createHack,
-  createCamera,
+  createGoalCamera,
   createLight,
-  createVector3
+  createVector3,
+  createPowerCamera
 } from '../utils/Create';
 import '@babylonjs/loaders/glTF';
 import { Hack } from '../components/Hack';
@@ -59,7 +59,8 @@ export class GameClient {
   private _winnerScreen!: WinnerScreen;
 
   //@ts-ignore
-  private _camera!: Camera;
+  private _goalCamera!: Camera;
+  private _powerCamera!: Camera;
   //@ts-ignore
   private _light!: Light;
   //@ts-ignore
@@ -120,7 +121,6 @@ export class GameClient {
       new GizmoManager(scene);
     }
     this.backgroundMusic = createBgMusic(scene);
-    this.camera = createCamera(scene, 40);
     this.light = createLight(scene);
     this.arena = new Arena();
     await this.arena.initMesh(scene);
@@ -138,6 +138,14 @@ export class GameClient {
       try {
         if (typeof g.prota === 'undefined' || typeof g.anta === 'undefined')
           return;
+
+        if (this.gameMode === 'powerup') {
+          if (g.prota.powerShots) {
+            this.protaPowerShotMode();
+          } else if (g.anta.powerShots) {
+            this.antaPowerShotMode();
+          }
+        }
 
         for (const entity of g.hacks) {
           const ball = entity[1];
@@ -161,11 +169,16 @@ export class GameClient {
     };
   }
 
+  protaPowerShotMode() {
+    this.switchToPowerCamera();
+  }
+
+  antaPowerShotMode() {}
+
   async initRoom(room: Room) {
     this.room = room;
     this.initMessages(room, this);
     this.initCallbacks(room, this);
-    this.clientAcknowledge(room);
   }
 
   private async initCallbacks(room: Room, g: GameClient) {
@@ -228,10 +241,26 @@ export class GameClient {
         const player = new Protagonist(config, g.scene);
         g.prota = player;
         g.prota.initGridHints(g.scene);
+        const pos = config.goalPosition;
+        console.log(pos);
         if (g.prota.keyGrid.rotation) {
-          const pos = g.camera.position;
-          const camera = g.camera as ArcRotateCamera;
-          camera.setPosition(createVector3(pos.x, pos.y, pos.z * -1));
+          this.goalCamera = createGoalCamera(
+            g.scene,
+            createVector3(pos.x, pos.y, pos.z + 15)
+          );
+          this.powerCamera = createPowerCamera(
+            g.scene,
+            createVector3(pos.x, pos.y + config.goalDimensions.y, pos.z)
+          );
+        } else {
+          this.goalCamera = createGoalCamera(
+            g.scene,
+            createVector3(pos.x, pos.y, pos.z - 15)
+          );
+          this.powerCamera = createPowerCamera(
+            g.scene,
+            createVector3(pos.x, pos.y + config.goalDimensions.y, pos.z)
+          );
         }
 
         const keyManager = new KeyManager(
@@ -256,6 +285,9 @@ export class GameClient {
         const player = new Antagonist(config, g.scene);
         g.anta = player;
       }
+      if (typeof g.prota !== 'undefined' && typeof g.anta !== 'undefined') {
+        this.clientAcknowledge(g.room);
+      }
       callbacks.onChange(entity, () => {
         const player = sessionId === g.room.sessionId ? g.prota : g.anta;
         player.mesh.position.x = entity.posX;
@@ -264,6 +296,10 @@ export class GameClient {
         player.lifespan = entity.lifespan;
         player.mana = entity.mana;
         player.score = entity.score;
+        player.powerShots = entity.powerShots;
+        if (player === g.prota && player.powerShots && !entity.powerShots) {
+          this.switchToGoalCamera();
+        }
       });
     });
     callbacks.onRemove('players', (_entity: any, sessionId: unknown) => {
@@ -274,36 +310,56 @@ export class GameClient {
 
   initMessages(room: Room, g: GameClient) {
     room.onMessage('game-start', message => {
-      console.log('game-start');
-      console.log(message);
-      g.hud.changeProName(g.prota.username);
-      g.hud.changeAntaName(g.anta.username);
-      this.engine.hideLoadingUI();
+      try {
+        console.log('game-start');
+        console.log(message);
+        g.hud.changeProName(g.prota.username);
+        g.hud.changeAntaName(g.anta.username);
+        this.engine.hideLoadingUI();
+      } catch (e: any) {
+        g.setError(e);
+      }
     });
 
     room.onMessage('game-interrupted', message => {
-      console.log('game-interrupted');
-      console.log(message);
-      this.displayReconnectionScreen();
+      try {
+        console.log('game-interrupted');
+        console.log(message);
+        this.displayReconnectionScreen();
+      } catch (e: any) {
+        g.setError(e);
+      }
     });
 
     room.onMessage('game-restart', message => {
-      console.log('game-restart');
-      console.log(message);
-      this.engine.hideLoadingUI();
+      try {
+        console.log('game-restart');
+        console.log(message);
+        this.engine.hideLoadingUI();
+      } catch (e: any) {
+        g.setError(e);
+      }
     });
 
     room.onMessage('game-finished', message => {
-      console.log('game-finished');
-      console.log(message);
-      this.winnerScreen.setText('winner: ' + message);
-      this.displayWinnerScreen();
+      try {
+        console.log('game-finished');
+        console.log(message);
+        this.winnerScreen.setText('winner: ' + message);
+        this.displayWinnerScreen();
+      } catch (e: any) {
+        g.setError(e);
+      }
     });
   }
 
   async clientAcknowledge(room: Room) {
-    console.log('client-ack');
-    room.send('client-ack');
+    try {
+      console.log('client-ack');
+      room.send('client-ack');
+    } catch (e: any) {
+      this.setError(e);
+    }
   }
 
   displayLoadingScreen() {
@@ -322,6 +378,17 @@ export class GameClient {
     this.engine.hideLoadingUI();
     this.engine.loadingScreen = this.winnerScreen;
     this.engine.displayLoadingUI();
+  }
+
+  switchToPowerCamera() {
+    const canvas = this.engine.getRenderingCanvas();
+    this.powerCamera.attachControl(canvas, true);
+    this.scene.activeCamera = this.powerCamera;
+  }
+
+  switchToGoalCamera() {
+    this.powerCamera.detachControl();
+    this.scene.activeCamera = this.goalCamera;
   }
 
   private set defaultScene(defaultScene: Scene) {
@@ -378,8 +445,11 @@ export class GameClient {
   private set winnerScreen(winnerScreen: WinnerScreen) {
     this._winnerScreen = winnerScreen;
   }
-  private set camera(camera: Camera) {
-    this._camera = camera;
+  private set goalCamera(goalCamera: Camera) {
+    this._goalCamera = goalCamera;
+  }
+  private set powerCamera(powerCamera: Camera) {
+    this._powerCamera = powerCamera;
   }
   private set light(light: Light) {
     this._light = light;
@@ -443,8 +513,11 @@ export class GameClient {
   private get room(): Room {
     return this._room;
   }
-  private get camera(): Camera {
-    return this._camera;
+  private get goalCamera(): Camera {
+    return this._goalCamera;
+  }
+  private get powerCamera(): Camera {
+    return this._powerCamera;
   }
   private get light(): Light {
     return this._light;
