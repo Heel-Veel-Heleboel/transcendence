@@ -1,5 +1,26 @@
 services:
 
+  # ─── Nginx (TLS termination + reverse proxy) ────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - api-gateway
+      - frontend
+      - game-server
+    networks:
+      - app-net
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 5s
+        window: 15s
+
   # ─── API Gateway ────────────────────────────────────────────────────────────
   api-gateway:
     build:
@@ -15,6 +36,9 @@ services:
       - SERVICES_FILE=/app/config/services.json
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
+      # ALLOWED_ORIGINS: the browser origin must match exactly (scheme + host, no port for 443).
+      # https://transcendence-avs is the hostname used for remote/prod play.
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,https://transcendence-avs
     labels:
       prometheus.scrape: "true"
       prometheus.port: "3000"
@@ -42,6 +66,11 @@ services:
     build:
       context: src/frontend
       dockerfile: Dockerfile
+      args:
+        # Vite bakes these into the bundle at build time.
+        # Pass HOST_IP when building for LAN play: HOST_IP=x.x.x.x docker compose up --build
+        - VITE_API_URL=${VITE_API_URL:-https://localhost}
+        - VITE_GAME_URL=${VITE_GAME_URL:-https://localhost/colyseus}
     ports:
       - "5173:5173"
     depends_on:
@@ -73,6 +102,9 @@ services:
       - SERVICE_NAME=auth
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
+      # Set to true when serving over HTTPS so browsers honour the Secure cookie flag.
+      # 'make remote' and 'make prod-build' pass COOKIE_SECURE=true automatically.
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
     labels:
       prometheus.scrape: "true"
       prometheus.port: "3003"
@@ -161,7 +193,7 @@ services:
       - PORT=3006
       - HOST=0.0.0.0
       - DATABASE_URL=file:/data/chat.db
-      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3002
+      - ALLOWED_ORIGINS=http://localhost:5173,https://transcendence-avs
       - SERVICE_NAME=chat
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044

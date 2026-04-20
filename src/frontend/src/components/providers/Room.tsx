@@ -20,7 +20,7 @@ let room!: Room;
 // Workaround for React.StrictMode, to avoid multiple join requests
 //
 let hasActiveJoinRequest: boolean = false;
-const client = new Client("http://localhost:2567");
+const client = new Client(import.meta.env.VITE_GAME_URL ?? 'http://localhost:2567');
 
 export function RoomProvider({ children }: { children: ReactNode }) {
     const [joinError, setJoinError] = useState<boolean>(false);
@@ -61,7 +61,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         room.onLeave(() => setIsConnected(false));
         room.onDrop(() => {
             setIsDropped(true)
-            console.log('dropped')
         })
 
         setIsConnected(true);

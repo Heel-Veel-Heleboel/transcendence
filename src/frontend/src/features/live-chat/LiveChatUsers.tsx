@@ -9,7 +9,11 @@ import { FriendshipStatus, IFriendship } from "../../shared/types/friendship";
 import { useChatService } from "../../components/providers/Chat";
 import { useMatchMakingService } from "../../components/providers/Match";
 
-export function LiveChatUsers({ setChannelId }: { setChannelId: Dispatch<SetStateAction<string>> }): JSX.Element {
+export function LiveChatUsers({ setChannelId, hasPendingInvite, setHasPendingInvite }: {
+    setChannelId: Dispatch<SetStateAction<string>>,
+    hasPendingInvite: boolean,
+    setHasPendingInvite: Dispatch<SetStateAction<boolean>>
+}): JSX.Element {
     const [profile, setProfile] = useState<IUser>(DEFAULT_USER);
 
     return (
@@ -19,7 +23,7 @@ export function LiveChatUsers({ setChannelId }: { setChannelId: Dispatch<SetStat
             </div>
             <UserSearchBar setProfile={setProfile} />
             <div className="grow">
-                <UserSearchResult profile={profile} setChannelId={setChannelId} />
+                <UserSearchResult profile={profile} setChannelId={setChannelId} hasPendingInvite={hasPendingInvite} setHasPendingInvite={setHasPendingInvite} />
             </div>
         </div>
     )
@@ -80,7 +84,12 @@ export function UserSearchBar({ setProfile }: { setProfile: Dispatch<SetStateAct
     )
 }
 
-export function UserSearchResult({ profile, setChannelId }: { profile: IUser, setChannelId: Dispatch<SetStateAction<string>> }) {
+export function UserSearchResult({ profile, setChannelId, hasPendingInvite, setHasPendingInvite }: {
+    profile: IUser,
+    setChannelId: Dispatch<SetStateAction<string>>,
+    hasPendingInvite: boolean,
+    setHasPendingInvite: Dispatch<SetStateAction<boolean>>
+}) {
     const navigate = useNavigate();
     const [dropDown, setDropDown] = useState<boolean>(false);
 
@@ -108,14 +117,19 @@ export function UserSearchResult({ profile, setChannelId }: { profile: IUser, se
                 </div>
             </div>
             {dropDown ?
-                <UserDropDown profile={profile} setChannelId={setChannelId} /> :
+                <UserDropDown profile={profile} setChannelId={setChannelId} hasPendingInvite={hasPendingInvite} setHasPendingInvite={setHasPendingInvite} /> :
                 null
             }
         </div>
     )
 }
 
-export function UserDropDown({ profile, setChannelId }: { profile: IUser, setChannelId: Dispatch<SetStateAction<string>> }) {
+export function UserDropDown({ profile, setChannelId, hasPendingInvite, setHasPendingInvite }: {
+    profile: IUser,
+    setChannelId: Dispatch<SetStateAction<string>>,
+    hasPendingInvite: boolean,
+    setHasPendingInvite: Dispatch<SetStateAction<boolean>>
+}) {
     const navigate = useNavigate();
     const service = useUserService();
     const auth = useAuth();
@@ -151,7 +165,7 @@ export function UserDropDown({ profile, setChannelId }: { profile: IUser, setCha
                 {status === FriendshipStatus.ACCEPTED && <Unfriend profile={profile} />}
                 {status === FriendshipStatus.REJECTED && <SendFriendshipRequest profile={profile} />}
                 <SendMessage profile={profile} setChannelId={setChannelId} />
-                {status !== FriendshipStatus.BLOCKED && <SendGameInvite profile={profile} />}
+                {status !== FriendshipStatus.BLOCKED && <SendGameInvite profile={profile} hasPendingInvite={hasPendingInvite} setHasPendingInvite={setHasPendingInvite} />}
                 {iBlockedThem
                     ? <UnBlockUser blocker_id={Number(auth.userId)} blocked_id={profile.id} onSuccess={loadFriendship} />
                     : <BlockUser blocker_id={Number(auth.userId)} blocked_id={profile.id} onSuccess={loadFriendship} />
@@ -289,35 +303,53 @@ export function SendMessage({ profile, setChannelId }: { profile: IUser, setChan
 
 }
 
-export function SendGameInvite({ profile }: { profile: IUser }) {
+export function SendGameInvite({ profile, hasPendingInvite, setHasPendingInvite }: {
+    profile: IUser,
+    hasPendingInvite: boolean,
+    setHasPendingInvite: Dispatch<SetStateAction<boolean>>
+}) {
     const service = useMatchMakingService();
     const [expanded, setExpanded] = useState<boolean>(false);
+    const [inFlight, setInFlight] = useState<boolean>(false);
+
+    function handleToggle() {
+        if (hasPendingInvite) {
+            alert('You already sent a game invite');
+            return;
+        }
+        setExpanded(!expanded);
+    }
 
     async function invite(gameMode: string) {
+        if (inFlight) return;
+        setInFlight(true);
         try {
             await service.sendDirectChallenge({
                 inviteeId: profile.id,
                 inviteeUsername: profile.name,
                 gameMode
             });
+            setHasPendingInvite(true);
             setExpanded(false);
         } catch (e: any) {
             console.error(e);
             alert('failed to send game invite');
+        } finally {
+            setInFlight(false);
         }
     }
 
     return (
         <div>
-            <button id='send-game-invite' onClick={() => setExpanded(!expanded)} className="text-left">
+            <button id='send-game-invite' onClick={handleToggle} className="text-left">
                 send game invite
             </button>
             {expanded ?
                 <div className="flex flex-col pl-2">
-                    <button id='invite-classic' onClick={() => invite('classic')} className="text-left">
+                    <button id='invite-classic' onClick={() => invite('classic')} className="text-left" disabled={inFlight}>
                         classic
                     </button>
-                    <button id='invite-powerup' onClick={() => invite('powerup')} className="text-left">
+                    <button id='invite-powerup' onClick={() => invite('powerup')} className="text-left" disabled={inFlight}>
                         powerup
                     </button>
                 </div>

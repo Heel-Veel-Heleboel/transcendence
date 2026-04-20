@@ -15,6 +15,8 @@ export async function registerMessageRoutes(
     const userId = getUserId(request);
     if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
 
+    const senderUsername = getUsername(request);
+
     const { channelId } = request.params as { channelId: string };
     const { content } = request.body as SendMessageRequest;
 
@@ -23,7 +25,7 @@ export async function registerMessageRoutes(
     }
 
     try {
-      const message = await chatService.sendMessage(channelId, userId, content.trim());
+      const message = await chatService.sendMessage(channelId, userId, content.trim(), senderUsername);
       return reply.status(201).send(message);
     } catch (error) {
       return handleError(request, reply, error);
@@ -81,6 +83,12 @@ function getUserId(request: FastifyRequest): number | null {
   if (!raw) return null;
   const id = parseInt(raw as string, 10);
   return isNaN(id) ? null : id;
+}
+
+function getUsername(request: FastifyRequest): string | null {
+  const raw = request.headers['x-user-name'];
+  if (!raw || typeof raw !== 'string') return null;
+  return raw;
 }
 
 function handleError(request: FastifyRequest, reply: FastifyReply, error: unknown) {

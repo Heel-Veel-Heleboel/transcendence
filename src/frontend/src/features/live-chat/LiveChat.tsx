@@ -1,4 +1,4 @@
-import { JSX, useState } from "react"
+import { JSX, useEffect, useState } from "react"
 import { CONFIG } from "../../shared/config/AppConfig.ts";
 import { TitleBar } from "../../components/layout/TitleBar.tsx";
 import { LiveChatRooms } from "./LiveChatRooms.tsx";
@@ -10,7 +10,12 @@ import { useNotifications } from "../../components/hooks/Notifications.tsx";
 export function LiveChat(): JSX.Element {
     const [channelId, setChannelId] = useState<string>('');
     const [localChatUpdate, setLocalChatUpdate] = useState<number>(0);
+    const [hasPendingInvite, setHasPendingInvite] = useState<boolean>(false);
     const notif = useNotifications();
+
+    useEffect(() => {
+        setHasPendingInvite(false);
+    }, [notif.matchUpdate]);
 
     function openNewChannel(id: string) {
         setChannelId(id);
@@ -21,9 +26,9 @@ export function LiveChat(): JSX.Element {
         <div className="min-h-1/2 min-w-full flex flex-col bg-zinc-800/50 bg-clip-content">
             <TitleBar logoPath={CONFIG.LIVE_CHAT_LOGO} title={CONFIG.LIVE_CHAT_TITLE} />
             <div className="flex h-19/20">
-                <LiveChatRooms setChannelId={setChannelId} chatUpdate={notif.chatUpdate + localChatUpdate} />
+                <LiveChatRooms setChannelId={setChannelId} chatUpdate={notif.chatUpdate + localChatUpdate} openChannelId={channelId} lastMessageChannelId={notif.lastMessageChannelId} />
                 <Chat channelId={channelId} messageUpdate={notif.messageUpdate} />
-                <LiveChatUsers setChannelId={openNewChannel} />
+                <LiveChatUsers setChannelId={openNewChannel} hasPendingInvite={hasPendingInvite} setHasPendingInvite={setHasPendingInvite} />
             </div>
         </div>
     )

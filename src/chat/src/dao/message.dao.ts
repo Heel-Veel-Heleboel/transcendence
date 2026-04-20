@@ -6,6 +6,7 @@ export class MessageDao {
   async create(data: {
     channelId: string;
     senderId: number;
+    senderUsername?: string | null;
     content: string;
     type?: MessageType;
     metadata?: string;
@@ -14,6 +15,7 @@ export class MessageDao {
       data: {
         channelId: data.channelId,
         senderId: data.senderId,
+        senderUsername: data.senderUsername,
         content: data.content,
         type: data.type ?? 'TEXT',
         metadata: data.metadata
