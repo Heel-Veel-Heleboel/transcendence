@@ -5,19 +5,18 @@ COMPOSE_DEV  = docker compose -f docker-compose-dev.yml -f docker-compose.observ
 COMPOSE_PROD = docker compose -f docker-compose.yml -f docker-compose.observability.yml
 COMPOSE_OBS  = docker compose -f docker-compose.observability.yml
 
-HOSTNAME     := transcendence-avs
-
-# Detect the machine's primary LAN IP automatically.
-# Override at the command line: make remote HOST_IP=10.x.x.x
-HOST_IP ?= $(shell ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($$i=="src") print $$(i+1)}' | head -1)
-ifeq ($(HOST_IP),)
-HOST_IP := $(shell ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo localhost)
-endif
+# The machine's actual hostname — resolvable via school/LAN DNS without /etc/hosts.
+# Override at the command line: make remote HOSTNAME=my-custom-host
+HOSTNAME     := $(shell hostname)
+NGINX_PORT   := 7140
 
 # Shell env vars passed to docker compose for HTTPS builds.
 # VITE_* are baked into the frontend bundle at build time.
-# HOST_IP and COOKIE_SECURE are substituted into docker-compose.yml at runtime.
-HTTPS_ARGS = VITE_API_URL=https://$(HOSTNAME) VITE_GAME_URL=https://$(HOSTNAME)/colyseus HOST_IP=$(HOST_IP) COOKIE_SECURE=true
+# ALLOWED_ORIGINS and COOKIE_SECURE are read by services at runtime.
+HTTPS_ARGS = VITE_API_URL=https://$(HOSTNAME):$(NGINX_PORT) \
+             VITE_GAME_URL=https://$(HOSTNAME):$(NGINX_PORT)/colyseus \
+             ALLOWED_ORIGINS=http://localhost:5173,https://$(HOSTNAME):$(NGINX_PORT) \
+             COOKIE_SECURE=true
 
 all: $(NAME)
 
@@ -34,18 +33,11 @@ fclean: clean
 re: fclean all
 
 # ── TLS certificate ───────────────────────────────────────────────────────────
+# Generates a self-signed cert for the machine's hostname (no admin rights needed).
+# Remote players connect to: https://$(HOSTNAME):$(NGINX_PORT)
 
 cert:
-	@bash scripts/gen-cert.sh $(HOST_IP)
-
-# ── /etc/hosts entry (run once per machine) ───────────────────────────────────
-# Host machine:   make hosts          → maps 127.0.0.1 to $(HOSTNAME)
-# Remote player:  make hosts HOST_IP=<host-machine-ip>
-
-hosts:
-	@grep -q "$(HOSTNAME)" /etc/hosts && \
-		echo "$(HOSTNAME) already in /etc/hosts" || \
-		echo "$(HOST_IP)	$(HOSTNAME)" | sudo tee -a /etc/hosts
+	@bash scripts/gen-cert.sh $(HOSTNAME)
 
 # ── Dev (app services only, pino-pretty logs) ────────────────────────────────
 
@@ -60,17 +52,17 @@ dev-down:
 	$(COMPOSE_DEV) down
 
 # ── Remote play / evaluation (LAN, two separate machines) ────────────────────
-# Generates a cert, adds /etc/hosts entry, builds the frontend with the correct
-# URLs baked in, then starts the full stack.
+# Generates a cert for the machine's hostname, then starts the full stack.
+# No admin rights or /etc/hosts changes needed — the hostname resolves via LAN DNS.
 #
 # Usage:
-#   make remote              # auto-detects LAN IP
-#   make remote HOST_IP=10.x.x.x   # or pass it explicitly
+#   make remote              # auto-detects hostname via $(hostname)
+#   make remote HOSTNAME=my-machine
 #
-# Host machine opens:   https://$(HOSTNAME)
-# Remote player runs:   make hosts HOST_IP=<host-ip>  then opens the same URL.
+# Host machine opens:   https://$(HOSTNAME):$(NGINX_PORT)
+# Remote player opens:  https://$(HOSTNAME):$(NGINX_PORT)  (no setup needed)
 
-remote: cert hosts
+remote: cert
 	$(HTTPS_ARGS) $(COMPOSE_APP) up -d --build
 	touch $(NAME)
 
@@ -112,4 +104,4 @@ $(NAME):
 	$(COMPOSE_APP) up --build
 	touch $(NAME)
 
-.PHONY: all clean fclean re cert hosts dev dev-build dev-down remote remote-down prod prod-build prod-down obs obs-build obs-down logs ps
+.PHONY: all clean fclean re cert dev dev-build dev-down remote remote-down prod prod-build prod-down obs obs-build obs-down logs ps

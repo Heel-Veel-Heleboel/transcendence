@@ -4,8 +4,7 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - "7140:7140"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certs:/etc/nginx/certs:ro
@@ -26,8 +25,6 @@ services:
     build:
       context: src/api-gateway
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     env_file:
       - docker/shared.env
     environment:
@@ -36,9 +33,7 @@ services:
       - SERVICES_FILE=/app/config/services.json
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
-      # ALLOWED_ORIGINS: the browser origin must match exactly (scheme + host, no port for 443).
-      # https://transcendence-avs is the hostname used for remote/prod play.
-      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,https://transcendence-avs
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000,https://localhost:7140}
     labels:
       prometheus.scrape: "true"
       prometheus.port: "3000"
@@ -67,12 +62,8 @@ services:
       context: src/frontend
       dockerfile: Dockerfile
       args:
-        # Vite bakes these into the bundle at build time.
-        # Pass HOST_IP when building for LAN play: HOST_IP=x.x.x.x docker compose up --build
-        - VITE_API_URL=${VITE_API_URL:-https://localhost}
-        - VITE_GAME_URL=${VITE_GAME_URL:-https://localhost/colyseus}
-    ports:
-      - "5173:5173"
+        - VITE_API_URL=${VITE_API_URL:-https://localhost:7140}
+        - VITE_GAME_URL=${VITE_GAME_URL:-https://localhost:7140/colyseus}
     depends_on:
       - api-gateway
     networks:
@@ -88,8 +79,6 @@ services:
     build:
       context: src/auth
       dockerfile: Dockerfile
-    ports:
-      - "3003:3003"
     env_file:
       - docker/shared.env
     environment:
@@ -102,8 +91,6 @@ services:
       - SERVICE_NAME=auth
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
-      # Set to true when serving over HTTPS so browsers honour the Secure cookie flag.
-      # 'make remote' and 'make prod-build' pass COOKIE_SECURE=true automatically.
       - COOKIE_SECURE=${COOKIE_SECURE:-false}
     labels:
       prometheus.scrape: "true"
@@ -123,8 +110,6 @@ services:
     build:
       context: src/user-management
       dockerfile: Dockerfile
-    ports:
-      - "3004:3004"
     env_file:
       - docker/shared.env
     environment:
@@ -153,8 +138,6 @@ services:
     build:
       context: src/matchmaking
       dockerfile: Dockerfile
-    ports:
-      - "3005:3005"
     env_file:
       - docker/shared.env
     environment:
@@ -185,15 +168,13 @@ services:
     build:
       context: src/chat
       dockerfile: Dockerfile
-    ports:
-      - "3006:3006"
     env_file:
       - docker/shared.env
     environment:
       - PORT=3006
       - HOST=0.0.0.0
       - DATABASE_URL=file:/data/chat.db
-      - ALLOWED_ORIGINS=http://localhost:5173,https://transcendence-avs
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,https://localhost:7140}
       - SERVICE_NAME=chat
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
@@ -215,8 +196,6 @@ services:
     build:
       context: src/game-server
       dockerfile: Dockerfile
-    ports:
-      - "2567:2567"
     environment:
       - PORT=2567
     networks:
