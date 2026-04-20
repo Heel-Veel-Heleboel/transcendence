@@ -11,6 +11,7 @@ services:
       - ./certs:/etc/nginx/certs:ro
     depends_on:
       - api-gateway
+      - frontend
       - game-server
     networks:
       - app-net
@@ -35,6 +36,9 @@ services:
       - SERVICES_FILE=/app/config/services.json
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
+      # ALLOWED_ORIGINS: the browser origin must match exactly (scheme + host, no port for 443).
+      # https://transcendence-avs is the hostname used for remote/prod play.
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,https://transcendence-avs
     labels:
       prometheus.scrape: "true"
       prometheus.port: "3000"
@@ -98,6 +102,9 @@ services:
       - SERVICE_NAME=auth
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
+      # Set to true when serving over HTTPS so browsers honour the Secure cookie flag.
+      # 'make remote' and 'make prod-build' pass COOKIE_SECURE=true automatically.
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
     labels:
       prometheus.scrape: "true"
       prometheus.port: "3003"
@@ -186,7 +193,7 @@ services:
       - PORT=3006
       - HOST=0.0.0.0
       - DATABASE_URL=file:/data/chat.db
-      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3002
+      - ALLOWED_ORIGINS=http://localhost:5173,https://transcendence-avs
       - SERVICE_NAME=chat
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044

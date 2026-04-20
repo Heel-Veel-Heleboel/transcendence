@@ -7,6 +7,7 @@ import { healthRoutes } from './routes/health.js';
 import { internalRoutes } from './routes/internal.js';
 import { websocketRoutes } from './websocket/handler.js';
 import { authMiddleware } from './middleware/auth.js';
+import { rateLimitMiddleware } from './middleware/rateLimit.js';
 import { helmetConfig, corsConfig, getBodyLimit, logSecurityConfig } from './config/security.js';
 import { config } from './config/index.js';
 import { loggerOptions } from './config/logger.js';
@@ -35,6 +36,9 @@ export const createServer = async () => {
 
   // Register global auth middleware to populate request.user from JWT
   server.addHook('onRequest', authMiddleware);
+
+  // Register rate limiting (runs after auth so authenticated limits are applied correctly)
+  server.addHook('preHandler', rateLimitMiddleware);
 
   // Register health check routes (/health and /health/detailed)
   await healthRoutes(server);
