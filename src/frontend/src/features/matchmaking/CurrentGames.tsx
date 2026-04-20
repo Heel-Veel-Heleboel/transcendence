@@ -2,7 +2,7 @@ import { useLobbyRoom } from "@colyseus/react";
 import { Client } from "@colyseus/sdk";
 import { JSX } from "react";
 
-const client = new Client("ws://localhost:2567");
+const client = new Client(import.meta.env.VITE_GAME_URL ?? 'ws://localhost:2567');
 
 export function CurrentGames(): JSX.Element {
     const { rooms, error, isConnecting } = useLobbyRoom(

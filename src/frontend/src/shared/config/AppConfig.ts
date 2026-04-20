@@ -74,7 +74,7 @@ export const CONFIG = {
   CANCEL_JOIN_BUTTON: 'cancel',
 
   // NOTE: AXIOS
-  REQUEST_BASE_URL: 'http://localhost:3000/api/',
+  REQUEST_BASE_URL: `${import.meta.env.VITE_API_URL ?? 'http://localhost:3000'}/api/`,
   REQUEST_REGISTER: 'auth/register',
   REQUEST_REGISTER_METHOD: 'POST',
   REQUEST_REGISTER_HEADERS: {
@@ -179,5 +179,6 @@ export const CONFIG = {
   MATCHMAKING_CONTAINER_ID: 'MatchmakingContainer',
 
   // NOTE: NOTIFICATIONS
-  NOTIFICATION_URI: 'ws://localhost:3000/ws'
+  // Derives wss:// from the VITE_API_URL (https → wss, http → ws).
+  NOTIFICATION_URI: `${(import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(/^http/, 'ws')}/ws`
 };
