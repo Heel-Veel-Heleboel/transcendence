@@ -264,7 +264,8 @@ export class ChatService {
     gameMode: string,
     expiresAt: string,
     tournamentId?: number,
-    tournamentName?: string
+    tournamentName?: string,
+    challengerUsername?: string
   ) {
     const uniqueIds = Array.from(new Set(playerIds));
     if (uniqueIds.length !== 2) {
@@ -309,7 +310,9 @@ export class ChatService {
     const message = await this.messageDao.create({
       channelId: channel.id,
       senderId: 0,
-      content: `Match found! Game mode: ${gameMode}. Both players must acknowledge to start.`,
+      content: challengerUsername
+        ? `Friendly challenge from ${challengerUsername}! Game mode: ${gameMode}. Both players must acknowledge to start.`
+        : `Match found! Game mode: ${gameMode}. Both players must acknowledge to start.`,
       type: 'SYSTEM',
       metadata: JSON.stringify(metadata)
     });

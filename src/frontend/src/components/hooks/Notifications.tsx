@@ -32,6 +32,7 @@ export function useNotifications() {
                     if (msg.type === 'chat:match_ack_required') {
                         setMatchUpdate(event.timeStamp)
                         setChatUpdate(event.timeStamp);
+                        setMessageUpdate(event.timeStamp);
                     }
                     if (msg.type === 'chat:match_ack_response') {
                         setMatchUpdate(event.timeStamp)

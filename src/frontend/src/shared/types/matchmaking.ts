@@ -60,6 +60,12 @@ export interface ISetTournament {
   gameMode: string;
 }
 
+export interface IDirectChallenge {
+  inviteeId: number;
+  inviteeUsername: string;
+  gameMode: string;
+}
+
 export interface IMatchmakingService {
   getStatus: () => Promise<AxiosResponse>;
   getMatchInfo: (matchId: string) => Promise<AxiosResponse>;
@@ -73,4 +79,5 @@ export interface IMatchmakingService {
   leaveClassic: () => Promise<AxiosResponse>;
   joinPowerup: () => Promise<AxiosResponse>;
   leavePowerup: () => Promise<AxiosResponse>;
+  sendDirectChallenge: (data: IDirectChallenge) => Promise<AxiosResponse>;
 }

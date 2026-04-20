@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext, } from 'react';
 import { MatchmakingService } from '../../shared/api/matchmaking';
-import { IMatchmakingService, ISetTournament } from '../../shared/types/matchmaking';
+import { IDirectChallenge, IMatchmakingService, ISetTournament } from '../../shared/types/matchmaking';
 
 const service = new MatchmakingService();
 
@@ -141,6 +141,16 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    async function sendDirectChallenge(data: IDirectChallenge) {
+        try {
+            const response = await service.sendDirectChallenge(data);
+            return response;
+        } catch (e: any) {
+            console.error(e);
+            throw e;
+        }
+    }
+
     return (
         <MatchmakingServiceContext.Provider value={{
             getStatus,
@@ -154,7 +164,8 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             joinClassic,
             leaveClassic,
             joinPowerup,
-            leavePowerup
+            leavePowerup,
+            sendDirectChallenge
         }}>
             {children}
         </MatchmakingServiceContext.Provider >
