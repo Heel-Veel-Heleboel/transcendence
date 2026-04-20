@@ -1,5 +1,4 @@
 import { initializePhysics } from '#game-engine/physics.js';
-import { renderLoop } from '#game-engine/render.js';
 import { Hack } from '#entities/hack.js';
 import { Arena } from '#entities/arena.js';
 import { createArena, createCamera, createLight } from '#game-engine/create.js';

@@ -1,4 +1,4 @@
-import { AbstractMesh, Scene, Vector3, Mesh, Nullable } from '@babylonjs/core';
+import { AbstractMesh, Scene, Vector3, Mesh } from '@babylonjs/core';
 import { KeyGrid } from '../systems/KeyGrid';
 import { Hud } from '../components/Hud';
 import { Control } from '@babylonjs/gui';

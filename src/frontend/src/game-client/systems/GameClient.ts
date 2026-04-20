@@ -7,7 +7,6 @@ import {
   Sound,
   Color3,
   Ray,
-  Axis,
   Vector3,
   MeshBuilder,
   LinesMesh,
@@ -139,18 +138,18 @@ export class GameClient {
 
     scene.onPointerObservable.add(pointerInfo => {
       switch (pointerInfo.type) {
-        case PointerEventTypes.POINTERDOWN:
-          if (this.gameMode === 'powerup' && this.prota.powerShots) {
-            const forwardRay = this.powerCamera.getForwardRay();
-            this.room.send('powershot', {
-              origin: forwardRay.origin,
-              direction: forwardRay.direction.scale(50)
-            });
-          }
+      case PointerEventTypes.POINTERDOWN:
+        if (this.gameMode === 'powerup' && this.prota.powerShots) {
+          const forwardRay = this.powerCamera.getForwardRay();
+          this.room.send('powershot', {
+            origin: forwardRay.origin,
+            direction: forwardRay.direction.scale(50)
+          });
+        }
 
-          break;
-        default:
-          break;
+        break;
+      default:
+        break;
       }
     });
     INSPECTOR.Inspector.Show(scene, {});
