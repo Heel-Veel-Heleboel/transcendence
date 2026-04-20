@@ -47,6 +47,14 @@ export class ChatService {
     return response.data;
   }
 
+  async markChannelRead(channelId: string) {
+    const config = {
+      url: this.base + `/channels/${channelId}/read`,
+      method: 'POST'
+    } as AxiosRequestConfig;
+    await api(config);
+  }
+
   async sendMessage(data: IMessage) {
     const config = {
       url: this.base + `/channels/${data.channelId}/messages`,

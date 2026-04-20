@@ -36,5 +36,6 @@ export interface IChatMessage {
   id: string;
   metadata: string;
   senderId: number;
+  senderUsername: string | null;
   type: string;
 }

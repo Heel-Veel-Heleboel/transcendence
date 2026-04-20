@@ -198,7 +198,7 @@ export class ChatService {
 
   // ── Messages ──────────────────────────────────────────────
 
-  async sendMessage(channelId: string, senderId: number, content: string) {
+  async sendMessage(channelId: string, senderId: number, content: string, senderUsername: string | null = null) {
     const channel = await this.channelDao.findById(channelId);
     if (!channel) throw new ChatError(404, 'Channel not found');
 
@@ -216,6 +216,7 @@ export class ChatService {
     const message = await this.messageDao.create({
       channelId,
       senderId,
+      senderUsername,
       content
     });
 
@@ -226,6 +227,7 @@ export class ChatService {
         message: {
           id: message.id,
           senderId: message.senderId,
+          senderUsername,
           content: message.content,
           type: message.type,
           createdAt: message.createdAt.toISOString()
@@ -234,7 +236,7 @@ export class ChatService {
       this.channelDao.markRead(channelId, senderId)
     ]);
 
-    return message;
+    return { ...message, senderUsername };
   }
 
   async getMessages(channelId: string, userId: number, cursor?: string, limit?: number) {
@@ -242,10 +244,10 @@ export class ChatService {
     if (!isMember) throw new ChatError(403, 'Not a member of this channel');
 
     const blockedIds = await this.blockService.getBlockedUserIds(userId);
-    const messages = await this.messageDao.findByChannel(channelId, { cursor, limit });
+    let messages = await this.messageDao.findByChannel(channelId, { cursor, limit });
 
     if (blockedIds.length > 0) {
-      return messages.filter(
+      messages = messages.filter(
         (m: { type: string; senderId: number }) => m.type === 'SYSTEM' || !blockedIds.includes(m.senderId)
       );
     }

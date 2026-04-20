@@ -37,13 +37,14 @@ model ChannelMember {
 }
 
 model Message {
-  id        String      @id @default(uuid())
-  channelId String
-  senderId  Int
-  content   String
-  type      MessageType @default(TEXT)
-  metadata  String?
-  createdAt DateTime    @default(now())
+  id             String      @id @default(uuid())
+  channelId      String
+  senderId       Int
+  senderUsername String?
+  content        String
+  type           MessageType @default(TEXT)
+  metadata       String?
+  createdAt      DateTime    @default(now())
 
   channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 

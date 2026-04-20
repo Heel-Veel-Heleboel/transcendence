@@ -93,7 +93,7 @@ export function RenderMessageDate({ item }: { item: IChatMessage }) {
 export function RenderMessageSender({ item }: { item: IChatMessage }) {
     return (
         <div id={`message-sender-${item.id}`} className="w-1/9 text-right pr-2">
-            {item.senderId.toString()}
+            {item.senderUsername ?? item.senderId.toString()}
         </div>
     )
 }

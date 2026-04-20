@@ -17,7 +17,12 @@ import { IChat } from "../../shared/types/chat";
 // user2 o
 // also option to delete chat or leave groupchat if implemented in chat-service
 //
-export function LiveChatRooms({ setChannelId, chatUpdate }: { setChannelId: Dispatch<SetStateAction<string>>, chatUpdate: number }): JSX.Element {
+export function LiveChatRooms({ setChannelId, chatUpdate, openChannelId, lastMessageChannelId }: {
+    setChannelId: Dispatch<SetStateAction<string>>,
+    chatUpdate: number,
+    openChannelId: string,
+    lastMessageChannelId: string | null
+}): JSX.Element {
 
     const service = useChatService();
     const auth = useAuth();
@@ -42,6 +47,13 @@ export function LiveChatRooms({ setChannelId, chatUpdate }: { setChannelId: Disp
         getChannels();
     }, [chatUpdate]);
 
+    useEffect(() => {
+        if (!lastMessageChannelId || lastMessageChannelId === openChannelId) return;
+        setChannels((prev: Array<IChat>) => prev.map((c: IChat) =>
+            c.id === lastMessageChannelId ? { ...c, unreadCount: c.unreadCount + 1 } : c
+        ));
+    }, [lastMessageChannelId]);
+
     function channelDisplayName(channel: IChat): string {
         if (channel.type === 'DM') {
             const other = channel.members.find(m => m.userId !== Number(auth.userId));
@@ -50,10 +62,17 @@ export function LiveChatRooms({ setChannelId, chatUpdate }: { setChannelId: Disp
         return channel.name ?? 'Group Chat';
     }
 
+    function handleChannelClick(channelId: string) {
+        setChannelId(channelId);
+        setChannels((prev: Array<IChat>) => prev.map((c: IChat) => c.id === channelId ? { ...c, unreadCount: 0 } : c));
+        service.markChannelRead(channelId).catch(() => {});
+    }
+
     function List({ channels }: { channels: Array<IChat> }) {
-        // TODO: make seperate unread counter component
         const listItems = channels.map(item =>
-            <li onClick={() => { setChannelId(item.id) }} key={item.id}>{channelDisplayName(item)} {item.unreadCount ? `unread:${item.unreadCount}` : null}</li>
+            <li onClick={() => handleChannelClick(item.id)} key={item.id}>
+                {channelDisplayName(item)}{item.unreadCount ? ` (${item.unreadCount})` : null}
+            </li>
         );
         return <ul>{listItems}</ul>;
     }
