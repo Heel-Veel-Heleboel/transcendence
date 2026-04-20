@@ -1,6 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { MatchReporting } from '../services/match-reporting.js';
-import { getUserIdFromHeader } from './request-context.js';
 
 /**
  * Register match history routes
@@ -11,17 +10,19 @@ export async function registerHistoryRoutes(
 ): Promise<void> {
 
   /**
-   * GET /players/history
-   * Get match history for the authenticated player
+   * GET /matchmaking/players/:userId/history
+   * Get match history for a specific player.
+   * Used for both own profile and visitor profiles — caller supplies the target userId.
    */
-  server.get('/players/history', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.get('/matchmaking/players/:userId/history', async (request: FastifyRequest, reply: FastifyReply) => {
+    const { userId } = request.params as { userId: string };
     const { limit } = request.query as { limit?: string };
-    const userIdNum = getUserIdFromHeader(request);
 
-    if (userIdNum === null) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Missing x-user-id header'
+    const userIdNum = parseInt(userId, 10);
+    if (isNaN(userIdNum) || userIdNum < 1) {
+      return reply.status(400).send({
+        error: 'Bad Request',
+        message: 'userId must be a positive integer'
       });
     }
 

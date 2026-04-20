@@ -1,6 +1,8 @@
 import { JSX, } from "react"
 import { ProfileContainer } from "../features/profile/ProfileContainer";
 import { ProfileProperties, ProfilePropertiesSecundary } from "../features/profile/ProfileProperties";
+import { ProfileStats } from "../features/profile/ProfileStats";
+import { MatchHistory } from "../features/profile/MatchHistory";
 import { CONFIG } from "../shared/config/AppConfig";
 import { MainContainer } from "../components/layout/MainContainer";
 import { Widget } from "../components/layout/Widget";
@@ -30,7 +32,14 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
             <ProfileProperties>
                 <VisitorProfilePropertiesPrimary userId={userId} />
                 <ProfilePropertiesSecundary>
-                    <div className="w-full">statistics</div>
+                    <div className="w-3/10 min-h-full">
+                        <ProfileStats userId={userId} />
+                    </div>
+                    <div className="w-1/20"></div>
+                    <div className="w-5/10 min-h-full">
+                        <MatchHistory userId={userId} />
+                    </div>
+                    <div className="w-1/20"></div>
                 </ProfilePropertiesSecundary>
             </ProfileProperties>
         </ProfileContainer >
