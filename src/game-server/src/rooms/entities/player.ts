@@ -77,8 +77,8 @@ export class Player extends Schema implements IPlayer {
     this.posX = this.physicsMesh.mesh.absolutePosition.x;
     this.posY = this.physicsMesh.mesh.absolutePosition.y;
     this.posZ = this.physicsMesh.mesh.absolutePosition.z;
-    this.lifespan = 50;
-    this.mana = 100;
+    this.lifespan = 100;
+    this.mana = 0;
     this.manaRegen = 0.01;
     this.score = 0;
     this.connected = true;

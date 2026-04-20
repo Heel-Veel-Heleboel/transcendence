@@ -66,7 +66,7 @@ export class GameRoom extends Room {
       }
       if (this.player1Ack && this.player2Ack) {
         this.broadcastGameStart();
-        // this.addHack();
+        this.addHack();
         renderLoop(this.engine);
       }
     },
@@ -89,18 +89,18 @@ export class GameRoom extends Room {
     },
     'powerup-1': (client: Client, _data: any) => {
       if (this.gameMode === 'powerup') {
-        console.log(`room: ${this.roomId} - powerup-1 ${client.sessionId}`);
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 25) {
+          console.log(`room: ${this.roomId} - powerup-1 ${client.sessionId}`);
           player.powerup1();
         }
       }
     },
     'powerup-2': (client: Client, _data: any) => {
       if (this.gameMode === 'powerup') {
-        console.log(`room: ${this.roomId} - powerup-2 ${client.sessionId}`);
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 50) {
+          console.log(`room: ${this.roomId} - powerup-2 ${client.sessionId}`);
           player.powerup2();
           this.clock.setTimeout(() => {
             player.powerup2Reset();
@@ -110,9 +110,9 @@ export class GameRoom extends Room {
     },
     'powerup-3': (client: Client, _data: any) => {
       if (this.gameMode === 'powerup') {
-        console.log(`room: ${this.roomId} - powerup-3 ${client.sessionId}`);
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 75) {
+          console.log(`room: ${this.roomId} - powerup-3 ${client.sessionId}`);
           player.powerup3();
           this.clock.setTimeout(() => {
             player.powerup3Reset();
@@ -122,9 +122,9 @@ export class GameRoom extends Room {
     },
     'powerup-4': (client: Client, _data: any) => {
       if (this.gameMode === 'powerup') {
-        console.log(`room: ${this.roomId} - powerup-4 ${client.sessionId}`);
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 100) {
+          console.log(`room: ${this.roomId} - powerup-4 ${client.sessionId}`);
           player.powerup4();
         }
       }
@@ -135,7 +135,6 @@ export class GameRoom extends Room {
         const player = this.state.players.get(client.sessionId);
         if (player && player.powerShots) {
           player.powerup4Shot();
-          console.log(data);
           const o = data.origin;
           const d = data.direction;
           const shot = createPowerShot(
@@ -144,13 +143,8 @@ export class GameRoom extends Room {
             new Vector3(d._x, d._y, d._z),
             1
           );
-          console.log(shot.physicsMesh.mesh.position);
-          console.log(shot.x);
-          console.log(shot.y);
-          console.log(shot.z);
           shot.id = this.id;
           this.state.hacks.set(String(this.id), shot);
-          console.log(this.state.hacks);
           this.id++;
         }
       }
@@ -201,13 +195,13 @@ export class GameRoom extends Room {
     }
 
     this.state.hacks.forEach((key, value) => {
-      // if (key.isDead()) {
-      //   this.state.hacks.delete(value);
-      // }
+      if (key.isDead()) {
+        this.state.hacks.delete(value);
+      }
     });
 
     if (!(this.frameCount % 200)) {
-      // this.addHack();
+      this.addHack();
     }
 
     this.frameCount++;
@@ -548,10 +542,11 @@ export class GameRoom extends Room {
         if (player2.score >= 11) {
           this.gameFinished = true;
         }
-      } else if (this.gameMode === 'powerup') {
+        console.log(`room: ${this.roomId} - goal 1`);
+      } else if (this.gameMode === 'powerup' && !player1.isImmun) {
         player1.updateLife(-20);
+        console.log(`room: ${this.roomId} - hit 1`);
       }
-      console.log(`room: ${this.roomId} - goal 1`);
     });
     const observable2 =
       this.engine.arena.goal_2.aggregate.body.getCollisionObservable();
@@ -565,10 +560,11 @@ export class GameRoom extends Room {
         if (player1.score >= 11) {
           this.gameFinished = true;
         }
-      } else if (this.gameMode === 'powerup') {
+        console.log(`room: ${this.roomId} - goal 2`);
+      } else if (this.gameMode === 'powerup' && !player2.isImmun) {
         player2.updateLife(-20);
+        console.log(`room: ${this.roomId} - hit 2`);
       }
-      console.log(`room: ${this.roomId} - goal 2`);
     });
   }
 

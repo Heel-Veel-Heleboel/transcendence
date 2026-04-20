@@ -80,7 +80,7 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
                 throw error
             }
             else {
-                console.log(error);
+                console.error(error);
                 room?.send('client-error', { payload: 'crash' });
                 throw new Error('1');
             }

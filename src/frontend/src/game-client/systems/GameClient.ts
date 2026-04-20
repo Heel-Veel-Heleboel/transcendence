@@ -138,12 +138,10 @@ export class GameClient {
     scene.onBeforeRenderObservable.add(this.draw(this));
 
     scene.onPointerObservable.add(pointerInfo => {
-      console.log(pointerInfo.type);
       switch (pointerInfo.type) {
         case PointerEventTypes.POINTERDOWN:
           if (this.gameMode === 'powerup' && this.prota.powerShots) {
             const forwardRay = this.powerCamera.getForwardRay();
-            console.log(forwardRay);
             this.room.send('powershot', {
               origin: forwardRay.origin,
               direction: forwardRay.direction.scale(50)
@@ -293,14 +291,8 @@ export class GameClient {
         createVector3(entity.x, entity.y, entity.z),
         gameConfig.hackSize
       );
-      console.log('in add');
-      console.log(entity);
-      console.log(g.hacks);
       g.hacks.set(entity.id, hack);
       callbacks.onChange(entity, () => {
-        console.log('in change');
-        console.log(entity);
-        console.log(g.hacks);
         const hack = g.hacks.get(entity.id);
         if (hack) {
           const pos = createVector3(entity.x, entity.y, entity.z);
@@ -347,7 +339,6 @@ export class GameClient {
         g.prota = player;
         g.prota.initGridHints(g.scene);
         const pos = config.goalPosition;
-        console.log(pos);
         if (g.prota.keyGrid.rotation) {
           this.goalCamera = createGoalCamera(
             g.scene,
