@@ -12,7 +12,7 @@ describe('History Routes', () => {
     matchId: 'match-123',
     opponentId: 101,
     opponentUsername: 'opponent1',
-    result: 'W',
+    isWinner: true,
     userScore: 11,
     opponentScore: 5,
     gameMode: 'classic',
@@ -36,18 +36,17 @@ describe('History Routes', () => {
     await server.close();
   });
 
-  describe('GET /players/history', () => {
-    it('should return match history for the authenticated user', async () => {
+  describe('GET /matchmaking/players/:userId/history', () => {
+    it('should return match history for a given userId', async () => {
       const history: MatchHistoryEntry[] = [
-        createMockHistoryEntry({ matchId: 'match-1', result: 'W' }),
-        createMockHistoryEntry({ matchId: 'match-2', result: 'L', opponentId: 102 }),
+        createMockHistoryEntry({ matchId: 'match-1', isWinner: true }),
+        createMockHistoryEntry({ matchId: 'match-2', isWinner: false, opponentId: 102 }),
       ];
       (mockMatchReporting.getMatchHistory as any).mockResolvedValue(history);
 
       const response = await server.inject({
         method: 'GET',
-        url: '/players/history',
-        headers: { 'x-user-id': '100' },
+        url: '/matchmaking/players/100/history',
       });
 
       expect(response.statusCode).toBe(200);
@@ -63,8 +62,7 @@ describe('History Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/players/history',
-        headers: { 'x-user-id': '100' },
+        url: '/matchmaking/players/100/history',
       });
 
       expect(response.statusCode).toBe(200);
@@ -81,31 +79,41 @@ describe('History Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/players/history?limit=5',
-        headers: { 'x-user-id': '100' },
+        url: '/matchmaking/players/100/history?limit=5',
       });
 
       expect(response.statusCode).toBe(200);
       expect(mockMatchReporting.getMatchHistory).toHaveBeenCalledWith(100, 5);
     });
 
-    it('should return 401 when x-user-id header is missing', async () => {
+    it('should return 400 for non-numeric userId', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/players/history',
+        url: '/matchmaking/players/abc/history',
       });
 
-      expect(response.statusCode).toBe(401);
+      expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
-      expect(body.error).toBe('Unauthorized');
-      expect(body.message).toContain('x-user-id');
+      expect(body.error).toBe('Bad Request');
+      expect(body.message).toContain('userId');
+    });
+
+    it('should return 400 for zero userId', async () => {
+      const response = await server.inject({
+        method: 'GET',
+        url: '/matchmaking/players/0/history',
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body);
+      expect(body.error).toBe('Bad Request');
+      expect(body.message).toContain('userId');
     });
 
     it('should return 400 for invalid limit parameter', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/players/history?limit=abc',
-        headers: { 'x-user-id': '100' },
+        url: '/matchmaking/players/100/history?limit=abc',
       });
 
       expect(response.statusCode).toBe(400);
@@ -117,8 +125,7 @@ describe('History Routes', () => {
     it('should return 400 for negative limit parameter', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/players/history?limit=-1',
-        headers: { 'x-user-id': '100' },
+        url: '/matchmaking/players/100/history?limit=-1',
       });
 
       expect(response.statusCode).toBe(400);
@@ -130,8 +137,7 @@ describe('History Routes', () => {
     it('should return 400 for zero limit parameter', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/players/history?limit=0',
-        headers: { 'x-user-id': '100' },
+        url: '/matchmaking/players/100/history?limit=0',
       });
 
       expect(response.statusCode).toBe(400);
@@ -145,13 +151,30 @@ describe('History Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/players/history',
-        headers: { 'x-user-id': '100' },
+        url: '/matchmaking/players/100/history',
       });
 
       expect(response.statusCode).toBe(500);
       const body = JSON.parse(response.body);
       expect(body.error).toBe('Internal Server Error');
+    });
+
+    it('should reflect isWinner correctly for wins and losses', async () => {
+      const history: MatchHistoryEntry[] = [
+        createMockHistoryEntry({ matchId: 'match-1', isWinner: true }),
+        createMockHistoryEntry({ matchId: 'match-2', isWinner: false }),
+      ];
+      (mockMatchReporting.getMatchHistory as any).mockResolvedValue(history);
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/matchmaking/players/100/history',
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.matches[0].isWinner).toBe(true);
+      expect(body.matches[1].isWinner).toBe(false);
     });
 
     it('should include tournament matches in history', async () => {
@@ -163,8 +186,7 @@ describe('History Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/players/history',
-        headers: { 'x-user-id': '100' },
+        url: '/matchmaking/players/100/history',
       });
 
       expect(response.statusCode).toBe(200);
@@ -182,8 +204,7 @@ describe('History Routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/players/history',
-        headers: { 'x-user-id': '100' },
+        url: '/matchmaking/players/100/history',
       });
 
       expect(response.statusCode).toBe(200);
