@@ -208,13 +208,13 @@ export class GameClient {
       bounceLines.push(seg.to);
     }
     if (this.powerUpLines) {
-      this.powerUpLines = MeshBuilder.CreateLines(
+      this.powerUpLines = MeshBuilder.CreateDashedLines(
         'bounceLines',
         { points: bounceLines, instance: this.powerUpLines },
         this.scene
       );
     } else {
-      this.powerUpLines = MeshBuilder.CreateLines(
+      this.powerUpLines = MeshBuilder.CreateDashedLines(
         'bounceLines',
         { points: bounceLines, updatable: true },
         this.scene
@@ -229,7 +229,7 @@ export class GameClient {
 
   // Cast bouncing ray from camera
   castBouncingRayFromCamera(camera: Camera) {
-    const maxBounces = 3;
+    const maxBounces = 4;
     const epsilon = 1e-3; // offset to avoid self-intersection
     const lengthPerStep = 10000;
 
