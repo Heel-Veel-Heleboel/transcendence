@@ -66,6 +66,24 @@ export interface IDirectChallenge {
   gameMode: string;
 }
 
+export interface IMatchHistoryEntry {
+  matchId: string;
+  opponentId: number;
+  opponentUsername: string;
+  isWinner: boolean;
+  userScore: number;
+  opponentScore: number;
+  gameMode: string;
+  tournamentId: number | null;
+  completedAt: string;
+}
+
+export interface IMatchHistoryResponse {
+  userId: number;
+  matches: IMatchHistoryEntry[];
+  count: number;
+}
+
 export interface IMatchmakingService {
   getStatus: () => Promise<AxiosResponse>;
   getMatchInfo: (matchId: string) => Promise<AxiosResponse>;
@@ -80,4 +98,5 @@ export interface IMatchmakingService {
   joinPowerup: () => Promise<AxiosResponse>;
   leavePowerup: () => Promise<AxiosResponse>;
   sendDirectChallenge: (data: IDirectChallenge) => Promise<AxiosResponse>;
+  getPlayerHistory: (userId: string, limit?: number) => Promise<AxiosResponse>;
 }

@@ -151,6 +151,16 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    async function getPlayerHistory(userId: string, limit?: number) {
+        try {
+            const response = await service.getPlayerHistory(userId, limit);
+            return response;
+        } catch (e: any) {
+            console.error(e);
+            throw e;
+        }
+    }
+
     return (
         <MatchmakingServiceContext.Provider value={{
             getStatus,
@@ -165,7 +175,8 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             leaveClassic,
             joinPowerup,
             leavePowerup,
-            sendDirectChallenge
+            sendDirectChallenge,
+            getPlayerHistory
         }}>
             {children}
         </MatchmakingServiceContext.Provider >

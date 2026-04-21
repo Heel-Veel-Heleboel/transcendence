@@ -133,4 +133,16 @@ export class MatchmakingService {
     const response = await api(config);
     return response;
   }
+
+  async getPlayerHistory(userId: string, limit?: number) {
+    const url = limit
+      ? this.base + `/players/${userId}/history?limit=${limit}`
+      : this.base + `/players/${userId}/history`;
+    const config = {
+      url,
+      method: 'GET'
+    } as AxiosRequestConfig;
+    const response = await api(config);
+    return response;
+  }
 }
