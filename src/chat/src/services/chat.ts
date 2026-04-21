@@ -221,7 +221,7 @@ export class ChatService {
     });
 
     const usernames = this.userClient ? await this.userClient.getUsernames([senderId]) : new Map<number, string>();
-    const senderUsername = usernames.get(senderId) ?? null;
+    senderUsername = usernames.get(senderId) ?? senderUsername;
 
     await Promise.all([
       this.notificationService.notifyChannelMembers(channelId, {
