@@ -26,6 +26,7 @@ export interface IPlayerConfig {
   keys: {
     length: number;
   };
+  username: string;
 }
 
 export interface IProtagonistConfig {
@@ -39,6 +40,7 @@ export interface IProtagonistConfig {
     precisionKeys: string;
   };
   room: Room;
+  username: string;
 }
 
 export interface IKeyGridKeys {
@@ -81,9 +83,12 @@ export interface IKeyManager {
 export interface IPlayer {
   mesh: AbstractMesh;
   lifespan: number;
+  score: number;
+  powerShots: number;
   goalDimensions: Vector3;
   goalPosition: Vector3;
   ratioDiv: number;
+  username: string;
 }
 
 export interface IProtagonist {
@@ -109,4 +114,11 @@ export interface IArena {
   arena: AbstractMesh;
   goal_1: AbstractMesh;
   goal_2: AbstractMesh;
+}
+
+export interface IBounces {
+  from: Vector3;
+  to: Vector3;
+  hit: boolean;
+  normal: Vector3;
 }

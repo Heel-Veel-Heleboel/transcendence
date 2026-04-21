@@ -1,8 +1,7 @@
-import { initializePhysics } from '#gameEngine/Physics.js';
-import { renderLoop } from '#gameEngine/Render.js';
-import { Ball } from '#entities/Ball.js';
-import { Arena } from '#entities/Arena.js';
-import { createArena, createCamera, createLight } from '#gameEngine/Create.js';
+import { initializePhysics } from '#game-engine/physics.js';
+import { Hack } from '#entities/hack.js';
+import { Arena } from '#entities/arena.js';
+import { createArena, createCamera, createLight } from '#game-engine/create.js';
 import { NullEngine, Scene, Camera, Light } from '@babylonjs/core';
 import XMLHttpRequest from 'xmlhttprequest-ssl';
 import { GameRoom } from '#rooms/GameRoom.js';
@@ -15,8 +14,7 @@ export class GameEngine {
   private _gameRoom!: GameRoom;
   //
   private _arena!: Arena;
-  // private _player!: Player;
-  private _balls!: Map<string, Ball>;
+  private _hacks!: Map<string, Hack>;
   //
   //@ts-ignore
   private _camera!: Camera;
@@ -29,38 +27,27 @@ export class GameEngine {
 
   async initGame() {
     this.engine = new NullEngine();
+
+    console.log(`room: ${this.gameRoom.roomId} - creating scene`);
     const scene = new Scene(this.engine);
 
+    console.log(`room: ${this.gameRoom.roomId} - initializing physics`);
     await initializePhysics(scene);
-    this.scene = await this.initScene(scene);
 
-    renderLoop(this);
+    console.log(`room: ${this.gameRoom.roomId} - initializing scene`);
+    this.scene = await this.initScene(scene);
   }
 
   /* v8 ignore start */
   async initScene(scene: Scene) {
+    console.log(`room: ${this.gameRoom.roomId} - creating camera and lights`);
     this.camera = createCamera(scene, 40);
     this.light = createLight(scene);
+
+    console.log(`room: ${this.gameRoom.roomId} - initializing arena`);
     this.arena = createArena();
     await this.arena.initMesh(scene);
 
-    const observable_1 =
-      this.arena.goal_1.aggregate.body.getCollisionObservable();
-    observable_1.add(_collisionEvent => {
-      console.log('goal_1');
-    });
-
-    const observable_2 =
-      this.arena.goal_2.aggregate.body.getCollisionObservable();
-    observable_2.add(_collisionEvent => {
-      console.log('goal_2');
-    });
-
-    // NOTE: next lines probably not needed in server
-    // scene.onBeforeRenderObservable.add(this.draw(this));
-    // for hit indicator
-    // scene.getBoundingBoxRenderer().frontColor.set(1, 0, 0);
-    // scene.getBoundingBoxRenderer().backColor.set(0, 1, 0);
     return scene;
   }
 
@@ -80,11 +67,8 @@ export class GameEngine {
   set arena(arena: Arena) {
     this._arena = arena;
   }
-  // set player(player: Player) {
-  //   this._player = player;
-  // }
-  set balls(balls: Map<string, Ball>) {
-    this._balls = balls;
+  set hacks(hacks: Map<string, Hack>) {
+    this._hacks = hacks;
   }
   set camera(camera: Camera) {
     this._camera = camera;
@@ -108,11 +92,8 @@ export class GameEngine {
   get arena(): Arena {
     return this._arena;
   }
-  // get player(): Player {
-  //   return this._player;
-  // }
-  get balls(): Map<string, Ball> {
-    return this._balls;
+  get hacks(): Map<string, Hack> {
+    return this._hacks;
   }
   get camera(): Camera {
     return this._camera;

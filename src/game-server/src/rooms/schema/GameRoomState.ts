@@ -1,8 +1,8 @@
 import { MapSchema, Schema, type } from '@colyseus/schema';
-import { Ball } from '#entities/Ball.js';
-import { Player } from '#rooms/entities/Player.js';
+import { Hack } from '#entities/hack.js';
+import { Player } from '#rooms/entities/player.js';
 
 export class GameRoomState extends Schema {
-  @type({ map: Ball }) balls = new MapSchema<Ball>();
+  @type({ map: Hack }) hacks = new MapSchema<Hack>();
   @type({ map: Player }) players = new MapSchema<Player>();
 }

@@ -5,21 +5,25 @@ import { GameClient } from '../game-client/systems/GameClient';
 import { useRoom } from '../components/providers/Room';
 import { Room } from '@colyseus/sdk';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useParams } from 'react-router-dom';
-import { GameCrash } from '../features/errors/GameCrash';
+import { useNavigate, useParams } from 'react-router-dom';
+import { GameFallback } from '../features/errors/GameFallBack';
+import { HOME_NAVIGATION } from '../shared/constants/navigation';
 
 
 /* v8 ignore start */
-// NOTE: potential implementation of tests https://humblesoftware.github.io/js-imagediff/test.html
 
 export function Game(): JSX.Element | null {
     const { gameMode, matchId, roomId } = useParams();
+    const navigate = useNavigate();
 
-    if (typeof gameMode === 'undefined' || typeof matchId === 'undefined' || typeof roomId === 'undefined')
-        throw new Error('uri error');
-    console.log(gameMode + ' ' + matchId + ' ' + roomId);
+    if (typeof gameMode === 'undefined' || typeof matchId === 'undefined' || typeof roomId === 'undefined') {
+        alert('Invalid page access');
+        navigate(HOME_NAVIGATION);
+        return null;
+    }
+
     return (
-        <ErrorBoundary FallbackComponent={GameCrash}>
+        <ErrorBoundary FallbackComponent={GameFallback}>
             <GameRender gameMode={gameMode} matchId={matchId} roomId={roomId} />
         </ErrorBoundary>
     )
@@ -36,57 +40,107 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
             setGame(new GameClient(scene, gameMode, matchId, setError))
         } catch (e: any) {
             console.error(e);
-            setError(new Error('game-client construction error'))
+            setError(new Error('0'))
         }
     }
 
     const onRender = (_scene: Scene) => { }
 
     useEffect(() => {
-        if (roomProv?.isDropped) {
-            throw new Error('lost connection')
+        function initializeRoom() {
+            if (game && room) {
+                game.initRoom(room);
+            }
         }
-    }, [roomProv?.isDropped])
+
+        initializeRoom();
+    }, [room])
 
     useEffect(() => {
-        const initializeGame = async () => {
-            if (room) {
+
+        async function initializeGame() {
+            if (roomProv && game && !roomProv.isConnected) {
                 try {
-                    await game?.initGame();
-                    if (!game) {
-                        throw new Error('game init fail');
-                    }
-                    game.initRoom(room);
+                    await game.initGame();
+                    const newRoom = await roomProv.join(roomId);
+                    setRoom(newRoom);
                 } catch (e: any) {
                     console.error(e);
-                    setError(new Error('game initialization error'));
+                    setError(new Error('0'))
                 }
             }
         };
-        if (room) {
-            initializeGame();
-        }
-
-    }, [room]);
+        initializeGame();
+    }, [roomProv, game]);
 
     useEffect(() => {
-        if (roomProv) {
-            roomProv.join(roomId);
-            const room = roomProv.room;
-            setRoom(room);
+        if (error) {
+            if (error.message === '0') {
+                room?.send('client-error', { payload: 'init-fail' });
+                throw error
+            }
+            else {
+                console.error(error);
+                room?.send('client-error', { payload: 'crash' });
+                throw new Error('1');
+            }
         }
-    }, [roomProv]);
+        if (roomProv?.error) {
+            throw new Error(String(roomProv.error))
+        }
+    }, [error, roomProv?.error]);
 
-    useEffect(() => {
-        // NOTE: disconnect from room with crashcode
-        //  game-server will report crash to matchmaking
-    }, [error]);
-
-    if (error) {
-        throw error;
-    }
     return (
         <div id='game-container' className="h-full w-full">
+            <div id='game-winner-screen' className='absolute w-full h-full z-9999'>
+                <div id='game-winner' className='w-full h-full text-white text-2xl text-center flex flex-col justify-around z-9999'>
+                    <div id='game-winner-container'>
+                        <div id='game-winner-text'></div>
+                        <div id='game-winner-image'>
+                            <br />
+                            <br />
+                            <img src="/winner.png"
+                                width='200'
+                                height='200'
+                                alt="winner throphy image"
+                                className='ml-auto mr-auto block'
+                            />
+                        </div>
+                        <br />
+                        <br />
+                        You will be redirected to home page in 10 seconds
+                    </div>
+                </div>
+                <div id='game-winner-bg' className='absolute w-full h-full bg-black z-9998'></div>
+            </div>
+            <div id='game-loading-screen' className='absolute w-full h-full z-9999'>
+                <div id='game-loading-text' className='w-full h-full text-white text-2xl text-center flex flex-col justify-around z-9999'>
+                    <div id='game-loading-text-animation'>
+                        loading...
+                        <img src="/ping-pong.gif"
+                            width='200'
+                            height='200'
+                            alt="ping pong animation"
+                            className='ml-auto mr-auto block'
+                        />
+                    </div>
+                </div>
+                <div id='game-loading-bg' className='absolute w-full h-full bg-black z-9998'></div>
+            </div>
+            <div id='game-reconnection-screen' className='absolute w-full h-full z-9997'>
+                <div id='game-reconnection-text' className='w-full h-full text-white text-2xl text-center flex flex-col justify-around z-9999 opacity-100'>
+                    <div id='game-reconnection-text-animation'>
+                        reconnecting...
+                        <img src="/ping-pong.gif"
+                            width='200'
+                            height='200'
+                            alt="ping pong animation"
+                            className='ml-auto mr-auto block'
+                        />
+                    </div>
+                </div>
+                <div id='game-reconnection-bg' className='absolute w-full h-full bg-gray-500 z-9998 opacity-50'></div>
+            </div>
             <SceneComponent id='game-canvas' antialias onSceneReady={onSceneReady} onRender={onRender} adaptToDeviceRatio className="h-full w-full" />
         </div>
     );

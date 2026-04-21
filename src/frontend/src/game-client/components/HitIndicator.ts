@@ -5,7 +5,9 @@ import {
   Vector3Distance,
   LinesMesh,
   Plane,
-  Vector3Dot
+  Vector3Dot,
+  Color3,
+  DeepImmutable
 } from '@babylonjs/core';
 import { Hack } from './Hack';
 
@@ -21,6 +23,7 @@ import {
   createUpdatedLines,
   createVector3Zero
 } from '../utils/Create';
+import p5 from 'p5';
 
 /* v8 ignore start */
 export class HitIndicator {
@@ -30,6 +33,8 @@ export class HitIndicator {
   private _rotation!: boolean;
   private _scene!: Scene;
   private _hitDiskMaterial!: StandardMaterial;
+  private _hackLerpStart: Color3;
+  private _hackLerpEnd: Color3;
 
   constructor(config: HitIndicatorConfig) {
     this.goalPosition = config.goalPosition;
@@ -53,11 +58,49 @@ export class HitIndicator {
     const bc = gameConfig.hitIndicatorBackColor;
     this.scene.getBoundingBoxRenderer().frontColor.set(fc.r, fc.g, fc.b);
     this.scene.getBoundingBoxRenderer().backColor.set(bc.r, bc.g, bc.b);
+    this._hackLerpStart = new Color3(1, 0, 0);
+    this._hackLerpEnd = new Color3(0, 1, 0);
+  }
+
+  private SignedDistanceToPlaneFromPositionAndNormal(
+    origin: DeepImmutable<Vector3>,
+    normal: DeepImmutable<Vector3>,
+    point: DeepImmutable<Vector3>
+  ): number {
+    const d = -(
+      normal.x * origin.x +
+      normal.y * origin.y +
+      normal.z * origin.z
+    );
+    return Vector3.Dot(point, normal) + d;
   }
 
   detectIncomingHits(hack: Hack) {
     if (hack.isDead() || typeof hack.linearVelocity === 'undefined') {
       return;
+    }
+    if (hack.mesh.material) {
+      const hackGoalDistance = this.SignedDistanceToPlaneFromPositionAndNormal(
+        hack.mesh.position,
+        this.goalPosition,
+        this.goalPosition
+      );
+      const material = hack.mesh.material as StandardMaterial;
+      const amount = p5.prototype.map(
+        hackGoalDistance,
+        0,
+        this.radius * 10,
+        0,
+        1
+      );
+      Color3.LerpToRef(
+        this._hackLerpStart,
+        this._hackLerpEnd,
+        amount,
+        material.ambientColor
+      );
+      material.diffuseColor = material.ambientColor;
+      hack.mesh.material = material;
     }
     const distance = this.goalPlaneIntersection(hack);
     if (Math.abs(distance) > this.radius / 2 || distance < 0) {

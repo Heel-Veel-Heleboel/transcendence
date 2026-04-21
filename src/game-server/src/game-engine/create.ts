@@ -6,8 +6,8 @@ import {
   HemisphericLight,
   Color3
 } from '@babylonjs/core';
-import { Ball } from '#entities/Ball.js';
-import { Arena } from '#entities/Arena.js';
+import { Hack } from '#entities/hack.js';
+import { Arena } from '#entities/arena.js';
 
 export function createCamera(scene: Scene, distance: number) {
   const camera = new ArcRotateCamera(
@@ -27,17 +27,33 @@ export function createArena() {
   return arena;
 }
 
-export function createBall(scene: Scene, pos: Vector3, diameter: number) {
-  const _ball = MeshBuilder.CreateSphere(
-    'ball',
+export function createHack(scene: Scene, pos: Vector3, diameter: number) {
+  const _hack = MeshBuilder.CreateSphere(
+    'hack',
     {
       diameter: diameter
     },
     scene
   );
 
-  const ball = new Ball(_ball, pos, scene);
-  return ball;
+  const hack = new Hack(_hack, pos, scene);
+  return hack;
+}
+
+export function createPowerShot(
+  scene: Scene,
+  pos: Vector3,
+  force: Vector3,
+  diameter: number
+) {
+  const hack = createHack(scene, pos, diameter);
+
+  hack.physicsMesh.aggregate.body.applyForce(
+    force,
+    hack.physicsMesh.mesh.absolutePosition
+  );
+
+  return hack;
 }
 
 export function createLight(scene: Scene) {

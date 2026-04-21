@@ -67,6 +67,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    async function markChannelRead(channelId: string): Promise<IChat> {
+        try {
+            return await service.markChannelRead(channelId);
+        } catch (e: any) {
+            console.error(e);
+            throw e
+        }
+    }
+
     return (
         <ChatServiceContext.Provider value={{
             getChannels,
@@ -74,6 +83,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             setAck,
             sendMessage,
             createOrGetDMChannel,
+            markChannelRead
         }}>
             {children}
         </ChatServiceContext.Provider >

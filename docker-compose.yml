@@ -199,6 +199,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - PORT=2567
+      - HOST=0.0.0.0
     networks:
       - app-net
     deploy:

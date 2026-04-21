@@ -12,7 +12,7 @@ export async function initializePhysics(scene: Scene) {
   const fileBuffer: Buffer<ArrayBufferLike> = fs.readFileSync(wasm);
   const binary: ArrayBuffer = new Uint8Array(fileBuffer).buffer;
   await HavokPhysics({ wasmBinary: binary }).then(havokInstance => {
-    const hk = new HavokPlugin(true, havokInstance);
+    const hk = new HavokPlugin(false, havokInstance);
     scene.enablePhysics(new Vector3(0, 0, 0), hk);
   });
 }

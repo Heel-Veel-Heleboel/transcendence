@@ -1,4 +1,3 @@
-import { IBall, PhysicsMesh } from '#types/Common.js';
 import { Schema, type } from '@colyseus/schema';
 import {
   Mesh,
@@ -7,9 +6,11 @@ import {
   PhysicsAggregate,
   PhysicsShapeType
 } from '@babylonjs/core';
+import { IHack } from '#types/hack.js';
+import { PhysicsMesh } from '#types/physics.js';
 
 /* v8 ignore start */
-export class Ball extends Schema implements IBall {
+export class Hack extends Schema implements IHack {
   @type('number') lifespan: number;
   @type('number') id: number;
   @type('number') x: number;
@@ -25,6 +26,7 @@ export class Ball extends Schema implements IBall {
     super();
     const mesh = ball;
     mesh.position = position;
+    this.setPosition(position);
     const aggregate = new PhysicsAggregate(
       mesh,
       PhysicsShapeType.SPHERE,
@@ -57,7 +59,7 @@ export class Ball extends Schema implements IBall {
   }
 
   update(): void {
-    // this.lifespan = this.lifespan - 1;
+    this.lifespan = this.lifespan - 1;
     this.x = this.physicsMesh.mesh.absolutePosition.x;
     this.y = this.physicsMesh.mesh.absolutePosition.y;
     this.z = this.physicsMesh.mesh.absolutePosition.z;

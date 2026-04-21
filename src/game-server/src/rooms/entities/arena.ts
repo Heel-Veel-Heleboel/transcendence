@@ -1,4 +1,5 @@
-import { IArena, PhysicsMesh } from '#types/Common.js';
+import { IArena } from '#types/arena.js';
+import { PhysicsMesh } from '#types/physics.js';
 import {
   ImportMeshAsync,
   Scene,

@@ -1,7 +1,6 @@
 import {
   Scene,
   Sound,
-  ArcRotateCamera,
   MeshBuilder,
   Vector3,
   HemisphericLight,
@@ -9,7 +8,8 @@ import {
   StandardMaterial,
   LinesMesh,
   TransformNode,
-  HavokPlugin
+  HavokPlugin,
+  UniversalCamera
 } from '@babylonjs/core';
 import { Hack } from '../components/Hack.ts';
 import gameConfig from './GameConfig.ts';
@@ -17,20 +17,22 @@ import Errors from './Error.ts';
 import { AdvancedDynamicTexture } from '@babylonjs/gui';
 
 /* v8 ignore start */
-export function createCamera(scene: Scene, distance: number) {
-  const camera = new ArcRotateCamera(
-    gameConfig.mainCameraName,
-    -Math.PI / 2,
-    Math.PI / 2,
-    distance,
-    Vector3.Zero(),
-    scene
-  );
+export function createGoalCamera(scene: Scene, pos: Vector3) {
+  const camera = new UniversalCamera('goalCamera', pos, scene);
+  camera.setTarget(Vector3.Zero());
   if (unitializedCheck(camera)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
-  camera.attachControl(scene.getEngine().getRenderingCanvas(), true);
-  camera.inputs.attached.keyboard.detachControl();
+
+  return camera;
+}
+
+export function createPowerCamera(scene: Scene, pos: Vector3) {
+  const camera = new UniversalCamera('powerCamera', pos, scene);
+  camera.setTarget(Vector3.Zero());
+  if (unitializedCheck(camera)) {
+    throw new Error(Errors.FAILED_ENTITY_INIT);
+  }
 
   return camera;
 }
@@ -44,10 +46,14 @@ export function createHack(scene: Scene, pos: Vector3, diameter: number) {
     },
     scene
   );
-  if (unitializedCheck(_hack)) {
+  const material = new StandardMaterial('hackMaterial', scene);
+  material.ambientColor = new Color3(0, 1, 0);
+  material.diffuseColor = new Color3(0, 1, 0);
+  if (unitializedCheck(_hack) || unitializedCheck(material)) {
     throw new Error(Errors.FAILED_MESH_INIT);
   }
   const hack = new Hack(_hack, pos);
+  hack.mesh.material = material;
   return hack;
 }
 
