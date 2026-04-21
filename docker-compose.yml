@@ -125,6 +125,7 @@ services:
       prometheus.port: "3004"
     volumes:
       - user-management-data:/data
+      - user-management-uploads:/app/uploads
     networks:
       - app-net
     deploy:
@@ -209,6 +210,7 @@ services:
 volumes:
   auth-data:
   user-management-data:
+  user-management-uploads:
   matchmaking-data:
   chat-data:
 

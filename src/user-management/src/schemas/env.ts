@@ -40,11 +40,11 @@ export const  EnvSchema = z.object({
 
   UPLOAD_DIR: z.string().default('uploads'),
   PREFIX: z.string().default('/uploads/'),
-  FILE_SIZE_LIMIT: z.string()
-    .regex(/^\d+$/, 'FILE_SIZE_LIMIT must be a number')
+  BODY_LIMIT_BYTES: z.string()
+    .regex(/^\d+$/, 'BODY_LIMIT_BYTES must be a number')
     .transform(Number)
     .refine((size) => size > 0, {
-      message: 'FILE_SIZE_LIMIT must be a positive number'
+      message: 'BODY_LIMIT_BYTES must be a positive number'
     })
 
 });

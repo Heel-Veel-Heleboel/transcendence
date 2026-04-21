@@ -7,6 +7,7 @@ import util from 'util';
 import path from 'path';
 import crypto  from 'crypto';
 import * as ProfileSchema from '../schemas/profile.js';
+import { env } from '../config/env.js';
 
 
 const pump = util.promisify(pipeline);
@@ -46,7 +47,7 @@ export class ProfileController {
 
   async uploadAvatar( request: FastifyRequest< {Params: { user_id: number }}>, reply: FastifyReply): Promise<FastifyReply> {
 
-    const file = await request.file({ limits: { fileSize: 1024 * 1024 } });
+    const file = await request.file({ limits: { fileSize: env.BODY_LIMIT_BYTES } });
 
     if (!file) {
       return reply.status(400).send({ message: 'No file uploaded' });
@@ -85,7 +86,7 @@ export class ProfileController {
       return reply.code(413).send({ message: 'File too large' });
     }
 
-    const pub_url = `${process.env.PREFIX || '/uploads/'}${unique_filename}`;
+    const pub_url = `/uploads/${unique_filename}`;
     const result = await this.profileService.uploadUrl(user_id, pub_url);
 
     return reply.code(200).send({
