@@ -220,6 +220,9 @@ export class ChatService {
       content
     });
 
+    const usernames = this.userClient ? await this.userClient.getUsernames([senderId]) : new Map<number, string>();
+    senderUsername = usernames.get(senderId) ?? senderUsername;
+
     await Promise.all([
       this.notificationService.notifyChannelMembers(channelId, {
         type: 'chat:message',
@@ -252,7 +255,13 @@ export class ChatService {
       );
     }
 
-    return messages;
+    const senderIds = Array.from(new Set(messages.map((m: { senderId: number }) => m.senderId)));
+    const usernames = this.userClient ? await this.userClient.getUsernames(senderIds) : new Map<number, string>();
+
+    return messages.map((m: { senderId: number }) => ({
+      ...m,
+      senderUsername: usernames.get(m.senderId) ?? null
+    }));
   }
 
   // ── Match Acknowledgement ─────────────────────────────────

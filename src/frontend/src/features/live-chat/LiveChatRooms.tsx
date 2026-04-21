@@ -63,9 +63,13 @@ export function LiveChatRooms({ setChannelId, chatUpdate, openChannelId, lastMes
     }
 
     function handleChannelClick(channelId: string) {
+        const previousUnreadCount = channels.find((c: IChat) => c.id === channelId)?.unreadCount ?? 0;
         setChannelId(channelId);
         setChannels((prev: Array<IChat>) => prev.map((c: IChat) => c.id === channelId ? { ...c, unreadCount: 0 } : c));
-        service.markChannelRead(channelId).catch(() => {});
+        service.markChannelRead(channelId).catch((e: any) => {
+            console.error("Failed to mark channel as read:", e);
+            setChannels((prev: Array<IChat>) => prev.map((c: IChat) => c.id === channelId ? { ...c, unreadCount: previousUnreadCount } : c));
+        });
     }
 
     function List({ channels }: { channels: Array<IChat> }) {
