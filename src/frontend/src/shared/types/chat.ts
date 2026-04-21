@@ -4,6 +4,7 @@ export interface IChatService {
   setAck: (data: IAck) => Promise<void>;
   sendMessage: (data: IMessage) => Promise<IChatMessage>;
   createOrGetDMChannel: (targetUserId: number) => Promise<IChat>;
+  markChannelRead: (channelId: string) => Promise<IChat>;
 }
 
 export interface IAck {
