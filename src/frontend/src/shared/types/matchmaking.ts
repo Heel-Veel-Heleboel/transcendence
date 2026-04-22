@@ -115,8 +115,6 @@ export interface IMatches {
 }
 
 export interface ITournamentSketchProps extends SketchProps {
-  nodeX: number;
-  nodeY: number;
   matches: IMatches;
 }
 

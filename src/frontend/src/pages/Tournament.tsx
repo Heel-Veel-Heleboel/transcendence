@@ -1,7 +1,7 @@
 import { JSX, ReactNode, useEffect, useState } from "react";
 import { MainContainer } from "../components/layout/MainContainer";
 import { useNavigate, useParams } from "react-router-dom";
-import { IMatches, IParticipants, IRanking, ITournament, ITournamentSketchProps } from "../shared/types/matchmaking";
+import { IBracket, IMatches, IParticipants, IRanking, ITournament, ITournamentSketchProps } from "../shared/types/matchmaking";
 import { Terminal } from "../components/layout/Terminal";
 import { useMatchMakingService } from "../components/providers/Match";
 import { DEFAULT_MATCHES, DEFAULT_PARTICIPANTS, DEFAULT_TOURNAMENT } from "../shared/constants/defaults";
@@ -99,51 +99,128 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
         let nodeX: number;
         let nodeY: number;
         let matches: IMatches;
+        let nodes: Node[];
         const divName = "tournament-p5-canvas"
-        const sketchWidth = document.getElementById(divName)?.offsetWidth ?? 1420;
-        const sketchHeight = document.getElementById(divName)?.offsetHeight ?? 1080;
-        const aspectRatio = sketchWidth / sketchHeight;
-        let scaleFactor = 1;
 
 
         p5.updateWithProps = props => {
-            nodeX = props.nodeX;
-            nodeY = props.nodeY;
             matches = props.matches;
+            nodeX = matches.totalRounds;
+            nodeY = Math.pow(2, nodeX - 1) / 2;
         }
 
         p5.setup = () => {
-            const { canvasWidth, canvasHeight } = updateCanvasDimensions();
-            const renderer = p5.createCanvas(canvasWidth, canvasHeight);
+            const sketchWidth = document.getElementById(divName)?.offsetWidth ?? 1420;
+            const sketchHeight = document.getElementById(divName)?.offsetHeight ?? 1080;
+            const renderer = p5.createCanvas(sketchWidth, sketchHeight);
             renderer.parent(divName);
-            scaleFactor = sketchWidth / canvasWidth;
 
             p5.pixelDensity(window.devicePixelRatio);
-            p5.strokeWeight(2 * scaleFactor);
-            // p5.textFont('Courier New');
-            // p5.textSize(24);
-        };
-
-        function visualizeRootNode(matches: IMatches, nodeWidth: number, nodeHeight: number) {
-            const posX = p5.width / 2;
-            const posY = p5.width / 2;
-            const bracket = matches.bracket[0];
-            const text = `${bracket.player1Username} - ${bracket.player2Username}`
-            p5.rect(posX, posY, nodeWidth, nodeHeight / 2);
-            p5.text(text, posX, posY);
-        }
-
-        p5.draw = () => {
-            p5.background(100);
-            // p5.clear();
-
             const sections = (nodeX * 2) - 1;
             const sectionWidth = p5.width / sections;
             // const middle = sectionWidth * (sections / 2)
             const nodeWidth = sectionWidth / 2;
-            const nodeHeight = (p5.height / nodeY) / 2;
+            const nodeHeight = (p5.height / nodeY) / 4;
             // const level = 0;
-            visualizeRootNode(matches, nodeWidth, nodeHeight);
+
+            const node = rootNode(matches.bracket[0], nodeWidth, nodeHeight);
+            nodes = [];
+            nodes.push(node);
+
+            // TODO: add first left and right node
+
+            createBranch({
+                brackets: matches.bracket,
+                level: 1,
+                maxLevel: nodeX,
+                sectionWidth: sectionWidth,
+                nodeWidth: nodeWidth,
+                nodeHeigth: nodeHeight,
+                parent: node,
+                isLeft: true,
+            });
+
+            createBranch({
+                brackets: matches.bracket,
+                level: 1,
+                maxLevel: nodeX,
+                sectionWidth: sectionWidth,
+                nodeWidth: nodeWidth,
+                nodeHeigth: nodeHeight,
+                parent: node,
+                isLeft: false,
+            });
+
+        };
+
+        interface IBracketBranch {
+            brackets: IBracket[];
+            level: number;
+            maxLevel: number;
+            sectionWidth: number
+            nodeWidth: number;
+            nodeHeigth: number;
+            parent: Node
+            isLeft: boolean
+        }
+        function createBranch(p: IBracketBranch) {
+            if (p.level > p.maxLevel) {
+                return;
+            }
+
+            const posX = p.isLeft ? p.parent.x - p.sectionWidth : p.parent.x + p.sectionWidth;
+            const index = p.parent.i;
+            const leftIndex = 2 * index + 1;
+            const rightIndex = 2 * index + 2;
+            const amountOfNodesForLevel = Math.pow(2, p.level - 1) / 2;
+            const heightPerNode = p5.height / amountOfNodesForLevel;
+            const top = p.parent.y + heightPerNode / 2;
+            const bottom = p.parent.y - heightPerNode / 2;
+            const leftNodeY = p.isLeft ? top : bottom;
+            const rightNodeY = p.isLeft ? bottom : top;
+            const leftNode = new Node(leftIndex, posX, leftNodeY, p.nodeWidth, p.nodeHeigth, p.brackets[leftIndex], p.parent);
+            nodes.push(leftNode);
+            const rightNode = new Node(rightIndex, posX, rightNodeY, p.nodeWidth, p.nodeHeigth, p.brackets[rightIndex], p.parent);
+            nodes.push(rightNode);
+
+            createBranch({
+                brackets: p.brackets,
+                level: p.level + 1,
+                maxLevel: p.level,
+                sectionWidth: p.sectionWidth,
+                nodeWidth: p.nodeWidth,
+                nodeHeigth: p.nodeHeigth,
+                parent: leftNode,
+                isLeft: p.isLeft
+            })
+
+            createBranch({
+                brackets: p.brackets,
+                level: p.level + 1,
+                maxLevel: p.level,
+                sectionWidth: p.sectionWidth,
+                nodeWidth: p.nodeWidth,
+                nodeHeigth: p.nodeHeigth,
+                parent: rightNode,
+                isLeft: p.isLeft
+            })
+
+
+        }
+
+        function rootNode(bracket: IBracket, nodeWidth: number, nodeHeight: number) {
+            const posX = p5.width / 2 - (nodeWidth / 2);
+            const posY = p5.height / 2 - (nodeWidth / 2);
+            const node = new Node(0, posX, posY, nodeWidth, nodeHeight, bracket, null);
+            return (node);
+        }
+
+        p5.draw = () => {
+            p5.clear();
+
+            for (const node of nodes) {
+                node.draw();
+            }
 
         };
 
@@ -151,27 +228,57 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
             p5.setup();
         }
 
-        function updateCanvasDimensions() {
-            if (p5.windowWidth / p5.windowHeight > aspectRatio) {
-                return {
-                    canvasWidth: p5.windowHeight * aspectRatio,
-                    canvasHeight: p5.windowHeight
-                }
+        class Node {
+            public i: number;
+            public x: number;
+            public y: number;
+            public w: number;
+            public h: number;
+            private parent: Node | null;
+            private participants: string;
+            private winner: string;
+
+            constructor(i: number, x: number, y: number, w: number, h: number, bracket: IBracket, parent: Node | null) {
+                this.i = i;
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+                this.parent = parent;
+                this.participants = `${bracket.player1Username} - ${bracket.player2Username}`
+                const winnerPreFix = 'winner: '
+                this.winner =
+                    !bracket.winnerId ?
+                        winnerPreFix + 'TBH'
+                        : bracket.winnerId === bracket.player1Id ?
+                            winnerPreFix + bracket.player1Username
+                            : bracket.winnerId === bracket.player2Id ?
+                                winnerPreFix + bracket.player2Username
+                                : 'unknown';
             }
-            return (
-                {
-                    canvasWidth: p5.windowWidth,
-                    canvasHeight: p5.windowWidth / aspectRatio
+
+            drawLinesToParent() {
+                if (this.parent === null) {
+                    return
                 }
-            )
+
+            }
+
+            draw() {
+                this.drawLinesToParent();
+                p5.rectMode(p5.CENTER)
+                p5.rect(this.x, this.y, this.w, this.h);
+                p5.textAlign(p5.CENTER)
+                p5.text(this.participants, this.x, this.y - (this.h / 4));
+                p5.text(this.winner, this.x, this.y + (this.h / 4));
+            }
+
         }
+
     }
 
     function renderBrackets() {
-        const nodeX = matches.totalRounds;
-        const nodeY = Math.pow(2, nodeX - 1) / 2;
-        console.log(`nodeX: ${nodeX} nodeY: ${nodeY}`);
-        return <P5Canvas sketch={sketch} matches={matches} nodeX={nodeX} nodeY={nodeY} />;
+        return <P5Canvas sketch={sketch} matches={matches} />;
     }
 
     return (
