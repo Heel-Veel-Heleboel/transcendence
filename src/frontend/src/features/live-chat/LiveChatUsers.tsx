@@ -62,13 +62,13 @@ export function UserSearchBar({ setProfile }: { setProfile: Dispatch<SetStateAct
             <div className="min-h-full flex">
                 <form className="min-h-full min-w-full flex" onSubmit={submit}>
                     <div className="min-w-4/5 min-h-full">
-                        <textarea
+                        <input
+                            type="text"
                             id="user-search-input-element"
                             name="user-search-input"
                             className="border w-full min-h-full"
                             value={content}
                             onChange={e => setContent(e.target.value)}
-                            rows={0}
                         />
                     </div>
                     <div id="user-search-send-button" className="min-w-1/5 min-h-full">

@@ -30,6 +30,9 @@ export function useNotifications() {
                     if (msg.type === 'MATCH_JOINED_POOL' || msg.type === 'MATCH_LEAVED_POOL') {
                         setMatchUpdate(event.timeStamp)
                     }
+                    if (msg.type === 'chat:channel_created') {
+                        setChatUpdate(event.timeStamp);
+                    }
                     if (msg.type === 'chat:match_ack_required') {
                         setMatchUpdate(event.timeStamp)
                         setChatUpdate(event.timeStamp);
