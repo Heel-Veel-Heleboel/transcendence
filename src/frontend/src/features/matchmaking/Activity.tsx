@@ -40,9 +40,6 @@ export function TournamentActivity({ status }: { status: IMatchmakingStatus }) {
                 setLoading(true);
                 setError(false);
                 const result = await service.getTournamentInfo(String(status.activeTournamentId));
-                console.log('here');
-                console.log(result);
-                console.log(status);
                 setTournamentName(result.data.tournament.name);
             } catch (e: any) {
                 console.error(e);

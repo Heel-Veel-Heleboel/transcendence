@@ -23,6 +23,7 @@
         "@babylonjs/materials": "8.42.0",
         "@colyseus/react": "0.1.14",
         "@colyseus/sdk": "0.17.34",
+        "@p5-wrapper/react": "^5.0.2",
         "@tailwindcss/postcss": "4.1.18",
         "@tailwindcss/vite": "4.1.18",
         "axios": "1.14.0",
