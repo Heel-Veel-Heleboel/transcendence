@@ -5,8 +5,10 @@ import { IBracket, IMatches, IParticipants, IRanking, ITournament, ITournamentSk
 import { Terminal } from "../components/layout/Terminal";
 import { useMatchMakingService } from "../components/providers/Match";
 import { DEFAULT_MATCHES, DEFAULT_PARTICIPANTS, DEFAULT_TOURNAMENT } from "../shared/constants/defaults";
-import { P5Canvas, P5CanvasInstance, SketchProps } from "@p5-wrapper/react"
+import { P5Canvas, P5CanvasInstance } from "@p5-wrapper/react"
 import p5 from 'p5';
+import { CONFIG } from "../shared/config/AppConfig";
+import { Widget } from "../components/layout/Widget";
 
 export function Tournament(): JSX.Element {
     const { tournamentId } = useParams()
@@ -17,14 +19,16 @@ export function Tournament(): JSX.Element {
 
     return (
         < MainContainer >
-            <TournamentContainer >
-                <TournamentInfo>
-                    <TournamentGeneralInfo tournamentId={tournamentId} />
-                    <TournamentRankings tournamentId={tournamentId} />
-                    <TournamentParticipants tournamentId={tournamentId} />
-                </TournamentInfo>
-                <TournamentBrackets tournamentId={tournamentId} />
-            </TournamentContainer>
+            <Widget logoPath={CONFIG.TOURNAMENT_LOGO} title={'tournament'} width="w-full" >
+                <TournamentContainer >
+                    <TournamentInfo>
+                        <TournamentGeneralInfo tournamentId={tournamentId} />
+                        <TournamentRankings tournamentId={tournamentId} />
+                        <TournamentParticipants tournamentId={tournamentId} />
+                    </TournamentInfo>
+                    <TournamentBrackets tournamentId={tournamentId} />
+                </TournamentContainer>
+            </Widget>
         </MainContainer >
     )
 }
@@ -32,7 +36,7 @@ export function Tournament(): JSX.Element {
 export function TournamentContainer({ children }: { children: ReactNode }): JSX.Element {
     return (
 
-        <div className="w-full min-h-full flex flex-col">
+        <div className="w-full min-h-full flex flex-col bg-blue-500/50">
             {children}
         </div>
 
@@ -41,7 +45,7 @@ export function TournamentContainer({ children }: { children: ReactNode }): JSX.
 
 export function TournamentInfo({ children }: { children: ReactNode }) {
     return (
-        <div className="h-1/2 flex justify-around">
+        <div className="h-1/3 w-full flex justify-around border">
             {children}
         </div>
     )
@@ -198,13 +202,15 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
             const rightNodeY = p.isLeft ? bottom : top;
             const leftNode = new Node(leftIndex, posX, leftNodeY, p.nodeWidth, p.nodeHeigth, p.brackets[leftIndex], p.parent);
             nodes.push(leftNode);
+            console.log(leftNode);
+            console.log(leftNode);
             const rightNode = new Node(rightIndex, posX, rightNodeY, p.nodeWidth, p.nodeHeigth, p.brackets[rightIndex], p.parent);
             nodes.push(rightNode);
 
             createBranch({
                 brackets: p.brackets,
                 level: p.level + 1,
-                maxLevel: p.level,
+                maxLevel: p.maxLevel,
                 sectionWidth: p.sectionWidth,
                 nodeWidth: p.nodeWidth,
                 nodeHeigth: p.nodeHeigth,
@@ -215,7 +221,7 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
             createBranch({
                 brackets: p.brackets,
                 level: p.level + 1,
-                maxLevel: p.level,
+                maxLevel: p.maxLevel,
                 sectionWidth: p.sectionWidth,
                 nodeWidth: p.nodeWidth,
                 nodeHeigth: p.nodeHeigth,
@@ -286,8 +292,8 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
                 p5.rectMode(p5.CENTER)
                 p5.rect(this.x, this.y, this.w, this.h);
                 p5.textAlign(p5.CENTER)
-                p5.text(this.participants, this.x, this.y - (this.h / 5));
-                p5.text(this.winner, this.x, this.y + (this.h / 5));
+                p5.text(this.participants, this.x, this.y - (this.h / 16));
+                p5.text(this.winner, this.x, this.y + (this.h / 4));
             }
 
         }
@@ -299,7 +305,7 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
     }
 
     return (
-        <div id="tournament-p5-canvas" className="h-1/2 w-full">
+        <div id="tournament-p5-canvas" className="h-2/3 w-full border">
             {renderBrackets()}
         </div>
     )
@@ -343,13 +349,54 @@ export function TournamentGeneralInfo({ tournamentId }: { tournamentId: string }
         )
     }
     return (
-        <div className="flex flex-col justify-between">
-            <div></div>
-            <div>name: {tournament.name}</div>
-            <div>mode: {tournament.gameMode}</div>
-            <div>status: {tournament.status}</div>
-            <div>participants: {tournament.participantCount}</div>
-            <div></div>
+        <div id='tournament-general-info' className="w-1/3 flex flex-col justify-between">
+            <div id="tournament-general-info-top-buffer" className="h-1/10"></div>
+            <div id="tournament-general-info-name" className="flex">
+                <div className="text-left w-2/5">name: </div>
+                <div className="w-1/5" />
+                <div className="text-left w-2/5">{tournament.name}</div>
+            </div>
+            <div id="tournament-general-info-mode" className="flex">
+                <div className="text-left w-2/5">mode: </div>
+                <div className="w-1/5" />
+                <div className="text-left w-2/5">{tournament.gameMode}</div>
+            </div>
+            <div id="tournament-general-info-status" className="flex">
+                <div className="text-left w-2/5">status: </div>
+                <div className="w-1/5" />
+                <div className="text-left w-2/5">{tournament.status}</div>
+            </div>
+            <div id="tournament-general-info-participants" className="flex">
+                <div className="text-left w-2/5">participants: </div>
+                <div className="w-1/5" />
+                <div className="text-left w-2/5">{tournament.participantCount}</div>
+            </div>
+            <div id="tournament-general-info-min-players" className="flex">
+                <div className="text-left w-2/5">min-# of players: </div>
+                <div className="w-1/5" />
+                <div className="text-left w-2/5">{tournament.minPlayers}</div>
+            </div>
+            <div id="tournament-general-info-max-players" className="flex">
+                <div className="text-left w-2/5">max-# of players: </div>
+                <div className="w-1/5" />
+                <div className="text-left w-2/5">{tournament.maxPlayers}</div>
+            </div>
+            <div id="tournament-general-info-created-by" className="flex">
+                <div className="text-left w-2/5">created by: </div>
+                <div className="w-1/5" />
+                <div className="text-left w-2/5">{tournament.createdBy}</div>
+            </div>
+            <div id="tournament-general-info-created-at" className="flex">
+                <div className="text-left w-2/5">created at: </div>
+                <div className="w-1/5" />
+                <div className="text-left w-2/5">{new Date(tournament.createdAt).toLocaleString('nl-NL')}</div>
+            </div>
+            <div id="tournament-general-info-registration-end" className="flex">
+                <div className="text-left w-2/5">registration end: </div>
+                <div className="w-1/5" />
+                <div className="text-left w-2/5">{new Date(tournament.registrationEnd).toLocaleString('nl-NL')}</div>
+            </div>
+            <div id="tournament-general-info-bottom-buffer" className="h-1/10"></div>
         </div>
     )
 }
@@ -405,17 +452,36 @@ export function TournamentParticipants({ tournamentId }: { tournamentId: string 
                 </div>
             </li>
         );
-        return <ul>{listItems}</ul>;
+
+        const chunkSize = 6;
+        const listChunks = []
+        for (let i = 0; i < listItems.length; i += chunkSize) {
+            const chunk = listItems.slice(i, i + chunkSize);
+            listChunks.push(
+                <div id={`rankings-list-chunk-${i}`} className='flex'>
+                    <ul>
+                        {chunk}
+                    </ul>
+                    <div id={`participants-srankings-divider-${i}`} className="p-2"></div >
+                </div >
+            );
+        }
+        console.log(listChunks)
+
+        return (
+            <div id="participant-list" className="flex">
+                {listChunks}
+            </div>
+        );
     }
     return (
-        <div className="flex flex-col">
+        <div id='tournament-participants' className="flex flex-col">
             <div className="h-1/10"></div>
-            <div className="h-8/10">
+            <div className="h-6/10">
                 <Terminal title="participants" >
                     {List(participants.participantIds)}
                 </Terminal >
             </div>
-            <div className="h-1/10"></div>
         </div>
     )
 }
@@ -471,17 +537,34 @@ export function TournamentRankings({ tournamentId }: { tournamentId: string }) {
                 </div>
             </li>
         );
-        return <ul>{listItems}</ul>;
+        const chunkSize = 6;
+        const listChunks = []
+        for (let i = 0; i < listItems.length; i += chunkSize) {
+            const chunk = listItems.slice(i, i + chunkSize);
+            listChunks.push(
+                <div id={`rankings-list-chunk-${i}`} className='flex'>
+                    <ul>
+                        {chunk}
+                    </ul>
+                    <div id={`rankings-space-divider-${i}`} className="p-2"></div >
+                </div >
+            );
+        }
+
+        return (
+            <div id="rankings-list" className="flex">
+                {listChunks}
+            </div>
+        );
     }
     return (
-        <div className="flex flex-col">
+        <div id='tournament-rankings' className="flex flex-col">
             <div className="h-1/10"></div>
-            <div className="h-8/10">
+            <div className="h-6/10">
                 <Terminal title="rankings" >
                     {List(rankings)}
                 </Terminal >
             </div>
-            <div className="h-1/10"></div>
         </div>
     )
 }

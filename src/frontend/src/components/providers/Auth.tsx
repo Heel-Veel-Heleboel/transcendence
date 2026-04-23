@@ -152,26 +152,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         };
     }, [token]);
 
-    useLayoutEffect(() => {
-        const refreshIntercept = api.interceptors.response.use((config) => {
-            return config;
-        }, async (error) => {
-            if (error.response?.status === 401) {
-                if (retry) {
-                    setRetry(false);
-                    return Promise.reject(error);
-                }
-                setRetry(true);
-                refresh();
-                return api(error.config);
-            }
-            return Promise.reject(error);
-        });
-
-        return function cleanup() {
-            api.interceptors.request.eject(refreshIntercept);
-        };
-    }, [token]);
 
     function failedAuthentication() {
         setIsAuthenticated(false);
