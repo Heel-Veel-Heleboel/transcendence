@@ -47,6 +47,7 @@ export function TournamentInfo({ children }: { children: ReactNode }) {
     return (
         <div className="h-1/3 w-full flex justify-around border">
             {children}
+            <div id="tournament-info-space-buffer"></div>
         </div>
     )
 }
@@ -63,7 +64,6 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
             try {
                 const result = await service.getTournamentMatches(tournamentId);
                 setMatches(result.data);
-                console.log(result.data);
             } catch (e: any) {
                 console.error(e);
                 setError(e);
@@ -300,8 +300,8 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
                 p5.stroke('black');
                 p5.rectMode(p5.CENTER)
                 p5.rect(this.x, this.y, this.w, this.h);
-                p5.textAlign(p5.CENTER)
-                p5.text(this.participants, this.x, this.y - (this.h / 16));
+                p5.textAlign(p5.CENTER, p5.CENTER)
+                p5.text(this.participants, this.x, this.y - (this.h / 4));
                 p5.text(this.winner, this.x, this.y + (this.h / 4));
             }
 
@@ -330,7 +330,6 @@ export function TournamentGeneralInfo({ tournamentId }: { tournamentId: string }
         async function getTournament() {
             try {
                 const result = await service.getTournamentInfo(tournamentId);
-                console.log(result.data.tournament);
                 setTournament(result.data.tournament);
             } catch (e: any) {
                 console.error(e);
@@ -425,7 +424,6 @@ export function TournamentParticipants({ tournamentId }: { tournamentId: string 
         async function getTournamentParticipants() {
             try {
                 const result = await service.getTournamentParticipants(tournamentId);
-                console.log(result)
                 setParticipants(result.data);
             } catch (e: any) {
                 console.error(e);
@@ -479,7 +477,6 @@ export function TournamentParticipants({ tournamentId }: { tournamentId: string 
                 </div >
             );
         }
-        console.log(listChunks)
 
         return (
             <div id="participant-list" className="flex">
@@ -510,7 +507,6 @@ export function TournamentRankings({ tournamentId }: { tournamentId: string }) {
         async function getTournamentRankings() {
             try {
                 const result = await service.getTournamentRanking(tournamentId);
-                console.log(result)
                 setRankings(result.data.rankings);
             } catch (e: any) {
                 console.error(e);
