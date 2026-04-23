@@ -35,8 +35,8 @@ export function FriendshipList({ friends, onRefresh }: { friends: IFriendship[],
             const listItems = list.map((item: IFriendship) =>
                 <li key={item.id}>
                     <div className='flex justify-between' id={item.userName + '-container'}>
-                        <button onClick={() => navigate('/profile/' + item.userId)}>
-                            {item.userName}
+                        <button onClick={() => navigate('/profile/' + item.userId)} className="flex items-center gap-2">
+                            {item.activityStatus === 'ONLINE' ? '🟢' : '🔴'} {item.userName}
                         </button>
                         <button onClick={() => removeFriend(item.id)} className="bg-red-500">remove</button>
                     </div>

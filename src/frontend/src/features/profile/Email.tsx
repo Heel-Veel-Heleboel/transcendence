@@ -4,7 +4,7 @@ import { SubmitPropertyChange } from "./Submit";
 import { IUser } from "../../shared/types/user";
 import { useUserService } from "../../components/providers/User";
 
-export function Email({ user }: { user: IUser }) {
+export function Email({ user, onUpdate }: { user: IUser, onUpdate: () => void }) {
     const userService = useUserService();
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
     const [input, setInput] = useState<string>('');
@@ -31,6 +31,7 @@ export function Email({ user }: { user: IUser }) {
         try {
             await userService.setEmail(input)
             handleDropdown();
+            onUpdate();
             alert("Email changed!");
         } catch (error) {
             console.error("Error changing Email:", error);

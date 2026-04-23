@@ -274,7 +274,7 @@ export class AuthService {
       await this.twoFactorAuthDao.create(user_id, secret);
       
       const uri = generateURI({
-        issuer: 'Auth service',
+        issuer: 'Transcendence',
         label: user.email,
         secret
       });
