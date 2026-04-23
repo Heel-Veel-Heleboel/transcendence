@@ -37,6 +37,7 @@ export interface IMatch {
 export interface ITournament {
   createdAt: string;
   createdBy: number;
+  createdByUserName: string;
   gameMode: string;
   id: number;
   maxPlayers: number;

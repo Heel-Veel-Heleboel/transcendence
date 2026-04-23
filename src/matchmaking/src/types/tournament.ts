@@ -63,6 +63,7 @@ export interface TournamentSummary {
   registrationEnd: Date;
   startTime: Date | null;
   createdBy: number;
+  createdByUserName: string;
   createdAt: Date;
 }
 

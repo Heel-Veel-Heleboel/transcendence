@@ -394,7 +394,7 @@ export function TournamentGeneralInfo({ tournamentId }: { tournamentId: string }
                     <div id="tournament-general-info-created-by" className="flex">
                         <div className="text-left w-2/5">created by: </div>
                         <div className="w-1/5" />
-                        <div className="text-left w-2/5">{tournament.createdBy}</div>
+                        <div className="text-left w-2/5">{tournament.createdByUserName}</div>
                     </div>
                     <div id="tournament-general-info-created-at" className="flex">
                         <div className="text-left w-2/5">created at: </div>
