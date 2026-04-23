@@ -318,12 +318,22 @@ export class ChatService {
       ...(tournamentName != null && { tournamentName })
     };
 
+    const minutesToConfirm = Math.round((new Date(expiresAt).getTime() - Date.now()) / 60_000);
+    const timeToConfirm = `Time to confirm: ${minutesToConfirm} min.`;
+
+    let content: string;
+    if (tournamentName) {
+      content = `Upcoming game in ${tournamentName}. Both players must acknowledge to start. ${timeToConfirm}`;
+    } else if (challengerUsername) {
+      content = `Friendly challenge from ${challengerUsername}! Game mode: ${gameMode}. Both players must acknowledge to start. ${timeToConfirm}`;
+    } else {
+      content = `Match found! Game mode: ${gameMode}. Both players must acknowledge to start. ${timeToConfirm}`;
+    }
+
     const message = await this.messageDao.create({
       channelId: channel.id,
       senderId: 0,
-      content: challengerUsername
-        ? `Friendly challenge from ${challengerUsername}! Game mode: ${gameMode}. Both players must acknowledge to start.`
-        : `Match found! Game mode: ${gameMode}. Both players must acknowledge to start.`,
+      content,
       type: 'SYSTEM',
       metadata: JSON.stringify(metadata)
     });

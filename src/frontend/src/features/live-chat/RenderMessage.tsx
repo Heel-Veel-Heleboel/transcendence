@@ -14,14 +14,11 @@ export function RenderAckMessage({ item }: { item: IChatMessage }) {
         }
     }
     return (
-        <li key={item.id}>
-            <br />
-            <div className="border border-white flex justify-between">
-                <div></div>
+        <RenderMessageContainer id={item.id}>
+            <RenderMessageDate item={item} />
+            <RenderMessageContentContainer id={item.id}>
                 <div className="flex flex-col">
-                    <div>
-                        {item.content}
-                    </div>
+                    <div>{item.content}</div>
                     <br />
                     <div className="flex justify-between">
                         <div></div>
@@ -30,14 +27,12 @@ export function RenderAckMessage({ item }: { item: IChatMessage }) {
                             <div />
                             <button onClick={() => sendAck(item.id, false)} className="bg-red-500">Cancel</button>
                         </div>
-
                         <div></div>
                     </div>
                     <br />
                 </div>
-                <div></div>
-            </div>
-        </li>
+            </RenderMessageContentContainer>
+        </RenderMessageContainer>
     )
 }
 
