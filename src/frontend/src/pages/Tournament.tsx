@@ -202,8 +202,6 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
             const rightNodeY = p.isLeft ? bottom : top;
             const leftNode = new Node(leftIndex, posX, leftNodeY, p.nodeWidth, p.nodeHeigth, p.brackets[leftIndex], p.parent);
             nodes.push(leftNode);
-            console.log(leftNode);
-            console.log(leftNode);
             const rightNode = new Node(rightIndex, posX, rightNodeY, p.nodeWidth, p.nodeHeigth, p.brackets[rightIndex], p.parent);
             nodes.push(rightNode);
 
@@ -241,6 +239,9 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
         p5.draw = () => {
             p5.clear();
 
+            for (const node of nodes) {
+                node.drawLinesToParent();
+            }
             for (const node of nodes) {
                 node.draw();
             }
@@ -284,11 +285,19 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
                 if (this.parent === null) {
                     return
                 }
+                const isLeft = this.x < this.parent.x ? true : false;
+                const xDiff = isLeft ? this.parent.x - this.x : this.x - this.parent.x;
+                const xMiddle = xDiff / 2;
+                const posX = isLeft ? this.x + xMiddle : this.x - xMiddle;
 
+                p5.stroke('white');
+                p5.line(this.x, this.y, posX, this.y);
+                p5.line(posX, this.y, posX, this.parent.y);
+                p5.line(posX, this.parent.y, this.parent.x, this.parent.y);
             }
 
             draw() {
-                this.drawLinesToParent();
+                p5.stroke('black');
                 p5.rectMode(p5.CENTER)
                 p5.rect(this.x, this.y, this.w, this.h);
                 p5.textAlign(p5.CENTER)
@@ -351,50 +360,54 @@ export function TournamentGeneralInfo({ tournamentId }: { tournamentId: string }
     return (
         <div id='tournament-general-info' className="w-1/3 flex flex-col justify-between">
             <div id="tournament-general-info-top-buffer" className="h-1/10"></div>
-            <div id="tournament-general-info-name" className="flex">
-                <div className="text-left w-2/5">name: </div>
-                <div className="w-1/5" />
-                <div className="text-left w-2/5">{tournament.name}</div>
-            </div>
-            <div id="tournament-general-info-mode" className="flex">
-                <div className="text-left w-2/5">mode: </div>
-                <div className="w-1/5" />
-                <div className="text-left w-2/5">{tournament.gameMode}</div>
-            </div>
-            <div id="tournament-general-info-status" className="flex">
-                <div className="text-left w-2/5">status: </div>
-                <div className="w-1/5" />
-                <div className="text-left w-2/5">{tournament.status}</div>
-            </div>
-            <div id="tournament-general-info-participants" className="flex">
-                <div className="text-left w-2/5">participants: </div>
-                <div className="w-1/5" />
-                <div className="text-left w-2/5">{tournament.participantCount}</div>
-            </div>
-            <div id="tournament-general-info-min-players" className="flex">
-                <div className="text-left w-2/5">min-# of players: </div>
-                <div className="w-1/5" />
-                <div className="text-left w-2/5">{tournament.minPlayers}</div>
-            </div>
-            <div id="tournament-general-info-max-players" className="flex">
-                <div className="text-left w-2/5">max-# of players: </div>
-                <div className="w-1/5" />
-                <div className="text-left w-2/5">{tournament.maxPlayers}</div>
-            </div>
-            <div id="tournament-general-info-created-by" className="flex">
-                <div className="text-left w-2/5">created by: </div>
-                <div className="w-1/5" />
-                <div className="text-left w-2/5">{tournament.createdBy}</div>
-            </div>
-            <div id="tournament-general-info-created-at" className="flex">
-                <div className="text-left w-2/5">created at: </div>
-                <div className="w-1/5" />
-                <div className="text-left w-2/5">{new Date(tournament.createdAt).toLocaleString('nl-NL')}</div>
-            </div>
-            <div id="tournament-general-info-registration-end" className="flex">
-                <div className="text-left w-2/5">registration end: </div>
-                <div className="w-1/5" />
-                <div className="text-left w-2/5">{new Date(tournament.registrationEnd).toLocaleString('nl-NL')}</div>
+            <div id="tournament-general-info-terminal" className="h-8/10">
+                <Terminal title="info">
+                    <div id="tournament-general-info-name" className="flex">
+                        <div className="text-left w-2/5">name: </div>
+                        <div className="w-1/5" />
+                        <div className="text-left w-2/5">{tournament.name}</div>
+                    </div>
+                    <div id="tournament-general-info-mode" className="flex">
+                        <div className="text-left w-2/5">mode: </div>
+                        <div className="w-1/5" />
+                        <div className="text-left w-2/5">{tournament.gameMode}</div>
+                    </div>
+                    <div id="tournament-general-info-status" className="flex">
+                        <div className="text-left w-2/5">status: </div>
+                        <div className="w-1/5" />
+                        <div className="text-left w-2/5">{tournament.status.toLowerCase()}</div>
+                    </div>
+                    <div id="tournament-general-info-participants" className="flex">
+                        <div className="text-left w-2/5">participants: </div>
+                        <div className="w-1/5" />
+                        <div className="text-left w-2/5">{tournament.participantCount}</div>
+                    </div>
+                    <div id="tournament-general-info-min-players" className="flex">
+                        <div className="text-left w-2/5">min-# of players: </div>
+                        <div className="w-1/5" />
+                        <div className="text-left w-2/5">{tournament.minPlayers}</div>
+                    </div>
+                    <div id="tournament-general-info-max-players" className="flex">
+                        <div className="text-left w-2/5">max-# of players: </div>
+                        <div className="w-1/5" />
+                        <div className="text-left w-2/5">{tournament.maxPlayers}</div>
+                    </div>
+                    <div id="tournament-general-info-created-by" className="flex">
+                        <div className="text-left w-2/5">created by: </div>
+                        <div className="w-1/5" />
+                        <div className="text-left w-2/5">{tournament.createdBy}</div>
+                    </div>
+                    <div id="tournament-general-info-created-at" className="flex">
+                        <div className="text-left w-2/5">created at: </div>
+                        <div className="w-1/5" />
+                        <div className="text-left w-2/5">{new Date(tournament.createdAt).toLocaleString('nl-NL')}</div>
+                    </div>
+                    <div id="tournament-general-info-registration-end" className="flex">
+                        <div className="text-left w-2/5">registration end: </div>
+                        <div className="w-1/5" />
+                        <div className="text-left w-2/5">{new Date(tournament.registrationEnd).toLocaleString('nl-NL')}</div>
+                    </div>
+                </Terminal>
             </div>
             <div id="tournament-general-info-bottom-buffer" className="h-1/10"></div>
         </div>
