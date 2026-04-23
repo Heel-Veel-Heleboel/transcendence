@@ -115,39 +115,56 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
             const renderer = p5.createCanvas(sketchWidth, sketchHeight);
             renderer.parent(divName);
 
+            p5.textSize(p5.width / 100);
             p5.pixelDensity(window.devicePixelRatio);
+
             const sections = (nodeX * 2) - 1;
             const sectionWidth = p5.width / sections;
-            // const middle = sectionWidth * (sections / 2)
+            const middle = sectionWidth * (sections / 2)
             const nodeWidth = sectionWidth / 2;
             const nodeHeight = (p5.height / nodeY) / 4;
-            // const level = 0;
+            let level = 1;
 
-            const node = rootNode(matches.bracket[0], nodeWidth, nodeHeight);
+            const root = rootNode(matches.bracket[0], level, middle, nodeWidth, nodeHeight);
             nodes = [];
-            nodes.push(node);
+            nodes.push(root);
 
-            // TODO: add first left and right node
+            if (matches.bracket.length < 3) {
+                return;
+            }
+
+            level++;
+
+            const left = new Node(1, middle - sectionWidth, root.y, nodeWidth, nodeHeight, matches.bracket[1], root);
+            nodes.push(left);
+            const right = new Node(2, middle + sectionWidth, root.y, nodeWidth, nodeHeight, matches.bracket[2], root);
+            nodes.push(right);
+
+            if (matches.bracket.length < 7) {
+                return;
+            }
+
+            level++;
 
             createBranch({
                 brackets: matches.bracket,
-                level: 1,
+                level: level,
                 maxLevel: nodeX,
                 sectionWidth: sectionWidth,
                 nodeWidth: nodeWidth,
                 nodeHeigth: nodeHeight,
-                parent: node,
+                parent: left,
                 isLeft: true,
             });
 
             createBranch({
                 brackets: matches.bracket,
-                level: 1,
+                level: level,
                 maxLevel: nodeX,
                 sectionWidth: sectionWidth,
                 nodeWidth: nodeWidth,
                 nodeHeigth: nodeHeight,
-                parent: node,
+                parent: right,
                 isLeft: false,
             });
 
@@ -163,6 +180,7 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
             parent: Node
             isLeft: boolean
         }
+
         function createBranch(p: IBracketBranch) {
             if (p.level > p.maxLevel) {
                 return;
@@ -208,10 +226,9 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
 
         }
 
-        function rootNode(bracket: IBracket, nodeWidth: number, nodeHeight: number) {
-            const posX = p5.width / 2 - (nodeWidth / 2);
-            const posY = p5.height / 2 - (nodeWidth / 2);
-            const node = new Node(0, posX, posY, nodeWidth, nodeHeight, bracket, null);
+        function rootNode(bracket: IBracket, level: number, posX: number, nodeWidth: number, nodeHeight: number) {
+            const posY = p5.height / 2;
+            const node = new Node(level, posX, posY, nodeWidth, nodeHeight, bracket, null);
             return (node);
         }
 
@@ -269,8 +286,8 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
                 p5.rectMode(p5.CENTER)
                 p5.rect(this.x, this.y, this.w, this.h);
                 p5.textAlign(p5.CENTER)
-                p5.text(this.participants, this.x, this.y - (this.h / 4));
-                p5.text(this.winner, this.x, this.y + (this.h / 4));
+                p5.text(this.participants, this.x, this.y - (this.h / 5));
+                p5.text(this.winner, this.x, this.y + (this.h / 5));
             }
 
         }
@@ -283,7 +300,6 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
 
     return (
         <div id="tournament-p5-canvas" className="h-1/2 w-full">
-            bracket rendering {matches.totalRounds}
             {renderBrackets()}
         </div>
     )
