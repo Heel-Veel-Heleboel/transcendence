@@ -30,6 +30,8 @@ export class Arena implements IArena {
           if (mesh.id === 'arena') {
             mesh.flipFaces(true);
           }
+          console.log(mesh.position);
+
           const material = new StandardMaterial('wireframe', scene);
           material.wireframe = true;
           mesh.material = material;

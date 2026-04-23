@@ -37,7 +37,7 @@ export class Protagonist extends Player implements IProtagonist {
         : Boolean(Mesh.FRONTSIDE);
     this.hitIndicator = new HitIndicator({
       goalPosition: this.goalPosition,
-      radius: this.goalDimensions.x * 2,
+      radius: this.goalDimensions.x * 20,
       rotation: this.rotation,
       scene: scene
     });
@@ -105,7 +105,7 @@ export class Protagonist extends Player implements IProtagonist {
         );
         text.material = material;
         if (text.material) {
-          text.material.alpha = gameConfig.keyGridTextMaterialAlpha;
+          // text.material.alpha = gameConfig.keyGridTextMaterialAlpha;
           text.material.backFaceCulling = false;
         }
         this.keyGridHints.push(text);
@@ -116,13 +116,13 @@ export class Protagonist extends Player implements IProtagonist {
   movePrecise(coord: { x: number; y: number }) {
     const pos = this.rotation
       ? {
-        x: (this.mesh.position.x -= coord.x),
-        y: (this.mesh.position.y += coord.y)
-      }
+          x: (this.mesh.position.x -= coord.x),
+          y: (this.mesh.position.y += coord.y)
+        }
       : {
-        x: (this.mesh.position.x += coord.x),
-        y: (this.mesh.position.y += coord.y)
-      };
+          x: (this.mesh.position.x += coord.x),
+          y: (this.mesh.position.y += coord.y)
+        };
     this.room.send('set-position', pos);
   }
 

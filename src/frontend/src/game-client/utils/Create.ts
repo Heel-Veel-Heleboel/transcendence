@@ -23,6 +23,8 @@ export function createGoalCamera(scene: Scene, pos: Vector3) {
   if (unitializedCheck(camera)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
+  camera.inputs.addMouse();
+  camera.inputs.addMouseWheel();
 
   return camera;
 }
@@ -33,6 +35,9 @@ export function createPowerCamera(scene: Scene, pos: Vector3) {
   if (unitializedCheck(camera)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
+
+  camera.inputs.addMouse();
+  camera.inputs.addMouseWheel();
 
   return camera;
 }

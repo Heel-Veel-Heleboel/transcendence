@@ -218,12 +218,16 @@ export class GameRoom extends Room {
     hack.linearVelocityX = 0;
     hack.linearVelocityY = 0;
     hack.linearVelocityZ = 0;
+    // hack.physicsMesh.aggregate.body.applyForce(
+    //   new Vector3(
+    //     Math.random() * 100,
+    //     200,
+    //     Math.random() * 100
+    //   ),
+    //   hack.physicsMesh.mesh.absolutePosition
+    // );
     hack.physicsMesh.aggregate.body.applyForce(
-      new Vector3(
-        Math.random() * 100,
-        Math.random() * 100,
-        Math.random() * 100
-      ),
+      new Vector3(0, 0, 200),
       hack.physicsMesh.mesh.absolutePosition
     );
     this.id++;
@@ -478,17 +482,17 @@ export class GameRoom extends Room {
     );
 
     switch (code) {
-    case closeCodes.FAILED_TO_RECONNECT:
-      this.sendDisconnectResult();
-      break;
-    case closeCodes.GOING_AWAY:
-      this.sendDisconnectResult();
-      break;
-    case closeCodes.SERVER_SHUTDOWN:
-      this.sendCancelResult();
-      break;
-    default:
-      break;
+      case closeCodes.FAILED_TO_RECONNECT:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.GOING_AWAY:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.SERVER_SHUTDOWN:
+        this.sendCancelResult();
+        break;
+      default:
+        break;
     }
 
     const player = this.state.players.get(client.sessionId);

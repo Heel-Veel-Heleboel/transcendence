@@ -10,7 +10,8 @@ import {
   Vector3,
   MeshBuilder,
   LinesMesh,
-  PointerEventTypes
+  PointerEventTypes,
+  Color4
 } from '@babylonjs/core';
 import {
   debugLayerListener,
@@ -138,20 +139,21 @@ export class GameClient {
 
     scene.onPointerObservable.add(pointerInfo => {
       switch (pointerInfo.type) {
-      case PointerEventTypes.POINTERDOWN:
-        if (this.gameMode === 'powerup' && this.prota.powerShots) {
-          const forwardRay = this.powerCamera.getForwardRay();
-          this.room.send('powershot', {
-            origin: forwardRay.origin,
-            direction: forwardRay.direction.scale(50)
-          });
-        }
+        case PointerEventTypes.POINTERDOWN:
+          if (this.gameMode === 'powerup' && this.prota.powerShots) {
+            const forwardRay = this.powerCamera.getForwardRay();
+            this.room.send('powershot', {
+              origin: forwardRay.origin,
+              direction: forwardRay.direction.scale(50)
+            });
+          }
 
-        break;
-      default:
-        break;
+          break;
+        default:
+          break;
       }
     });
+    scene.clearColor = new Color4(0, 0, 0, 1);
     INSPECTOR.Inspector.Show(scene, {});
     return scene;
   }
@@ -338,10 +340,14 @@ export class GameClient {
         g.prota = player;
         g.prota.initGridHints(g.scene);
         const pos = config.goalPosition;
+        console.log('goalDimensions');
+        console.log(config.goalDimensions);
+        console.log('goalPosition');
+        console.log(config.goalPosition);
         if (g.prota.keyGrid.rotation) {
           this.goalCamera = createGoalCamera(
             g.scene,
-            createVector3(pos.x, pos.y, pos.z + 15)
+            createVector3(pos.x, pos.y, pos.z + config.goalDimensions.y * 4)
           );
           this.powerCamera = createPowerCamera(
             g.scene,
@@ -350,7 +356,7 @@ export class GameClient {
         } else {
           this.goalCamera = createGoalCamera(
             g.scene,
-            createVector3(pos.x, pos.y, pos.z - 15)
+            createVector3(pos.x, pos.y, pos.z - config.goalDimensions.y * 4)
           );
           this.powerCamera = createPowerCamera(
             g.scene,
