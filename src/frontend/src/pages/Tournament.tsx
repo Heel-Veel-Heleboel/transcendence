@@ -417,14 +417,14 @@ export function TournamentParticipants({ tournamentId }: { tournamentId: string 
     const service = useMatchMakingService();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
-    const [participants, setParticipants] = useState<IParticipants>(DEFAULT_PARTICIPANTS);
+    const [participants, setParticipants] = useState<IRanking[]>([]);
     const navigate = useNavigate();
 
     useEffect(() => {
         async function getTournamentParticipants() {
             try {
-                const result = await service.getTournamentParticipants(tournamentId);
-                setParticipants(result.data);
+                const result = await service.getTournamentRanking(tournamentId);
+                setParticipants(result.data.rankings);
             } catch (e: any) {
                 console.error(e);
                 setError(e);
@@ -451,35 +451,40 @@ export function TournamentParticipants({ tournamentId }: { tournamentId: string 
         )
     }
 
-    function List(list: number[]) {
+    function List(list: IRanking[]) {
         if (!list)
             return
-        const listItems = list.map((item) =>
-            <li key={item}>
-                <div className='flex justify-between' id={'participant-' + item + '-container'}>
-                    <button onClick={() => navigate('/profile/' + item)}>
-                        {item}
+
+        list.sort(function (a, b) {
+            if (a.username > b.username) return 1;
+            if (a.username < b.username) return -1;
+            return 0;
+        });
+        const listItems = list.map((item: IRanking) =>
+            <li key={item.userId}>
+                <div className='flex justify-between' id={'participant-' + item.userId + '-container'}>
+                    <button onClick={() => navigate('/profile/' + item.userId)}>
+                        {item.username}
                     </button>
                 </div>
             </li>
         );
-
         const chunkSize = 6;
         const listChunks = []
         for (let i = 0; i < listItems.length; i += chunkSize) {
             const chunk = listItems.slice(i, i + chunkSize);
             listChunks.push(
-                <div id={`rankings-list-chunk-${i}`} className='flex'>
+                <div id={`participants-list-chunk-${i}`} className='flex'>
                     <ul>
                         {chunk}
                     </ul>
-                    <div id={`participants-srankings-divider-${i}`} className="p-2"></div >
+                    <div id={`participants-space-divider-${i}`} className="p-2"></div >
                 </div >
             );
         }
 
         return (
-            <div id="participant-list" className="flex">
+            <div id="participants-list" className="flex">
                 {listChunks}
             </div>
         );
@@ -489,7 +494,7 @@ export function TournamentParticipants({ tournamentId }: { tournamentId: string 
             <div className="h-1/10"></div>
             <div className="h-6/10">
                 <Terminal title="participants" >
-                    {List(participants.participantIds)}
+                    {List(participants)}
                 </Terminal >
             </div>
         </div>
