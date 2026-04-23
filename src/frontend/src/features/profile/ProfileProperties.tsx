@@ -15,17 +15,18 @@ export function ProfilePropertiesPrimary() {
     const [error, setError] = useState<boolean>(false);
     const [user, setUser] = useState<IUser>(DEFAULT_USER);
 
-    useEffect(() => {
-        async function getUser() {
-            try {
-                const result = await userService.getUser();
-                setUser(result.data);
-            } catch (e: any) {
-                setError(true);
-            } finally {
-                setLoading(false);
-            }
+    async function getUser() {
+        try {
+            const result = await userService.getUser();
+            setUser(result.data);
+        } catch (e: any) {
+            setError(true);
+        } finally {
+            setLoading(false);
         }
+    }
+
+    useEffect(() => {
         getUser();
     }, [])
 
@@ -43,8 +44,8 @@ export function ProfilePropertiesPrimary() {
     return (
         <ProfilePropertiesPrimaryContainer>
             <ProfileRelationships />
-            <Username user={user} />
-            <Email user={user} />
+            <Username user={user} onUpdate={getUser} />
+            <Email user={user} onUpdate={getUser} />
             <Password />
             <TwoFactor />
             <DeleteUser />

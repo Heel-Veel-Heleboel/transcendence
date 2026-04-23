@@ -3,6 +3,7 @@ import {
     useContext,
     useLayoutEffect,
     useState,
+    useRef,
     ReactNode,
     JSX,
     useEffect
@@ -30,7 +31,7 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
     const [token, setToken] = useState<string>('');
-    const [retry, setRetry] = useState<boolean>(false);
+    const isRefreshing = useRef<boolean>(false);
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { userId, setUserId, removeUserId } = useUserId();
@@ -157,19 +158,24 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             return config;
         }, async (error) => {
             if (error.response?.status === 401) {
-                if (retry) {
-                    setRetry(false);
+                if (isRefreshing.current) {
                     return Promise.reject(error);
                 }
-                setRetry(true);
-                refresh();
-                return api(error.config);
+                isRefreshing.current = true;
+                try {
+                    await refresh();
+                    return api(error.config);
+                } catch (e) {
+                    return Promise.reject(e);
+                } finally {
+                    isRefreshing.current = false;
+                }
             }
             return Promise.reject(error);
         });
 
         return function cleanup() {
-            api.interceptors.request.eject(refreshIntercept);
+            api.interceptors.response.eject(refreshIntercept);
         };
     }, [token]);
 
