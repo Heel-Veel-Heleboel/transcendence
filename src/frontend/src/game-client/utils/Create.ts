@@ -17,6 +17,34 @@ import Errors from './Error.ts';
 import { AdvancedDynamicTexture } from '@babylonjs/gui';
 
 /* v8 ignore start */
+
+export function createGoalCameraPositions(pos: Vector3, dimensions: Vector3) {
+  const scaledDimensions = dimensions.scale(2);
+  const posZ =
+    pos.z < 0 ? pos.z - scaledDimensions.x * 2 : pos.z + scaledDimensions.x * 2;
+  const topRight = new Vector3(
+    pos.x + scaledDimensions.x,
+    pos.y + scaledDimensions.y,
+    posZ
+  );
+  const bottomRight = new Vector3(
+    pos.x + scaledDimensions.x,
+    pos.y - scaledDimensions.y,
+    posZ
+  );
+  const bottomLeft = new Vector3(
+    pos.x - scaledDimensions.x,
+    pos.y - scaledDimensions.y,
+    posZ
+  );
+  const topLeft = new Vector3(
+    pos.x - scaledDimensions.x,
+    pos.y + scaledDimensions.y,
+    posZ
+  );
+  return [topRight, bottomRight, bottomLeft, topLeft];
+}
+
 export function createGoalCamera(scene: Scene, pos: Vector3) {
   const camera = new UniversalCamera('goalCamera', pos, scene);
   camera.setTarget(Vector3.Zero());

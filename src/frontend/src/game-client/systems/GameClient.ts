@@ -24,7 +24,8 @@ import {
   createGoalCamera,
   createLight,
   createVector3,
-  createPowerCamera
+  createPowerCamera,
+  createGoalCameraPositions
 } from '../utils/Create';
 import '@babylonjs/loaders/glTF';
 import { Hack } from '../components/Hack';
@@ -68,6 +69,7 @@ export class GameClient {
 
   //@ts-ignore
   private _goalCamera!: Camera;
+  private _goalCameraPositions!: Vector3[];
   private _powerCamera!: Camera;
   //@ts-ignore
   private _light!: Light;
@@ -340,32 +342,21 @@ export class GameClient {
         g.prota = player;
         g.prota.initGridHints(g.scene);
         const pos = config.goalPosition;
-        console.log('goalDimensions');
-        console.log(config.goalDimensions);
-        console.log('goalPosition');
-        console.log(config.goalPosition);
-        if (g.prota.keyGrid.rotation) {
-          this.goalCamera = createGoalCamera(
-            g.scene,
-            createVector3(pos.x, pos.y, pos.z + config.goalDimensions.y * 4)
-          );
-          this.powerCamera = createPowerCamera(
-            g.scene,
-            createVector3(pos.x, pos.y + config.goalDimensions.y, pos.z)
-          );
-        } else {
-          this.goalCamera = createGoalCamera(
-            g.scene,
-            createVector3(pos.x, pos.y, pos.z - config.goalDimensions.y * 4)
-          );
-          this.powerCamera = createPowerCamera(
-            g.scene,
-            createVector3(pos.x, pos.y + config.goalDimensions.y, pos.z)
-          );
-        }
+        this.goalCameraPositions = createGoalCameraPositions(
+          pos,
+          config.goalDimensions
+        );
+        this.goalCamera = createGoalCamera(
+          g.scene,
+          this.goalCameraPositions[0]
+        );
+        this.powerCamera = createPowerCamera(
+          g.scene,
+          createVector3(pos.x, pos.y + config.goalDimensions.y, pos.z)
+        );
 
         const keyManager = new KeyManager(
-          g.scene,
+          g,
           () => g.frameCount,
           g.prota,
           this.gameMode
@@ -555,6 +546,9 @@ export class GameClient {
   private set goalCamera(goalCamera: Camera) {
     this._goalCamera = goalCamera;
   }
+  private set goalCameraPositions(positions: Vector3[]) {
+    this._goalCameraPositions = positions;
+  }
   private set powerCamera(powerCamera: Camera) {
     this._powerCamera = powerCamera;
   }
@@ -568,7 +562,7 @@ export class GameClient {
   private get defaultScene() {
     return this._defaultScene;
   }
-  private get scene(): Scene {
+  public get scene(): Scene {
     return this._scene;
   }
   // NOTE: set to public to dispose scene on error
@@ -623,8 +617,11 @@ export class GameClient {
   private get room(): Room {
     return this._room;
   }
-  private get goalCamera(): Camera {
+  public get goalCamera(): Camera {
     return this._goalCamera;
+  }
+  public get goalCameraPositions(): Vector3[] {
+    return this._goalCameraPositions;
   }
   private get powerCamera(): Camera {
     return this._powerCamera;
