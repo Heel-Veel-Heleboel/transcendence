@@ -1,11 +1,7 @@
 import { IPlayer, IPlayerConfig } from '../types/Types';
 import { Scene, AbstractMesh, Vector3, Color4 } from '@babylonjs/core';
 import gameConfig from '../utils/GameConfig';
-import {
-  createBox,
-  createStandardMaterial,
-  createVector3
-} from '../utils/Create';
+import { createBox, createVector3 } from '../utils/Create';
 
 /* v8 ignore start */
 export class Player implements IPlayer {
@@ -38,15 +34,10 @@ export class Player implements IPlayer {
       config.goalPosition.y,
       config.goalPosition.z
     );
-    // const material = createStandardMaterial(
-    //   gameConfig.playerMaterialName,
-    //   scene
-    // );
     player.visibility = 0.2;
     player.enableEdgesRendering();
     player.edgesWidth = 4.0;
     player.edgesColor = new Color4(0, 1, 1, 1);
-    // player.material = material;
     this.mesh = player;
     this.lifespan = 100;
     this.mana = 0;

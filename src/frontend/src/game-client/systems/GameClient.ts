@@ -11,7 +11,8 @@ import {
   MeshBuilder,
   LinesMesh,
   PointerEventTypes,
-  Color4
+  Color4,
+  CreateGroundFromHeightMap
 } from '@babylonjs/core';
 import {
   debugLayerListener,
@@ -42,6 +43,7 @@ import { LoadingScreen } from '../utils/LoadingScreen.ts';
 import { ReconnectionScreen } from '../utils/ReconnectionScreen.ts';
 import { WinnerScreen } from '../utils/WinnerScreen.ts';
 import { IBounces } from '../types/Types.ts';
+import { GridMaterial } from '@babylonjs/materials';
 
 /* v8 ignore start */
 export class GameClient {
@@ -116,6 +118,7 @@ export class GameClient {
     this.frameCount = 0;
     prepareImportGLTF(this.defaultScene);
     this.scene = await this.initScene(this.defaultScene);
+    this.initBackground();
     this.displayLoadingScreen();
 
     debugLayerListener(this.scene);
@@ -158,6 +161,35 @@ export class GameClient {
     scene.clearColor = new Color4(0, 0, 0, 1);
     INSPECTOR.Inspector.Show(scene, {});
     return scene;
+  }
+
+  initBackground() {
+    const groundMaterial = new GridMaterial('groundMaterial', this.scene);
+    groundMaterial.majorUnitFrequency = 5;
+    groundMaterial.minorUnitVisibility = 0.45;
+    groundMaterial.gridRatio = 2;
+    groundMaterial.backFaceCulling = false;
+    groundMaterial.mainColor = new Color3(0, 1, 0.07);
+    groundMaterial.lineColor = new Color3(1.0, 1.0, 1.0);
+    groundMaterial.opacity = 0.98;
+    groundMaterial.wireframe = true;
+    groundMaterial.setAlphaMode(16);
+
+    const ground = CreateGroundFromHeightMap(
+      'ground',
+      '/ground_heightmap.png',
+      {
+        width: 15000,
+        height: 15000,
+        subdivisions: 100,
+        minHeight: 0,
+        maxHeight: 3000,
+        updatable: false
+      },
+      this.scene
+    );
+    ground.position.y -= 2000;
+    ground.material = groundMaterial;
   }
 
   private draw(g: GameClient) {

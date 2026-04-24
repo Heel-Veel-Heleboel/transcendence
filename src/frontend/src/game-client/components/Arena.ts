@@ -63,16 +63,16 @@ export class Arena implements IArena {
     mesh.material = material;
     if (mesh.id === gameConfig.areneId) {
       mesh.isPickable = false;
-      mesh.visibility = 0.2;
+      mesh.visibility = 0.41;
       mesh.enableEdgesRendering();
-      mesh.edgesWidth = 4.0;
+      mesh.edgesWidth = 10.0;
       mesh.edgesColor = new Color4(0, 0, 1, 1);
       this._arena = mesh;
     } else if (mesh.id === gameConfig.goalId1) {
       mesh.isPickable = true;
-      mesh.visibility = 0.2;
+      mesh.visibility = 0.5;
       mesh.enableEdgesRendering();
-      mesh.edgesWidth = 4.0;
+      mesh.edgesWidth = 10.0;
       mesh.edgesColor = new Color4(1, 0, 1, 1);
       if (mesh.position.z < 0) {
         mesh.sideOrientation = 1;
@@ -80,9 +80,9 @@ export class Arena implements IArena {
       this.goal_1 = mesh;
     } else if (mesh.id === gameConfig.goalId2) {
       mesh.isPickable = true;
-      mesh.visibility = 0.2;
+      mesh.visibility = 0.5;
       mesh.enableEdgesRendering();
-      mesh.edgesWidth = 4.0;
+      mesh.edgesWidth = 10.0;
       mesh.edgesColor = new Color4(1, 1, 0, 1);
       mesh.isPickable = true;
       if (mesh.position.z < 0) {

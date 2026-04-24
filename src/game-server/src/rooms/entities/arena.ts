@@ -5,8 +5,7 @@ import {
   Scene,
   Mesh,
   PhysicsShapeType,
-  PhysicsAggregate,
-  StandardMaterial
+  PhysicsAggregate
 } from '@babylonjs/core';
 import '@babylonjs/loaders';
 
@@ -30,7 +29,6 @@ export class Arena implements IArena {
           if (mesh.id === 'arena') {
             mesh.flipFaces(true);
           }
-          console.log(mesh.position);
 
           const aggregate = new PhysicsAggregate(
             mesh,
