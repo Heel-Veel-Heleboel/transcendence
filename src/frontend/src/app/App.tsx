@@ -11,6 +11,7 @@ import { Tournament } from '../pages/Tournament.tsx';
 import { VisitorProfile } from '../pages/VisitorProfile.tsx';
 import { Relationships } from '../pages/Relationships.tsx';
 import { GeneralErrorFallback } from '../features/errors/GeneralErrorFallBack.tsx';
+import { FeatureErrorFallback } from '../features/errors/FeatureErrorFallback.tsx';
 import { GAME_NAVIGATION, ENTRY_PAGE, REGISTER_PAGE, LOGIN_PAGE, START_MENU_PAGE, CREDITS_PAGE, HOME_PAGE, PROFILE_PAGE, USER_PAGE, RELATIONSHIPS_PAGE, VISITOR_PAGE, TOURNAMENT_BASE, TOURNAMENT_PAGE, TWO_FACTOR_PAGE, TOURNAMENT_CREATION_PAGE } from '../shared/constants/navigation.ts';
 import { Entry } from '../pages/Entry.tsx';
 import { Register } from '../pages/Register.tsx';
@@ -58,15 +59,15 @@ export function App() {
                                     </Route>
                                     <Route path={CREDITS_PAGE} element={<Credits />} />
                                     <Route element={<PrivateRoutes />}>
-                                        <Route path={HOME_PAGE} element={<Home />} />
+                                        <Route path={HOME_PAGE} element={<ErrorBoundary FallbackComponent={FeatureErrorFallback}><Home /></ErrorBoundary>} />
                                         <Route path={PROFILE_PAGE} >
-                                            <Route path={USER_PAGE} element={<Profile />} />
-                                            <Route path={USER_PAGE + '/' + RELATIONSHIPS_PAGE} element={<Relationships />} />
-                                            <Route path={VISITOR_PAGE} element={<VisitorProfile />} />
+                                            <Route path={USER_PAGE} element={<ErrorBoundary FallbackComponent={FeatureErrorFallback}><Profile /></ErrorBoundary>} />
+                                            <Route path={USER_PAGE + '/' + RELATIONSHIPS_PAGE} element={<ErrorBoundary FallbackComponent={FeatureErrorFallback}><Relationships /></ErrorBoundary>} />
+                                            <Route path={VISITOR_PAGE} element={<ErrorBoundary FallbackComponent={FeatureErrorFallback}><VisitorProfile /></ErrorBoundary>} />
                                         </Route >
                                         <Route path={TOURNAMENT_BASE} >
-                                            <Route path={TOURNAMENT_PAGE} element={<Tournament />} />
-                                            <Route path={TOURNAMENT_CREATION_PAGE} element={<TournamentCreation />} />
+                                            <Route path={TOURNAMENT_PAGE} element={<ErrorBoundary FallbackComponent={FeatureErrorFallback}><Tournament /></ErrorBoundary>} />
+                                            <Route path={TOURNAMENT_CREATION_PAGE} element={<ErrorBoundary FallbackComponent={FeatureErrorFallback}><TournamentCreation /></ErrorBoundary>} />
                                         </Route  >
                                         <Route path={GAME_NAVIGATION} element={<Game />} />
                                     </Route>

@@ -1,5 +1,8 @@
 import axios from 'axios';
-// import { ClientError } from '../error/user-management.js';
+import pino from 'pino';
+import { loggerOptions } from '../config/logger.js';
+
+const logger = pino(loggerOptions);
 
 export interface WebSocketEvent {
   type: string;
@@ -23,9 +26,8 @@ export class ApiGatewayClient{
           'Content-Type': 'application/json'
         }
       });
-    } catch {
-      // throw new ClientError('APIGatewayClient');
-      
+    } catch (err) {
+      logger.error({ err }, '[ApiGatewayClient] notifyUsers failed (non-fatal)');
     }
   }
 

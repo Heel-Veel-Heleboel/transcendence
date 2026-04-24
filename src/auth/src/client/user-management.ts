@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { UserManagementService, ActivityStatus } from '../types/user-management-service.js';
+import { ResourceConflictError } from '../error/auth.js';
 
 interface CreateUserResponse {
   user_id: number;
@@ -45,6 +46,10 @@ export class UserManagementClient implements UserManagementService {
       return response.data.user_id;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
+        if (error.response.status === 409) {
+          const errorData = error.response.data as ErrorResponse;
+          throw new ResourceConflictError(errorData.message || 'User already exists');
+        }
         const errorData = error.response.data as ErrorResponse;
         throw new Error(errorData.message || 'Failed to create user');
       }
