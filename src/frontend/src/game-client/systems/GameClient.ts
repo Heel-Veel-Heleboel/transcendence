@@ -179,17 +179,45 @@ export class GameClient {
       'ground',
       '/ground_heightmap.png',
       {
-        width: 15000,
-        height: 15000,
+        width: 10000,
+        height: 10000,
         subdivisions: 100,
         minHeight: 0,
-        maxHeight: 3000,
+        maxHeight: 1500,
         updatable: false
       },
       this.scene
     );
-    ground.position.y -= 2000;
+    ground.position.y -= 1000;
     ground.material = groundMaterial;
+
+    const skyMaterial = new GridMaterial('skyMaterial', this.scene);
+    skyMaterial.majorUnitFrequency = 5;
+    skyMaterial.minorUnitVisibility = 0.45;
+    skyMaterial.gridRatio = 2;
+    skyMaterial.backFaceCulling = false;
+    skyMaterial.mainColor = new Color3(1, 0, 0);
+    skyMaterial.lineColor = new Color3(1.0, 1.0, 1.0);
+    skyMaterial.opacity = 0.98;
+    skyMaterial.wireframe = true;
+    skyMaterial.setAlphaMode(16);
+
+    const sky = CreateGroundFromHeightMap(
+      'sky',
+      '/sky_heightmap.png',
+      {
+        width: 10000,
+        height: 10000,
+        subdivisions: 100,
+        minHeight: 0,
+        maxHeight: 1000,
+        updatable: false
+      },
+      this.scene
+    );
+    sky.position.y = 1500;
+    sky.material = skyMaterial;
+    sky.rotation = new Vector3(Math.PI, 0, 0);
   }
 
   private draw(g: GameClient) {
