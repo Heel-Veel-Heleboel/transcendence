@@ -15,6 +15,7 @@ import express from 'express';
  * Import your Room files
  */
 import { GameRoom } from '#rooms/GameRoom.js';
+import { logger } from './logger.js';
 
 const server = defineServer({
   /**
@@ -94,7 +95,7 @@ const server = defineServer({
 
         res.json({ roomId: room.roomId });
       } catch (err) {
-        console.error('Failed to create game room:', err);
+        logger.error({ err }, 'failed to create game room');
         res.status(500).json({ error: 'Failed to create game room' });
       }
     });

@@ -7,6 +7,8 @@ import { Player } from './entities/player.js';
 import { renderLoop } from '#game-engine/render.js';
 import { getGuestConfig, getHostConfig } from './entities/config.js';
 import { closeCodes } from '#types/close-codes.js';
+import { logger } from '../logger.js';
+import type { Logger } from 'pino';
 
 interface GameRoomOptions {
   matchId: string;
@@ -30,6 +32,7 @@ export class GameRoom extends Room {
   gameFinished = false;
   hasCrashed = false;
   isSendingResult = false;
+  roomLogger: Logger;
 
   // Match context — used when reporting the result back to matchmaking
   matchId: string;
@@ -54,7 +57,7 @@ export class GameRoom extends Room {
       player.move({ x: data.x, y: data.y });
     },
     'client-ack': (client: Client, _data: any) => {
-      console.log(`room: ${this.roomId} - client-ack ${client.sessionId}`);
+      this.roomLogger.info({ clientId: client.sessionId }, 'client-ack');
       const player = this.state.players.get(client.sessionId);
       if (player) {
         if (client.sessionId === this.player1SessionId) {
@@ -71,7 +74,7 @@ export class GameRoom extends Room {
       }
     },
     'client-error': (client: Client, data: any) => {
-      console.log(`room: ${this.roomId} - client-error ${client.sessionId}`);
+      this.roomLogger.warn({ clientId: client.sessionId, payload: data.payload }, 'client-error');
       if (
         !(
           client.sessionId === this.player1SessionId ||
@@ -91,7 +94,7 @@ export class GameRoom extends Room {
       if (this.gameMode === 'powerup') {
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 25) {
-          console.log(`room: ${this.roomId} - powerup-1 ${client.sessionId}`);
+          this.roomLogger.debug({ clientId: client.sessionId, powerup: 1 }, 'powerup activated');
           player.powerup1();
         }
       }
@@ -100,7 +103,7 @@ export class GameRoom extends Room {
       if (this.gameMode === 'powerup') {
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 50) {
-          console.log(`room: ${this.roomId} - powerup-2 ${client.sessionId}`);
+          this.roomLogger.debug({ clientId: client.sessionId, powerup: 2 }, 'powerup activated');
           player.powerup2();
           this.clock.setTimeout(() => {
             player.powerup2Reset();
@@ -112,7 +115,7 @@ export class GameRoom extends Room {
       if (this.gameMode === 'powerup') {
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 75) {
-          console.log(`room: ${this.roomId} - powerup-3 ${client.sessionId}`);
+          this.roomLogger.debug({ clientId: client.sessionId, powerup: 3 }, 'powerup activated');
           player.powerup3();
           this.clock.setTimeout(() => {
             player.powerup3Reset();
@@ -124,14 +127,14 @@ export class GameRoom extends Room {
       if (this.gameMode === 'powerup') {
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 100) {
-          console.log(`room: ${this.roomId} - powerup-4 ${client.sessionId}`);
+          this.roomLogger.debug({ clientId: client.sessionId, powerup: 4 }, 'powerup activated');
           player.powerup4();
         }
       }
     },
     powershot: (client: Client, data: any) => {
       if (this.gameMode === 'powerup') {
-        console.log(`room: ${this.roomId} - powershot ${client.sessionId}`);
+        this.roomLogger.debug({ clientId: client.sessionId }, 'powershot');
         const player = this.state.players.get(client.sessionId);
         if (player && player.powerShots) {
           player.powerup4Shot();
@@ -152,7 +155,6 @@ export class GameRoom extends Room {
   };
 
   async onCreate(options: GameRoomOptions) {
-    console.log(`room: ${this.roomId} - creation of room`);
     this.matchId = options.matchId;
     this.player1Id = options.player1Id;
     this.player2Id = options.player2Id;
@@ -163,9 +165,16 @@ export class GameRoom extends Room {
     this.deadline = options.deadline ? new Date(options.deadline) : null;
     this.isGoldenGame = options.isGoldenGame ?? false;
 
-    console.log(`room: ${this.roomId} - creating game engine`);
+    this.roomLogger = logger.child({
+      roomId: this.roomId,
+      matchId: this.matchId,
+      gameMode: this.gameMode
+    });
+
+    this.roomLogger.info('room created');
+    this.roomLogger.debug('creating game engine');
     this.engine = new GameEngine(this);
-    console.log(`room: ${this.roomId} - initializing game`);
+    this.roomLogger.debug('initializing game');
     await this.engine.initGame();
     this.setSimulationInterval(deltaTime => this.update(deltaTime));
     this.clock.setTimeout(() => {
@@ -237,9 +246,7 @@ export class GameRoom extends Room {
     let winner;
     try {
       this.isSendingResult = true;
-      console.log(
-        `room: ${this.roomId} - sending result of ${this.matchId} to matchmaking service`
-      );
+      this.roomLogger.info('sending match result to matchmaking');
       const player1 = this.state.players.get(this.player1SessionId);
       const player2 = this.state.players.get(this.player2SessionId);
 
@@ -293,7 +300,7 @@ export class GameRoom extends Room {
         }
       }
     } catch (e: any) {
-      console.error(e);
+      this.roomLogger.error({ err: e }, 'failed to send match result');
       if (this.player1Client) {
         this.player1Client.leave(closeCodes.FAILED_TO_FINISH);
       }
@@ -315,9 +322,7 @@ export class GameRoom extends Room {
     let winner;
     try {
       this.isSendingResult = true;
-      console.log(
-        `room: ${this.roomId} - sending disconnect result of ${this.matchId} to matchmaking service`
-      );
+      this.roomLogger.info('sending disconnect result to matchmaking');
       const player1 = this.state.players.get(this.player1SessionId);
       const player2 = this.state.players.get(this.player2SessionId);
 
@@ -353,7 +358,7 @@ export class GameRoom extends Room {
         }
       );
     } catch (e: any) {
-      console.error(e);
+      this.roomLogger.error({ err: e }, 'failed to send disconnect result');
       if (this.player1Client) {
         this.player1Client.leave(closeCodes.FAILED_TO_FINISH);
       }
@@ -374,9 +379,7 @@ export class GameRoom extends Room {
   async sendCancelResult(code?: number) {
     try {
       this.isSendingResult = true;
-      console.log(
-        `room: ${this.roomId} - sending cancel result of ${this.matchId} to matchmaking service`
-      );
+      this.roomLogger.info('sending cancel result to matchmaking');
       await fetch(
         `http://matchmaking:3005/matchmaking/match/${this.matchId}/result`,
         {
@@ -396,7 +399,7 @@ export class GameRoom extends Room {
         }
       }
     } catch (e: any) {
-      console.error(e);
+      this.roomLogger.error({ err: e }, 'failed to send cancel result');
       if (typeof this.player1Client !== 'undefined') {
         this.player1Client.leave(closeCodes.FAILED_TO_FINISH);
       }
@@ -409,12 +412,13 @@ export class GameRoom extends Room {
   }
 
   onJoin(client: Client, _options: any) {
-    console.log(`room: ${this.roomId} - client: ${client.sessionId} joined!`);
+    this.roomLogger.info(
+      { clientId: client.sessionId, userId: _options.userId },
+      'client joined'
+    );
 
     if (_options.userId === this.player1Id) {
-      console.log(
-        `room: ${this.roomId} - initializing player1 with id:${this.player1Id}`
-      );
+      this.roomLogger.debug({ userId: this.player1Id }, 'initializing player1');
       const player = new Player(
         getHostConfig(this.engine.arena.goal_1),
         this.player1Username,
@@ -424,9 +428,7 @@ export class GameRoom extends Room {
       this.player1Client = client;
       this.state.players.set(client.sessionId, player);
     } else if (_options.userId === this.player2Id) {
-      console.log(
-        `room: ${this.roomId} - initializing player2 with id:${this.player2Id}`
-      );
+      this.roomLogger.debug({ userId: this.player2Id }, 'initializing player2');
       const player = new Player(
         getGuestConfig(this.engine.arena.goal_2),
         this.player2Username,
@@ -442,8 +444,9 @@ export class GameRoom extends Room {
   }
 
   onDrop(client: Client<any>, code?: number): void | Promise<any> {
-    console.log(
-      `room: ${this.roomId} - client ${client.sessionId} dropped (code: ${code})`
+    this.roomLogger.warn(
+      { clientId: client.sessionId, code },
+      'client dropped'
     );
     this.allowReconnection(client, 5);
 
@@ -460,9 +463,7 @@ export class GameRoom extends Room {
   }
 
   onReconnect(client: Client<any>): void | Promise<any> {
-    console.log(
-      `room: ${this.roomId} - client ${client.sessionId} reconnected!`
-    );
+    this.roomLogger.info({ clientId: client.sessionId }, 'client reconnected');
 
     const player = this.state.players.get(client.sessionId);
     if (player) {
@@ -473,8 +474,9 @@ export class GameRoom extends Room {
   }
 
   onLeave(client: Client, code: CloseCode) {
-    console.log(
-      `room: ${this.roomId} - client ${client.sessionId} left (code: ${code})`
+    this.roomLogger.info(
+      { clientId: client.sessionId, code },
+      'client left'
     );
 
     switch (code) {
@@ -500,17 +502,12 @@ export class GameRoom extends Room {
   }
 
   onDispose() {
-    console.log(`room: ${this.roomId} - disposing of room`);
+    this.roomLogger.info('room disposed');
     this.engine.scene.dispose();
   }
 
   onUncaughtException(err: Error, methodName: string) {
-    console.error(
-      `room: ${this.roomId} - an error ocurred in`,
-      methodName,
-      ':',
-      err
-    );
+    this.roomLogger.error({ err, methodName }, 'uncaught exception in room');
     this.sendCancelResult(closeCodes.SERVER_ERROR);
   }
 
@@ -530,7 +527,7 @@ export class GameRoom extends Room {
     const player1 = this.state.players.get(this.player1SessionId);
     const player2 = this.state.players.get(this.player2SessionId);
 
-    console.log(`room: ${this.roomId} - initializing observers`);
+    this.roomLogger.debug('initializing collision observers');
     const observable1 =
       this.engine.arena.goal_1.aggregate.body.getCollisionObservable();
     observable1.add(collisionEvent => {
@@ -542,10 +539,16 @@ export class GameRoom extends Room {
         if (player2.score >= 11) {
           this.gameFinished = true;
         }
-        console.log(`room: ${this.roomId} - goal 1`);
+        this.roomLogger.info(
+          { scorer: this.player2Id, score: player2.score },
+          'goal scored'
+        );
       } else if (this.gameMode === 'powerup' && !player1.isImmun) {
         player1.updateLife(-20);
-        console.log(`room: ${this.roomId} - hit 1`);
+        this.roomLogger.info(
+          { target: this.player1Id, lifespan: player1.lifespan },
+          'player hit'
+        );
       }
     });
     const observable2 =
@@ -560,10 +563,16 @@ export class GameRoom extends Room {
         if (player1.score >= 11) {
           this.gameFinished = true;
         }
-        console.log(`room: ${this.roomId} - goal 2`);
+        this.roomLogger.info(
+          { scorer: this.player1Id, score: player1.score },
+          'goal scored'
+        );
       } else if (this.gameMode === 'powerup' && !player2.isImmun) {
         player2.updateLife(-20);
-        console.log(`room: ${this.roomId} - hit 2`);
+        this.roomLogger.info(
+          { target: this.player2Id, lifespan: player2.lifespan },
+          'player hit'
+        );
       }
     });
   }
@@ -583,27 +592,27 @@ export class GameRoom extends Room {
   }
 
   broadcastGameStart() {
-    console.log(`room: ${this.roomId} - broadcasting game-start`);
+    this.roomLogger.info('broadcasting game-start');
     this.broadcast('game-start', '');
   }
 
   broadcastGameInterrupted() {
-    console.log(`room: ${this.roomId} - broadcasting game-interrupted`);
+    this.roomLogger.info('broadcasting game-interrupted');
     this.broadcast('game-interrupted', '');
   }
 
   broadcastGameRestarted() {
-    console.log(`room: ${this.roomId} - broadcasting game-restart`);
+    this.roomLogger.info('broadcasting game-restart');
     this.broadcast('game-restart', '');
   }
 
   broadcastGameFinish(winner: string) {
-    console.log(`room: ${this.roomId} - broadcasting game-finish`);
+    this.roomLogger.info({ winner }, 'broadcasting game-finish');
     this.broadcast('game-finished', winner);
   }
 
   broadcastShutdown() {
-    console.log(`room: ${this.roomId} - broadcasting server-shutdown`);
+    this.roomLogger.info('broadcasting server-shutdown');
     this.broadcast('server-shutdown', '');
   }
 }

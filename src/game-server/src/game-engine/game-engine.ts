@@ -1,4 +1,5 @@
 import { initializePhysics } from '#game-engine/physics.js';
+import { logger } from '../logger.js';
 import { Hack } from '#entities/hack.js';
 import { Arena } from '#entities/arena.js';
 import { createArena, createCamera, createLight } from '#game-engine/create.js';
@@ -27,24 +28,27 @@ export class GameEngine {
 
   async initGame() {
     this.engine = new NullEngine();
+    const roomLogger = logger.child({ roomId: this.gameRoom.roomId });
 
-    console.log(`room: ${this.gameRoom.roomId} - creating scene`);
+    roomLogger.debug('creating scene');
     const scene = new Scene(this.engine);
 
-    console.log(`room: ${this.gameRoom.roomId} - initializing physics`);
+    roomLogger.debug('initializing physics');
     await initializePhysics(scene);
 
-    console.log(`room: ${this.gameRoom.roomId} - initializing scene`);
+    roomLogger.debug('initializing scene');
     this.scene = await this.initScene(scene);
   }
 
   /* v8 ignore start */
   async initScene(scene: Scene) {
-    console.log(`room: ${this.gameRoom.roomId} - creating camera and lights`);
+    const roomLogger = logger.child({ roomId: this.gameRoom.roomId });
+
+    roomLogger.debug('creating camera and lights');
     this.camera = createCamera(scene, 40);
     this.light = createLight(scene);
 
-    console.log(`room: ${this.gameRoom.roomId} - initializing arena`);
+    roomLogger.debug('initializing arena');
     this.arena = createArena();
     await this.arena.initMesh(scene);
 
