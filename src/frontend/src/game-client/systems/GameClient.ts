@@ -12,7 +12,9 @@ import {
   LinesMesh,
   PointerEventTypes,
   Color4,
-  CreateGroundFromHeightMap
+  CreateGroundFromHeightMap,
+  CreateSphere,
+  StandardMaterial
 } from '@babylonjs/core';
 import {
   debugLayerListener,
@@ -218,6 +220,14 @@ export class GameClient {
     sky.position.y = 1500;
     sky.material = skyMaterial;
     sky.rotation = new Vector3(Math.PI, 0, 0);
+
+    const networkSphere = CreateSphere('networkGraph', {
+      segments: 12,
+      diameter: 10000
+    });
+    const material = new StandardMaterial('networkMaterial', this.scene);
+    material.wireframe = true;
+    networkSphere.material = material;
   }
 
   private draw(g: GameClient) {
