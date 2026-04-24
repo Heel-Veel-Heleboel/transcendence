@@ -3,9 +3,9 @@ import { PhysicsMesh } from '#types/physics.js';
 export function getHostConfig(goal1: PhysicsMesh) {
   return {
     keys: {
-      columns: 'qwaszx',
-      rows: 'erdfcv',
-      length: 6,
+      columns: 'asdf',
+      rows: 'hjkl',
+      length: 4,
       precisionKeys: 'ArrowUp;ArrowDown;ArrowLeft;ArrowRight'
     },
     goalPosition: goal1.mesh.absolutePosition,
@@ -19,9 +19,9 @@ export function getHostConfig(goal1: PhysicsMesh) {
 export function getGuestConfig(goal2: PhysicsMesh) {
   return {
     keys: {
-      columns: 'qwaszx',
-      rows: 'erdfcv',
-      length: 6,
+      columns: 'asdf',
+      rows: 'hjkl',
+      length: 4,
       precisionKeys: 'ArrowUp;ArrowDown;ArrowLeft;ArrowRight'
     },
     goalPosition: goal2.mesh.absolutePosition,

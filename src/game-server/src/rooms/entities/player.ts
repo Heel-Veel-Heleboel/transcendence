@@ -65,7 +65,8 @@ export class Player extends Schema implements IPlayer {
       config.goalPosition.y,
       config.goalPosition.z
     );
-    padel.position.addInPlace(new Vector3(0, 0, 1));
+    const padelZOffset = config.goalPosition.z < 0 ? 1 : -1;
+    padel.position.addInPlace(new Vector3(0, 0, padelZOffset));
 
     const aggregate = new PhysicsAggregate(
       padel,

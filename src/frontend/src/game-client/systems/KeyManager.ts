@@ -64,30 +64,30 @@ export class KeyManager implements IKeyManager {
     const keys = this.precisionKeys.split(gameConfig.keyGridPrecisionSeperator);
     const index = keys.indexOf(key);
     switch (index) {
-    case 0:
-      if (checkUp(this.precisionMove, this.player)) {
+      case 0:
+        if (checkUp(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: 0, y: this.precisionMove });
         break;
-      }
-      this.player.movePrecise({ x: 0, y: this.precisionMove });
-      break;
-    case 1:
-      if (checkDown(this.precisionMove, this.player)) {
+      case 1:
+        if (checkDown(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: 0, y: -this.precisionMove });
         break;
-      }
-      this.player.movePrecise({ x: 0, y: -this.precisionMove });
-      break;
-    case 2:
-      if (checkLeft(this.precisionMove, this.player)) {
+      case 2:
+        if (checkLeft(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: -this.precisionMove, y: 0 });
         break;
-      }
-      this.player.movePrecise({ x: -this.precisionMove, y: 0 });
-      break;
-    case 3:
-      if (checkRight(this.precisionMove, this.player)) {
+      case 3:
+        if (checkRight(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: this.precisionMove, y: 0 });
         break;
-      }
-      this.player.movePrecise({ x: this.precisionMove, y: 0 });
-      break;
     }
   }
 

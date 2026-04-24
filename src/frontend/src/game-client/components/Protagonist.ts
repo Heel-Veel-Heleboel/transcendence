@@ -64,14 +64,7 @@ export class Protagonist extends Player implements IProtagonist {
       scene
     );
     gridMaterial.opacity = gameConfig.KeyGridMaterialOpacity;
-    gridMaterial.majorUnitFrequency = gameConfig.KeyGridMaterialMUF;
-    if (this.keyGrid.length % 2) {
-      gridMaterial.gridRatio = this.goalDimensions.x / this.ratioDiv;
-      const offset = gridMaterial.gridRatio / 2;
-      gridMaterial.gridOffset = new Vector3(offset, offset, 0);
-    } else {
-      gridMaterial.gridRatio = this.goalDimensions.x / this.ratioDiv;
-    }
+    gridMaterial.majorUnitFrequency = 0;
     this.keyGridMesh.material = gridMaterial;
     this.powerShotModePos = config.goalPosition.clone();
     this.powerShotModePos.y += this.goalDimensions.y;
@@ -97,7 +90,11 @@ export class Protagonist extends Player implements IProtagonist {
         earcut
       );
       if (text) {
-        text.position = new Vector3(values.x, values.y, this.goalPosition.z);
+        text.position = new Vector3(
+          values.x,
+          values.y - 1,
+          this.goalPosition.z
+        );
         text.rotation.y = this.rotation ? Math.PI : 0;
         const material = new StandardMaterial(
           gameConfig.keyGridMaterialName,

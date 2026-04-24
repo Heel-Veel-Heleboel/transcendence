@@ -7,7 +7,8 @@ import {
   Plane,
   Vector3Dot,
   Color3,
-  DeepImmutable
+  DeepImmutable,
+  Ray
 } from '@babylonjs/core';
 import { Hack } from './Hack';
 
@@ -110,6 +111,20 @@ export class HitIndicator {
     const intersectionPoint = hack.linearVelocity
       .scale(distance)
       .add(hack.mesh.absolutePosition);
+
+    const origin = hack.mesh.position;
+    const direction = hack.linearVelocity.normalize();
+    const length = 200;
+    const ray = new Ray(origin, direction, length);
+    const hits = this.scene.multiPickWithRay(ray);
+
+    console.log(origin, direction, length);
+    if (hits) {
+      for (const hit of hits) {
+        console.log(hit.pickedMesh?.name);
+      }
+    }
+
     this.createHitIndicatorLines(hack, intersectionPoint);
     this.createHitIndicatorDisk(hack, intersectionPoint, distance);
   }
