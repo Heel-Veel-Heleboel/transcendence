@@ -18,7 +18,7 @@ export class ApiGatewayClient{
   async notifyUsers(userIds: number[], event: WebSocketEvent): Promise<void> {
     try {
       await axios.post(`${this.baseUrl}/internal/ws/notify`, {
-        userIds,
+        userIds: userIds.map(String),
         event
       }, {
         timeout: this.timeout,
