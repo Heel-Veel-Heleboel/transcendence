@@ -4,7 +4,8 @@ import {
   AbstractMesh,
   Scene,
   Mesh,
-  StandardMaterial
+  StandardMaterial,
+  Color4
 } from '@babylonjs/core';
 import gameConfig from '../utils/GameConfig';
 import Errors from '../utils/Error';
@@ -29,7 +30,6 @@ export class Arena implements IArena {
           gameConfig.arenaMaterialName,
           scene
         );
-        material.wireframe = true;
         for (const index of result.meshes) {
           this.configureMesh(index as Mesh, material);
         }
@@ -61,17 +61,33 @@ export class Arena implements IArena {
       mesh.flipFaces(true);
     }
     mesh.material = material;
-    if (mesh.material) {
-      mesh.material.wireframe = true;
-    }
     if (mesh.id === gameConfig.areneId) {
       mesh.isPickable = false;
+      mesh.visibility = 0.2;
+      mesh.enableEdgesRendering();
+      mesh.edgesWidth = 4.0;
+      mesh.edgesColor = new Color4(0, 0, 1, 1);
       this._arena = mesh;
     } else if (mesh.id === gameConfig.goalId1) {
       mesh.isPickable = true;
+      mesh.visibility = 0.2;
+      mesh.enableEdgesRendering();
+      mesh.edgesWidth = 4.0;
+      mesh.edgesColor = new Color4(1, 0, 1, 1);
+      if (mesh.position.z < 0) {
+        mesh.sideOrientation = 1;
+      }
       this.goal_1 = mesh;
     } else if (mesh.id === gameConfig.goalId2) {
       mesh.isPickable = true;
+      mesh.visibility = 0.2;
+      mesh.enableEdgesRendering();
+      mesh.edgesWidth = 4.0;
+      mesh.edgesColor = new Color4(1, 1, 0, 1);
+      mesh.isPickable = true;
+      if (mesh.position.z < 0) {
+        mesh.sideOrientation = 1;
+      }
       this.goal_2 = mesh;
     }
   }
