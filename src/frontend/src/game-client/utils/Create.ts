@@ -51,6 +51,7 @@ export function createHack(scene: Scene, pos: Vector3, diameter: number) {
     },
     scene
   );
+  _hack.isPickable = false;
   const material = new StandardMaterial('hackMaterial', scene);
   material.ambientColor = new Color3(0, 1, 0);
   material.diffuseColor = new Color3(0, 1, 0);

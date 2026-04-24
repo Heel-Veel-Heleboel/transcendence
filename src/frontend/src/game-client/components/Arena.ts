@@ -65,13 +65,16 @@ export class Arena implements IArena {
       mesh.material.wireframe = true;
     }
     if (mesh.id === gameConfig.areneId) {
+      mesh.isPickable = false;
       this._arena = mesh;
     } else if (mesh.id === gameConfig.goalId1) {
+      mesh.isPickable = true;
+      mesh.visibility = 0;
       this.goal_1 = mesh;
-      mesh.visibility = 0;
     } else if (mesh.id === gameConfig.goalId2) {
-      this.goal_2 = mesh;
+      mesh.isPickable = true;
       mesh.visibility = 0;
+      this.goal_2 = mesh;
     }
   }
 

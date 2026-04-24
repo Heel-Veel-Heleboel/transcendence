@@ -90,6 +90,7 @@ export class Protagonist extends Player implements IProtagonist {
         earcut
       );
       if (text) {
+        text.isPickable = false;
         text.position = new Vector3(
           values.x,
           values.y - 1,

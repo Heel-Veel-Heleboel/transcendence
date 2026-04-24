@@ -218,16 +218,12 @@ export class GameRoom extends Room {
     hack.linearVelocityX = 0;
     hack.linearVelocityY = 0;
     hack.linearVelocityZ = 0;
-    // hack.physicsMesh.aggregate.body.applyForce(
-    //   new Vector3(
-    //     Math.random() * 100,
-    //     200,
-    //     Math.random() * 100
-    //   ),
-    //   hack.physicsMesh.mesh.absolutePosition
-    // );
     hack.physicsMesh.aggregate.body.applyForce(
-      new Vector3(0, 0, 200),
+      new Vector3(
+        Math.random() * 100,
+        Math.random() * 100,
+        Math.random() * 100
+      ),
       hack.physicsMesh.mesh.absolutePosition
     );
     this.id++;

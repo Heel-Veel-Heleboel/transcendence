@@ -32,6 +32,7 @@ export class Player implements IPlayer {
       },
       scene
     );
+    player.isPickable = false;
     player.position = createVector3(
       config.goalPosition.x,
       config.goalPosition.y,
