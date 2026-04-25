@@ -1,5 +1,4 @@
 import { InstancedMesh, Vector3 } from '@babylonjs/core';
-import p5 from 'p5';
 
 export class NetworkPacket {
   public birthFrameCount: number;
@@ -26,11 +25,6 @@ export class NetworkPacket {
 
   move() {
     this.instance.position.addInPlace(this.direction);
-    const phi = (this.internalFrameCount++ * 1 + 0) % (Math.PI * 2);
-    console.log('phi', phi);
-    const ratio = 0.5 * (Math.sin(phi) + 1);
-    console.log('ratio', ratio);
-    this.instance.visibility = ratio;
     const originDestinationDistance = Vector3.Distance(
       this.origin,
       this.destination

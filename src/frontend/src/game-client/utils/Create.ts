@@ -15,6 +15,7 @@ import { Hack } from '../components/Hack.ts';
 import gameConfig from './GameConfig.ts';
 import Errors from './Error.ts';
 import { AdvancedDynamicTexture } from '@babylonjs/gui';
+import { Obstacle } from '../components/Obstacle.ts';
 
 /* v8 ignore start */
 
@@ -89,6 +90,30 @@ export function createHack(scene: Scene, pos: Vector3, diameter: number) {
   const hack = new Hack(_hack, pos);
   hack.mesh.material = material;
   return hack;
+}
+
+export function createObstacle(scene: Scene, pos: Vector3, type: number) {
+  let mesh;
+  if (type === 1) {
+    mesh = MeshBuilder.CreateBox(
+      'obstacle-box',
+      { width: 5, height: 2 },
+      scene
+    );
+  } else if (type === 2) {
+    mesh = MeshBuilder.CreatePolyhedron(
+      'obstacle-polyhedron',
+      { size: 3 },
+      scene
+    );
+  } else {
+    throw new Error('invalid obstacle type');
+  }
+  if (!mesh) {
+    throw new Error('invalid obstacle type');
+  }
+  const obstacle = new Obstacle(type, mesh, pos);
+  return obstacle;
 }
 
 export function createLight(scene: Scene) {

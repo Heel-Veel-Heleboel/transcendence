@@ -33,7 +33,8 @@ import {
   createLight,
   createVector3,
   createPowerCamera,
-  createGoalCameraPositions
+  createGoalCameraPositions,
+  createObstacle
 } from '../utils/Create';
 import '@babylonjs/loaders/glTF';
 import { Hack } from '../components/Hack';
@@ -53,6 +54,7 @@ import { IBounces, INetworkNodes } from '../types/Types.ts';
 import { GridMaterial } from '@babylonjs/materials';
 import p5 from 'p5';
 import { NetworkPacket } from '../components/NetworkNode.ts';
+import { Obstacle } from '../components/Obstacle.ts';
 
 /* v8 ignore start */
 export class GameClient {
@@ -70,6 +72,7 @@ export class GameClient {
   private _hud!: Hud;
   private _keyManager!: KeyManager;
   private _hacks!: Map<string, Hack>;
+  private obstacles!: Map<string, Obstacle>;
   private _powerUpLines!: LinesMesh | null;
   private _room!: Room;
   private _networkNodes: INetworkNodes[];
@@ -77,6 +80,7 @@ export class GameClient {
   private _networkRouters: InstancedMesh[];
   private _nodeProto!: Mesh;
   private _packetProto!: Mesh;
+  private _obstacleMaterials!: StandardMaterial[];
 
   private _initialized: boolean = false;
   private _loadingScreen!: LoadingScreen;
@@ -156,6 +160,8 @@ export class GameClient {
     await this.arena.initMesh(scene);
 
     this.hacks = new Map<string, Hack>();
+    this.obstacles = new Map<string, Obstacle>();
+    this._obstacleMaterials = [];
 
     scene.onBeforeRenderObservable.add(this.draw(this));
 
@@ -177,7 +183,31 @@ export class GameClient {
     });
     scene.clearColor = new Color4(0, 0, 0, 1);
     INSPECTOR.Inspector.Show(scene, {});
+    this.initObstacleMaterials();
     return scene;
+  }
+
+  initObstacleMaterials() {
+    const material0 = new StandardMaterial('obstacle-material-0');
+    const material1 = new StandardMaterial('obstacle-material-1');
+    const material2 = new StandardMaterial('obstacle-material-2');
+    const material3 = new StandardMaterial('obstacle-material-3');
+    material1.emissiveColor = new Color3(
+      0.6549019607843137,
+      0.16470588235294117,
+      0.7333333333333333
+    );
+    material1.wireframe = true;
+    material2.emissiveColor = new Color3(
+      0.39215686274509803,
+      0.5607843137254902,
+      0.12941176470588237
+    );
+    material2.wireframe = true;
+    this._obstacleMaterials.push(material0);
+    this._obstacleMaterials.push(material1);
+    this._obstacleMaterials.push(material2);
+    this._obstacleMaterials.push(material3);
   }
 
   initBackground() {
@@ -464,6 +494,7 @@ export class GameClient {
     const callbacks = Callbacks.get(room);
     this.initPlayersStateCallbacks(callbacks, g);
     this.initHacksStateCallbacks(callbacks, g);
+    this.initObstaclesCallbacks(callbacks, g);
   }
 
   initHacksStateCallbacks(callbacks: any, g: GameClient) {
@@ -576,6 +607,42 @@ export class GameClient {
     callbacks.onRemove('players', (_entity: any, sessionId: unknown) => {
       const player = sessionId === g.room.sessionId ? g.prota : g.anta;
       player.dispose();
+    });
+  }
+
+  initObstaclesCallbacks(callbacks: any, g: GameClient) {
+    callbacks.onAdd('obstacles', (entity: any, _sessionId: unknown) => {
+      try {
+        const obstacle = createObstacle(
+          this.scene,
+          createVector3(entity.x, entity.y, entity.z),
+          entity.type
+        );
+        obstacle.mesh.rotation.x = entity.rotationX;
+        obstacle.mesh.rotation.y = entity.rotationY;
+        obstacle.mesh.rotation.z = entity.rotationZ;
+        obstacle.mesh.material = this._obstacleMaterials[entity.type];
+        g.obstacles.set(entity.id, obstacle);
+      } catch (e: any) {
+        console.error(e);
+        throw e;
+      }
+      callbacks.onChange(entity, () => {
+        const obstacle = g.obstacles.get(entity.id);
+        if (obstacle) {
+          const pos = createVector3(entity.x, entity.y, entity.z);
+          obstacle.mesh.setAbsolutePosition(pos);
+          obstacle.mesh.rotation.x = entity.rotationX;
+          obstacle.mesh.rotation.y = entity.rotationY;
+          obstacle.mesh.rotation.z = entity.rotationZ;
+        }
+      });
+    });
+    callbacks.onRemove('obstacles', (entity: any, _sessionId: unknown) => {
+      const obstacle = g.obstacles.get(entity.id);
+      if (obstacle) {
+        obstacle.dispose();
+      }
     });
   }
 
