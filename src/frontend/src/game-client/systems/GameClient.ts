@@ -18,7 +18,8 @@ import {
   VertexData,
   Mesh,
   GlowLayer,
-  StandardMaterial
+  StandardMaterial,
+  InstancedMesh
 } from '@babylonjs/core';
 import {
   debugLayerListener,
@@ -73,7 +74,9 @@ export class GameClient {
   private _room!: Room;
   private _networkNodes: INetworkNodes[];
   private _networkPackets: NetworkPacket[];
+  private _networkRouters: InstancedMesh[];
   private _nodeProto!: Mesh;
+  private _packetProto!: Mesh;
 
   private _initialized: boolean = false;
   private _loadingScreen!: LoadingScreen;
@@ -105,6 +108,7 @@ export class GameClient {
     this.winnerScreen = new WinnerScreen();
     this._networkNodes = [];
     this._networkPackets = [];
+    this._networkRouters = [];
 
     // NOTE: Wraps class in Proxy to catch errors in every method
     return new Proxy(this, {
@@ -273,18 +277,40 @@ export class GameClient {
       const pos = new Vector3(positions[i], positions[i + 1], positions[i + 2]);
       networkNodes.push({ pos, index: Math.floor(i / 3) });
     }
-    const nodeProto = MeshBuilder.CreateSphere(
-      'nodeProto',
+    this._networkNodes = networkNodes;
+
+    const packetProto = MeshBuilder.CreateSphere(
+      'packetProto',
       { diameter: 10 },
       this.scene
     );
-    nodeProto.isVisible = false;
+    packetProto.isVisible = false;
     new GlowLayer('glow', this.scene);
-    const nodeMaterial = new StandardMaterial('nodeProtoMaterial', this.scene);
+    const packetMaterial = new StandardMaterial(
+      'packetProtoMaterial',
+      this.scene
+    );
+    packetMaterial.emissiveColor = Color3.White();
+    packetProto.material = packetMaterial;
+    this._packetProto = packetProto;
+
+    const nodeProto = MeshBuilder.CreateSphere(
+      'nodeProto',
+      { diameter: 50 },
+      this.scene
+    );
+    nodeProto.isVisible = false;
+    const nodeMaterial = new StandardMaterial('nodeMaterial', this.scene);
     nodeMaterial.emissiveColor = Color3.White();
     nodeProto.material = nodeMaterial;
-    this._networkNodes = networkNodes;
     this._nodeProto = nodeProto;
+    for (const node of this._networkNodes) {
+      if (Math.random() < 0.1) {
+        const router = this._nodeProto.createInstance('router-' + node.index);
+        router.position = node.pos;
+        this._networkRouters.push(router);
+      }
+    }
   }
 
   private draw(g: GameClient) {
@@ -331,7 +357,7 @@ export class GameClient {
 
         const phi = (g.frameCount * 0.1 + 0) % (Math.PI * 2);
         const ratio = 0.5 * (Math.sin(phi) + 1);
-        g._nodeProto.visibility = ratio;
+        g._packetProto.visibility = ratio;
         g.frameCount++;
       } catch (e: any) {
         console.error(e);
@@ -344,7 +370,7 @@ export class GameClient {
     const index = Math.floor(
       p5.prototype.random(1, this._networkNodes.length - 1)
     );
-    const networkInstance = this._nodeProto.createInstance('i' + index);
+    const networkInstance = this._packetProto.createInstance('packet-' + index);
     networkInstance.position = this._networkNodes[index].pos;
     const nextIndex = Math.random() < 0.5 ? index - 1 : index + 1;
     const nextPos = this._networkNodes[nextIndex];
