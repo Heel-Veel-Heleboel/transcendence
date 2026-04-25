@@ -122,3 +122,8 @@ export interface IBounces {
   hit: boolean;
   normal: Vector3;
 }
+
+export interface INetworkNodes {
+  pos: Vector3;
+  index: number;
+}

@@ -14,6 +14,10 @@ import {
   Color4,
   CreateGroundFromHeightMap,
   CreateSphere,
+  VertexBuffer,
+  VertexData,
+  Mesh,
+  GlowLayer,
   StandardMaterial
 } from '@babylonjs/core';
 import {
@@ -44,8 +48,10 @@ import * as INSPECTOR from '@babylonjs/inspector';
 import { LoadingScreen } from '../utils/LoadingScreen.ts';
 import { ReconnectionScreen } from '../utils/ReconnectionScreen.ts';
 import { WinnerScreen } from '../utils/WinnerScreen.ts';
-import { IBounces } from '../types/Types.ts';
+import { IBounces, INetworkNodes } from '../types/Types.ts';
 import { GridMaterial } from '@babylonjs/materials';
+import p5 from 'p5';
+import { NetworkPacket } from '../components/NetworkNode.ts';
 
 /* v8 ignore start */
 export class GameClient {
@@ -65,6 +71,9 @@ export class GameClient {
   private _hacks!: Map<string, Hack>;
   private _powerUpLines!: LinesMesh | null;
   private _room!: Room;
+  private _networkNodes: INetworkNodes[];
+  private _networkPackets: NetworkPacket[];
+  private _nodeProto!: Mesh;
 
   private _initialized: boolean = false;
   private _loadingScreen!: LoadingScreen;
@@ -94,6 +103,8 @@ export class GameClient {
     this.loadingScreen = new LoadingScreen();
     this.reconnectionScreen = new ReconnectionScreen();
     this.winnerScreen = new WinnerScreen();
+    this._networkNodes = [];
+    this._networkPackets = [];
 
     // NOTE: Wraps class in Proxy to catch errors in every method
     return new Proxy(this, {
@@ -225,9 +236,55 @@ export class GameClient {
       segments: 12,
       diameter: 10000
     });
-    const material = new StandardMaterial('networkMaterial', this.scene);
-    material.wireframe = true;
-    networkSphere.material = material;
+    const networkMaterial = new GridMaterial('networkMaterial', this.scene);
+    networkMaterial.majorUnitFrequency = 5;
+    networkMaterial.minorUnitVisibility = 0.45;
+    networkMaterial.gridRatio = 2;
+    networkMaterial.backFaceCulling = false;
+    networkMaterial.mainColor = new Color3(0, 0, 1);
+    networkMaterial.lineColor = new Color3(1.0, 1.0, 1.0);
+    networkMaterial.opacity = 0.98;
+    networkMaterial.wireframe = true;
+    networkMaterial.setAlphaMode(5);
+    networkSphere.material = networkMaterial;
+
+    const positions = networkSphere.getVerticesData(VertexBuffer.PositionKind);
+    const indices = networkSphere.getIndices();
+    if (!positions) {
+      throw new Error('background init fail');
+    }
+    const newPositions = [];
+    for (let i = 0; i < positions.length; i += 3) {
+      const px = positions[i],
+        py = positions[i + 1],
+        pz = positions[i + 2];
+      const range = 500;
+      const randomNum = () =>
+        Math.floor(Math.random() * (range - -range + 1)) + -range;
+      newPositions.push(px + randomNum(), py + randomNum(), pz + randomNum());
+    }
+    const vertexData = new VertexData();
+    vertexData.positions = newPositions;
+    vertexData.indices = indices;
+    vertexData.applyToMesh(networkSphere);
+
+    const networkNodes = [];
+    for (let i = 0; i < newPositions.length; i += 3) {
+      const pos = new Vector3(positions[i], positions[i + 1], positions[i + 2]);
+      networkNodes.push({ pos, index: Math.floor(i / 3) });
+    }
+    const nodeProto = MeshBuilder.CreateSphere(
+      'nodeProto',
+      { diameter: 10 },
+      this.scene
+    );
+    nodeProto.isVisible = false;
+    new GlowLayer('glow', this.scene);
+    const nodeMaterial = new StandardMaterial('nodeProtoMaterial', this.scene);
+    nodeMaterial.emissiveColor = Color3.White();
+    nodeProto.material = nodeMaterial;
+    this._networkNodes = networkNodes;
+    this._nodeProto = nodeProto;
   }
 
   private draw(g: GameClient) {
@@ -261,12 +318,38 @@ export class GameClient {
           g.keyManager.resolve();
         }
         g.prota.hud.update(g.prota, g.anta);
+        if (!(g.frameCount % 3)) {
+          this.updateNetworkBackground(g.frameCount);
+        }
+        for (const packet of this._networkPackets) {
+          packet.move();
+        }
+
+        this._networkPackets = this._networkPackets.filter(
+          packet => !packet.isDead(g.frameCount)
+        );
+
+        const phi = (g.frameCount * 0.1 + 0) % (Math.PI * 2);
+        const ratio = 0.5 * (Math.sin(phi) + 1);
+        g._nodeProto.visibility = ratio;
         g.frameCount++;
       } catch (e: any) {
         console.error(e);
         this.setError(e);
       }
     };
+  }
+
+  updateNetworkBackground(frameCount: number) {
+    const index = Math.floor(
+      p5.prototype.random(1, this._networkNodes.length - 1)
+    );
+    const networkInstance = this._nodeProto.createInstance('i' + index);
+    networkInstance.position = this._networkNodes[index].pos;
+    const nextIndex = Math.random() < 0.5 ? index - 1 : index + 1;
+    const nextPos = this._networkNodes[nextIndex];
+    const packet = new NetworkPacket(networkInstance, nextPos.pos, frameCount);
+    this._networkPackets.push(packet);
   }
 
   protaPowerShotMode() {
