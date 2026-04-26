@@ -2,6 +2,7 @@ import { BaseSyntheticEvent, useState } from "react";
 import { SubmitPropertyChangeOldNew } from "./Submit";
 import { HiddenProfileProperty } from "./ProfileProperty";
 import { useAuth } from "../../components/providers/Auth";
+import { extractApiError } from "../../shared/utils/error";
 
 export function Password() {
     const auth = useAuth();
@@ -43,7 +44,7 @@ export function Password() {
             alert("Password changed!");
         } catch (error) {
             console.error("Error changing Password:", error);
-            alert("Password change failed");
+            alert(`Password change failed: ${extractApiError(error)}`);
         }
     }
     return (

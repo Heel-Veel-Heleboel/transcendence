@@ -3,6 +3,7 @@ import { DisplayedProfileProperty } from "./ProfileProperty";
 import { SubmitPropertyChange } from "./Submit";
 import { IUser } from "../../shared/types/user";
 import { useUserService } from "../../components/providers/User";
+import { extractApiError } from "../../shared/utils/error";
 
 export function Username({ user, onUpdate }: { user: IUser, onUpdate: () => void }) {
     const userService = useUserService();
@@ -35,7 +36,7 @@ export function Username({ user, onUpdate }: { user: IUser, onUpdate: () => void
             alert("Username changed!");
         } catch (error) {
             console.error("Error changing Username:", error);
-            alert("Username change failed");
+            alert(`Username change failed: ${extractApiError(error)}`);
         }
     }
     return (

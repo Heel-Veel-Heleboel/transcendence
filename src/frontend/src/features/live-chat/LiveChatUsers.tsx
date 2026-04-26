@@ -46,7 +46,7 @@ export function UserSearchBar({ setProfile }: { setProfile: Dispatch<SetStateAct
             const result = await service.getUserByName(user);
             setProfile(result);
         } catch (e: any) {
-            if (e.response.status === 404) {
+            if (e.response?.status === 404) {
                 alert('no user found')
                 return;
             }
