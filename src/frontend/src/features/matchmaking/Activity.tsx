@@ -7,6 +7,7 @@ import { TOURNAMENT_NAVIGATION_REDIRECT } from "../../shared/constants/navigatio
 
 export function CurrentActivity({ status }: { status: IMatchmakingStatus }) {
 
+    console.log(status);
     if (status.activeMatchId) {
         return (
             <PendingMatch status={status} />
@@ -39,9 +40,6 @@ export function TournamentActivity({ status }: { status: IMatchmakingStatus }) {
                 setLoading(true);
                 setError(false);
                 const result = await service.getTournamentInfo(String(status.activeTournamentId));
-                console.log('here');
-                console.log(result);
-                console.log(status);
                 setTournamentName(result.data.tournament.name);
             } catch (e: any) {
                 console.error(e);
@@ -110,14 +108,13 @@ export function PendingTournament({ status, tournamentId, tournamentName }: { st
             setCallbackTitle('leave');
         }
     }, [])
-    if (status.state === 'in_tournament_registration' && status.activeTournamentId && status.isCreator)
-        return (
-            <Activity
-                label={<div>Pending tournament: <button onClick={() => { navigate(TOURNAMENT_NAVIGATION_REDIRECT(tournamentId)) }}>{tournamentName} </button></div>}
-                callback={callbackTitle === 'cancel' ? () => { cancelTournament() } : callbackTitle === 'leave' ? () => { unregisterTournament() } : () => { return }}
-                callbackTitle={callbackTitle}
-            />
-        )
+    return (
+        <Activity
+            label={<div>Pending tournament: <button onClick={() => { navigate(TOURNAMENT_NAVIGATION_REDIRECT(tournamentId)) }}>{tournamentName} </button></div>}
+            callback={callbackTitle === 'cancel' ? () => { cancelTournament() } : callbackTitle === 'leave' ? () => { unregisterTournament() } : () => { return }}
+            callbackTitle={callbackTitle}
+        />
+    )
 }
 
 export function ActiveTournament({ tournamentId, tournamentName }: { tournamentId: string, tournamentName: string }) {

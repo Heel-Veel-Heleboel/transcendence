@@ -29,6 +29,7 @@ export class TournamentDao {
         matchDurationMin: data.matchDurationMin ?? DEFAULT_MATCH_DURATION_MIN,
         ackDeadlineMin: data.ackDeadlineMin ?? DEFAULT_ACK_DEADLINE_MIN,
         createdBy: data.createdBy,
+        createdByUserName: data.creatorUsername,
         registrationEnd: data.registrationEnd,
         startTime: data.startTime ?? null,
         status: 'REGISTRATION'
@@ -73,6 +74,7 @@ export class TournamentDao {
       registrationEnd: tournament.registrationEnd,
       startTime: tournament.startTime,
       createdBy: tournament.createdBy,
+      createdByUserName: tournament.createdByUserName,
       createdAt: tournament.createdAt
     };
   }
@@ -153,6 +155,7 @@ export class TournamentDao {
       registrationEnd: t.registrationEnd,
       startTime: t.startTime,
       createdBy: t.createdBy,
+      createdByUserName: t.createdByUserName,
       createdAt: t.createdAt
     }));
   }
