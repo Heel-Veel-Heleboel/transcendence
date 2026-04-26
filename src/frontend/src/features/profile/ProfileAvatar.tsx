@@ -47,7 +47,6 @@ export function ProfileAvatar() {
 
     return (
         <ProfileAvatarContainer>
-            <ProfileName name={profile.user.name} />
             <ProfilePicture profile={profile} />
         </ProfileAvatarContainer>
     )
@@ -92,6 +91,7 @@ export function ProfilePicture({ profile }: { profile: IProfile }) {
 
     return (
         <ProfilePictureContainer>
+            <ProfileName name={profile.user.name} />
             <ProfilePictureImage image={image} />
             <ProfilePictureForm setImage={setImage} />
         </ProfilePictureContainer>
@@ -138,7 +138,7 @@ export function ProfilePictureForm({ setImage }: { setImage: Dispatch<SetStateAc
 
 
     return (
-        <div id='profile-picture-form' className="flex justify-between">
+        <div id='profile-picture-form' className="flex justify-between min-h-1/4">
             <div />
             <div className="w-1/2">
                 <form onSubmit={handleSubmit} >

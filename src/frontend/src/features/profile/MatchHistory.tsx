@@ -53,7 +53,7 @@ function MatchRow({ match, onNavigate }: { match: IMatchHistoryEntry; onNavigate
     const modeLabel = match.gameMode === "powerup" ? "⚡" : "●";
 
     return (
-        <li className="flex justify-between items-center border-b border-black px-2 py-1 gap-2">
+        <li className="flex justify-between items-center border-b px-2 py-1 gap-2">
             <span className={`font-bold w-4 ${resultColor}`}>{resultLabel}</span>
             <button
                 className="flex-1 text-left hover:underline truncate"
