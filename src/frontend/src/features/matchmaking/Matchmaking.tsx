@@ -31,7 +31,7 @@ export function Matchmaking(): JSX.Element {
 
 
     return (
-        <div id='matchmaking-container' className="min-h-full w-full">
+        <div id='matchmaking-container' className="h-14/15 w-full border">
             <div className="h-1/4 w-full">
                 <GameModeMenu status={status} />
             </div>

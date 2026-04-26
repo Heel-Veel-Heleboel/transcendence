@@ -25,14 +25,11 @@ export function DefaultMenu(): JSX.Element {
 
 export function Widgets(): JSX.Element {
     return (
-        <div id='widget-container' className="min-h-1/2 min-w-full flex bg-sky-800/60 bg-clip-content">
+        <div id='widgets-container' className="min-h-1/2 min-w-full flex bg-sky-800/60 bg-clip-content">
             <Widget title={CONFIG.TOURNAMENT_TITLE} logoPath={CONFIG.TOURNAMENT_LOGO} width={'w-2/4'} >
                 <Matchmaking />
             </Widget>
-            <Widget title={CONFIG.NEOFETCH_TITLE} logoPath={CONFIG.NEOFETCH_LOGO} width={'w-1/4'} >
-                <Neofetch />
-            </Widget>
-            <Widget title={CONFIG.MUSICPLAYER_TITLE} logoPath={CONFIG.MUSICPLAYER_LOGO} width={'w-1/4'} >
+            <Widget title={CONFIG.NEOFETCH_TITLE} logoPath={CONFIG.NEOFETCH_LOGO} width={'w-2/4'} >
                 <Neofetch />
             </Widget>
         </div >

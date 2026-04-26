@@ -17,8 +17,8 @@ export function LiveChatUsers({ setChannelId, hasPendingInvite, setHasPendingInv
     const [profile, setProfile] = useState<IUser>(DEFAULT_USER);
 
     return (
-        <div className="min-h-full w-1/6 border border-black">
-            <div className="border border-black border-t border-l border-r text-center">
+        <div className="min-h-full w-1/6 border">
+            <div className="border text-center">
                 users
             </div>
             <UserSearchBar setProfile={setProfile} />

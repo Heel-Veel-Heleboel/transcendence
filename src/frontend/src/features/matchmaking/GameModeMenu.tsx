@@ -6,7 +6,7 @@ import { TOURNAMENT_CREATION_NAVIGATION, TOURNAMENT_CREATION_PAGE } from "../../
 
 export function GameModeMenuButton({ callback, title }: { callback: () => void, title: string }) {
     return (
-        <div className="min-h-full flex w-1/4 justify-between border border-black">
+        <div className="min-h-full flex w-1/4 justify-between border">
             <div />
             <button onClick={callback}>{title}</button>
             <div />

@@ -7,7 +7,7 @@ export function MainContainer({ children }: { children: ReactNode }): JSX.Elemen
         <div id='main-container' className="w-full h-full flex flex-col text-white">
             <Toolbar />
             {/*TODO: Change with p5 animation*/}
-            <div id='bg-animation' className="flex flex-col h-19/20 bg-[url(/bg.jpg)] bg-cover">
+            <div id='bg-animation' className="flex flex-col h-29/30 bg-[url(/bg.jpg)] bg-cover">
                 <MainWindowContainer >
                     {children}
                 </MainWindowContainer >

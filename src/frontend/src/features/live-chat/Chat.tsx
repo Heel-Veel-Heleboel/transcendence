@@ -102,7 +102,7 @@ export function Chat({ channelId, messageUpdate }: { channelId: string, messageU
 
 export function MessengerContainer({ children }: { children: ReactNode }) {
     return (
-        <div id="messenger-container" className="flex flex-col w-4/6 min-h-full">
+        <div id="messenger-container" className="flex flex-col border w-4/6 min-h-full">
             {children}
         </div>
     )

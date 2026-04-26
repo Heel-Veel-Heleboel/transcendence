@@ -23,9 +23,9 @@ export function LiveChat(): JSX.Element {
     }
 
     return (
-        <div className="min-h-1/2 min-w-full flex flex-col bg-zinc-800/50 bg-clip-content">
+        <div id='live-chat' className="min-h-1/2 min-w-full flex flex-col bg-zinc-800/50 bg-clip-content">
             <TitleBar logoPath={CONFIG.LIVE_CHAT_LOGO} title={CONFIG.LIVE_CHAT_TITLE} />
-            <div className="flex h-19/20">
+            <div id='live-chat-containers' className="flex h-14/15">
                 <LiveChatRooms setChannelId={setChannelId} chatUpdate={notif.chatUpdate + localChatUpdate} openChannelId={channelId} lastMessageChannelId={notif.lastMessageChannelId} />
                 <Chat channelId={channelId} messageUpdate={notif.messageUpdate} />
                 <LiveChatUsers setChannelId={openNewChannel} hasPendingInvite={hasPendingInvite} setHasPendingInvite={setHasPendingInvite} />
