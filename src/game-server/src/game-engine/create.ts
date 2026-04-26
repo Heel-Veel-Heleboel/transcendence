@@ -76,7 +76,7 @@ export function createPowerShot(
   const hack = createHack(scene, pos, diameter);
 
   hack.physicsMesh.aggregate.body.applyForce(
-    force,
+    force.scale(4),
     hack.physicsMesh.mesh.absolutePosition
   );
 

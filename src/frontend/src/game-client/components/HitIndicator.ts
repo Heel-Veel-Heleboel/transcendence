@@ -6,7 +6,6 @@ import {
   LinesMesh,
   Plane,
   Color3,
-  DeepImmutable,
   Ray
 } from '@babylonjs/core';
 import { Hack } from './Hack';
