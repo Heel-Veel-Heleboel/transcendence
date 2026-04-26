@@ -25,7 +25,7 @@ export function DefaultMenu(): JSX.Element {
 
 export function Widgets(): JSX.Element {
     return (
-        <div id='widgets-container' className="min-h-1/2 min-w-full flex bg-sky-800/60 bg-clip-content">
+        <div id='widgets-container' className="min-h-1/2 min-w-full flex bg-clip-content">
             <Widget title={CONFIG.TOURNAMENT_TITLE} logoPath={CONFIG.TOURNAMENT_LOGO} width={'w-2/4'} >
                 <Matchmaking />
             </Widget>

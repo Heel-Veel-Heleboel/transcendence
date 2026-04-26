@@ -3,7 +3,7 @@ import { CONFIG } from "../../shared/config/AppConfig"
 
 export function TitleBar({ logoPath, title }: { logoPath: string, title: string }): JSX.Element {
     return (
-        <div className="h-1/15 border-1 border-black bg-pink-800 flex justify-between px-1">
+        <div className="h-1/15 bg-pink-800 flex justify-between px-1">
             <div className="w-5 py-1">
                 <img src={logoPath} alt='logo' />
             </div>
