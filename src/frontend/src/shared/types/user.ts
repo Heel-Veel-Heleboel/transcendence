@@ -10,6 +10,7 @@ export interface IUser {
   id: number;
   email: string;
   name: string;
+  activity_status?: string;
 }
 
 export interface IGetUser {

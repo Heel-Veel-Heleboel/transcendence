@@ -8,6 +8,7 @@ export interface IFriendship {
   // The other user in the relationship
   userId: number;
   userName: string;
+  activityStatus: string;
   // True if current user sent the request / is the blocker
   isRequester: boolean;
 }
@@ -57,13 +58,15 @@ export function responseToFriendship(
   currentUserId: number
 ): IFriendship {
   const isRequester = currentUserId === response.requester_id;
+  const otherUser = isRequester ? response.addressee : response.requester;
   return {
     created_at: response.created_at,
     id: response.id,
     status: response.status,
     updated_at: response.updated_at,
     userId: isRequester ? response.addressee_id : response.requester_id,
-    userName: isRequester ? response.addressee.name : response.requester.name,
+    userName: otherUser.name,
+    activityStatus: otherUser.activity_status ?? 'OFFLINE',
     isRequester
   };
 }

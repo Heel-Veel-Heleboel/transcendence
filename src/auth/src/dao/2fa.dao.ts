@@ -65,7 +65,7 @@ export class TwoFactorAuthDao implements ITwoFactorAuthDao {
 
 
   async delete(user_id: number): Promise<void> {
-    await this.prismaClient.twoFactorAuth.delete({
+    await this.prismaClient.twoFactorAuth.deleteMany({
       where: { user_id: user_id }
     });
   }

@@ -24,7 +24,8 @@ export function MessageForm({ channelId, onMessageAdded }: { channelId: string, 
             <div className="min-h-full flex">
                 <form className="min-h-full min-w-full flex" onSubmit={submit}>
                     <div className="min-w-4/5 min-h-full">
-                        <textarea
+                        <input
+                            type="text"
                             id="message-input-element"
                             name="message-input"
                             className="border w-full min-h-full"

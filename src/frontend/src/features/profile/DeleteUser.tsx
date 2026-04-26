@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { SubmitPropertyChangeYesNo } from "./Submit";
 import { useUserService } from "../../components/providers/User";
-import { useNavigate } from "react-router-dom";
-import { HOME_NAVIGATION } from "../../shared/constants/navigation";
+import { useAuth } from "../../components/providers/Auth";
 
 export function DeleteUser() {
-    const navigate = useNavigate();
+    const auth = useAuth();
     const userService = useUserService();
     const [showDropdown, setShowDropDown] = useState<boolean>(false);
 
@@ -18,7 +17,7 @@ export function DeleteUser() {
             await userService.deleteUser();
             handleDropDown();
             alert("Deleted account!");
-            navigate(HOME_NAVIGATION)
+            try { await auth.refresh(); } catch { }
         } catch (error) {
             console.error("Error deleting Account:", error);
             alert("Deleting account failed");
