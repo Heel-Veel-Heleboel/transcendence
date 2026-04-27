@@ -28,7 +28,7 @@ varying vec2 vTexCoord;
 vec2 zoom(vec2 coord, float amount) {
   vec2 relativeToCenter = coord - 0.5;
   relativeToCenter /= amount; // Zoom in
-  return relativeToCenter + 0.5; // Put back into absolute coordinates
+  return relativeToCenter + 0.55; // Put back into absolute coordinates
 }
 
 void main() {
