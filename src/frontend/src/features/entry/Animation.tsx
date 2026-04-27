@@ -215,7 +215,7 @@ void main() {
                     vehicle.run(this.vehicles);
                 }
 
-                if (!(p5.frameCount % 50)) {
+                if (!(p5.frameCount % 25)) {
                     this.addVehicle();
                 }
                 this.vehicles = this.vehicles.filter((vehicle) => vehicle.lifespan > 0);
