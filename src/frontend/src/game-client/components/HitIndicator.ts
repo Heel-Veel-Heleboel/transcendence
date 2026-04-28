@@ -5,9 +5,8 @@ import {
   Vector3Distance,
   LinesMesh,
   Plane,
-  Vector3Dot,
   Color3,
-  DeepImmutable
+  Ray
 } from '@babylonjs/core';
 import { Hack } from './Hack';
 
@@ -35,6 +34,7 @@ export class HitIndicator {
   private _hitDiskMaterial!: StandardMaterial;
   private _hackLerpStart: Color3;
   private _hackLerpEnd: Color3;
+  private _absGoalDistance: number;
 
   constructor(config: HitIndicatorConfig) {
     this.goalPosition = config.goalPosition;
@@ -60,69 +60,65 @@ export class HitIndicator {
     this.scene.getBoundingBoxRenderer().backColor.set(bc.r, bc.g, bc.b);
     this._hackLerpStart = new Color3(1, 0, 0);
     this._hackLerpEnd = new Color3(0, 1, 0);
-  }
-
-  private SignedDistanceToPlaneFromPositionAndNormal(
-    origin: DeepImmutable<Vector3>,
-    normal: DeepImmutable<Vector3>,
-    point: DeepImmutable<Vector3>
-  ): number {
-    const d = -(
-      normal.x * origin.x +
-      normal.y * origin.y +
-      normal.z * origin.z
-    );
-    return Vector3.Dot(point, normal) + d;
+    this._absGoalDistance = Math.abs(this.goalPosition.z);
   }
 
   detectIncomingHits(hack: Hack) {
     if (hack.isDead() || typeof hack.linearVelocity === 'undefined') {
       return;
     }
+
+    const origin = hack.mesh.position;
+    const direction = hack.linearVelocity.normalize();
+    const ray = new Ray(origin, direction, this._absGoalDistance);
+    const hits = this.scene.multiPickWithRay(ray);
+    let isHit = false;
+
+    if (hits) {
+      for (const hit of hits) {
+        if (hit.pickedMesh?.name === 'keyGridMesh') {
+          isHit = true;
+          const point = hit.pickedPoint as Vector3;
+          this.createHitIndicatorLines(hack, point);
+          this.createHitIndicatorDisk(hack, point, hit.distance);
+          this.changeHackColor(hack, hit.distance);
+        }
+      }
+    }
+
+    if (isHit === false) {
+      this.disposeHitIndicators(hack);
+      this.resetHackColor(hack);
+    }
+  }
+
+  private resetHackColor(hack: Hack) {
     if (hack.mesh.material) {
-      const hackGoalDistance = this.SignedDistanceToPlaneFromPositionAndNormal(
-        hack.mesh.position,
-        this.goalPosition,
-        this.goalPosition
-      );
       const material = hack.mesh.material as StandardMaterial;
-      const amount = p5.prototype.map(
-        hackGoalDistance,
-        0,
-        this.radius * 10,
-        0,
-        1
-      );
       Color3.LerpToRef(
         this._hackLerpStart,
         this._hackLerpEnd,
-        amount,
+        1,
         material.ambientColor
       );
       material.diffuseColor = material.ambientColor;
       hack.mesh.material = material;
     }
-    const distance = this.goalPlaneIntersection(hack);
-    if (Math.abs(distance) > this.radius / 2 || distance < 0) {
-      this.disposeHitIndicators(hack);
-      return;
-    }
-    const intersectionPoint = hack.linearVelocity
-      .scale(distance)
-      .add(hack.mesh.absolutePosition);
-    this.createHitIndicatorLines(hack, intersectionPoint);
-    this.createHitIndicatorDisk(hack, intersectionPoint, distance);
   }
 
-  // NOTE: acknowledgement: https://github.com/rvan-mee/miniRT/blob/master/src/render/intersect/intersect_plane.c
-  private goalPlaneIntersection(hack: Hack) {
-    const perpendicularity = Vector3Dot(
-      hack.linearVelocity,
-      this.goalPlane.normal
-    );
-    const diff = this.goalPosition.subtract(hack.mesh.absolutePosition);
-    const distance = this.goalPlane.dotCoordinate(diff) / perpendicularity;
-    return distance;
+  private changeHackColor(hack: Hack, distance: number) {
+    if (hack.mesh.material) {
+      const material = hack.mesh.material as StandardMaterial;
+      const ratio = p5.prototype.map(distance, 0, this._absGoalDistance, 0, 1);
+      Color3.LerpToRef(
+        this._hackLerpStart,
+        this._hackLerpEnd,
+        ratio,
+        material.ambientColor
+      );
+      material.diffuseColor = material.ambientColor;
+      hack.mesh.material = material;
+    }
   }
 
   private disposeHitIndicators(hack: Hack) {
@@ -162,7 +158,14 @@ export class HitIndicator {
     intersectionPoint: Vector3,
     distance: number
   ) {
-    const distanceRatio = Math.max(0, 1 / distance) + 0.1;
+    console.log(distance);
+    const distanceRatio = p5.prototype.map(
+      distance,
+      this._absGoalDistance / 4,
+      this._absGoalDistance,
+      1,
+      0
+    );
     if (hack.hitDisk === null) {
       const disc = createDisc(
         gameConfig.hitDiskMeshName,
@@ -172,6 +175,7 @@ export class HitIndicator {
         },
         this.scene
       );
+      disc.isPickable = false;
       disc.material = this.hitDiskMaterial;
       disc.position = intersectionPoint;
       hack.hitDisk = disc;

@@ -1,6 +1,10 @@
 import { Room, Client, CloseCode } from 'colyseus';
 import { GameRoomState } from '#schema/GameRoomState.js';
-import { createHack, createPowerShot } from '#game-engine/create.js';
+import {
+  createHack,
+  createObstacle,
+  createPowerShot
+} from '#game-engine/create.js';
 import { GameEngine } from '#game-engine/game-engine.js';
 import { PhysicsEventType, Vector3 } from '@babylonjs/core';
 import { Player } from './entities/player.js';
@@ -28,6 +32,7 @@ export class GameRoom extends Room {
   state = new GameRoomState();
   engine: GameEngine;
   id = 0;
+  obstacleId = 0;
   frameCount = 0;
   gameFinished = false;
   hasCrashed = false;
@@ -209,11 +214,43 @@ export class GameRoom extends Room {
       }
     });
 
-    if (!(this.frameCount % 200)) {
+    this.state.obstacles.forEach((key, value) => {
+      if (key.isDead()) {
+        this.state.obstacles.delete(value);
+      }
+    });
+
+    if (!(this.frameCount % 100)) {
       this.addHack();
     }
 
+    if (!(this.frameCount % 150)) {
+      this.updateObstacles();
+    }
+
     this.frameCount++;
+  }
+
+  updateObstacles() {
+    function getRandomInt(min: number, max: number) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    const index = getRandomInt(1, 2);
+    const a = this.engine.obstacleAreas[index];
+    const x = getRandomInt(-a.x, a.x);
+    const y = getRandomInt(-a.y, a.y);
+    const z = getRandomInt(a.z - a.z / 2, a.z + a.z / 2);
+    const obstacle = createObstacle(
+      this.obstacleId,
+      this.engine.scene,
+      new Vector3(x, y, z),
+      index
+    );
+    this.state.obstacles.set(String(this.obstacleId), obstacle);
+    this.obstacleId++;
   }
 
   addHack() {
@@ -229,9 +266,9 @@ export class GameRoom extends Room {
     hack.linearVelocityZ = 0;
     hack.physicsMesh.aggregate.body.applyForce(
       new Vector3(
-        Math.random() * 100,
-        Math.random() * 100,
-        Math.random() * 100
+        Math.random() * 200,
+        Math.random() * 200,
+        Math.random() * 200
       ),
       hack.physicsMesh.mesh.absolutePosition
     );

@@ -15,14 +15,45 @@ import { Hack } from '../components/Hack.ts';
 import gameConfig from './GameConfig.ts';
 import Errors from './Error.ts';
 import { AdvancedDynamicTexture } from '@babylonjs/gui';
+import { Obstacle } from '../components/Obstacle.ts';
 
 /* v8 ignore start */
+
+export function createGoalCameraPositions(pos: Vector3, dimensions: Vector3) {
+  const scaledDimensions = dimensions.scale(2);
+  const posZ =
+    pos.z < 0 ? pos.z - scaledDimensions.x * 2 : pos.z + scaledDimensions.x * 2;
+  const topRight = new Vector3(
+    pos.x + scaledDimensions.x,
+    pos.y + scaledDimensions.y,
+    posZ
+  );
+  const bottomRight = new Vector3(
+    pos.x + scaledDimensions.x,
+    pos.y - scaledDimensions.y,
+    posZ
+  );
+  const bottomLeft = new Vector3(
+    pos.x - scaledDimensions.x,
+    pos.y - scaledDimensions.y,
+    posZ
+  );
+  const topLeft = new Vector3(
+    pos.x - scaledDimensions.x,
+    pos.y + scaledDimensions.y,
+    posZ
+  );
+  return [topRight, bottomRight, bottomLeft, topLeft];
+}
+
 export function createGoalCamera(scene: Scene, pos: Vector3) {
   const camera = new UniversalCamera('goalCamera', pos, scene);
   camera.setTarget(Vector3.Zero());
   if (unitializedCheck(camera)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
+  camera.inputs.addMouse();
+  camera.inputs.addMouseWheel();
 
   return camera;
 }
@@ -33,6 +64,9 @@ export function createPowerCamera(scene: Scene, pos: Vector3) {
   if (unitializedCheck(camera)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
+
+  camera.inputs.addMouse();
+  camera.inputs.addMouseWheel();
 
   return camera;
 }
@@ -46,6 +80,7 @@ export function createHack(scene: Scene, pos: Vector3, diameter: number) {
     },
     scene
   );
+  _hack.isPickable = false;
   const material = new StandardMaterial('hackMaterial', scene);
   material.ambientColor = new Color3(0, 1, 0);
   material.diffuseColor = new Color3(0, 1, 0);
@@ -55,6 +90,30 @@ export function createHack(scene: Scene, pos: Vector3, diameter: number) {
   const hack = new Hack(_hack, pos);
   hack.mesh.material = material;
   return hack;
+}
+
+export function createObstacle(scene: Scene, pos: Vector3, type: number) {
+  let mesh;
+  if (type === 1) {
+    mesh = MeshBuilder.CreateBox(
+      'obstacle-box',
+      { width: 5, height: 2 },
+      scene
+    );
+  } else if (type === 2) {
+    mesh = MeshBuilder.CreatePolyhedron(
+      'obstacle-polyhedron',
+      { size: 3 },
+      scene
+    );
+  } else {
+    throw new Error('invalid obstacle type');
+  }
+  if (!mesh) {
+    throw new Error('invalid obstacle type');
+  }
+  const obstacle = new Obstacle(type, mesh, pos);
+  return obstacle;
 }
 
 export function createLight(scene: Scene) {

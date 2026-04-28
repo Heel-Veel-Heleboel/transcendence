@@ -50,6 +50,7 @@ export class Player extends Schema implements IPlayer {
     this.dimZ = this.goalDimensions.z;
     this.ratioDiv = config.keys.length;
     this.isHost = config.isHost;
+
     const padel = MeshBuilder.CreateBox(
       'padel',
       {
@@ -64,7 +65,9 @@ export class Player extends Schema implements IPlayer {
       config.goalPosition.y,
       config.goalPosition.z
     );
-    padel.position.addInPlace(new Vector3(0, 0, (padel.position.z / 20) * -1));
+    const padelZOffset = config.goalPosition.z < 0 ? 1 : -1;
+    padel.position.addInPlace(new Vector3(0, 0, padelZOffset));
+
     const aggregate = new PhysicsAggregate(
       padel,
       PhysicsShapeType.MESH,
@@ -73,6 +76,7 @@ export class Player extends Schema implements IPlayer {
     );
     aggregate.body.setAngularDamping(0.0);
     aggregate.body.setLinearDamping(0.0);
+
     this.physicsMesh = { mesh: padel, aggregate: aggregate };
     this.posX = this.physicsMesh.mesh.absolutePosition.x;
     this.posY = this.physicsMesh.mesh.absolutePosition.y;

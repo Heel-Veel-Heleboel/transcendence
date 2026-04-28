@@ -6,8 +6,7 @@ import {
   Scene,
   Mesh,
   PhysicsShapeType,
-  PhysicsAggregate,
-  StandardMaterial
+  PhysicsAggregate
 } from '@babylonjs/core';
 import '@babylonjs/loaders';
 
@@ -31,12 +30,7 @@ export class Arena implements IArena {
           if (mesh.id === 'arena') {
             mesh.flipFaces(true);
           }
-          const material = new StandardMaterial('wireframe', scene);
-          material.wireframe = true;
-          mesh.material = material;
-          if (mesh.material) {
-            mesh.material.wireframe = true;
-          }
+
           const aggregate = new PhysicsAggregate(
             mesh,
             PhysicsShapeType.MESH,

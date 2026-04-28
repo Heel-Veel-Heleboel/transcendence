@@ -1,4 +1,9 @@
-import { Scene, KeyboardInfo, KeyboardEventTypes } from '@babylonjs/core';
+import {
+  KeyboardInfo,
+  KeyboardEventTypes,
+  UniversalCamera,
+  Vector3
+} from '@babylonjs/core';
 import { IKeyManager } from '../types/Types.ts';
 import {
   checkLeft,
@@ -8,9 +13,11 @@ import {
 } from '../utils/KeyManagerUtils.ts';
 import gameConfig from '../utils/GameConfig.ts';
 import { Protagonist } from '../components/Protagonist.ts';
+import { GameClient } from './GameClient.ts';
 
 /* v8 ignore start */
 export class KeyManager implements IKeyManager {
+  public client: GameClient;
   public windowFrames: number;
   public buffer: string[];
   public deltaTime: number;
@@ -18,18 +25,20 @@ export class KeyManager implements IKeyManager {
   private powerMoves: string;
   private gameMode: string;
   public precisionKeys: string;
+  public cameraPositions: string;
   public player: Protagonist;
   private getFrameCount: Function;
   public precisionMove: number;
 
   constructor(
-    scene: Scene,
+    client: GameClient,
     frameCountCallback: Function,
     player: Protagonist,
     gameMode: string,
     windowFrames = 10
   ) {
-    scene.onKeyboardObservable.add(this.onKeyDown.bind(this));
+    this.client = client;
+    this.client.scene.onKeyboardObservable.add(this.onKeyDown.bind(this));
     this.windowFrames = windowFrames;
     this.gameMode = gameMode;
     this.deltaTime = 0;
@@ -38,6 +47,7 @@ export class KeyManager implements IKeyManager {
     this.player = player;
     this.actions = player.keyGrid.grid;
     this.powerMoves = '1234';
+    this.cameraPositions = '5678';
     this.precisionKeys = player.keyGrid.precisionKeys;
     this.precisionMove = player.ratioDiv / gameConfig.handlePrecisionRatio;
   }
@@ -94,8 +104,16 @@ export class KeyManager implements IKeyManager {
   resolve() {
     let sequenceKey = this.buffer.join('+');
     let sequencePresent = false;
+    console.log(sequenceKey);
     if (this.gameMode === 'powerup' && this.powerMoves.includes(sequenceKey)) {
       this.powerMove(sequenceKey);
+      this.reset();
+      return;
+    }
+    if (this.cameraPositions.includes(sequenceKey)) {
+      this.moveGoalCamera(sequenceKey);
+      this.reset();
+      return;
     }
     if (this.actions.has(sequenceKey)) {
       sequencePresent = true;
@@ -108,6 +126,23 @@ export class KeyManager implements IKeyManager {
       if (coords) this.player.move(coords);
     }
     this.reset();
+  }
+
+  moveGoalCamera(move: string) {
+    const camera = this.client.goalCamera as UniversalCamera;
+    if (move === '5') {
+      camera.position = this.client.goalCameraPositions[0];
+    }
+    if (move === '6') {
+      camera.position = this.client.goalCameraPositions[1];
+    }
+    if (move === '7') {
+      camera.position = this.client.goalCameraPositions[2];
+    }
+    if (move === '8') {
+      camera.position = this.client.goalCameraPositions[3];
+    }
+    camera.setTarget(Vector3.Zero());
   }
 
   powerMove(move: string) {

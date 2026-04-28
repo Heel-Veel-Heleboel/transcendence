@@ -8,6 +8,7 @@ import {
 } from '@babylonjs/core';
 import { Hack } from '#entities/hack.js';
 import { Arena } from '#entities/arena.js';
+import { Obstacle } from '#rooms/entities/obstacles.js';
 
 export function createCamera(scene: Scene, distance: number) {
   const camera = new ArcRotateCamera(
@@ -40,6 +41,32 @@ export function createHack(scene: Scene, pos: Vector3, diameter: number) {
   return hack;
 }
 
+export function createObstacle(
+  id: number,
+  scene: Scene,
+  pos: Vector3,
+  type: number
+) {
+  let mesh;
+  if (type === 1) {
+    mesh = MeshBuilder.CreateBox(
+      'obstacle-box',
+      { width: 5, height: 2 },
+      scene
+    );
+  } else if (type === 2) {
+    mesh = MeshBuilder.CreatePolyhedron(
+      'obstacle-polyhedron',
+      { size: 3 },
+      scene
+    );
+  } else {
+    throw new Error('invalid obstacle type');
+  }
+  const obstacle = new Obstacle(id, type, mesh, pos, scene);
+  return obstacle;
+}
+
 export function createPowerShot(
   scene: Scene,
   pos: Vector3,
@@ -49,7 +76,7 @@ export function createPowerShot(
   const hack = createHack(scene, pos, diameter);
 
   hack.physicsMesh.aggregate.body.applyForce(
-    force,
+    force.scale(4),
     hack.physicsMesh.mesh.absolutePosition
   );
 

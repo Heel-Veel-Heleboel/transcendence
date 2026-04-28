@@ -10,6 +10,9 @@ export function renderLoop(gameEngine: GameEngine) {
     gameEngine.gameRoom.state.players.forEach((value, _key) => {
       value.update();
     });
+    gameEngine.gameRoom.state.obstacles.forEach((value, _key) => {
+      value.update();
+    });
     gameEngine.scene.render();
   });
 }

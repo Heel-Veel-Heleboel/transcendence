@@ -10,7 +10,16 @@ import {
   Vector3,
   MeshBuilder,
   LinesMesh,
-  PointerEventTypes
+  PointerEventTypes,
+  Color4,
+  CreateGroundFromHeightMap,
+  CreateSphere,
+  VertexBuffer,
+  VertexData,
+  Mesh,
+  GlowLayer,
+  StandardMaterial,
+  InstancedMesh
 } from '@babylonjs/core';
 import {
   debugLayerListener,
@@ -23,7 +32,9 @@ import {
   createGoalCamera,
   createLight,
   createVector3,
-  createPowerCamera
+  createPowerCamera,
+  createGoalCameraPositions,
+  createObstacle
 } from '../utils/Create';
 import '@babylonjs/loaders/glTF';
 import { Hack } from '../components/Hack';
@@ -39,7 +50,11 @@ import * as INSPECTOR from '@babylonjs/inspector';
 import { LoadingScreen } from '../utils/LoadingScreen.ts';
 import { ReconnectionScreen } from '../utils/ReconnectionScreen.ts';
 import { WinnerScreen } from '../utils/WinnerScreen.ts';
-import { IBounces } from '../types/Types.ts';
+import { IBounces, INetworkNodes } from '../types/Types.ts';
+import { GridMaterial } from '@babylonjs/materials';
+import p5 from 'p5';
+import { NetworkPacket } from '../components/NetworkNode.ts';
+import { Obstacle } from '../components/Obstacle.ts';
 
 /* v8 ignore start */
 export class GameClient {
@@ -57,8 +72,15 @@ export class GameClient {
   private _hud!: Hud;
   private _keyManager!: KeyManager;
   private _hacks!: Map<string, Hack>;
+  private obstacles!: Map<string, Obstacle>;
   private _powerUpLines!: LinesMesh | null;
   private _room!: Room;
+  private _networkNodes: INetworkNodes[];
+  private _networkPackets: NetworkPacket[];
+  private _networkRouters: InstancedMesh[];
+  private _nodeProto!: Mesh;
+  private _packetProto!: Mesh;
+  private _obstacleMaterials!: StandardMaterial[];
 
   private _initialized: boolean = false;
   private _loadingScreen!: LoadingScreen;
@@ -67,6 +89,7 @@ export class GameClient {
 
   //@ts-ignore
   private _goalCamera!: Camera;
+  private _goalCameraPositions!: Vector3[];
   private _powerCamera!: Camera;
   //@ts-ignore
   private _light!: Light;
@@ -87,6 +110,9 @@ export class GameClient {
     this.loadingScreen = new LoadingScreen();
     this.reconnectionScreen = new ReconnectionScreen();
     this.winnerScreen = new WinnerScreen();
+    this._networkNodes = [];
+    this._networkPackets = [];
+    this._networkRouters = [];
 
     // NOTE: Wraps class in Proxy to catch errors in every method
     return new Proxy(this, {
@@ -113,6 +139,7 @@ export class GameClient {
     this.frameCount = 0;
     prepareImportGLTF(this.defaultScene);
     this.scene = await this.initScene(this.defaultScene);
+    this.initBackground();
     this.displayLoadingScreen();
 
     debugLayerListener(this.scene);
@@ -133,6 +160,8 @@ export class GameClient {
     await this.arena.initMesh(scene);
 
     this.hacks = new Map<string, Hack>();
+    this.obstacles = new Map<string, Obstacle>();
+    this._obstacleMaterials = [];
 
     scene.onBeforeRenderObservable.add(this.draw(this));
 
@@ -152,8 +181,166 @@ export class GameClient {
         break;
       }
     });
+    scene.clearColor = new Color4(0, 0, 0, 1);
     INSPECTOR.Inspector.Show(scene, {});
+    this.initObstacleMaterials();
     return scene;
+  }
+
+  initObstacleMaterials() {
+    const material0 = new StandardMaterial('obstacle-material-0');
+    const material1 = new StandardMaterial('obstacle-material-1');
+    const material2 = new StandardMaterial('obstacle-material-2');
+    const material3 = new StandardMaterial('obstacle-material-3');
+    material1.emissiveColor = new Color3(
+      0.6549019607843137,
+      0.16470588235294117,
+      0.7333333333333333
+    );
+    material1.wireframe = true;
+    material2.emissiveColor = new Color3(
+      0.39215686274509803,
+      0.5607843137254902,
+      0.12941176470588237
+    );
+    material2.wireframe = true;
+    this._obstacleMaterials.push(material0);
+    this._obstacleMaterials.push(material1);
+    this._obstacleMaterials.push(material2);
+    this._obstacleMaterials.push(material3);
+  }
+
+  initBackground() {
+    const groundMaterial = new GridMaterial('groundMaterial', this.scene);
+    groundMaterial.majorUnitFrequency = 5;
+    groundMaterial.minorUnitVisibility = 0.45;
+    groundMaterial.gridRatio = 2;
+    groundMaterial.backFaceCulling = false;
+    groundMaterial.mainColor = new Color3(0, 1, 0.07);
+    groundMaterial.lineColor = new Color3(1.0, 1.0, 1.0);
+    groundMaterial.opacity = 0.98;
+    groundMaterial.wireframe = true;
+    groundMaterial.setAlphaMode(16);
+
+    const ground = CreateGroundFromHeightMap(
+      'ground',
+      '/ground_heightmap.png',
+      {
+        width: 10000,
+        height: 10000,
+        subdivisions: 100,
+        minHeight: 0,
+        maxHeight: 1500,
+        updatable: false
+      },
+      this.scene
+    );
+    ground.position.y -= 1000;
+    ground.material = groundMaterial;
+
+    const skyMaterial = new GridMaterial('skyMaterial', this.scene);
+    skyMaterial.majorUnitFrequency = 5;
+    skyMaterial.minorUnitVisibility = 0.45;
+    skyMaterial.gridRatio = 2;
+    skyMaterial.backFaceCulling = false;
+    skyMaterial.mainColor = new Color3(1, 0, 0);
+    skyMaterial.lineColor = new Color3(1.0, 1.0, 1.0);
+    skyMaterial.opacity = 0.98;
+    skyMaterial.wireframe = true;
+    skyMaterial.setAlphaMode(16);
+
+    const sky = CreateGroundFromHeightMap(
+      'sky',
+      '/sky_heightmap.png',
+      {
+        width: 10000,
+        height: 10000,
+        subdivisions: 100,
+        minHeight: 0,
+        maxHeight: 1000,
+        updatable: false
+      },
+      this.scene
+    );
+    sky.position.y = 1500;
+    sky.material = skyMaterial;
+    sky.rotation = new Vector3(Math.PI, 0, 0);
+
+    const networkSphere = CreateSphere('networkGraph', {
+      segments: 12,
+      diameter: 10000
+    });
+    const networkMaterial = new GridMaterial('networkMaterial', this.scene);
+    networkMaterial.majorUnitFrequency = 5;
+    networkMaterial.minorUnitVisibility = 0.45;
+    networkMaterial.gridRatio = 2;
+    networkMaterial.backFaceCulling = false;
+    networkMaterial.mainColor = new Color3(0, 0, 1);
+    networkMaterial.lineColor = new Color3(1.0, 1.0, 1.0);
+    networkMaterial.opacity = 0.98;
+    networkMaterial.wireframe = true;
+    networkMaterial.setAlphaMode(5);
+    networkSphere.material = networkMaterial;
+
+    const positions = networkSphere.getVerticesData(VertexBuffer.PositionKind);
+    const indices = networkSphere.getIndices();
+    if (!positions) {
+      throw new Error('background init fail');
+    }
+    const newPositions = [];
+    for (let i = 0; i < positions.length; i += 3) {
+      const px = positions[i],
+        py = positions[i + 1],
+        pz = positions[i + 2];
+      const range = 500;
+      const randomNum = () =>
+        Math.floor(Math.random() * (range - -range + 1)) + -range;
+      newPositions.push(px + randomNum(), py + randomNum(), pz + randomNum());
+    }
+    const vertexData = new VertexData();
+    vertexData.positions = newPositions;
+    vertexData.indices = indices;
+    vertexData.applyToMesh(networkSphere);
+
+    const networkNodes = [];
+    for (let i = 0; i < newPositions.length; i += 3) {
+      const pos = new Vector3(positions[i], positions[i + 1], positions[i + 2]);
+      networkNodes.push({ pos, index: Math.floor(i / 3) });
+    }
+    this._networkNodes = networkNodes;
+
+    const packetProto = MeshBuilder.CreateSphere(
+      'packetProto',
+      { diameter: 10 },
+      this.scene
+    );
+    packetProto.isVisible = false;
+    new GlowLayer('glow', this.scene);
+    const packetMaterial = new StandardMaterial(
+      'packetProtoMaterial',
+      this.scene
+    );
+    packetMaterial.emissiveColor = Color3.White();
+    packetProto.material = packetMaterial;
+    this._packetProto = packetProto;
+
+    const nodeProto = MeshBuilder.CreateSphere(
+      'nodeProto',
+      { diameter: 50 },
+      this.scene
+    );
+    nodeProto.isVisible = false;
+    const nodeMaterial = new StandardMaterial('nodeMaterial', this.scene);
+    nodeMaterial.emissiveColor = Color3.White();
+    nodeProto.material = nodeMaterial;
+    this._nodeProto = nodeProto;
+    for (const node of this._networkNodes) {
+      if (Math.random() < 0.1) {
+        const router = this._nodeProto.createInstance('router-' + node.index);
+        router.position = node.pos;
+        this._networkRouters.push(router);
+      }
+    }
   }
 
   private draw(g: GameClient) {
@@ -187,12 +374,38 @@ export class GameClient {
           g.keyManager.resolve();
         }
         g.prota.hud.update(g.prota, g.anta);
+        if (!(g.frameCount % 3)) {
+          this.updateNetworkBackground(g.frameCount);
+        }
+        for (const packet of this._networkPackets) {
+          packet.move();
+        }
+
+        this._networkPackets = this._networkPackets.filter(
+          packet => !packet.isDead(g.frameCount)
+        );
+
+        const phi = (g.frameCount * 0.1 + 0) % (Math.PI * 2);
+        const ratio = 0.5 * (Math.sin(phi) + 1);
+        g._packetProto.visibility = ratio;
         g.frameCount++;
       } catch (e: any) {
         console.error(e);
         this.setError(e);
       }
     };
+  }
+
+  updateNetworkBackground(frameCount: number) {
+    const index = Math.floor(
+      p5.prototype.random(1, this._networkNodes.length - 1)
+    );
+    const networkInstance = this._packetProto.createInstance('packet-' + index);
+    networkInstance.position = this._networkNodes[index].pos;
+    const nextIndex = Math.random() < 0.5 ? index - 1 : index + 1;
+    const nextPos = this._networkNodes[nextIndex];
+    const packet = new NetworkPacket(networkInstance, nextPos.pos, frameCount);
+    this._networkPackets.push(packet);
   }
 
   protaPowerShotMode() {
@@ -281,6 +494,7 @@ export class GameClient {
     const callbacks = Callbacks.get(room);
     this.initPlayersStateCallbacks(callbacks, g);
     this.initHacksStateCallbacks(callbacks, g);
+    this.initObstaclesCallbacks(callbacks, g);
   }
 
   initHacksStateCallbacks(callbacks: any, g: GameClient) {
@@ -338,28 +552,21 @@ export class GameClient {
         g.prota = player;
         g.prota.initGridHints(g.scene);
         const pos = config.goalPosition;
-        if (g.prota.keyGrid.rotation) {
-          this.goalCamera = createGoalCamera(
-            g.scene,
-            createVector3(pos.x, pos.y, pos.z + 15)
-          );
-          this.powerCamera = createPowerCamera(
-            g.scene,
-            createVector3(pos.x, pos.y + config.goalDimensions.y, pos.z)
-          );
-        } else {
-          this.goalCamera = createGoalCamera(
-            g.scene,
-            createVector3(pos.x, pos.y, pos.z - 15)
-          );
-          this.powerCamera = createPowerCamera(
-            g.scene,
-            createVector3(pos.x, pos.y + config.goalDimensions.y, pos.z)
-          );
-        }
+        this.goalCameraPositions = createGoalCameraPositions(
+          pos,
+          config.goalDimensions
+        );
+        this.goalCamera = createGoalCamera(
+          g.scene,
+          this.goalCameraPositions[0]
+        );
+        this.powerCamera = createPowerCamera(
+          g.scene,
+          createVector3(pos.x, pos.y + config.goalDimensions.y, pos.z)
+        );
 
         const keyManager = new KeyManager(
-          g.scene,
+          g,
           () => g.frameCount,
           g.prota,
           this.gameMode
@@ -400,6 +607,42 @@ export class GameClient {
     callbacks.onRemove('players', (_entity: any, sessionId: unknown) => {
       const player = sessionId === g.room.sessionId ? g.prota : g.anta;
       player.dispose();
+    });
+  }
+
+  initObstaclesCallbacks(callbacks: any, g: GameClient) {
+    callbacks.onAdd('obstacles', (entity: any, _sessionId: unknown) => {
+      try {
+        const obstacle = createObstacle(
+          this.scene,
+          createVector3(entity.x, entity.y, entity.z),
+          entity.type
+        );
+        obstacle.mesh.rotation.x = entity.rotationX;
+        obstacle.mesh.rotation.y = entity.rotationY;
+        obstacle.mesh.rotation.z = entity.rotationZ;
+        obstacle.mesh.material = this._obstacleMaterials[entity.type];
+        g.obstacles.set(entity.id, obstacle);
+      } catch (e: any) {
+        console.error(e);
+        throw e;
+      }
+      callbacks.onChange(entity, () => {
+        const obstacle = g.obstacles.get(entity.id);
+        if (obstacle) {
+          const pos = createVector3(entity.x, entity.y, entity.z);
+          obstacle.mesh.setAbsolutePosition(pos);
+          obstacle.mesh.rotation.x = entity.rotationX;
+          obstacle.mesh.rotation.y = entity.rotationY;
+          obstacle.mesh.rotation.z = entity.rotationZ;
+        }
+      });
+    });
+    callbacks.onRemove('obstacles', (entity: any, _sessionId: unknown) => {
+      const obstacle = g.obstacles.get(entity.id);
+      if (obstacle) {
+        obstacle.dispose();
+      }
     });
   }
 
@@ -549,6 +792,9 @@ export class GameClient {
   private set goalCamera(goalCamera: Camera) {
     this._goalCamera = goalCamera;
   }
+  private set goalCameraPositions(positions: Vector3[]) {
+    this._goalCameraPositions = positions;
+  }
   private set powerCamera(powerCamera: Camera) {
     this._powerCamera = powerCamera;
   }
@@ -562,7 +808,7 @@ export class GameClient {
   private get defaultScene() {
     return this._defaultScene;
   }
-  private get scene(): Scene {
+  public get scene(): Scene {
     return this._scene;
   }
   // NOTE: set to public to dispose scene on error
@@ -617,8 +863,11 @@ export class GameClient {
   private get room(): Room {
     return this._room;
   }
-  private get goalCamera(): Camera {
+  public get goalCamera(): Camera {
     return this._goalCamera;
+  }
+  public get goalCameraPositions(): Vector3[] {
+    return this._goalCameraPositions;
   }
   private get powerCamera(): Camera {
     return this._powerCamera;

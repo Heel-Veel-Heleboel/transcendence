@@ -3,7 +3,7 @@ import { logger } from '../logger.js';
 import { Hack } from '#entities/hack.js';
 import { Arena } from '#entities/arena.js';
 import { createArena, createCamera, createLight } from '#game-engine/create.js';
-import { NullEngine, Scene, Camera, Light } from '@babylonjs/core';
+import { NullEngine, Scene, Camera, Light, Vector3 } from '@babylonjs/core';
 import XMLHttpRequest from 'xmlhttprequest-ssl';
 import { GameRoom } from '#rooms/GameRoom.js';
 global.XMLHttpRequest = XMLHttpRequest;
@@ -15,6 +15,7 @@ export class GameEngine {
   private _gameRoom!: GameRoom;
   //
   private _arena!: Arena;
+  public obstacleAreas!: Vector3[];
   private _hacks!: Map<string, Hack>;
   //
   //@ts-ignore
@@ -28,6 +29,7 @@ export class GameEngine {
 
   async initGame() {
     this.engine = new NullEngine();
+    this.obstacleAreas = [];
     const roomLogger = logger.child({ roomId: this.gameRoom.roomId });
 
     roomLogger.debug('creating scene');
@@ -51,8 +53,41 @@ export class GameEngine {
     roomLogger.debug('initializing arena');
     this.arena = createArena();
     await this.arena.initMesh(scene);
+    this.initObstaclesAreas();
 
     return scene;
+  }
+
+  initObstaclesAreas() {
+    const area = this.arena.arena.mesh
+      .getBoundingInfo()
+      .boundingBox.extendSizeWorld.scale(0.9);
+
+    const zRange = area.z / 2;
+    const first = new Vector3(area.x, area.y, -zRange);
+    const second = new Vector3(area.x, area.y, -zRange / 2);
+    const third = new Vector3(area.x, area.y, zRange / 2);
+    const fourth = new Vector3(area.x, area.y, zRange);
+
+    this.obstacleAreas.push(first);
+    this.obstacleAreas.push(second);
+    this.obstacleAreas.push(third);
+    this.obstacleAreas.push(fourth);
+
+    function shuffle(array: Vector3[]) {
+      let currentIndex = array.length;
+
+      while (currentIndex != 0) {
+        const randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        [array[currentIndex], array[randomIndex]] = [
+          array[randomIndex],
+          array[currentIndex]
+        ];
+      }
+    }
+    shuffle(this.obstacleAreas);
   }
 
   /* v8 ignore start */
