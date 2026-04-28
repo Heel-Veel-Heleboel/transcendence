@@ -79,7 +79,10 @@ export class GameRoom extends Room {
       }
     },
     'client-error': (client: Client, data: any) => {
-      this.roomLogger.warn({ clientId: client.sessionId, payload: data.payload }, 'client-error');
+      this.roomLogger.warn(
+        { clientId: client.sessionId, payload: data.payload },
+        'client-error'
+      );
       if (
         !(
           client.sessionId === this.player1SessionId ||
@@ -99,7 +102,10 @@ export class GameRoom extends Room {
       if (this.gameMode === 'powerup') {
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 25) {
-          this.roomLogger.debug({ clientId: client.sessionId, powerup: 1 }, 'powerup activated');
+          this.roomLogger.debug(
+            { clientId: client.sessionId, powerup: 1 },
+            'powerup activated'
+          );
           player.powerup1();
         }
       }
@@ -108,7 +114,10 @@ export class GameRoom extends Room {
       if (this.gameMode === 'powerup') {
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 50) {
-          this.roomLogger.debug({ clientId: client.sessionId, powerup: 2 }, 'powerup activated');
+          this.roomLogger.debug(
+            { clientId: client.sessionId, powerup: 2 },
+            'powerup activated'
+          );
           player.powerup2();
           this.clock.setTimeout(() => {
             player.powerup2Reset();
@@ -120,7 +129,10 @@ export class GameRoom extends Room {
       if (this.gameMode === 'powerup') {
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 75) {
-          this.roomLogger.debug({ clientId: client.sessionId, powerup: 3 }, 'powerup activated');
+          this.roomLogger.debug(
+            { clientId: client.sessionId, powerup: 3 },
+            'powerup activated'
+          );
           player.powerup3();
           this.clock.setTimeout(() => {
             player.powerup3Reset();
@@ -132,7 +144,10 @@ export class GameRoom extends Room {
       if (this.gameMode === 'powerup') {
         const player = this.state.players.get(client.sessionId);
         if (player && player.mana >= 100) {
-          this.roomLogger.debug({ clientId: client.sessionId, powerup: 4 }, 'powerup activated');
+          this.roomLogger.debug(
+            { clientId: client.sessionId, powerup: 4 },
+            'powerup activated'
+          );
           player.powerup4();
         }
       }
@@ -190,7 +205,7 @@ export class GameRoom extends Room {
       ) {
         this.sendCancelResult(closeCodes.FAILED_TO_JOIN);
       }
-    }, 10 * 1000);
+    }, 20 * 1000);
   }
 
   update(_deltaTime: number) {
@@ -511,23 +526,20 @@ export class GameRoom extends Room {
   }
 
   onLeave(client: Client, code: CloseCode) {
-    this.roomLogger.info(
-      { clientId: client.sessionId, code },
-      'client left'
-    );
+    this.roomLogger.info({ clientId: client.sessionId, code }, 'client left');
 
     switch (code) {
-    case closeCodes.FAILED_TO_RECONNECT:
-      this.sendDisconnectResult();
-      break;
-    case closeCodes.GOING_AWAY:
-      this.sendDisconnectResult();
-      break;
-    case closeCodes.SERVER_SHUTDOWN:
-      this.sendCancelResult();
-      break;
-    default:
-      break;
+      case closeCodes.FAILED_TO_RECONNECT:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.GOING_AWAY:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.SERVER_SHUTDOWN:
+        this.sendCancelResult();
+        break;
+      default:
+        break;
     }
 
     const player = this.state.players.get(client.sessionId);
