@@ -46,7 +46,6 @@ import { Protagonist } from '../components/Protagonist';
 import { Antagonist } from '../components/Antagonist';
 import gameConfig from '../utils/GameConfig.ts';
 import { Dispatch, SetStateAction } from 'react';
-import * as INSPECTOR from '@babylonjs/inspector';
 import { LoadingScreen } from '../utils/LoadingScreen.ts';
 import { ReconnectionScreen } from '../utils/ReconnectionScreen.ts';
 import { WinnerScreen } from '../utils/WinnerScreen.ts';
@@ -167,18 +166,18 @@ export class GameClient {
 
     scene.onPointerObservable.add(pointerInfo => {
       switch (pointerInfo.type) {
-        case PointerEventTypes.POINTERDOWN:
-          if (this.gameMode === 'powerup' && this.prota.powerShots) {
-            const forwardRay = this.powerCamera.getForwardRay();
-            this.room.send('powershot', {
-              origin: forwardRay.origin,
-              direction: forwardRay.direction.scale(50)
-            });
-          }
+      case PointerEventTypes.POINTERDOWN:
+        if (this.gameMode === 'powerup' && this.prota.powerShots) {
+          const forwardRay = this.powerCamera.getForwardRay();
+          this.room.send('powershot', {
+            origin: forwardRay.origin,
+            direction: forwardRay.direction.scale(50)
+          });
+        }
 
-          break;
-        default:
-          break;
+        break;
+      default:
+        break;
       }
     });
     scene.clearColor = new Color4(0, 0, 0, 1);
