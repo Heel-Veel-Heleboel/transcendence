@@ -14,6 +14,8 @@ volumes:
     driver: local
   esdata:
     driver: local
+  essnap:
+    driver: local
   kibana-data:
     driver: local
   logstash-data:
@@ -24,7 +26,6 @@ volumes:
 networks:
   app-network:
     name: transcendence-app
-    external: true
 
   observability-network:
     name: transcendence-observability
@@ -63,6 +64,7 @@ services:
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata:/usr/share/elasticsearch/data
+      - essnap:/snapshots
     ports:
       - ${ES_PORT}:9200
     environment:
@@ -70,6 +72,7 @@ services:
       - discovery.type=single-node
       - cluster.name=${CLUSTER_NAME:-transcendence-logs}
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - path.repo=/snapshots
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
       - xpack.security.http.ssl.key=certs/elasticsearch/elasticsearch.key

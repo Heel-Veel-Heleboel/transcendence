@@ -13,7 +13,7 @@ services:
       - frontend
       - game-server
     networks:
-      - app-net
+      - app-network
     deploy:
       restart_policy:
         condition: any
@@ -49,7 +49,7 @@ services:
       game-server:
         condition: service_started
     networks:
-      - app-net
+      - app-network
     deploy:
       restart_policy:
         condition: any
@@ -71,7 +71,7 @@ services:
     depends_on:
       - api-gateway
     networks:
-      - app-net
+      - app-network
     deploy:
       restart_policy:
         condition: any
@@ -102,7 +102,7 @@ services:
     volumes:
       - auth-data:/data
     networks:
-      - app-net
+      - app-network
     deploy:
       restart_policy:
         condition: any
@@ -131,7 +131,7 @@ services:
       - user-management-data:/data
       - user-management-uploads:/app/uploads
     networks:
-      - app-net
+      - app-network
     deploy:
       restart_policy:
         condition: any
@@ -161,7 +161,7 @@ services:
     volumes:
       - matchmaking-data:/data
     networks:
-      - app-net
+      - app-network
     deploy:
       restart_policy:
         condition: any
@@ -189,7 +189,7 @@ services:
     volumes:
       - chat-data:/data
     networks:
-      - app-net
+      - app-network
     deploy:
       restart_policy:
         condition: any
@@ -208,7 +208,7 @@ services:
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
     networks:
-      - app-net
+      - app-network
     deploy:
       restart_policy:
         condition: any
@@ -223,6 +223,6 @@ volumes:
   chat-data:
 
 networks:
-  app-net:
+  app-network:
     name: transcendence-app
     driver: bridge
