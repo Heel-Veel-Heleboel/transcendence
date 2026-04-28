@@ -10,11 +10,12 @@ export function Toolbar(): JSX.Element {
     const navigate = useNavigate();
     const auth = useAuth();
     return (
-        <div id="toolbar" className="h-1/20 w-full flex justify-between bg-gradient-to-r from-violet-800 from-10% via-orange-500 via-80% to-zinc-400 to-90%">
-            {/* TODO update with own logo*/}
-            <div className="px-2 py-2" onClick={() => navigate(CONFIG.MENU_NAVIGATION)}>logo</div>
+        <div id="toolbar" className="h-1/30 w-full flex justify-between bg-gradient-to-r from-violet-800 from-10% via-orange-500 via-80% to-zinc-400 to-90%">
+            <div id='toolbar-home-options' className='flex'>
+                <ToolbarOption id='home' src='/home.png' callback={() => navigate(CONFIG.MENU_NAVIGATION)} />
+            </div>
             <div className="py-2">{`${time.date} - ${time.time}`}</div>
-            <div id="toolbar-options" className="flex ">
+            <div id="toolbar-options" className="flex">
                 <ToolbarOption id='profile' src={CONFIG.PROFILE_LOGO} callback={() => navigate(CONFIG.USER_PROFILE_NAVIGATION)} />
                 <ToolbarOption id='logout' src={CONFIG.LOGOUT_LOGO} callback={() => auth.logOut()} />
             </div>

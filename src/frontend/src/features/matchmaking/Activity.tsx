@@ -175,7 +175,7 @@ export function InPool({ status }: { status: IMatchmakingStatus }) {
     const callback = gameMode === 'classic' ? service.leaveClassic : gameMode === 'powerup' ? service.leavePowerup : () => { return };
 
     return (
-        <Activity label={<div>`in {status.poolGameMode} match pool`</div>} callback={() => { callback() }} callbackTitle={'leave'} />
+        <Activity label={<div>in {status.poolGameMode} match pool</div>} callback={() => { callback() }} callbackTitle={'leave'} />
     );
 
 }
