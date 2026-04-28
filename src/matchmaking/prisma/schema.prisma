@@ -44,6 +44,7 @@ model Tournament {
   matchDurationMin  Int               @default(3)             // Maximum match duration in minutes
   ackDeadlineMin    Int               @default(20)            // Minutes for players to acknowledge a match (10-60)
   createdBy         Int                                       // userId who created tournament
+  createdByUserName String                                    // userName who created tournament
 
   // Scheduling
   registrationStart DateTime          @default(now())

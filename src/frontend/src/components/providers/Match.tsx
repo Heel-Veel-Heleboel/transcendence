@@ -47,6 +47,36 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    async function getTournamentRanking(tournamentId: string) {
+        try {
+            const response = await service.getTournamentRanking(tournamentId);
+            return response
+        } catch (e: any) {
+            console.error(e);
+            throw e
+        }
+    }
+
+    async function getTournamentMatches(tournamentId: string) {
+        try {
+            const response = await service.getTournamentMatches(tournamentId);
+            return response
+        } catch (e: any) {
+            console.error(e);
+            throw e
+        }
+    }
+
+    async function getTournamentParticipants(tournamentId: string) {
+        try {
+            const response = await service.getTournamentParticipants(tournamentId);
+            return response
+        } catch (e: any) {
+            console.error(e);
+            throw e
+        }
+    }
+
     async function getTournaments() {
         try {
             const response = await service.getTournaments();
@@ -166,6 +196,9 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             getStatus,
             getMatchInfo,
             getTournamentInfo,
+            getTournamentRanking,
+            getTournamentMatches,
+            getTournamentParticipants,
             getTournaments,
             setTournament,
             cancelTournament,

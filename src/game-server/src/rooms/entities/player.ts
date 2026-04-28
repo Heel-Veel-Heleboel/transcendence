@@ -173,7 +173,6 @@ export class Player extends Schema implements IPlayer {
   }
 
   powerup4() {
-    console.log('powerup4');
     this.updateMana(-100);
     this.powerShots = 5;
   }

@@ -1,4 +1,5 @@
 import { IArena } from '#types/arena.js';
+import { logger } from '../../logger.js';
 import { PhysicsMesh } from '#types/physics.js';
 import {
   ImportMeshAsync,
@@ -50,8 +51,7 @@ export class Arena implements IArena {
         }
       })
       .catch(error => {
-        console.error('failed to import arena mesh');
-        console.error(error);
+        logger.error({ err: error }, 'failed to import arena mesh');
       });
   }
 

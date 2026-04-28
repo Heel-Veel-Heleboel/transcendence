@@ -1,5 +1,13 @@
 import { IFriendship } from '../types/friendship';
-import { IMatch, IMatchmakingStatus } from '../types/matchmaking';
+import {
+  IBracket,
+  IMatch,
+  IMatches,
+  IMatchmakingStatus,
+  IParticipants,
+  IRanking,
+  ITournament
+} from '../types/matchmaking';
 import { IProfile } from '../types/profile';
 import { IUser, IUserStatus } from '../types/user';
 
@@ -70,4 +78,47 @@ export const DEFAULT_MATCHSTATUS: IMatchmakingStatus = {
   activeTournamentId: null,
   tournamentStatus: null,
   isCreator: false
+};
+
+export const DEFAULT_TOURNAMENT: ITournament = {
+  createdAt: '',
+  createdBy: 0,
+  gameMode: '',
+  id: 0,
+  maxPlayers: 0,
+  minPlayers: 0,
+  name: '',
+  participantCount: 0,
+  registrationEnd: '',
+  startTime: null,
+  status: ''
+};
+
+export const DEFAULT_PARTICIPANTS: IParticipants = {
+  count: 0,
+  participantIds: [],
+  tournamentId: 0
+};
+
+export const DEFAULT_RANKING: IRanking = {
+  rank: 0,
+  userId: 0,
+  username: '',
+  seed: null,
+  eliminatedIn: null
+};
+
+export const DEFAULT_BRACKET: IBracket = {
+  player1Id: 0,
+  player1Username: '',
+  player2Id: 0,
+  player2Username: '',
+  winnerId: null
+};
+
+export const DEFAULT_MATCHES: IMatches = {
+  bracket: [],
+  status: '',
+  totalRounds: 0,
+  tournamentId: 0
 };

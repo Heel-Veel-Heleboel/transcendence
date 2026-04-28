@@ -1,3 +1,4 @@
+import { SketchProps } from '@p5-wrapper/react';
 import { AxiosResponse } from 'axios';
 
 export interface IMatchmakingStatus {
@@ -36,6 +37,7 @@ export interface IMatch {
 export interface ITournament {
   createdAt: string;
   createdBy: number;
+  createdByUserName: string;
   gameMode: string;
   id: number;
   maxPlayers: number;
@@ -84,10 +86,46 @@ export interface IMatchHistoryResponse {
   count: number;
 }
 
+export interface IParticipants {
+  count: number;
+  participantIds: number[];
+  tournamentId: number;
+}
+
+export interface IRanking {
+  rank: number;
+  userId: number;
+  username: string;
+  seed: string | null;
+  eliminatedIn: string | null;
+}
+
+export interface IBracket {
+  player1Id: number;
+  player1Username: string;
+  player2Id: number;
+  player2Username: string;
+  winnerId: number | null;
+}
+
+export interface IMatches {
+  bracket: IBracket[];
+  status: string;
+  totalRounds: number;
+  tournamentId: number;
+}
+
+export interface ITournamentSketchProps extends SketchProps {
+  matches: IMatches;
+}
+
 export interface IMatchmakingService {
   getStatus: () => Promise<AxiosResponse>;
   getMatchInfo: (matchId: string) => Promise<AxiosResponse>;
   getTournamentInfo: (tournamentId: string) => Promise<AxiosResponse>;
+  getTournamentRanking: (tournamentId: string) => Promise<AxiosResponse>;
+  getTournamentMatches: (tournamentId: string) => Promise<AxiosResponse>;
+  getTournamentParticipants: (tournamentId: string) => Promise<AxiosResponse>;
   getTournaments: () => Promise<AxiosResponse>;
   setTournament: (data: ISetTournament) => Promise<AxiosResponse>;
   cancelTournament: (tournamentId: string) => Promise<AxiosResponse>;

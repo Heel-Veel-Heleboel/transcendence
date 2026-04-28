@@ -29,11 +29,11 @@ export function UserProfileContent(): JSX.Element {
                 <ProfilePropertiesPrimary />
                 <ProfilePropertiesSecundary>
                     <div className="w-1/20"></div>
-                    <div className="w-3/10 min-h-full">
+                    <div className="w-3/10 h-1/2 bg-zinc-800/50">
                         <ProfileStats />
                     </div>
                     <div className="w-1/20"></div>
-                    <div className="w-5/10 min-h-full">
+                    <div className="w-5/10 h-1/2 bg-zinc-800/50">
                         <MatchHistory />
                     </div>
                     <div className="w-1/20"></div>

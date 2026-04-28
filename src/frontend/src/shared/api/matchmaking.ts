@@ -145,4 +145,31 @@ export class MatchmakingService {
     const response = await api(config);
     return response;
   }
+
+  async getTournamentRanking(tournamentId: string) {
+    const config = {
+      url: this.base + `/tournament/${tournamentId}/rankings`,
+      method: 'GET'
+    } as AxiosRequestConfig;
+    const response = await api(config);
+    return response;
+  }
+
+  async getTournamentMatches(tournamentId: string) {
+    const config = {
+      url: this.base + `/tournament/${tournamentId}/matches`,
+      method: 'GET'
+    } as AxiosRequestConfig;
+    const response = await api(config);
+    return response;
+  }
+
+  async getTournamentParticipants(tournamentId: string) {
+    const config = {
+      url: this.base + `/tournament/${tournamentId}/participants`,
+      method: 'GET'
+    } as AxiosRequestConfig;
+    const response = await api(config);
+    return response;
+  }
 }

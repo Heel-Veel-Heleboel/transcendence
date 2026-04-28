@@ -62,7 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             console.error(e)
             setToken(failedToken);
             throw e
-            // TODO: error handling
         }
     }
 
