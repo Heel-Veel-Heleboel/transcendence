@@ -6,7 +6,7 @@ import {
   createPowerShot
 } from '#game-engine/create.js';
 import { GameEngine } from '#game-engine/game-engine.js';
-import { PhysicsEventType, Vector3 } from '@babylonjs/core';
+import { Vector3 } from '@babylonjs/core';
 import { Player } from './entities/player.js';
 import { renderLoop } from '#game-engine/render.js';
 import { getGuestConfig, getHostConfig } from './entities/config.js';
@@ -529,17 +529,17 @@ export class GameRoom extends Room {
     this.roomLogger.info({ clientId: client.sessionId, code }, 'client left');
 
     switch (code) {
-    case closeCodes.FAILED_TO_RECONNECT:
-      this.sendDisconnectResult();
-      break;
-    case closeCodes.GOING_AWAY:
-      this.sendDisconnectResult();
-      break;
-    case closeCodes.SERVER_SHUTDOWN:
-      this.sendCancelResult();
-      break;
-    default:
-      break;
+      case closeCodes.FAILED_TO_RECONNECT:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.GOING_AWAY:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.SERVER_SHUTDOWN:
+        this.sendCancelResult();
+        break;
+      default:
+        break;
     }
 
     const player = this.state.players.get(client.sessionId);
@@ -577,51 +577,56 @@ export class GameRoom extends Room {
     const player2 = this.state.players.get(this.player2SessionId);
 
     this.roomLogger.debug('initializing collision observers');
-    const observable1 =
-      this.engine.arena.goal_1.aggregate.body.getCollisionObservable();
-    observable1.add(collisionEvent => {
-      if (collisionEvent.type !== PhysicsEventType.COLLISION_STARTED) {
-        return;
-      }
-      if (this.gameMode === 'classic') {
-        player2.updateScore(1);
-        if (player2.score >= 11) {
-          this.gameFinished = true;
+
+    const observable = this.engine.physicsPlugin.onCollisionObservable;
+
+    observable.add(collisionEvent => {
+      this.roomLogger.info('collision');
+      if (
+        collisionEvent.collidedAgainst ===
+        this.engine.arena.goal_1.aggregate.body
+      ) {
+        this.roomLogger.info('goal_1 collision');
+        if (this.gameMode === 'classic') {
+          player2.updateScore(1);
+          if (player2.score >= 11) {
+            this.gameFinished = true;
+          }
+          this.roomLogger.info(
+            { scorer: this.player2Id, score: player2.score },
+            'goal scored'
+          );
+        } else if (this.gameMode === 'powerup' && !player1.isImmun) {
+          player1.updateLife(-20);
+          this.roomLogger.info(
+            { target: this.player1Id, lifespan: player1.lifespan },
+            'player hit'
+          );
         }
-        this.roomLogger.info(
-          { scorer: this.player2Id, score: player2.score },
-          'goal scored'
-        );
-      } else if (this.gameMode === 'powerup' && !player1.isImmun) {
-        player1.updateLife(-20);
-        this.roomLogger.info(
-          { target: this.player1Id, lifespan: player1.lifespan },
-          'player hit'
-        );
-      }
-    });
-    const observable2 =
-      this.engine.arena.goal_2.aggregate.body.getCollisionObservable();
-    observable2.add(collisionEvent => {
-      if (collisionEvent.type !== PhysicsEventType.COLLISION_STARTED) {
-        return;
       }
 
-      if (this.gameMode === 'classic') {
-        player1.updateScore(1);
-        if (player1.score >= 11) {
-          this.gameFinished = true;
+      if (
+        collisionEvent.collidedAgainst ===
+        this.engine.arena.goal_2.aggregate.body
+      ) {
+        this.roomLogger.info('goal_2 collision');
+
+        if (this.gameMode === 'classic') {
+          player1.updateScore(1);
+          if (player1.score >= 11) {
+            this.gameFinished = true;
+          }
+          this.roomLogger.info(
+            { scorer: this.player1Id, score: player1.score },
+            'goal scored'
+          );
+        } else if (this.gameMode === 'powerup' && !player2.isImmun) {
+          player2.updateLife(-20);
+          this.roomLogger.info(
+            { target: this.player2Id, lifespan: player2.lifespan },
+            'player hit'
+          );
         }
-        this.roomLogger.info(
-          { scorer: this.player1Id, score: player1.score },
-          'goal scored'
-        );
-      } else if (this.gameMode === 'powerup' && !player2.isImmun) {
-        player2.updateLife(-20);
-        this.roomLogger.info(
-          { target: this.player2Id, lifespan: player2.lifespan },
-          'player hit'
-        );
       }
     });
   }

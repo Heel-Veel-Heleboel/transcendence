@@ -3,7 +3,14 @@ import { logger } from '../logger.js';
 import { Hack } from '#entities/hack.js';
 import { Arena } from '#entities/arena.js';
 import { createArena, createCamera, createLight } from '#game-engine/create.js';
-import { NullEngine, Scene, Camera, Light, Vector3 } from '@babylonjs/core';
+import {
+  NullEngine,
+  Scene,
+  Camera,
+  Light,
+  Vector3,
+  HavokPlugin
+} from '@babylonjs/core';
 import XMLHttpRequest from 'xmlhttprequest-ssl';
 import { GameRoom } from '#rooms/GameRoom.js';
 global.XMLHttpRequest = XMLHttpRequest;
@@ -14,6 +21,7 @@ export class GameEngine {
   private _engine!: NullEngine;
   private _gameRoom!: GameRoom;
   //
+  public physicsPlugin: HavokPlugin;
   private _arena!: Arena;
   public obstacleAreas!: Vector3[];
   private _hacks!: Map<string, Hack>;
@@ -36,7 +44,7 @@ export class GameEngine {
     const scene = new Scene(this.engine);
 
     roomLogger.debug('initializing physics');
-    await initializePhysics(scene);
+    this.physicsPlugin = await initializePhysics(scene);
 
     roomLogger.debug('initializing scene');
     this.scene = await this.initScene(scene);

@@ -91,11 +91,13 @@ export class Player extends Schema implements IPlayer {
   }
 
   move(coord: { x: number; y: number }) {
-    this.physicsMesh.mesh.position = new Vector3(
+    this.physicsMesh.aggregate.body.disablePreStep = false;
+    this.physicsMesh.aggregate.transformNode.position = new Vector3(
       coord.x,
       coord.y,
       this.physicsMesh.mesh.absolutePosition.z
     );
+    this.physicsMesh.aggregate.body.disablePreStep = true;
   }
 
   updateMana(n: number): void {
