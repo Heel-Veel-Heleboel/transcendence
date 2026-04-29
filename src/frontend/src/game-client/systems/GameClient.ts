@@ -182,6 +182,7 @@ export class GameClient {
     });
     scene.clearColor = new Color4(0, 0, 0, 1);
     this.initObstacleMaterials();
+    this.engine.getRenderingCanvas()?.focus();
     return scene;
   }
 
