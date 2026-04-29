@@ -32,7 +32,7 @@ export function BackgroundAnimation(): JSX.Element {
             t = 0;
             t2 = 0;
             p5.background(100);
-            gap = 10
+            gap = sketchWidth / 100;
             let xIndex = 0;
             let yIndex = 0;
             for (let x = - 200; x < p5.width + 200; x += 100) {
