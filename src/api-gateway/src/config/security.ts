@@ -125,29 +125,13 @@ function getAllowedMethods(): string[] {
  * Specifies which request headers are allowed in cross-origin requests.
  *
  * Environment variable: CORS_ALLOWED_HEADERS (comma-separated)
- * Default: Content-Type, Authorization, X-Correlation-Id
+ * Default: Content-Type, Authorization
  */
 function getAllowedHeaders(): string[] {
   if (process.env.CORS_ALLOWED_HEADERS) {
     return process.env.CORS_ALLOWED_HEADERS.split(',').map(header => header.trim());
   }
-  return ['Content-Type', 'Authorization', 'X-Correlation-Id'];
-}
-
-/**
- * Get exposed headers for CORS
- *
- * Specifies which response headers are exposed to the browser.
- * By default, browsers only expose simple headers (Cache-Control, Content-Language, etc.).
- *
- * Environment variable: CORS_EXPOSED_HEADERS (comma-separated)
- * Default: X-Correlation-Id
- */
-function getExposedHeaders(): string[] {
-  if (process.env.CORS_EXPOSED_HEADERS) {
-    return process.env.CORS_EXPOSED_HEADERS.split(',').map(header => header.trim());
-  }
-  return ['X-Correlation-Id'];
+  return ['Content-Type', 'Authorization'];
 }
 
 /**
@@ -171,8 +155,7 @@ export const corsConfig: FastifyCorsOptions = {
   origin: getAllowedOrigins(),
   credentials: process.env.CORS_CREDENTIALS !== 'false', // Default true
   methods: getAllowedMethods(),
-  allowedHeaders: getAllowedHeaders(),
-  exposedHeaders: getExposedHeaders()
+  allowedHeaders: getAllowedHeaders()
 };
 
 /**

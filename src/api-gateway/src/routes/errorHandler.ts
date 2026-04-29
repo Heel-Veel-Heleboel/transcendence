@@ -6,21 +6,15 @@ import {
 } from 'fastify';
 import { STATUS_CODES } from 'http';
 import type { StandardError, ServiceConfig } from '../entity/common.js';
-import { findServiceByUrl } from './proxy.js';
 
-/**
- * Log error details with correlation ID for tracing
- */
 function logError(
   request: FastifyRequest,
-  error: FastifyError,
-  correlationId?: string
+  error: FastifyError
 ): void {
   request.log.error(
     {
       error: error.message,
       stack: error.stack,
-      correlationId,
       url: request.url,
       method: request.method
     },
@@ -47,14 +41,12 @@ function getErrorName(statusCode: number): string {
  */
 function createStandardErrorResponse(
   error: FastifyError,
-  statusCode: number,
-  correlationId?: string
+  statusCode: number
 ): StandardError {
   return {
     statusCode,
     error: getErrorName(statusCode),
     message: error.message || 'Internal Server Error',
-    correlationId,
     timestamp: new Date().toISOString()
   };
 }
@@ -190,11 +182,9 @@ export function formatAndSendError(
   request: FastifyRequest,
   reply: FastifyReply
 ): void {
-  const correlationId = request.correlationId;
-
-  logError(request, error, correlationId);
+  logError(request, error);
   const statusCode = determineStatusCode(error);
-  const errorResponse = createStandardErrorResponse(error, statusCode, correlationId);
+  const errorResponse = createStandardErrorResponse(error, statusCode);
   sanitizeErrorMessage(errorResponse);
 
   reply.code(statusCode).send(errorResponse);
@@ -221,8 +211,7 @@ export function setupProxyErrorHandler(fastify: FastifyInstance): void {
   fastify.setErrorHandler(
     (error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
       if (!reply.sent) {
-        const service = findServiceByUrl(request.url);
-        handleError(error, request, reply, service);
+        handleError(error, request, reply, request.serviceInfo);
       }
     }
   );

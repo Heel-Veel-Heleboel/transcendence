@@ -5,7 +5,6 @@ import type fastifyHttpProxy from '@fastify/http-proxy';
 declare module 'fastify' {
   interface FastifyRequest {
     user?: JWTPayload;
-    correlationId?: string;
     serviceInfo?: ServiceConfig;
   }
 }
