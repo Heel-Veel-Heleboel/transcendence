@@ -34,9 +34,6 @@ services:
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000,https://localhost:7140}
-    labels:
-      prometheus.scrape: "true"
-      prometheus.port: "3000"
     depends_on:
       auth:
         condition: service_started
@@ -96,9 +93,6 @@ services:
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
       - COOKIE_SECURE=${COOKIE_SECURE:-false}
-    labels:
-      prometheus.scrape: "true"
-      prometheus.port: "3003"
     volumes:
       - auth-data:/data
     networks:
@@ -124,9 +118,6 @@ services:
       - SERVICE_NAME=user-management
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
-    labels:
-      prometheus.scrape: "true"
-      prometheus.port: "3004"
     volumes:
       - user-management-data:/data
       - user-management-uploads:/app/uploads
@@ -155,9 +146,6 @@ services:
       - SERVICE_NAME=matchmaking
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
-    labels:
-      prometheus.scrape: "true"
-      prometheus.port: "3005"
     volumes:
       - matchmaking-data:/data
     networks:
@@ -183,9 +171,6 @@ services:
       - SERVICE_NAME=chat
       - LOGSTASH_HOST=logstash
       - LOGSTASH_PORT=5044
-    labels:
-      prometheus.scrape: "true"
-      prometheus.port: "3006"
     volumes:
       - chat-data:/data
     networks:
