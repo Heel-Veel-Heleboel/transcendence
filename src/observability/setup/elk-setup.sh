@@ -109,7 +109,7 @@ until curl -s -X PUT \
   --cacert config/certs/ca/ca.crt \
   -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
   -H "Content-Type: application/json" \
-  "https://elasticsearch:9200/_ilm/policy/pong-logs-policy" \
+  "https://elasticsearch:9200/_ilm/policy/trans-logs-policy" \
   -d '{
     "policy": {
       "phases": {
@@ -132,7 +132,7 @@ until curl -s -X PUT \
   --cacert config/certs/ca/ca.crt \
   -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
   -H "Content-Type: application/json" \
-  "https://elasticsearch:9200/_index_template/pong-logs-template" \
+  "https://elasticsearch:9200/_index_template/trans-logs-template" \
   -d '{
     "index_patterns": ["logs-*"],
     "template": {
@@ -158,7 +158,7 @@ until curl -s -X PUT \
   --cacert config/certs/ca/ca.crt \
   -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
   -H "Content-Type: application/json" \
-  "https://elasticsearch:9200/_snapshot/pong-logs-archive" \
+  "https://elasticsearch:9200/_snapshot/trans-logs-archive" \
   -d '{
     "type": "fs",
     "settings": {
@@ -176,7 +176,7 @@ until curl -s -X PUT \
   --cacert config/certs/ca/ca.crt \
   -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
   -H "Content-Type: application/json" \
-  "https://elasticsearch:9200/_slm/policy/pong-logs-snapshot" \
+  "https://elasticsearch:9200/_slm/policy/trans-logs-snapshot" \
   -d '{
     "schedule": "0 30 1 * * ?",
     "name": "<pong-logs-{now/d}>",

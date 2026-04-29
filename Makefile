@@ -1,7 +1,8 @@
 NAME	:= .docker_compose_started
 
-COMPOSE_DEV  = docker compose -f docker-compose-dev.yml -f docker-compose.observability.yml
-COMPOSE_PROD = docker compose -f docker-compose.yml -f docker-compose.observability.yml
+COMPOSE_DEV  = docker compose -f docker-compose-dev.yml
+COMPOSE_APP  = docker compose -f docker-compose.yml
+COMPOSE_OBS  = docker compose -f docker-compose.observability.yml
 
 # The machine's actual hostname — resolvable via school/LAN DNS without /etc/hosts.
 # Override at the command line: make remote HOSTNAME=my-custom-host
@@ -19,14 +20,15 @@ HTTPS_ARGS = VITE_API_URL=https://$(HOSTNAME):$(NGINX_PORT) \
 all: $(NAME)
 
 clean:
-	$(COMPOSE_PROD) down -v
+	$(COMPOSE_OBS) down -v
+	$(COMPOSE_APP) down -v
 	rm -rf $(NAME)
 
 fclean: clean
 	docker container prune -f
 	docker image prune -af
 	docker volume prune -af
-	docker system prune -a
+	docker system prune -af
 
 re: fclean all
 
@@ -50,35 +52,44 @@ dev-down:
 	$(COMPOSE_DEV) down
 
 # ── Prod / remote play / evaluation ──────────────────────────────────────────
-# Full stack: app + observability (ELK + Prometheus + Grafana) + HTTPS.
-# Generates a self-signed cert for the machine's hostname, then starts everything.
-# No admin rights or /etc/hosts changes needed — hostname resolves via LAN DNS.
+# Two-step startup: app first (creates the transcendence-app network),
+# then observability (joins it as external).
 #
 # Usage:
-#   make prod                # auto-detects hostname via $(hostname)
+#   make prod                # start app services with HTTPS
+#   make obs                 # start observability stack (run after prod)
 #   make prod HOSTNAME=my-machine
-#
-# Host machine opens:   https://$(HOSTNAME):$(NGINX_PORT)
-# Remote player opens:  https://$(HOSTNAME):$(NGINX_PORT)  (no setup needed)
 
 prod: cert
-	$(HTTPS_ARGS) $(COMPOSE_PROD) up -d --build
+	$(HTTPS_ARGS) $(COMPOSE_APP) up -d --build
 	touch $(NAME)
 
 prod-down:
-	$(COMPOSE_PROD) down
+	$(COMPOSE_APP) down
 	rm -rf $(NAME)
+
+# ── Observability (ELK + Prometheus + Grafana) ────────────────────────────────
+# Requires app to be running first (transcendence-app network must exist).
+
+obs:
+	$(COMPOSE_OBS) up -d
+
+obs-down:
+	$(COMPOSE_OBS) down
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 
 logs:
-	$(COMPOSE_PROD) logs -f
+	$(COMPOSE_APP) logs -f
+
+obs-logs:
+	$(COMPOSE_OBS) logs -f
 
 ps:
-	$(COMPOSE_PROD) ps
+	$(COMPOSE_APP) ps
 
 $(NAME):
-	$(COMPOSE_PROD) up --build
+	$(COMPOSE_APP) up --build
 	touch $(NAME)
 
-.PHONY: all clean fclean re cert dev dev-build dev-down prod prod-down logs ps
+.PHONY: all clean fclean re cert dev dev-build dev-down prod prod-down obs obs-down logs obs-logs ps
