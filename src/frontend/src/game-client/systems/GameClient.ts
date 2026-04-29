@@ -54,6 +54,7 @@ import { GridMaterial } from '@babylonjs/materials';
 import p5 from 'p5';
 import { NetworkPacket } from '../components/NetworkNode.ts';
 import { Obstacle } from '../components/Obstacle.ts';
+import * as INSPECTOR from '@babylonjs/inspector';
 
 /* v8 ignore start */
 export class GameClient {
@@ -166,23 +167,24 @@ export class GameClient {
 
     scene.onPointerObservable.add(pointerInfo => {
       switch (pointerInfo.type) {
-      case PointerEventTypes.POINTERDOWN:
-        if (this.gameMode === 'powerup' && this.prota.powerShots) {
-          const forwardRay = this.powerCamera.getForwardRay();
-          this.room.send('powershot', {
-            origin: forwardRay.origin,
-            direction: forwardRay.direction.scale(50)
-          });
-        }
+        case PointerEventTypes.POINTERDOWN:
+          if (this.gameMode === 'powerup' && this.prota.powerShots) {
+            const forwardRay = this.powerCamera.getForwardRay();
+            this.room.send('powershot', {
+              origin: forwardRay.origin,
+              direction: forwardRay.direction.scale(50)
+            });
+          }
 
-        break;
-      default:
-        break;
+          break;
+        default:
+          break;
       }
     });
     scene.clearColor = new Color4(0, 0, 0, 1);
     this.initObstacleMaterials();
     this.engine.getRenderingCanvas()?.focus();
+    INSPECTOR.Inspector.Show(this.scene, {});
     return scene;
   }
 
@@ -368,7 +370,7 @@ export class GameClient {
         }
         if (
           g.keyManager.deltaTime !== 0 &&
-          g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames
+          g.frameCount - g.keyManager.deltaTime >= g.keyManager.windowFrames
         ) {
           g.keyManager.resolve();
         }
