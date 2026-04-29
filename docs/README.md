@@ -162,6 +162,23 @@ Server-authoritative game engine on port 2567, built on Colyseus (WebSocket room
 
 ## Modules chosen
 
+8 major modules and 3 minor modules (2 minor = 1 major equivalent, minimum required is 7 major).
+
+**Major modules**
+- **Backend framework** — Fastify + Node.js across all services
+- **Standard user management & authentication** — registration, login, profiles, avatars, friends, stats, match history
+- **Remote players** — two players on separate machines via Colyseus WebSocket rooms; handles disconnect and reconnection
+- **Live chat** — direct messaging, block enforcement, match invites via ack messages, tournament notifications
+- **Two-Factor Authentication & JWT** — TOTP 2FA with QR code setup; RS256-signed JWTs with HttpOnly refresh token rotation
+- **Log management infrastructure (ELK)** — Logstash, Elasticsearch, Kibana; per-service daily indices, TLS-secured internal traffic
+- **Microservices architecture** — six independent backend services (auth, user-management, chat, matchmaking, game-server, api-gateway), each with its own database
+- **Advanced 3D graphics** — Babylon.js + Havok Physics for the Pong game
+
+**Minor modules**
+- **Frontend toolkit** — React + Tailwind CSS
+- **Backend database** — SQLite via Prisma across all data-holding services
+- **Game customization** — powerup mode (health, mana, powershots) alongside the default classic mode
+
 ## Observability
 
 The observability stack ships alongside the app as a separate Compose overlay. Structured JSON logs from every service are shipped via `pino-socket` to Logstash, which enriches them and writes them to per-service daily indices in Elasticsearch. Kibana is the primary interface for searching and filtering logs.
