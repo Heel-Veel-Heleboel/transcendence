@@ -6,7 +6,7 @@ import {
   createPowerShot
 } from '#game-engine/create.js';
 import { GameEngine } from '#game-engine/game-engine.js';
-import { Vector3 } from '@babylonjs/core';
+import { PhysicsEventType, Vector3 } from '@babylonjs/core';
 import { Player } from './entities/player.js';
 import { renderLoop } from '#game-engine/render.js';
 import { getGuestConfig, getHostConfig } from './entities/config.js';
@@ -279,11 +279,12 @@ export class GameRoom extends Room {
     hack.linearVelocityX = 0;
     hack.linearVelocityY = 0;
     hack.linearVelocityZ = 0;
+    const direction = Math.random() - 0.5 > 0 ? -100 : 100;
     hack.physicsMesh.aggregate.body.applyForce(
       new Vector3(
-        Math.random() * 200,
-        Math.random() * 200,
-        Math.random() * 200
+        Math.random() * 10,
+        Math.random() * 10,
+        Math.random() * direction
       ),
       hack.physicsMesh.mesh.absolutePosition
     );
@@ -529,17 +530,17 @@ export class GameRoom extends Room {
     this.roomLogger.info({ clientId: client.sessionId, code }, 'client left');
 
     switch (code) {
-    case closeCodes.FAILED_TO_RECONNECT:
-      this.sendDisconnectResult();
-      break;
-    case closeCodes.GOING_AWAY:
-      this.sendDisconnectResult();
-      break;
-    case closeCodes.SERVER_SHUTDOWN:
-      this.sendCancelResult();
-      break;
-    default:
-      break;
+      case closeCodes.FAILED_TO_RECONNECT:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.GOING_AWAY:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.SERVER_SHUTDOWN:
+        this.sendCancelResult();
+        break;
+      default:
+        break;
     }
 
     const player = this.state.players.get(client.sessionId);
@@ -581,10 +582,10 @@ export class GameRoom extends Room {
     const observable = this.engine.physicsPlugin.onCollisionObservable;
 
     observable.add(collisionEvent => {
-      this.roomLogger.info('collision');
       if (
         collisionEvent.collidedAgainst ===
-        this.engine.arena.goal_1.aggregate.body
+          this.engine.arena.goal_1.aggregate.body &&
+        collisionEvent.type === PhysicsEventType.COLLISION_STARTED
       ) {
         this.roomLogger.info('goal_1 collision');
         if (this.gameMode === 'classic') {
@@ -607,7 +608,8 @@ export class GameRoom extends Room {
 
       if (
         collisionEvent.collidedAgainst ===
-        this.engine.arena.goal_2.aggregate.body
+          this.engine.arena.goal_2.aggregate.body &&
+        collisionEvent.type === PhysicsEventType.COLLISION_STARTED
       ) {
         this.roomLogger.info('goal_2 collision');
 
