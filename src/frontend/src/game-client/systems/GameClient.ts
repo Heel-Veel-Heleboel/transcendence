@@ -46,7 +46,6 @@ import { Protagonist } from '../components/Protagonist';
 import { Antagonist } from '../components/Antagonist';
 import gameConfig from '../utils/GameConfig.ts';
 import { Dispatch, SetStateAction } from 'react';
-import * as INSPECTOR from '@babylonjs/inspector';
 import { LoadingScreen } from '../utils/LoadingScreen.ts';
 import { ReconnectionScreen } from '../utils/ReconnectionScreen.ts';
 import { WinnerScreen } from '../utils/WinnerScreen.ts';
@@ -182,7 +181,6 @@ export class GameClient {
       }
     });
     scene.clearColor = new Color4(0, 0, 0, 1);
-    INSPECTOR.Inspector.Show(scene, {});
     this.initObstacleMaterials();
     return scene;
   }
