@@ -13,7 +13,19 @@
 @theme {
     --font-monof: "Monofett";
     --font-orbi: "Orbitron";
-    --color-metalgear: #FF0000;
+    --color-metalgear: #005BBB;
+}
+
+@theme {
+    --font-monof1: "Monofett";
+    --font-orbi: "Orbitron";
+    --color-liquidsnake: #FFD500;
+}
+
+@theme {
+    --font-monof2: "Monofett";
+    --font-orbi: "Orbitron";
+    --color-solidsnake: #000000;
 }
 
 html, body, #root, #app {
