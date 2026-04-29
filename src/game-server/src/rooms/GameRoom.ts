@@ -529,17 +529,17 @@ export class GameRoom extends Room {
     this.roomLogger.info({ clientId: client.sessionId, code }, 'client left');
 
     switch (code) {
-      case closeCodes.FAILED_TO_RECONNECT:
-        this.sendDisconnectResult();
-        break;
-      case closeCodes.GOING_AWAY:
-        this.sendDisconnectResult();
-        break;
-      case closeCodes.SERVER_SHUTDOWN:
-        this.sendCancelResult();
-        break;
-      default:
-        break;
+    case closeCodes.FAILED_TO_RECONNECT:
+      this.sendDisconnectResult();
+      break;
+    case closeCodes.GOING_AWAY:
+      this.sendDisconnectResult();
+      break;
+    case closeCodes.SERVER_SHUTDOWN:
+      this.sendCancelResult();
+      break;
+    default:
+      break;
     }
 
     const player = this.state.players.get(client.sessionId);
