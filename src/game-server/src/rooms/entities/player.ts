@@ -84,7 +84,7 @@ export class Player extends Schema implements IPlayer {
     this.posZ = this.physicsMesh.mesh.absolutePosition.z;
     this.lifespan = 100;
     this.mana = 0;
-    this.manaRegen = 0.01;
+    this.manaRegen = 0.1;
     this.score = 0;
     this.connected = true;
     this.isDead = false;
@@ -156,12 +156,12 @@ export class Player extends Schema implements IPlayer {
   }
 
   powerup2() {
-    this.updateManaRegen(0.02);
+    this.updateManaRegen(0.2);
     this.updateMana(-50);
   }
 
   powerup2Reset() {
-    this.updateManaRegen(0.01);
+    this.updateManaRegen(0.1);
   }
 
   powerup3() {
