@@ -270,6 +270,14 @@ export async function registerMatchRoutes(
 
         request.log.info({ matchId, player1Score, player2Score }, 'Match cancelled (premature end)');
 
+
+        gatewayNotificationClient.notifyUsers(
+          [updatedMatch.player1Id, updatedMatch.player2Id],
+          {
+            type: 'MATCH_FINISHED'
+          }
+        );
+
         return reply.status(200).send({
           success: true,
           matchId: updatedMatch.id,
@@ -305,6 +313,13 @@ export async function registerMatchRoutes(
       });
 
       request.log.info({ matchId, winnerId, player1Score, player2Score }, 'Match completed');
+      
+      gatewayNotificationClient.notifyUsers(
+        [updatedMatch.player1Id, updatedMatch.player2Id],
+        {
+          type: 'MATCH_FINISHED'
+        }
+      );
 
       return reply.status(200).send({
         success: true,
