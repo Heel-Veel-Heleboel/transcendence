@@ -4,6 +4,7 @@ import { useUserService } from "../../components/providers/User";
 import { IProfile } from "../../shared/types/profile";
 import { DEFAULT_AVATAR, DEFAULT_PROFILE } from "../../shared/constants/defaults";
 import { useAuth } from "../../components/providers/Auth";
+import { useNotifications } from "../../components/hooks/Notifications";
 import { Status } from "./Status";
 import { ProfilePictureImage } from "./ProfilePictureImage";
 import { ProfilePictureContainer } from "./ProfilePictureContainer";
@@ -13,15 +14,17 @@ import { ProfileName } from "./ProfileName";
 export function VisitorProfileAvatar({ visitorId }: { visitorId?: string }) {
     const userService = useUserService();
     const auth = useAuth();
+    const { userStatusUpdate } = useNotifications();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
     const [profile, setProfile] = useState<IProfile>(DEFAULT_PROFILE);
 
+    const watchedId = visitorId ?? auth.userId;
+
     useEffect(() => {
         async function getProfile() {
             try {
-                const id = visitorId ? visitorId : auth.userId
-                const result = await userService.getProfile(id);
+                const result = await userService.getProfile(watchedId);
                 setProfile(result.data);
             } catch (e: any) {
                 setError(true);
@@ -31,6 +34,15 @@ export function VisitorProfileAvatar({ visitorId }: { visitorId?: string }) {
         }
         getProfile();
     }, [])
+
+    useEffect(() => {
+        if (userStatusUpdate && String(userStatusUpdate.userId) === String(watchedId)) {
+            setProfile(prev => ({
+                ...prev,
+                user: { ...prev.user, activity_status: userStatusUpdate.activityStatus as IProfile['user']['activity_status'] }
+            }));
+        }
+    }, [userStatusUpdate])
 
     if (loading) {
         return (

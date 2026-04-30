@@ -34,4 +34,19 @@ export class ApiGatewayClient{
   async notifyAddressee(user2_id: number, event: WebSocketEvent): Promise<void> {
     return this.notifyUsers([user2_id], event);
   }
+
+  async broadcastToAllUsers(event: WebSocketEvent): Promise<void> {
+    try {
+      await axios.post(`${this.baseUrl}/internal/ws/broadcast`, {
+        event
+      }, {
+        timeout: this.timeout,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    } catch (err) {
+      logger.error({ err }, '[ApiGatewayClient] broadcastToAllUsers failed (non-fatal)');
+    }
+  }
 }
