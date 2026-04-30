@@ -25,7 +25,7 @@ export function useNotifications() {
                     if (msg.type === 'MATCH_READY') {
                         navigate(`/game/${msg.gameMode}/${msg.matchId}/${msg.roomId}`)
                     }
-                    if (msg.type === 'MATCH_JOINED_POOL' || msg.type === 'MATCH_LEAVED_POOL') {
+                    if (msg.type === 'MATCH_JOINED_POOL' || msg.type === 'MATCH_LEAVED_POOL' || msg.type === 'MATCH_FINISHED') {
                         setMatchUpdate(event.timeStamp)
                     }
                     if (msg.type === 'chat:channel_created') {
