@@ -396,6 +396,8 @@ export class GameRoom extends Room {
         return;
       }
 
+      this.roomLogger.info(`disconnect winner: ${winner}`);
+
       await fetch(
         `http://matchmaking:3005/matchmaking/match/${this.matchId}/result`,
         {
@@ -405,7 +407,7 @@ export class GameRoom extends Room {
             winnerId: winner,
             player1Score: winner === this.player1Id ? 5 : 0,
             player2Score: winner === this.player2Id ? 5 : 0,
-            isFinished: false
+            isFinished: true
           })
         }
       );
