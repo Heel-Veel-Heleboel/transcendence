@@ -198,11 +198,7 @@ export class GameRoom extends Room {
     await this.engine.initGame();
     this.setSimulationInterval(deltaTime => this.update(deltaTime));
     this.clock.setTimeout(() => {
-      if (
-        this.state.players.size != 2 ||
-        !this.player1Ack ||
-        !this.player2Ack
-      ) {
+      if (!this.player1Ack || !this.player2Ack) {
         this.sendCancelResult(closeCodes.FAILED_TO_JOIN);
       }
     }, 20 * 1000);
@@ -531,17 +527,17 @@ export class GameRoom extends Room {
     this.roomLogger.info({ clientId: client.sessionId, code }, 'client left');
 
     switch (code) {
-    case closeCodes.FAILED_TO_RECONNECT:
-      this.sendDisconnectResult();
-      break;
-    case closeCodes.GOING_AWAY:
-      this.sendDisconnectResult();
-      break;
-    case closeCodes.SERVER_SHUTDOWN:
-      this.sendCancelResult();
-      break;
-    default:
-      break;
+      case closeCodes.FAILED_TO_RECONNECT:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.GOING_AWAY:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.SERVER_SHUTDOWN:
+        this.sendCancelResult();
+        break;
+      default:
+        break;
     }
 
     const player = this.state.players.get(client.sessionId);
