@@ -167,7 +167,7 @@ export class GameClient {
 
     scene.onPointerObservable.add(pointerInfo => {
       switch (pointerInfo.type) {
-        case PointerEventTypes.POINTERDOWN:
+        case PointerEventTypes.POINTERDOUBLETAP:
           if (this.gameMode === 'powerup' && this.prota.powerShots) {
             const forwardRay = this.powerCamera.getForwardRay();
             this.room.send('powershot', {
@@ -558,9 +558,14 @@ export class GameClient {
           g.scene,
           this.goalCameraPositions[0]
         );
+        const offsetZ = pos.z > 0 ? -1 : 1;
         this.powerCamera = createPowerCamera(
           g.scene,
-          createVector3(pos.x, pos.y + config.goalDimensions.y, pos.z)
+          createVector3(
+            pos.x,
+            pos.y + config.goalDimensions.y / 2,
+            pos.z + offsetZ
+          )
         );
 
         const keyManager = new KeyManager(

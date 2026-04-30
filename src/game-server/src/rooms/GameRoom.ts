@@ -587,7 +587,6 @@ export class GameRoom extends Room {
           this.engine.arena.goal_1.aggregate.body &&
         collisionEvent.type === PhysicsEventType.COLLISION_STARTED
       ) {
-        this.roomLogger.info('goal_1 collision');
         if (this.gameMode === 'classic') {
           player2.updateScore(1);
           if (player2.score >= 11) {
@@ -611,8 +610,6 @@ export class GameRoom extends Room {
           this.engine.arena.goal_2.aggregate.body &&
         collisionEvent.type === PhysicsEventType.COLLISION_STARTED
       ) {
-        this.roomLogger.info('goal_2 collision');
-
         if (this.gameMode === 'classic') {
           player1.updateScore(1);
           if (player1.score >= 11) {
