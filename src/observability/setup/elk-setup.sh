@@ -97,6 +97,106 @@ until curl -s -X POST \
   sleep 10
 done
 
+
+# ---------------------------------------------------------------------------
+# ILM retention policy — delete indices after 7 days
+# Straight deletion is appropriate for a single-node basic-license cluster.
+# Archive (cold/frozen tier) would require a multi-tier cluster setup.
+# Instead, use SLM snapshots below for longer-term archiving.
+# ---------------------------------------------------------------------------
+echo "Configuring ILM retention policy (delete after 7 days)..."
+until curl -s -X PUT \
+  --cacert config/certs/ca/ca.crt \
+  -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+  -H "Content-Type: application/json" \
+  "https://elasticsearch:9200/_ilm/policy/trans-logs-policy" \
+  -d '{
+    "policy": {
+      "phases": {
+        "delete": {
+          "min_age": "7d",
+          "actions": { "delete": {} }
+        }
+      }
+    }
+  }' | grep -q '"acknowledged":true'; do
+  echo "  Failed to configure ILM policy, retrying..."
+  sleep 10
+done
+echo "ILM policy configured."
+
+# Apply ILM policy to all logs-* indices via an index template.
+# number_of_replicas=0 prevents yellow cluster health on a single node.
+echo "Configuring index template for logs-*..."
+until curl -s -X PUT \
+  --cacert config/certs/ca/ca.crt \
+  -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+  -H "Content-Type: application/json" \
+  "https://elasticsearch:9200/_index_template/trans-logs-template" \
+  -d '{
+    "index_patterns": ["logs-*"],
+    "template": {
+      "settings": {
+        "index.lifecycle.name": "pong-logs-policy",
+        "number_of_replicas": 0
+      }
+    }
+  }' | grep -q '"acknowledged":true'; do
+  echo "  Failed to configure index template, retrying..."
+  sleep 10
+done
+echo "Index template configured."
+
+# ---------------------------------------------------------------------------
+# SLM snapshot policy — archive logs-* daily, retain 30 days
+# This gives a 30-day restorable archive even after ILM removes the live
+# index.  Snapshots are stored in the /snapshots repository volume mounted
+# into the elasticsearch container via docker-compose.
+# ---------------------------------------------------------------------------
+echo "Registering snapshot repository..."
+until curl -s -X PUT \
+  --cacert config/certs/ca/ca.crt \
+  -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+  -H "Content-Type: application/json" \
+  "https://elasticsearch:9200/_snapshot/trans-logs-archive" \
+  -d '{
+    "type": "fs",
+    "settings": {
+      "location": "/snapshots",
+      "compress": true
+    }
+  }' | grep -q '"acknowledged":true'; do
+  echo "  Failed to register snapshot repository, retrying..."
+  sleep 10
+done
+echo "Snapshot repository registered."
+
+echo "Configuring SLM snapshot policy (daily, retain 30 days)..."
+until curl -s -X PUT \
+  --cacert config/certs/ca/ca.crt \
+  -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" \
+  -H "Content-Type: application/json" \
+  "https://elasticsearch:9200/_slm/policy/trans-logs-snapshot" \
+  -d '{
+    "schedule": "0 30 1 * * ?",
+    "name": "<pong-logs-{now/d}>",
+    "repository": "pong-logs-archive",
+    "config": {
+      "indices": ["logs-*"],
+      "ignore_unavailable": true,
+      "include_global_state": false
+    },
+    "retention": {
+      "expire_after": "30d",
+      "min_count": 1,
+      "max_count": 30
+    }
+  }' | grep -q '"acknowledged":true'; do
+  echo "  Failed to configure SLM policy, retrying..."
+  sleep 10
+done
+echo "SLM snapshot policy configured."
+
 echo "ELK setup completed successfully!"
 
 # Keep container running for health checks

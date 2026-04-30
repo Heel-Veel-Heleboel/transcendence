@@ -73,30 +73,20 @@ src/auth/generated/
 # database file
 src/auth/dev.db
 src/auth/prisma/dev.db-journal
-src/auth/prisma/migrations/
-
-# user service
-src/user-management/generated/
-src/user-management/dev.db
-src/user-management/dev.db-journal
-src/user-management/prisma/migrations/
 
 # matchmaking service
 src/matchmaking/generated/
 src/matchmaking/prisma/dev.db
 src/matchmaking/prisma/dev.db-journal
-src/matchmaking/prisma/migrations/
 
 # live chat service
 src/chat/generated/
 src/chat/prisma/dev.db
 src/chat/prisma/dev.db-journal
-src/chat/prisma/migrations/
 # user-management service
 src/user-management/generated/
 src/user-management/prisma/dev.db
 src/user-management/prisma/dev.db-journal
-src/user-management/prisma/migrations/
 
 # frontend docker-compose
 .docker_compose_started

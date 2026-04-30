@@ -1,8 +1,7 @@
 NAME	:= .docker_compose_started
 
+COMPOSE_DEV  = docker compose -f docker-compose-dev.yml
 COMPOSE_APP  = docker compose -f docker-compose.yml
-COMPOSE_DEV  = docker compose -f docker-compose-dev.yml -f docker-compose.observability.yml
-COMPOSE_PROD = docker compose -f docker-compose.yml -f docker-compose.observability.yml
 COMPOSE_OBS  = docker compose -f docker-compose.observability.yml
 
 # The machine's actual hostname — resolvable via school/LAN DNS without /etc/hosts.
@@ -21,14 +20,15 @@ HTTPS_ARGS = VITE_API_URL=https://$(HOSTNAME):$(NGINX_PORT) \
 all: $(NAME)
 
 clean:
-	docker compose down -v
+	$(COMPOSE_OBS) down -v
+	$(COMPOSE_APP) down -v
 	rm -rf $(NAME)
 
 fclean: clean
 	docker container prune -f
 	docker image prune -af
 	docker volume prune -af
-	docker system prune -a
+	docker system prune -af
 
 re: fclean all
 
@@ -51,43 +51,28 @@ dev-build:
 dev-down:
 	$(COMPOSE_DEV) down
 
-# ── Remote play / evaluation (LAN, two separate machines) ────────────────────
-# Generates a cert for the machine's hostname, then starts the full stack.
-# No admin rights or /etc/hosts changes needed — the hostname resolves via LAN DNS.
+# ── Prod / remote play / evaluation ──────────────────────────────────────────
+# Two-step startup: app first (creates the transcendence-app network),
+# then observability (joins it as external).
 #
 # Usage:
-#   make remote              # auto-detects hostname via $(hostname)
-#   make remote HOSTNAME=my-machine
-#
-# Host machine opens:   https://$(HOSTNAME):$(NGINX_PORT)
-# Remote player opens:  https://$(HOSTNAME):$(NGINX_PORT)  (no setup needed)
+#   make prod                # start app services with HTTPS
+#   make obs                 # start observability stack (run after prod)
+#   make prod HOSTNAME=my-machine
 
-remote: cert
+prod: cert
 	$(HTTPS_ARGS) $(COMPOSE_APP) up -d --build
 	touch $(NAME)
 
-remote-down:
+prod-down:
 	$(COMPOSE_APP) down
 	rm -rf $(NAME)
 
-# ── Prod (app + observability stack) ─────────────────────────────────────────
-
-prod:
-	$(COMPOSE_PROD) up -d
-
-prod-build:
-	$(HTTPS_ARGS) $(COMPOSE_PROD) up -d --build
-
-prod-down:
-	$(COMPOSE_PROD) down
-
-# ── Observability stack only (ELK + Prometheus + Grafana) ────────────────────
+# ── Observability (ELK + Prometheus + Grafana) ────────────────────────────────
+# Requires app to be running first (transcendence-app network must exist).
 
 obs:
 	$(COMPOSE_OBS) up -d
-
-obs-build:
-	$(COMPOSE_OBS) up -d --build
 
 obs-down:
 	$(COMPOSE_OBS) down
@@ -97,6 +82,9 @@ obs-down:
 logs:
 	$(COMPOSE_APP) logs -f
 
+obs-logs:
+	$(COMPOSE_OBS) logs -f
+
 ps:
 	$(COMPOSE_APP) ps
 
@@ -104,4 +92,4 @@ $(NAME):
 	$(COMPOSE_APP) up --build
 	touch $(NAME)
 
-.PHONY: all clean fclean re cert dev dev-build dev-down remote remote-down prod prod-build prod-down obs obs-build obs-down logs ps
+.PHONY: all clean fclean re cert dev dev-build dev-down prod prod-down obs obs-down logs obs-logs ps

@@ -13,7 +13,9 @@ const productionTransport = {
       options: {
         address: process.env.LOGSTASH_HOST || 'logstash',
         port: parseInt(process.env.LOGSTASH_PORT || '5044'),
-        mode: 'tcp'
+        mode: 'tcp',
+        reconnect: true,
+        reconnectTries: Infinity
       }
     }
   ]

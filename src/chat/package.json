@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
-    "start": "npm run db:push && node dist/src/index.js",
+    "start": "prisma migrate deploy && node dist/src/index.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
@@ -22,7 +22,7 @@
     "@fastify/websocket": "^7.0.1",
     "@prisma/adapter-better-sqlite3": "^7.2.0",
     "@prisma/client": "^7.2.0",
-    "better-sqlite3": "^11.0.0",
+    "better-sqlite3": "^12.5.0",
     "fastify": "^4.28.0",
     "pino": "^8.17.0",
     "pino-pretty": "^10.3.0",
