@@ -47,7 +47,7 @@ export class KeyManager implements IKeyManager {
     this.player = player;
     this.actions = player.keyGrid.grid;
     this.powerMoves = '1234';
-    this.cameraPositions = '5678';
+    this.cameraPositions = '56789';
     this.precisionKeys = player.keyGrid.precisionKeys;
     this.precisionMove = player.ratioDiv / gameConfig.handlePrecisionRatio;
   }
@@ -74,30 +74,30 @@ export class KeyManager implements IKeyManager {
     const keys = this.precisionKeys.split(gameConfig.keyGridPrecisionSeperator);
     const index = keys.indexOf(key);
     switch (index) {
-    case 0:
-      if (checkUp(this.precisionMove, this.player)) {
+      case 0:
+        if (checkUp(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: 0, y: this.precisionMove });
         break;
-      }
-      this.player.movePrecise({ x: 0, y: this.precisionMove });
-      break;
-    case 1:
-      if (checkDown(this.precisionMove, this.player)) {
+      case 1:
+        if (checkDown(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: 0, y: -this.precisionMove });
         break;
-      }
-      this.player.movePrecise({ x: 0, y: -this.precisionMove });
-      break;
-    case 2:
-      if (checkLeft(this.precisionMove, this.player)) {
+      case 2:
+        if (checkLeft(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: -this.precisionMove, y: 0 });
         break;
-      }
-      this.player.movePrecise({ x: -this.precisionMove, y: 0 });
-      break;
-    case 3:
-      if (checkRight(this.precisionMove, this.player)) {
+      case 3:
+        if (checkRight(this.precisionMove, this.player)) {
+          break;
+        }
+        this.player.movePrecise({ x: this.precisionMove, y: 0 });
         break;
-      }
-      this.player.movePrecise({ x: this.precisionMove, y: 0 });
-      break;
     }
   }
 
@@ -130,19 +130,34 @@ export class KeyManager implements IKeyManager {
 
   moveGoalCamera(move: string) {
     const camera = this.client.goalCamera as UniversalCamera;
+    const direction = this.client.goalCamera.position.z > 0 ? true : false;
     if (move === '5') {
-      camera.position = this.client.goalCameraPositions[0];
+      //
     }
     if (move === '6') {
-      camera.position = this.client.goalCameraPositions[1];
+      camera.position = this.client.goalCameraPositions[0];
+      const z = direction ? 100 : -100;
+      const target = new Vector3(0, 0, z);
+      camera.setTarget(target);
     }
     if (move === '7') {
-      camera.position = this.client.goalCameraPositions[2];
+      camera.position = this.client.goalCameraPositions[1];
+      const z = direction ? 66 : -66;
+      const target = new Vector3(0, 0, z);
+      camera.setTarget(target);
     }
     if (move === '8') {
-      camera.position = this.client.goalCameraPositions[3];
+      camera.position = this.client.goalCameraPositions[2];
+      const x = direction ? 80 : -80;
+      const target = new Vector3(x, 0, 0);
+      camera.setTarget(target);
     }
-    camera.setTarget(Vector3.Zero());
+    if (move === '9') {
+      camera.position = this.client.goalCameraPositions[3];
+      const z = direction ? 66 : -66;
+      const target = new Vector3(0, 0, z);
+      camera.setTarget(target);
+    }
   }
 
   powerMove(move: string) {
