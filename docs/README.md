@@ -187,7 +187,7 @@ See [OBSERVABILITY_GUIDE.md](OBSERVABILITY_GUIDE.md) for setup, credentials, Kib
 
 ## Docker
 
-All services are defined in `docker-compose.yml` with a separate `docker-compose.observability.yml` overlay for the observability stack. Shared inter-service URLs are declared once in `docker/shared.env` and loaded by every service. SQLite databases are persisted in named volumes so data survives restarts. Schema management uses `prisma db push` on startup (safe for development; switch to `prisma migrate deploy` before a production rollout).
+All services are defined in `docker-compose.yml` with a separate `docker-compose.observability.yml` overlay for the observability stack. Shared inter-service URLs are declared once in `docker/shared.env` and loaded by every service. SQLite databases are persisted in named volumes so data survives restarts. On service startup, schema changes are applied with `prisma migrate deploy`. Use `prisma db push` only for development-oriented workflows when you explicitly want to sync schema changes without running migrations.
 
 See [DOCKER.md](DOCKER.md) for the full service table, build instructions, volume management, and the migration upgrade guide.
 
