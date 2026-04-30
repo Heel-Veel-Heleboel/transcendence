@@ -158,7 +158,6 @@ export class HitIndicator {
     intersectionPoint: Vector3,
     distance: number
   ) {
-    console.log(distance);
     const distanceRatio = p5.prototype.map(
       distance,
       this._absGoalDistance / 4,

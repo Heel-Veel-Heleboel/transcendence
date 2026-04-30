@@ -42,8 +42,6 @@ export function FriendshipList({ friends, onRefresh }: { friends: IFriendship[],
                     </div>
                 </li>
             );
-            console.log('friends')
-            console.log(listItems);
             return <ul>{listItems}</ul>;
         }
         return (

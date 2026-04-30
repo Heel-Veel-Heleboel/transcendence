@@ -73,6 +73,9 @@ export class KeyManager implements IKeyManager {
   handlePrecisionKey(key: string) {
     const keys = this.precisionKeys.split(gameConfig.keyGridPrecisionSeperator);
     const index = keys.indexOf(key);
+    if (this.client.scene.activeCamera !== this.client.goalCamera) {
+      return;
+    }
     switch (index) {
       case 0:
         if (checkUp(this.precisionMove, this.player)) {
@@ -130,32 +133,31 @@ export class KeyManager implements IKeyManager {
 
   moveGoalCamera(move: string) {
     const camera = this.client.goalCamera as UniversalCamera;
-    const direction = this.client.goalCamera.position.z > 0 ? true : false;
     if (move === '5') {
-      //
+      this.client.switchToFreeCamera();
     }
     if (move === '6') {
+      this.client.switchToGoalCamera();
       camera.position = this.client.goalCameraPositions[0];
-      const z = direction ? 100 : -100;
-      const target = new Vector3(0, 0, z);
+      const target = new Vector3(0, 0, -100);
       camera.setTarget(target);
     }
     if (move === '7') {
+      this.client.switchToGoalCamera();
       camera.position = this.client.goalCameraPositions[1];
-      const z = direction ? 66 : -66;
-      const target = new Vector3(0, 0, z);
+      const target = new Vector3(0, 65, 160);
       camera.setTarget(target);
     }
     if (move === '8') {
+      this.client.switchToGoalCamera();
       camera.position = this.client.goalCameraPositions[2];
-      const x = direction ? 80 : -80;
-      const target = new Vector3(x, 0, 0);
+      const target = new Vector3(-80, 0, 0);
       camera.setTarget(target);
     }
     if (move === '9') {
+      this.client.switchToGoalCamera();
       camera.position = this.client.goalCameraPositions[3];
-      const z = direction ? 66 : -66;
-      const target = new Vector3(0, 0, z);
+      const target = new Vector3(0, -65, 160);
       camera.setTarget(target);
     }
   }

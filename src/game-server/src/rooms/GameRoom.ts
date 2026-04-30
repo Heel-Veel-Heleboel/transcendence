@@ -239,7 +239,7 @@ export class GameRoom extends Room {
       this.addHack();
     }
 
-    if (!(this.frameCount % 150)) {
+    if (!(this.frameCount % 50)) {
       this.updateObstacles();
     }
 
@@ -257,11 +257,11 @@ export class GameRoom extends Room {
     const a = this.engine.obstacleAreas[index];
     const x = getRandomInt(-a.x, a.x);
     const y = getRandomInt(-a.y, a.y);
-    const z = getRandomInt(a.z - a.z / 2, a.z + a.z / 2);
+    const z = getRandomInt(-a.z, a.z);
     const obstacle = createObstacle(
       this.obstacleId,
       this.engine.scene,
-      new Vector3(x, y, z),
+      new Vector3(x, y, a.z + z),
       index
     );
     this.state.obstacles.set(String(this.obstacleId), obstacle);
@@ -279,7 +279,7 @@ export class GameRoom extends Room {
     hack.linearVelocityX = 0;
     hack.linearVelocityY = 0;
     hack.linearVelocityZ = 0;
-    const direction = Math.random() - 0.5 > 0 ? -100 : 100;
+    const direction = Math.random() - 0.5 > 0 ? -200 : 200;
     hack.physicsMesh.aggregate.body.applyForce(
       new Vector3(
         Math.random() * 10,

@@ -36,8 +36,6 @@ export function RelationshipsContent(): JSX.Element {
             const friendships = result.data.map((friendship: IFriendshipResponse) => {
                 return responseToFriendship(friendship, Number(currentUserId));
             })
-            console.log('friendslist');
-            console.log(friendships);
             setFriendships(friendships)
         } catch (error) {
             console.error(error);

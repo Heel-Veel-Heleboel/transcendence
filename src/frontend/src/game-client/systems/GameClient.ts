@@ -34,7 +34,8 @@ import {
   createVector3,
   createPowerCamera,
   createGoalCameraPositions,
-  createObstacle
+  createObstacle,
+  createFreeCamera
 } from '../utils/Create';
 import '@babylonjs/loaders/glTF';
 import { Hack } from '../components/Hack';
@@ -89,6 +90,7 @@ export class GameClient {
 
   //@ts-ignore
   private _goalCamera!: Camera;
+  private freeCamera!: Camera;
   private _goalCameraPositions!: Vector3[];
   private _powerCamera!: Camera;
   //@ts-ignore
@@ -567,6 +569,10 @@ export class GameClient {
             pos.z + offsetZ
           )
         );
+        this.freeCamera = createFreeCamera(
+          g.scene,
+          createVector3(pos.x, pos.y, pos.z + -1 * (offsetZ * 20))
+        );
 
         const keyManager = new KeyManager(
           g,
@@ -725,14 +731,36 @@ export class GameClient {
     if (this.scene.activeCamera === this.powerCamera) {
       return;
     }
+    if (this.scene.activeCamera) {
+      this.scene.activeCamera.detachControl();
+    }
     const canvas = this.engine.getRenderingCanvas();
     this.powerCamera.attachControl(canvas, true);
     this.scene.activeCamera = this.powerCamera;
   }
 
   switchToGoalCamera() {
-    this.powerCamera.detachControl();
+    if (this.scene.activeCamera === this.goalCamera) {
+      return;
+    }
+    if (this.scene.activeCamera) {
+      this.scene.activeCamera.detachControl();
+    }
+    const canvas = this.engine.getRenderingCanvas();
+    this.goalCamera.attachControl(canvas, true);
     this.scene.activeCamera = this.goalCamera;
+  }
+
+  switchToFreeCamera() {
+    if (this.scene.activeCamera === this.freeCamera) {
+      return;
+    }
+    if (this.scene.activeCamera) {
+      this.scene.activeCamera.detachControl();
+    }
+    const canvas = this.engine.getRenderingCanvas();
+    this.freeCamera.attachControl(canvas, true);
+    this.scene.activeCamera = this.freeCamera;
   }
 
   private set defaultScene(defaultScene: Scene) {

@@ -23,8 +23,8 @@ export function createGoalCameraPositions(pos: Vector3) {
   const direction = pos.z > 0 ? true : false;
   const horizontalX = 127;
   const horizontalZ = direction ? 261 : -261;
-  const verticalY = 137;
-  const verticalZ = direction ? 353 : -353;
+  const verticalY = 180;
+  const verticalZ = direction ? 315 : -315;
 
   const right = new Vector3(-horizontalX, 0, horizontalZ);
   const bottom = new Vector3(0, verticalY, verticalZ);
@@ -42,6 +42,7 @@ export function createGoalCamera(scene: Scene, pos: Vector3) {
   if (unitializedCheck(camera)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
+  camera.inputs.addMouse();
 
   return camera;
 }
@@ -54,6 +55,19 @@ export function createPowerCamera(scene: Scene, pos: Vector3) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
   camera.inputs.addMouse();
+
+  return camera;
+}
+
+export function createFreeCamera(scene: Scene, pos: Vector3) {
+  const camera = new UniversalCamera('freeCamera', pos, scene);
+  camera.setTarget(Vector3.Zero());
+
+  if (unitializedCheck(camera)) {
+    throw new Error(Errors.FAILED_ENTITY_INIT);
+  }
+  camera.inputs.addMouse();
+  camera.inputs.addMouseWheel();
 
   return camera;
 }
