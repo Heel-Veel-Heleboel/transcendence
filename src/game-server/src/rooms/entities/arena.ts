@@ -43,9 +43,11 @@ export class Arena implements IArena {
             this._arena = { mesh, aggregate };
           } else if (mesh.id === 'goal_1') {
             aggregate.body.setCollisionCallbackEnabled(true);
+            aggregate.body.setCollisionEndedCallbackEnabled(true);
             this.goal_1 = { mesh, aggregate };
           } else if (mesh.id === 'goal_2') {
             aggregate.body.setCollisionCallbackEnabled(true);
+            aggregate.body.setCollisionEndedCallbackEnabled(true);
             this.goal_2 = { mesh, aggregate };
           }
         }

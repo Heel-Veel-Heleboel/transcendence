@@ -78,12 +78,13 @@ export class Player extends Schema implements IPlayer {
     aggregate.body.setLinearDamping(0.0);
 
     this.physicsMesh = { mesh: padel, aggregate: aggregate };
+    this.physicsMesh.aggregate.body.disablePreStep = false;
     this.posX = this.physicsMesh.mesh.absolutePosition.x;
     this.posY = this.physicsMesh.mesh.absolutePosition.y;
     this.posZ = this.physicsMesh.mesh.absolutePosition.z;
     this.lifespan = 100;
     this.mana = 0;
-    this.manaRegen = 0.01;
+    this.manaRegen = 0.2;
     this.score = 0;
     this.connected = true;
     this.isDead = false;
@@ -91,7 +92,7 @@ export class Player extends Schema implements IPlayer {
   }
 
   move(coord: { x: number; y: number }) {
-    this.physicsMesh.mesh.position = new Vector3(
+    this.physicsMesh.aggregate.transformNode.position = new Vector3(
       coord.x,
       coord.y,
       this.physicsMesh.mesh.absolutePosition.z
@@ -155,12 +156,12 @@ export class Player extends Schema implements IPlayer {
   }
 
   powerup2() {
-    this.updateManaRegen(0.02);
+    this.updateManaRegen(0.4);
     this.updateMana(-50);
   }
 
   powerup2Reset() {
-    this.updateManaRegen(0.01);
+    this.updateManaRegen(0.2);
   }
 
   powerup3() {

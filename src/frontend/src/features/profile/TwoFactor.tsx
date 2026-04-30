@@ -14,7 +14,6 @@ export function TwoFactor() {
         try {
             const result = await auth.setTwoFactor();
             setQr(result.data.qr_code);
-            console.log(result);
         } catch (error) {
             console.error("Error setting up 2fa");
             console.error(error);
@@ -29,7 +28,7 @@ export function TwoFactor() {
             alert('verification succes');
         } catch (e: any) {
             alert('verification failed');
-            console.log(e);
+            console.error(e);
         }
     };
 

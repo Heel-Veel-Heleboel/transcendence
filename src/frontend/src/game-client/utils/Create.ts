@@ -19,41 +19,30 @@ import { Obstacle } from '../components/Obstacle.ts';
 
 /* v8 ignore start */
 
-export function createGoalCameraPositions(pos: Vector3, dimensions: Vector3) {
-  const scaledDimensions = dimensions.scale(2);
-  const posZ =
-    pos.z < 0 ? pos.z - scaledDimensions.x * 2 : pos.z + scaledDimensions.x * 2;
-  const topRight = new Vector3(
-    pos.x + scaledDimensions.x,
-    pos.y + scaledDimensions.y,
-    posZ
-  );
-  const bottomRight = new Vector3(
-    pos.x + scaledDimensions.x,
-    pos.y - scaledDimensions.y,
-    posZ
-  );
-  const bottomLeft = new Vector3(
-    pos.x - scaledDimensions.x,
-    pos.y - scaledDimensions.y,
-    posZ
-  );
-  const topLeft = new Vector3(
-    pos.x - scaledDimensions.x,
-    pos.y + scaledDimensions.y,
-    posZ
-  );
-  return [topRight, bottomRight, bottomLeft, topLeft];
+export function createGoalCameraPositions(pos: Vector3) {
+  const direction = pos.z > 0 ? true : false;
+  const horizontalX = 127;
+  const horizontalZ = direction ? 261 : -261;
+  const verticalY = 180;
+  const verticalZ = direction ? 315 : -315;
+
+  const right = new Vector3(-horizontalX, 0, horizontalZ);
+  const bottom = new Vector3(0, verticalY, verticalZ);
+  const left = new Vector3(horizontalX, 0, horizontalZ);
+  const top = new Vector3(0, -verticalY, verticalZ);
+  return [right, bottom, left, top];
 }
 
 export function createGoalCamera(scene: Scene, pos: Vector3) {
   const camera = new UniversalCamera('goalCamera', pos, scene);
-  camera.setTarget(Vector3.Zero());
+  const z = pos.z > 0 ? 100 : -100;
+  const target = new Vector3(0, 0, z);
+  camera.setTarget(target);
+
+  camera.inputs.clear();
   if (unitializedCheck(camera)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
-  camera.inputs.addMouse();
-  camera.inputs.addMouseWheel();
 
   return camera;
 }
@@ -61,10 +50,24 @@ export function createGoalCamera(scene: Scene, pos: Vector3) {
 export function createPowerCamera(scene: Scene, pos: Vector3) {
   const camera = new UniversalCamera('powerCamera', pos, scene);
   camera.setTarget(Vector3.Zero());
+
+  camera.inputs.clear();
   if (unitializedCheck(camera)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
+  camera.inputs.addMouse();
 
+  return camera;
+}
+
+export function createFreeCamera(scene: Scene, pos: Vector3) {
+  const camera = new UniversalCamera('freeCamera', pos, scene);
+  camera.setTarget(Vector3.Zero());
+
+  camera.inputs.clear();
+  if (unitializedCheck(camera)) {
+    throw new Error(Errors.FAILED_ENTITY_INIT);
+  }
   camera.inputs.addMouse();
   camera.inputs.addMouseWheel();
 

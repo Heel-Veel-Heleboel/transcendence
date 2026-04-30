@@ -7,7 +7,6 @@ import { TOURNAMENT_NAVIGATION_REDIRECT } from "../../shared/constants/navigatio
 
 export function CurrentActivity({ status }: { status: IMatchmakingStatus }) {
 
-    console.log(status);
     if (status.activeMatchId) {
         return (
             <PendingMatch status={status} />
@@ -100,7 +99,6 @@ export function PendingTournament({ status, tournamentId, tournamentName }: { st
 
 
     useEffect(() => {
-        console.log(tournamentName);
         if (status.activeTournamentId && status.isCreator) {
             setCallbackTitle('cancel');
         }

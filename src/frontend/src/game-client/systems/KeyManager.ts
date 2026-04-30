@@ -35,7 +35,7 @@ export class KeyManager implements IKeyManager {
     frameCountCallback: Function,
     player: Protagonist,
     gameMode: string,
-    windowFrames = 10
+    windowFrames = 7
   ) {
     this.client = client;
     this.client.scene.onKeyboardObservable.add(this.onKeyDown.bind(this));
@@ -47,7 +47,7 @@ export class KeyManager implements IKeyManager {
     this.player = player;
     this.actions = player.keyGrid.grid;
     this.powerMoves = '1234';
-    this.cameraPositions = '5678';
+    this.cameraPositions = '56789';
     this.precisionKeys = player.keyGrid.precisionKeys;
     this.precisionMove = player.ratioDiv / gameConfig.handlePrecisionRatio;
   }
@@ -73,6 +73,9 @@ export class KeyManager implements IKeyManager {
   handlePrecisionKey(key: string) {
     const keys = this.precisionKeys.split(gameConfig.keyGridPrecisionSeperator);
     const index = keys.indexOf(key);
+    if (this.client.scene.activeCamera !== this.client.goalCamera) {
+      return;
+    }
     switch (index) {
     case 0:
       if (checkUp(this.precisionMove, this.player)) {
@@ -130,19 +133,37 @@ export class KeyManager implements IKeyManager {
 
   moveGoalCamera(move: string) {
     const camera = this.client.goalCamera as UniversalCamera;
+    const direction = this.client.goalCamera.position.z > 0 ? true : false;
     if (move === '5') {
-      camera.position = this.client.goalCameraPositions[0];
+      this.client.switchToFreeCamera();
     }
     if (move === '6') {
-      camera.position = this.client.goalCameraPositions[1];
+      this.client.switchToGoalCamera();
+      camera.position = this.client.goalCameraPositions[0];
+      const z = direction ? 100 : -100;
+      const target = new Vector3(0, 0, z);
+      camera.setTarget(target);
     }
     if (move === '7') {
-      camera.position = this.client.goalCameraPositions[2];
+      this.client.switchToGoalCamera();
+      camera.position = this.client.goalCameraPositions[1];
+      const z = direction ? 160 : -160;
+      const target = new Vector3(0, 65, z);
+      camera.setTarget(target);
     }
     if (move === '8') {
-      camera.position = this.client.goalCameraPositions[3];
+      this.client.switchToGoalCamera();
+      camera.position = this.client.goalCameraPositions[2];
+      const target = new Vector3(-80, 0, 0);
+      camera.setTarget(target);
     }
-    camera.setTarget(Vector3.Zero());
+    if (move === '9') {
+      this.client.switchToGoalCamera();
+      camera.position = this.client.goalCameraPositions[3];
+      const z = direction ? 160 : -160;
+      const target = new Vector3(0, -65, z);
+      camera.setTarget(target);
+    }
   }
 
   powerMove(move: string) {

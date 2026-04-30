@@ -8,7 +8,6 @@ import useUserId from "../hooks/useUserid";
 export function AutoLogin() {
     const auth = useAuth();
     const userId = useUserId();
-    console.log('in auto login');
 
     if (!userId) {
         return (

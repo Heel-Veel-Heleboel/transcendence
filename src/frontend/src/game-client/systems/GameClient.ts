@@ -19,7 +19,8 @@ import {
   Mesh,
   GlowLayer,
   StandardMaterial,
-  InstancedMesh
+  InstancedMesh,
+  UniversalCamera
 } from '@babylonjs/core';
 import {
   debugLayerListener,
@@ -34,7 +35,8 @@ import {
   createVector3,
   createPowerCamera,
   createGoalCameraPositions,
-  createObstacle
+  createObstacle,
+  createFreeCamera
 } from '../utils/Create';
 import '@babylonjs/loaders/glTF';
 import { Hack } from '../components/Hack';
@@ -88,6 +90,7 @@ export class GameClient {
 
   //@ts-ignore
   private _goalCamera!: Camera;
+  private freeCamera!: Camera;
   private _goalCameraPositions!: Vector3[];
   private _powerCamera!: Camera;
   //@ts-ignore
@@ -166,7 +169,7 @@ export class GameClient {
 
     scene.onPointerObservable.add(pointerInfo => {
       switch (pointerInfo.type) {
-      case PointerEventTypes.POINTERDOWN:
+      case PointerEventTypes.POINTERDOUBLETAP:
         if (this.gameMode === 'powerup' && this.prota.powerShots) {
           const forwardRay = this.powerCamera.getForwardRay();
           this.room.send('powershot', {
@@ -182,6 +185,7 @@ export class GameClient {
     });
     scene.clearColor = new Color4(0, 0, 0, 1);
     this.initObstacleMaterials();
+    this.engine.getRenderingCanvas()?.focus();
     return scene;
   }
 
@@ -367,7 +371,7 @@ export class GameClient {
         }
         if (
           g.keyManager.deltaTime !== 0 &&
-          g.frameCount - g.keyManager.deltaTime > g.keyManager.windowFrames
+          g.frameCount - g.keyManager.deltaTime >= g.keyManager.windowFrames
         ) {
           g.keyManager.resolve();
         }
@@ -550,17 +554,23 @@ export class GameClient {
         g.prota = player;
         g.prota.initGridHints(g.scene);
         const pos = config.goalPosition;
-        this.goalCameraPositions = createGoalCameraPositions(
-          pos,
-          config.goalDimensions
-        );
+        this.goalCameraPositions = createGoalCameraPositions(pos);
         this.goalCamera = createGoalCamera(
           g.scene,
           this.goalCameraPositions[0]
         );
+        const offsetZ = pos.z > 0 ? -1 : 1;
         this.powerCamera = createPowerCamera(
           g.scene,
-          createVector3(pos.x, pos.y + config.goalDimensions.y, pos.z)
+          createVector3(
+            pos.x,
+            pos.y + config.goalDimensions.y / 2,
+            pos.z + offsetZ
+          )
+        );
+        this.freeCamera = createFreeCamera(
+          g.scene,
+          createVector3(pos.x, pos.y, pos.z + -1 * (offsetZ * 20))
         );
 
         const keyManager = new KeyManager(
@@ -720,14 +730,40 @@ export class GameClient {
     if (this.scene.activeCamera === this.powerCamera) {
       return;
     }
+    if (this.scene.activeCamera) {
+      this.scene.activeCamera.detachControl();
+    }
     const canvas = this.engine.getRenderingCanvas();
     this.powerCamera.attachControl(canvas, true);
     this.scene.activeCamera = this.powerCamera;
+    const cameraCast = this.powerCamera as UniversalCamera;
+    cameraCast.inputs.clear();
+    cameraCast.inputs.addMouse();
   }
 
   switchToGoalCamera() {
-    this.powerCamera.detachControl();
+    if (this.scene.activeCamera === this.goalCamera) {
+      return;
+    }
+    if (this.scene.activeCamera) {
+      this.scene.activeCamera.detachControl();
+    }
+    const canvas = this.engine.getRenderingCanvas();
+    this.goalCamera.attachControl(canvas, true);
     this.scene.activeCamera = this.goalCamera;
+    this.goalCamera.inputs.clear();
+  }
+
+  switchToFreeCamera() {
+    if (this.scene.activeCamera === this.freeCamera) {
+      return;
+    }
+    if (this.scene.activeCamera) {
+      this.scene.activeCamera.detachControl();
+    }
+    const canvas = this.engine.getRenderingCanvas();
+    this.freeCamera.attachControl(canvas, true);
+    this.scene.activeCamera = this.freeCamera;
   }
 
   private set defaultScene(defaultScene: Scene) {

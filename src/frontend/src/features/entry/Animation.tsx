@@ -18,7 +18,6 @@ export function Animation(): JSX.Element {
         let deltaR: number;
         let deltaG: number;
         let deltaB: number;
-        let transition: number;
         let displaceColorsSrc = `
 precision highp float;
 
@@ -63,20 +62,7 @@ void main() {
         };
 
         p5.draw = () => {
-            if (!transition) {
-                p5.background(255, 0, 0);
-            }
-            if (!(p5.frameCount % 200)) {
-                p5.clear();
-                transition = 100;
-                return;
-            }
-            if (transition) {
-                if (!(transition % 50)) {
-                    p5.clear();
-                }
-                transition--;
-            }
+            p5.background(255, 0, 0);
 
 
             r += deltaR;
