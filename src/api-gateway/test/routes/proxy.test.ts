@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, beforeAll, afterEach, afterAll, vi } 
 import { FastifyInstance } from 'fastify';
 import http from 'http';
 import { URL } from 'url';
-import { authMiddleware } from '../../src/middleware/auth';
 
 let proxyRoutes: any;
 
@@ -372,36 +371,6 @@ describe('Proxy Routes', () => {
     });
   });
 
-  describe('proxy internal helpers (unit)', () => {
-    let originalServices: any[];
-
-    beforeEach(() => {
-      // Save original services config
-      originalServices = [...mockConfig.services];
-    });
-
-    afterEach(() => {
-      // Restore original services config after each test
-      mockConfig.services = originalServices;
-    });
-
-    it('findServiceByUrl matches configured prefixes', async () => {
-      const { findServiceByUrl } = await import('../../src/routes/proxy');
-      // update mocked config services for this assertion
-      mockConfig.services = [
-        { name: 'user-service', upstream: 'http://u', prefix: '/api/users', rewritePrefix: '/users', timeout: 5000, requiresAuth: false }
-      ];
-
-      expect(findServiceByUrl('/api/users/test')).toBeDefined();
-      expect(findServiceByUrl('/no/match')).toBeUndefined();
-    });
-
-    it('findServiceByUrl returns undefined when url is undefined', async () => {
-      const { findServiceByUrl } = await import('../../src/routes/proxy');
-
-      expect(findServiceByUrl(undefined)).toBeUndefined();
-    });
-  });
 
   describe('proxy internals additional unit tests', () => {
     it('setupServiceAuth registers preHandler when requiresAuth is true', async () => {

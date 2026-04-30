@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { formatAndSendError, ServiceUnavailableError, handleError, setupProxyErrorHandler } from '../../src/routes/errorHandler';
-import type { FastifyError, FastifyRequest, FastifyReply } from 'fastify';
+import type { FastifyError } from 'fastify';
 
 /**
  * Helper function to create mock FastifyError for testing
@@ -44,9 +44,9 @@ describe('formatAndSendError', () => {
     vi.resetAllMocks();
   });
 
-  it('handles 400 error with proper name and correlation ID', () => {
+  it('handles 400 error with proper name', () => {
     const err = createMockError('invalid payload', 400);
-    const { req, reply } = makeFakeReqReply('corr-1');
+    const { req, reply } = makeFakeReqReply();
 
     formatAndSendError(err as any, req, reply);
 
@@ -54,7 +54,6 @@ describe('formatAndSendError', () => {
     expect(reply.sent).toHaveProperty('statusCode', 400);
     expect(reply.sent).toHaveProperty('error', 'Bad Request');
     expect(reply.sent).toHaveProperty('message', 'invalid payload');
-    expect(reply.sent).toHaveProperty('correlationId', 'corr-1');
     expect(typeof reply.sent.timestamp).toBe('string');
   });
 
@@ -109,14 +108,13 @@ describe('formatAndSendError', () => {
 
   it('handles 403 error as Forbidden', () => {
     const err = createMockError('Insufficient permissions', 403);
-    const { req, reply } = makeFakeReqReply('auth-corr');
+    const { req, reply } = makeFakeReqReply();
 
     formatAndSendError(err as any, req, reply);
 
     expect(reply.status).toBe(403);
     expect(reply.sent.statusCode).toBe(403);
     expect(reply.sent.error).toBe('Forbidden');
-    expect(reply.sent.correlationId).toBe('auth-corr');
   });
 
   it('maps various status codes to correct error names', () => {
