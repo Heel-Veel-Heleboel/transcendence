@@ -68,7 +68,7 @@ prod-down:
 	$(COMPOSE_APP) down
 	rm -rf $(NAME)
 
-# ── Observability (ELK + Prometheus + Grafana) ────────────────────────────────
+# ── Observability (ELK) ───────────────────────────────────────────────────────
 # Requires app to be running first (transcendence-app network must exist).
 
 obs:

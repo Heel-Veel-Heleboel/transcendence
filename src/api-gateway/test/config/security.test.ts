@@ -228,7 +228,7 @@ describe('Security Configuration', () => {
       delete process.env.CORS_ALLOWED_HEADERS;
 
       const { corsConfig } = await import('../../src/config/security');
-      expect(corsConfig.allowedHeaders).toEqual(['Content-Type', 'Authorization', 'X-Correlation-Id']);
+      expect(corsConfig.allowedHeaders).toEqual(['Content-Type', 'Authorization']);
     });
 
     it('should parse and trim comma-separated CORS_ALLOWED_HEADERS', async () => {
@@ -238,19 +238,6 @@ describe('Security Configuration', () => {
       expect(corsConfig.allowedHeaders).toEqual(['Content-Type', 'Authorization']);
     });
 
-    it('should use default exposed headers when not set', async () => {
-      delete process.env.CORS_EXPOSED_HEADERS;
-
-      const { corsConfig } = await import('../../src/config/security');
-      expect(corsConfig.exposedHeaders).toEqual(['X-Correlation-Id']);
-    });
-
-    it('should parse and trim comma-separated CORS_EXPOSED_HEADERS', async () => {
-      process.env.CORS_EXPOSED_HEADERS = ' X-Request-Id , X-Response-Time ';
-
-      const { corsConfig } = await import('../../src/config/security');
-      expect(corsConfig.exposedHeaders).toEqual(['X-Request-Id', 'X-Response-Time']);
-    });
   });
 
   describe('logSecurityConfig', () => {

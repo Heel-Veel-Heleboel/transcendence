@@ -46,18 +46,6 @@ describe('CORS Configuration', () => {
     expect(response.headers['access-control-allow-headers']).toContain('Authorization');
   });
 
-  it('should expose X-Correlation-Id header', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: '/health',
-      headers: {
-        origin: 'http://localhost:8080'
-      }
-    });
-
-    expect(response.headers['access-control-expose-headers']).toContain('X-Correlation-Id');
-  });
-
   it('should reject requests from non-allowed origins when ALLOWED_ORIGINS is set', async () => {
     // Note: This test requires setting ALLOWED_ORIGINS env var
     // In default config, multiple origins are allowed
@@ -107,18 +95,4 @@ describe('CORS Configuration', () => {
     expect(response.headers['access-control-allow-headers']).toContain('Authorization');
   });
 
-  it('should allow custom X-Correlation-Id header in requests', async () => {
-    const response = await app.inject({
-      method: 'OPTIONS',
-      url: '/health',
-      headers: {
-        origin: 'http://localhost:8080',
-        'access-control-request-method': 'GET',
-        'access-control-request-headers': 'x-correlation-id'
-      }
-    });
-
-    expect(response.statusCode).toBe(204);
-    expect(response.headers['access-control-allow-headers']).toContain('X-Correlation-Id');
-  });
 });

@@ -5,7 +5,7 @@ import {
 } from 'fastify';
 import httpProxy from '@fastify/http-proxy';
 import { config } from '../config/index.js';
-import { authGuard, authMiddleware } from '../middleware/auth.js';
+import { authGuard } from '../middleware/auth.js';
 import { setupProxyErrorHandler } from './errorHandler.js';
 import { ServiceConfig } from '../entity/common.js';
 import type { ExtendedHttpProxyOptions } from '../entity/types.js';
@@ -15,11 +15,7 @@ import type { ExtendedHttpProxyOptions } from '../entity/types.js';
  * Sets up error handler first, then registers all service proxies
  */
 export async function proxyRoutes(fastify: FastifyInstance): Promise<void> {
-  // Setup global error handler before registering routes
   setupProxyErrorHandler(fastify);
-  // Parse JWT for all proxy routes — populates request.user if a valid Bearer token is present
-  fastify.addHook('onRequest', authMiddleware);
-  // Register all service proxies
   await Promise.all(
     config.services.map(service => registerServiceProxy(fastify, service))
   );
@@ -113,19 +109,8 @@ function setupHeaderForwardingHooks(
           'Forwarding user context to downstream service'
         );
       }
-      if (_request.correlationId) {
-        _request.headers['x-correlation-id'] = _request.correlationId;
-      }
     }
   );
-}
-
-/**
- * Find service configuration by request URL
- */
-function findServiceByUrl(url: string | undefined): ServiceConfig | undefined {
-  if (!url) return undefined;
-  return config.services.find(s => s.prefix && url.startsWith(s.prefix));
 }
 
 export {
@@ -133,6 +118,5 @@ export {
   setupServiceAuth,
   setupServiceHooks,
   registerHttpProxy,
-  setupHeaderForwardingHooks,
-  findServiceByUrl
+  setupHeaderForwardingHooks
 };

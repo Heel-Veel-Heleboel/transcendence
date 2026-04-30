@@ -137,7 +137,7 @@ until curl -s -X PUT \
     "index_patterns": ["logs-*"],
     "template": {
       "settings": {
-        "index.lifecycle.name": "pong-logs-policy",
+        "index.lifecycle.name": "trans-logs-policy",
         "number_of_replicas": 0
       }
     }
@@ -179,8 +179,8 @@ until curl -s -X PUT \
   "https://elasticsearch:9200/_slm/policy/trans-logs-snapshot" \
   -d '{
     "schedule": "0 30 1 * * ?",
-    "name": "<pong-logs-{now/d}>",
-    "repository": "pong-logs-archive",
+    "name": "<trans-logs-{now/d}>",
+    "repository": "trans-logs-archive",
     "config": {
       "indices": ["logs-*"],
       "ignore_unavailable": true,

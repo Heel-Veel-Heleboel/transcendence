@@ -13,15 +13,6 @@ Elasticsearch :9200        ← stores logs in daily indices
         │
         ▼
    Kibana :5601            ← search, filter, visualise logs
-
-
-Services (/metrics endpoint)
-        │
-        ▼
-  Prometheus :9090         ← scrapes & stores metrics
-        │
-        ▼
-   Grafana :3001           ← dashboards & alerts UI
 ```
 
 ### Component descriptions
@@ -31,9 +22,6 @@ Services (/metrics endpoint)
 | **Logstash** | Data processing pipeline | Receives raw JSON logs from services over TCP (pino-socket). Parses Pino fields (`level`, `time`, `name`), maps numeric levels to `severity` strings, overrides severity based on HTTP status codes, and writes each event to a per-service daily index in Elasticsearch (`logs-<service>-YYYY.MM.dd`). |
 | **Elasticsearch** | Distributed search & analytics engine | Stores every log event in a daily index named `logs-<service>-YYYY.MM.dd` (e.g. `logs-api-gateway-2026.04.11`). Provides full-text search and field filtering via its REST API. TLS + xpack security are enabled — all internal traffic is encrypted with auto-generated certificates. |
 | **Kibana** | UI for Elasticsearch | The main interface for browsing, filtering, and visualising logs. Connects to Elasticsearch with the `kibana_system` internal user. You log in as `elastic` to use it. |
-| **Prometheus** | Metrics collection engine | Scrapes `/metrics` endpoints on a 15 s interval. Uses Docker service discovery via docker-proxy — any container with the label `prometheus.scrape=true` is picked up automatically. |
-| **Grafana** | Metrics visualisation UI | Connects to Prometheus as its default datasource (auto-provisioned). Used for dashboards and alert visualisation. |
-| **docker-proxy** | Safe Docker API gateway | Exposes a read-only subset of the Docker API to Prometheus so it can discover containers without full daemon access. |
 
 ---
 
@@ -47,9 +35,6 @@ ELASTIC_PASSWORD=<your-password>
 
 KIBANA_USER=kibana_system
 KIBANA_PASSWORD=<your-password>
-
-GRAFANA_ADMIN_USER=admin
-GRAFANA_ADMIN_PASSWORD=<your-password>
 ```
 
 ---
@@ -152,34 +137,11 @@ You can also click any field value in a log entry and choose **Filter for value*
 
 ---
 
-## Checking Prometheus targets
-
-Open [http://localhost:9090/targets](http://localhost:9090/targets).
-
-Each container with the `prometheus.scrape=true` label appears here. **State** should be `UP`. If it shows `DOWN` or `UNKNOWN`, the service is not exposing a `/metrics` endpoint yet.
-
-Prometheus discovers containers automatically every 15 s via docker-proxy — no config restart needed when new services are added.
-
----
-
-## Accessing Grafana
-
-1. Open [http://localhost:3001](http://localhost:3001).
-2. Log in with `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` from `.env`.
-3. The **Prometheus** datasource is pre-provisioned — no manual setup needed.
-
-Dashboards are loaded from `src/observability/grafana/dashboards/`. Currently no dashboards exist — this is pending implementation.
-
----
-
 ## Quick reference
 
 | Service | URL | Login |
 |---------|-----|-------|
 | Kibana | http://localhost:5601 | `elastic` / `ELASTIC_PASSWORD` |
-| Grafana | http://localhost:3001 | `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` |
-| Prometheus | http://localhost:9090 | none |
-| Prometheus targets | http://localhost:9090/targets | none |
 | Elasticsearch API | https://localhost:9200 | `elastic` / `ELASTIC_PASSWORD` |
 | Logstash API | http://localhost:9600 | none |
 
@@ -203,10 +165,6 @@ curl -u elastic:<ELASTIC_PASSWORD> --cacert certs/ca/ca.crt \
 ```
 
 Common cause: `elk-setup` has not finished yet. Wait until its logs show `ELK setup completed successfully!`.
-
-### Prometheus targets are DOWN
-
-The service is not exposing `GET /metrics`. Implement `prom-client` in the service and expose the endpoint — see the implementation plan for the per-service steps.
 
 ### pino-socket logs stop after Logstash restart
 
