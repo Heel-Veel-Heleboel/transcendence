@@ -56,7 +56,6 @@ import { GridMaterial } from '@babylonjs/materials';
 import p5 from 'p5';
 import { NetworkPacket } from '../components/NetworkNode.ts';
 import { Obstacle } from '../components/Obstacle.ts';
-import * as INSPECTOR from '@babylonjs/inspector';
 
 /* v8 ignore start */
 export class GameClient {
@@ -187,7 +186,6 @@ export class GameClient {
     scene.clearColor = new Color4(0, 0, 0, 1);
     this.initObstacleMaterials();
     this.engine.getRenderingCanvas()?.focus();
-    INSPECTOR.Inspector.Show(this.scene, {});
     return scene;
   }
 
