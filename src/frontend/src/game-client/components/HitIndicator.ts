@@ -60,7 +60,7 @@ export class HitIndicator {
     this.scene.getBoundingBoxRenderer().backColor.set(bc.r, bc.g, bc.b);
     this._hackLerpStart = new Color3(1, 0, 0);
     this._hackLerpEnd = new Color3(0, 1, 0);
-    this._absGoalDistance = Math.abs(this.goalPosition.z);
+    this._absGoalDistance = Math.abs(this.goalPosition.z * 1.5);
   }
 
   detectIncomingHits(hack: Hack) {
@@ -88,21 +88,8 @@ export class HitIndicator {
 
     if (isHit === false) {
       this.disposeHitIndicators(hack);
-      this.resetHackColor(hack);
-    }
-  }
-
-  private resetHackColor(hack: Hack) {
-    if (hack.mesh.material) {
-      const material = hack.mesh.material as StandardMaterial;
-      Color3.LerpToRef(
-        this._hackLerpStart,
-        this._hackLerpEnd,
-        1,
-        material.ambientColor
-      );
-      material.diffuseColor = material.ambientColor;
-      hack.mesh.material = material;
+      const distance = Math.abs(this.goalPosition.z - hack.mesh.position.z);
+      this.changeHackColor(hack, distance);
     }
   }
 

@@ -133,19 +133,22 @@ export class KeyManager implements IKeyManager {
 
   moveGoalCamera(move: string) {
     const camera = this.client.goalCamera as UniversalCamera;
+    const direction = this.client.goalCamera.position.z > 0 ? true : false;
     if (move === '5') {
       this.client.switchToFreeCamera();
     }
     if (move === '6') {
       this.client.switchToGoalCamera();
       camera.position = this.client.goalCameraPositions[0];
-      const target = new Vector3(0, 0, -100);
+      const z = direction ? 100 : -100;
+      const target = new Vector3(0, 0, z);
       camera.setTarget(target);
     }
     if (move === '7') {
       this.client.switchToGoalCamera();
       camera.position = this.client.goalCameraPositions[1];
-      const target = new Vector3(0, 65, 160);
+      const z = direction ? 160 : -160;
+      const target = new Vector3(0, 65, z);
       camera.setTarget(target);
     }
     if (move === '8') {
@@ -157,7 +160,8 @@ export class KeyManager implements IKeyManager {
     if (move === '9') {
       this.client.switchToGoalCamera();
       camera.position = this.client.goalCameraPositions[3];
-      const target = new Vector3(0, -65, 160);
+      const z = direction ? 160 : -160;
+      const target = new Vector3(0, -65, z);
       camera.setTarget(target);
     }
   }

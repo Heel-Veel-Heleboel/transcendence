@@ -82,20 +82,20 @@ export class GameEngine {
     this.obstacleAreas.push(third);
     this.obstacleAreas.push(fourth);
 
-    function shuffle(array: Vector3[]) {
-      let currentIndex = array.length;
-
-      while (currentIndex != 0) {
-        const randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-
-        [array[currentIndex], array[randomIndex]] = [
-          array[randomIndex],
-          array[currentIndex]
-        ];
-      }
-    }
-    shuffle(this.obstacleAreas);
+    // function shuffle(array: Vector3[]) {
+    //   let currentIndex = array.length;
+    //
+    //   while (currentIndex != 0) {
+    //     const randomIndex = Math.floor(Math.random() * currentIndex);
+    //     currentIndex--;
+    //
+    //     [array[currentIndex], array[randomIndex]] = [
+    //       array[randomIndex],
+    //       array[currentIndex]
+    //     ];
+    //   }
+    // }
+    // shuffle(this.obstacleAreas);
   }
 
   /* v8 ignore start */

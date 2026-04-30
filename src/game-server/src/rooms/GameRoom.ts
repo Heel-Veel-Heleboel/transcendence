@@ -257,7 +257,7 @@ export class GameRoom extends Room {
     const a = this.engine.obstacleAreas[index];
     const x = getRandomInt(-a.x, a.x);
     const y = getRandomInt(-a.y, a.y);
-    const z = getRandomInt(-a.z, a.z);
+    const z = getRandomInt(0, a.z);
     const obstacle = createObstacle(
       this.obstacleId,
       this.engine.scene,

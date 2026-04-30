@@ -39,10 +39,10 @@ export function createGoalCamera(scene: Scene, pos: Vector3) {
   const target = new Vector3(0, 0, z);
   camera.setTarget(target);
 
+  camera.inputs.clear();
   if (unitializedCheck(camera)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
-  camera.inputs.addMouse();
 
   return camera;
 }
@@ -51,6 +51,7 @@ export function createPowerCamera(scene: Scene, pos: Vector3) {
   const camera = new UniversalCamera('powerCamera', pos, scene);
   camera.setTarget(Vector3.Zero());
 
+  camera.inputs.clear();
   if (unitializedCheck(camera)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
@@ -63,6 +64,7 @@ export function createFreeCamera(scene: Scene, pos: Vector3) {
   const camera = new UniversalCamera('freeCamera', pos, scene);
   camera.setTarget(Vector3.Zero());
 
+  camera.inputs.clear();
   if (unitializedCheck(camera)) {
     throw new Error(Errors.FAILED_ENTITY_INIT);
   }
