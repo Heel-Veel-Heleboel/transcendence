@@ -37,7 +37,7 @@ export class UserService {
 
   async updateStatus(input: SchemaTypes.UpdateUserStatusSchemaType): Promise<void> {
     await this.userRepository.updateStatus({ id: input.user_id, activity_status: input.activity_status });
-    await this.apiGatewayClient.notifyUsers([input.user_id], { type: 'USER_STATUS_UPDATED', user_id: input.user_id, activity_status: input.activity_status });
+    await this.apiGatewayClient.broadcastToAllUsers({ type: 'USER_STATUS_UPDATED', user_id: input.user_id, activity_status: input.activity_status });
   }
 
 

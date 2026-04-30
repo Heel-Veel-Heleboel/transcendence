@@ -46,7 +46,7 @@ export function RelationshipsContent(): JSX.Element {
 
     useEffect(() => {
         getFriendships();
-    }, [notif.friendshipUpdate])
+    }, [notif.friendshipUpdate, notif.userStatusUpdate])
 
     return (
         <RelationsContainer >

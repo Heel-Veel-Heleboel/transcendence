@@ -11,6 +11,7 @@ export function useNotifications() {
     const [tournamentUpdate, setTournamentUpdate] = useState<number>(0);
     const [friendshipUpdate, setFriendshipUpdate] = useState<number>(0);
     const [lastMessageChannelId, setLastMessageChannelId] = useState<string | null>(null);
+    const [userStatusUpdate, setUserStatusUpdate] = useState<{ userId: string; activityStatus: string } | null>(null);
     const auth = useAuth();
     const navigate = useNavigate();
     const notif =
@@ -51,6 +52,9 @@ export function useNotifications() {
                         setMessageUpdate(event.timeStamp);
                         setLastMessageChannelId(msg.channelId ?? null);
                     }
+                    if (msg.type === 'USER_STATUS_UPDATED') {
+                        setUserStatusUpdate({ userId: String(msg.user_id), activityStatus: msg.activity_status as string });
+                    }
                 },
                 onClose: (event) => {
                     // optionally reconnect if not intentional close
@@ -59,5 +63,5 @@ export function useNotifications() {
                     }
                 }
             });
-    return { ws: notif, chatUpdate, messageUpdate, tournamentUpdate, matchUpdate, friendshipUpdate, lastMessageChannelId }
+    return { ws: notif, chatUpdate, messageUpdate, tournamentUpdate, matchUpdate, friendshipUpdate, lastMessageChannelId, userStatusUpdate }
 }
