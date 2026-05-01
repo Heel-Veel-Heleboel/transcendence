@@ -73,13 +73,8 @@ services:
       - xpack.security.http.ssl.certificate=certs/elasticsearch/elasticsearch.crt
       - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.license.self_generated.type=${LICENSE:-basic}
-      - bootstrap.memory_lock=true
       - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
     mem_limit: ${ES_MEM_LIMIT}
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
     networks:
       - observability-network
     healthcheck:
