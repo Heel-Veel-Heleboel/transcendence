@@ -290,14 +290,6 @@ export class TournamentService {
     participants: Array<{ userId: number; username: string }>,
     ackDeadlineMin: number
   ): Promise<Match[]> {
-
-
-    const tournament = await this.tournamentDao.findById(tournamentId);
-
-    if (!tournament) {
-      throw new TournamentError('Tournament not found', 'NOT_FOUND');
-    }
-
     // Fisher-Yates shuffle for unbiased random seeding
     const shuffled = [...participants];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -337,7 +329,6 @@ export class TournamentService {
         player1Username: p1.username,
         player2Username: p2.username,
         tournamentId,
-        gameMode: tournament.gameMode,
         round: 1,
         bracketPosition,
         deadline
