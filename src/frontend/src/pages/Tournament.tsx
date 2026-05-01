@@ -10,6 +10,7 @@ import p5 from 'p5';
 import { CONFIG } from "../shared/config/AppConfig";
 import { Widget } from "../components/layout/Widget";
 import { useAuth } from "../components/providers/Auth";
+import { useNotifications } from "../components/hooks/Notifications";
 
 export function Tournament(): JSX.Element {
     const { tournamentId } = useParams()
@@ -56,6 +57,7 @@ export function TournamentInfo({ children }: { children: ReactNode }) {
 
 export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
     const service = useMatchMakingService();
+    const { tournamentUpdate } = useNotifications();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
     const [matches, setMatches] = useState<IMatches>(DEFAULT_MATCHES);
@@ -73,7 +75,7 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
             }
         }
         getTournamentBrackets();
-    }, [])
+    }, [tournamentUpdate])
 
     if (loading) {
         return (
@@ -325,6 +327,7 @@ export function TournamentGeneralInfo({ tournamentId }: { tournamentId: string }
     const service = useMatchMakingService();
     const auth = useAuth();
     const navigate = useNavigate();
+    const { tournamentUpdate } = useNotifications();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
     const [tournament, setTournament] = useState<ITournament>(DEFAULT_TOURNAMENT);
@@ -343,7 +346,7 @@ export function TournamentGeneralInfo({ tournamentId }: { tournamentId: string }
             }
         }
         getTournament();
-    }, [])
+    }, [tournamentUpdate])
 
     async function handleLeave() {
         if (!confirm('Leave tournament? Your next match will be forfeited.')) return;
@@ -534,6 +537,7 @@ export function TournamentParticipants({ tournamentId }: { tournamentId: string 
 
 export function TournamentRankings({ tournamentId }: { tournamentId: string }) {
     const service = useMatchMakingService();
+    const { tournamentUpdate } = useNotifications();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
     const [rankings, setRankings] = useState<IRanking[]>([]);
@@ -552,7 +556,7 @@ export function TournamentRankings({ tournamentId }: { tournamentId: string }) {
             }
         }
         getTournamentRankings();
-    }, [])
+    }, [tournamentUpdate])
 
     if (loading) {
         return (
