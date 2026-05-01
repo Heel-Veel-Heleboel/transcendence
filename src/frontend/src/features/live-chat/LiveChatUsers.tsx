@@ -11,7 +11,7 @@ import { useMatchMakingService } from "../../components/providers/Match";
 import { useNotifications } from "../../components/hooks/Notifications";
 
 export function LiveChatUsers({ setChannelId, hasPendingInvite, setHasPendingInvite }: {
-    setChannelId: Dispatch<SetStateAction<string>>,
+    setChannelId: Function,
     hasPendingInvite: boolean,
     setHasPendingInvite: Dispatch<SetStateAction<boolean>>
 }): JSX.Element {
@@ -96,7 +96,7 @@ export function UserSearchBar({ setProfile }: { setProfile: Dispatch<SetStateAct
 
 export function UserSearchResult({ profile, setChannelId, hasPendingInvite, setHasPendingInvite }: {
     profile: IUser,
-    setChannelId: Dispatch<SetStateAction<string>>,
+    setChannelId: Function,
     hasPendingInvite: boolean,
     setHasPendingInvite: Dispatch<SetStateAction<boolean>>
 }) {
@@ -136,7 +136,7 @@ export function UserSearchResult({ profile, setChannelId, hasPendingInvite, setH
 
 export function UserDropDown({ profile, setChannelId, hasPendingInvite, setHasPendingInvite }: {
     profile: IUser,
-    setChannelId: Dispatch<SetStateAction<string>>,
+    setChannelId: Function,
     hasPendingInvite: boolean,
     setHasPendingInvite: Dispatch<SetStateAction<boolean>>
 }) {
@@ -172,8 +172,8 @@ export function UserDropDown({ profile, setChannelId, hasPendingInvite, setHasPe
             </div>
             <UserDropDownContainer>
                 {status === FriendshipStatus.UNDEFINED && <SendFriendshipRequest profile={profile} />}
-                {status === FriendshipStatus.PENDING && <CancelFriendshipRequest profile={profile} />}
-                {status === FriendshipStatus.ACCEPTED && <Unfriend profile={profile} />}
+                {status === FriendshipStatus.PENDING && <CancelFriendshipRequest friendship={friendship} />}
+                {status === FriendshipStatus.ACCEPTED && <Unfriend friendship={friendship} />}
                 {status === FriendshipStatus.REJECTED && <SendFriendshipRequest profile={profile} />}
                 <SendMessage profile={profile} setChannelId={setChannelId} />
                 {status !== FriendshipStatus.BLOCKED && <SendGameInvite profile={profile} hasPendingInvite={hasPendingInvite} setHasPendingInvite={setHasPendingInvite} />}
@@ -214,12 +214,16 @@ export function SendFriendshipRequest({ profile }: { profile: IUser }) {
     )
 }
 
-export function CancelFriendshipRequest({ profile }: { profile: IUser }) {
+export function CancelFriendshipRequest({ friendship }: { friendship: IFriendship | null }) {
     const service = useUserService();
+    const auth = useAuth();
 
     async function cancelFriendshipRequest() {
         try {
-            await service.setFriendshipStatus({ id: String(profile.id), status: FriendshipStatus.REJECTED });
+            await service.cancelFriendshipRequest({
+                friendship_id: friendship!.id,
+                requester_id: Number(auth.userId),
+            });
         } catch (e: any) {
             console.error(e);
             alert('failed to cancel friendship request');
@@ -233,12 +237,12 @@ export function CancelFriendshipRequest({ profile }: { profile: IUser }) {
     )
 }
 
-export function Unfriend({ profile }: { profile: IUser }) {
+export function Unfriend({ friendship }: { friendship: IFriendship }) {
     const service = useUserService();
 
     async function unFriend() {
         try {
-            await service.setFriendshipStatus({ id: String(profile.id), status: FriendshipStatus.REJECTED });
+            await service.deleteFriendship(String(friendship.id));
         } catch (e: any) {
             console.error(e);
             alert('failed to unfriend');
@@ -293,7 +297,7 @@ export function UnBlockUser({ blocker_id, blocked_id, onSuccess }: { blocker_id:
 }
 
 
-export function SendMessage({ profile, setChannelId }: { profile: IUser, setChannelId: Dispatch<SetStateAction<string>> }) {
+export function SendMessage({ profile, setChannelId }: { profile: IUser, setChannelId: Function }) {
     const service = useChatService();
 
     async function sendMessage() {

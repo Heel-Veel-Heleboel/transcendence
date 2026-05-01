@@ -4,11 +4,13 @@ import { ProfilePropertiesPrimaryContainer } from "./ProfileProperties";
 import { AddFriend } from "./AddFriend";
 import { BlockUser } from "./BlockUser";
 import { IFriendship } from "../../shared/types/friendship";
+import { useNotifications } from "../../components/hooks/Notifications";
 
 export function VisitorProfilePropertiesPrimary({ userId }: { userId: string }) {
     const service = useUserService();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
+    const notif = useNotifications();
     const [friendship, setFriendship] = useState<IFriendship | null>(null);
 
     const refresh = useCallback(async () => {
@@ -30,7 +32,7 @@ export function VisitorProfilePropertiesPrimary({ userId }: { userId: string }) 
 
     useEffect(() => {
         refresh();
-    }, [refresh])
+    }, [refresh, notif.friendshipUpdate])
 
     if (loading) {
         return (

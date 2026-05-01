@@ -182,6 +182,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    async function deleteFriendship(id: string) {
+        try {
+            const response = await service.deleteFriendship(id);
+            return response;
+        } catch (e: any) {
+            console.error(e);
+            // TODO: add error handling
+            throw e;
+        }
+    }
+
     return (
         <UserServiceContext.Provider value={{
             getProfile,
@@ -198,6 +209,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             setUsername,
             setEmail,
             deleteUser,
+            deleteFriendship,
         }}>
             {children}
         </UserServiceContext.Provider >
