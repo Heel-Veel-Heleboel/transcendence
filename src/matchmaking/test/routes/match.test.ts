@@ -7,6 +7,7 @@ import { MatchReporting } from '../../src/services/match-reporting.js';
 import { GameServerClient } from '../../src/services/game-server-client.js';
 import { ChatServiceClient } from '../../src/services/chat-service-client.js';
 import { GatewayNotificationClient } from '../../src/services/gateway-notification-client.js';
+import { TournamentLifecycleManager } from '../../src/services/tournament-lifecycle.js';
 import { MatchStatus } from '../../generated/prisma/index.js';
 
 describe('Match Routes', () => {
@@ -17,6 +18,7 @@ describe('Match Routes', () => {
   let mockGameServerClient: GameServerClient;
   let mockChatServiceClient: ChatServiceClient;
   let mockGatewayNotificationClient: GatewayNotificationClient;
+  let mockLifecycleManager: TournamentLifecycleManager;
 
   const createMockMatch = (overrides = {}) => ({
     id: 'match-123',
@@ -51,6 +53,9 @@ describe('Match Routes', () => {
       acknowledge: vi.fn(),
       completeMatch: vi.fn(),
       cancelMatch: vi.fn(),
+      declineMatch: vi.fn(),
+      updateStatus: vi.fn(),
+      resetToPendingAck: vi.fn(),
       setGameSessionId: vi.fn().mockResolvedValue(undefined)
     } as any;
 
@@ -67,11 +72,17 @@ describe('Match Routes', () => {
     } as any;
 
     mockChatServiceClient = {
-      createGameSessionChannel: vi.fn().mockResolvedValue(undefined)
+      createGameSessionChannel: vi.fn().mockResolvedValue(undefined),
+      sendMatchAck: vi.fn().mockResolvedValue(undefined)
     } as any;
 
     mockGatewayNotificationClient = {
       notifyUsers: vi.fn()
+    } as any;
+
+    mockLifecycleManager = {
+      onMatchCreated: vi.fn().mockResolvedValue(undefined),
+      onMatchCompleted: vi.fn().mockResolvedValue(undefined)
     } as any;
 
     await registerMatchRoutes(
@@ -81,7 +92,8 @@ describe('Match Routes', () => {
       mockMatchReporting,
       mockGameServerClient,
       mockChatServiceClient,
-      mockGatewayNotificationClient
+      mockGatewayNotificationClient,
+      mockLifecycleManager
     );
     await server.ready();
   });
@@ -499,6 +511,224 @@ describe('Match Routes', () => {
         player2Score: 2,
         resultSource: 'game_service_cancelled'
       });
+    });
+
+    it('should reset tournament match to PENDING_ACK when isFinished is false', async () => {
+      const match = createMockMatch({ status: MatchStatus.IN_PROGRESS, tournamentId: 5 });
+      const resetMatch = { ...match, status: MatchStatus.PENDING_ACKNOWLEDGEMENT, deadline: new Date() };
+      const tournament = { id: 5, name: 'Test Cup', ackDeadlineMin: 20 };
+      (mockMatchDao.findById as any).mockResolvedValue(match);
+      (mockTournamentDao.findById as any).mockResolvedValue(tournament);
+      (mockMatchDao.resetToPendingAck as any).mockResolvedValue(resetMatch);
+
+      const response = await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/result',
+        payload: { isFinished: false, player1Score: 2, player2Score: 3 }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.status).toBe('PENDING_ACKNOWLEDGEMENT');
+      expect(mockMatchDao.resetToPendingAck).toHaveBeenCalledWith('match-123', expect.any(Date));
+      expect(mockGatewayNotificationClient.notifyUsers).toHaveBeenCalledWith(
+        [resetMatch.player1Id, resetMatch.player2Id],
+        expect.objectContaining({ type: 'TOURNAMENT_MATCH_RETRY' })
+      );
+    });
+
+    it('should call lifecycleManager.onMatchCompleted after recording tournament result', async () => {
+      const match = createMockMatch({ status: MatchStatus.IN_PROGRESS, tournamentId: 5 });
+      const completedMatch = { ...match, status: MatchStatus.COMPLETED, winnerId: 100 };
+      (mockMatchDao.findById as any).mockResolvedValue(match);
+      (mockMatchDao.completeMatch as any).mockResolvedValue(completedMatch);
+
+      await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/result',
+        payload: { isFinished: true, winnerId: 100, player1Score: 11, player2Score: 5 }
+      });
+
+      expect(mockLifecycleManager.onMatchCompleted).toHaveBeenCalledWith(completedMatch);
+    });
+  });
+
+  describe('POST /match/:matchId/decline', () => {
+    it('should decline a casual match', async () => {
+      const match = createMockMatch();
+      const cancelledMatch = { ...match, status: MatchStatus.CANCELLED };
+      (mockMatchDao.findById as any).mockResolvedValue(match);
+      (mockMatchDao.declineMatch as any).mockResolvedValue(cancelledMatch);
+
+      const response = await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/decline',
+        headers: { 'x-user-id': '100' }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.success).toBe(true);
+      expect(body.status).toBe('CANCELLED');
+      expect(mockMatchDao.declineMatch).toHaveBeenCalledWith('match-123', 100);
+    });
+
+    it('should forfeit tournament match on decline', async () => {
+      const match = createMockMatch({ tournamentId: 5 });
+      const forfeited = { ...match, status: MatchStatus.FORFEITED, winnerId: 101 };
+      (mockMatchDao.findById as any).mockResolvedValue(match);
+      (mockMatchDao.completeMatch as any).mockResolvedValue({ ...match, winnerId: 101 });
+      (mockMatchDao.updateStatus as any).mockResolvedValue(forfeited);
+
+      const response = await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/decline',
+        headers: { 'x-user-id': '100' }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.status).toBe('FORFEITED');
+      expect(mockMatchDao.completeMatch).toHaveBeenCalledWith('match-123', {
+        winnerId: 101,
+        player1Score: 0,
+        player2Score: 5,
+        resultSource: 'forfeit:declined:100'
+      });
+      expect(mockMatchDao.updateStatus).toHaveBeenCalledWith('match-123', 'FORFEITED');
+    });
+
+    it('should return 401 when x-user-id header is missing', async () => {
+      const response = await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/decline'
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it('should return 404 when match not found', async () => {
+      (mockMatchDao.findById as any).mockResolvedValue(null);
+
+      const response = await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/decline',
+        headers: { 'x-user-id': '100' }
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 403 when user is not a player', async () => {
+      (mockMatchDao.findById as any).mockResolvedValue(createMockMatch());
+
+      const response = await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/decline',
+        headers: { 'x-user-id': '999' }
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return 200 idempotently when match is already CANCELLED', async () => {
+      (mockMatchDao.findById as any).mockResolvedValue(
+        createMockMatch({ status: MatchStatus.CANCELLED })
+      );
+
+      const response = await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/decline',
+        headers: { 'x-user-id': '100' }
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(mockMatchDao.declineMatch).not.toHaveBeenCalled();
+    });
+
+    it('should return 200 idempotently when match is already FORFEITED', async () => {
+      (mockMatchDao.findById as any).mockResolvedValue(
+        createMockMatch({ status: MatchStatus.FORFEITED })
+      );
+
+      const response = await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/decline',
+        headers: { 'x-user-id': '100' }
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return 400 when match is not PENDING_ACKNOWLEDGEMENT', async () => {
+      (mockMatchDao.findById as any).mockResolvedValue(
+        createMockMatch({ status: MatchStatus.IN_PROGRESS })
+      );
+
+      const response = await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/decline',
+        headers: { 'x-user-id': '100' }
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return 500 on DAO error', async () => {
+      (mockMatchDao.findById as any).mockRejectedValue(new Error('DB error'));
+
+      const response = await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/decline',
+        headers: { 'x-user-id': '100' }
+      });
+
+      expect(response.statusCode).toBe(500);
+    });
+  });
+
+  describe('POST /match/:matchId/acknowledge - room creation failure', () => {
+    it('should reset tournament match to PENDING_ACK when room creation fails', async () => {
+      const match = createMockMatch({ player1Acknowledged: true, tournamentId: 5 });
+      const bothAckedMatch = { ...match, player1Acknowledged: true, player2Acknowledged: true };
+      const resetMatch = { ...match, status: MatchStatus.PENDING_ACKNOWLEDGEMENT, deadline: new Date() };
+      const tournament = { id: 5, name: 'Test Cup', ackDeadlineMin: 20 };
+      (mockMatchDao.findById as any).mockResolvedValue(match);
+      (mockMatchDao.acknowledge as any).mockResolvedValue(bothAckedMatch);
+      (mockGameServerClient.createRoom as any).mockRejectedValue(new Error('room creation failed'));
+      (mockTournamentDao.findById as any).mockResolvedValue(tournament);
+      (mockMatchDao.resetToPendingAck as any).mockResolvedValue(resetMatch);
+
+      const response = await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/acknowledge',
+        headers: { 'x-user-id': '101' }
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(mockMatchDao.resetToPendingAck).toHaveBeenCalledWith('match-123', expect.any(Date));
+      expect(mockGatewayNotificationClient.notifyUsers).toHaveBeenCalledWith(
+        [resetMatch.player1Id, resetMatch.player2Id],
+        expect.objectContaining({ type: 'TOURNAMENT_MATCH_RETRY' })
+      );
+    });
+
+    it('should continue for casual match when room creation fails', async () => {
+      const match = createMockMatch({ player1Acknowledged: true });
+      const bothAckedMatch = { ...match, player1Acknowledged: true, player2Acknowledged: true };
+      (mockMatchDao.findById as any).mockResolvedValue(match);
+      (mockMatchDao.acknowledge as any).mockResolvedValue(bothAckedMatch);
+      (mockGameServerClient.createRoom as any).mockRejectedValue(new Error('room creation failed'));
+
+      const response = await server.inject({
+        method: 'POST',
+        url: 'matchmaking/match/match-123/acknowledge',
+        headers: { 'x-user-id': '101' }
+      });
+
+      // Casual match: room failure is logged but response still returns 200
+      expect(response.statusCode).toBe(200);
+      expect(mockMatchDao.resetToPendingAck).not.toHaveBeenCalled();
     });
   });
 });
