@@ -24,6 +24,10 @@ export async function registerMessageRoutes(
       return reply.status(400).send({ error: 'content is required and must be a non-empty string' });
     }
 
+    if (content.length > 2000) {
+      return reply.status(400).send({ error: 'message content must be 2000 characters or less' });
+    }
+
     try {
       const message = await chatService.sendMessage(channelId, userId, content.trim(), senderUsername);
       return reply.status(201).send(message);
