@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { FriendshipStatus, IFriendship } from "../../shared/types/friendship";
 import { useChatService } from "../../components/providers/Chat";
 import { useMatchMakingService } from "../../components/providers/Match";
+import { useNotifications } from "../../components/hooks/Notifications";
 
 export function LiveChatUsers({ setChannelId, hasPendingInvite, setHasPendingInvite }: {
     setChannelId: Dispatch<SetStateAction<string>>,
@@ -31,6 +32,7 @@ export function LiveChatUsers({ setChannelId, hasPendingInvite, setHasPendingInv
 
 export function UserSearchBar({ setProfile }: { setProfile: Dispatch<SetStateAction<IUser>> }) {
     const service = useUserService();
+    const auth = useAuth();
     const [content, setContent] = useState<string>('');
 
     async function submit(event: FormEvent<HTMLFormElement>) {
@@ -44,10 +46,18 @@ export function UserSearchBar({ setProfile }: { setProfile: Dispatch<SetStateAct
 
         try {
             const result = await service.getUserByName(user);
+            if (String(result.id) === auth.userId) {
+                throw new Error('same-user');
+
+            }
             setProfile(result);
         } catch (e: any) {
             if (e.response?.status === 404) {
                 alert('no user found')
+                return;
+            }
+            if (e.message === 'same-user') {
+                alert('You found yourself, congratulations!');
                 return;
             }
             alert('failed to search for User');
@@ -133,6 +143,7 @@ export function UserDropDown({ profile, setChannelId, hasPendingInvite, setHasPe
     const navigate = useNavigate();
     const service = useUserService();
     const auth = useAuth();
+    const notif = useNotifications();
     const [friendship, setFriendship] = useState<IFriendship | null>(null);
 
     async function loadFriendship() {
@@ -146,7 +157,7 @@ export function UserDropDown({ profile, setChannelId, hasPendingInvite, setHasPe
 
     useEffect(() => {
         loadFriendship();
-    }, [profile.id]);
+    }, [profile.id, notif.friendshipUpdate]);
 
     const status = friendship?.status ?? FriendshipStatus.UNDEFINED;
     // Directional: only the one who initiated the block is the requester
