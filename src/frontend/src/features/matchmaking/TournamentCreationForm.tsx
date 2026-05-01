@@ -22,7 +22,7 @@ export function TournamentCreationForm({ mode }: { mode: string }) {
 
         try {
             await service.setTournament({ name, gameMode })
-            alert(`tournament: ${name} created`)
+            alert(`${gameMode} tournament: ${name} created`)
             navigate(HOME_NAVIGATION);
         } catch (e: any) {
             alert('failed to create tournament')
