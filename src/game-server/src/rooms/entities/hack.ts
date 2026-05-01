@@ -36,7 +36,7 @@ export class Hack extends Schema implements IHack {
     aggregate.body.setAngularDamping(0.0);
     aggregate.body.setLinearDamping(0.0);
     this.physicsMesh = { mesh, aggregate };
-    this.lifespan = 1000;
+    this.lifespan = 2500;
   }
 
   setPosition(pos: Vector3) {

@@ -243,12 +243,6 @@ export class GameRoom extends Room {
   }
 
   updateObstacles() {
-    function getRandomInt(min: number, max: number) {
-      min = Math.ceil(min);
-      max = Math.floor(max);
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
     const index = getRandomInt(1, 2);
     const a = this.engine.obstacleAreas[index];
     const x = getRandomInt(-a.x, a.x);
@@ -278,8 +272,8 @@ export class GameRoom extends Room {
     const directionForce = this.direction ? -200 : 200;
     hack.physicsMesh.aggregate.body.applyForce(
       new Vector3(
-        Math.random() * 10,
-        Math.random() * 10,
+        Math.random() * getRandomInt(-30, 30),
+        Math.random() * getRandomInt(-30, 30),
         Math.random() * directionForce
       ),
       hack.physicsMesh.mesh.absolutePosition
@@ -667,4 +661,10 @@ export class GameRoom extends Room {
     this.roomLogger.info('broadcasting server-shutdown');
     this.broadcast('server-shutdown', '');
   }
+}
+
+function getRandomInt(min: number, max: number) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
