@@ -311,7 +311,8 @@ export class TournamentService {
       const matches = await this.generateBracket(
         tournamentId,
         participants,
-        tournament.ackDeadlineMin
+        tournament.ackDeadlineMin,
+        tournament.gameMode
       );
 
       this.log('info', `Tournament ${tournamentId} started (knockout)`, {
@@ -342,7 +343,8 @@ export class TournamentService {
   private async generateBracket(
     tournamentId: number,
     participants: Array<{ userId: number; username: string }>,
-    ackDeadlineMin: number
+    ackDeadlineMin: number,
+    gameMode: string
   ): Promise<Match[]> {
     // Fisher-Yates shuffle for unbiased random seeding
     const shuffled = [...participants];
@@ -385,7 +387,8 @@ export class TournamentService {
         tournamentId,
         round: 1,
         bracketPosition,
-        deadline
+        deadline,
+        gameMode
       });
 
       matches.push(match);
@@ -507,6 +510,9 @@ export class TournamentService {
     const nextRound = completedRound + 1;
     let bracketPosition = 0;
 
+    const tournament = await this.tournamentDao.findById(tournamentId);
+    const gameMode = tournament?.gameMode ?? 'classic';
+
     for (let i = 0; i < advancingPlayers.length; i += 2) {
       const p1 = advancingPlayers[i];
       const p2 = advancingPlayers[i + 1];
@@ -526,7 +532,8 @@ export class TournamentService {
         player2Username: p2.username,
         tournamentId,
         round: nextRound,
-        bracketPosition
+        bracketPosition,
+        gameMode
       });
 
       bracketPosition++;
