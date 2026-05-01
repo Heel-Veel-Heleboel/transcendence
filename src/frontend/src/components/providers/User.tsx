@@ -25,8 +25,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.getProfile({ userId: userId });
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -36,8 +34,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.getUser({ userId: auth.userId });
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -47,8 +43,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.getUserByName(name);
             return (response.data);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -58,8 +52,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.getProfileAvatar({ avatarUrl: url });
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -74,8 +66,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             if (e?.response?.status === 404) {
                 return null;
             }
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -85,8 +75,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.setFriendship({ requester_id: auth.userId, addressee_id: addresseeId });
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -99,8 +87,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.setFriendshipStatus(data);
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -110,8 +96,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.cancelFriendshipRequest(data);
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -121,8 +105,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.blockUser(data);
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -132,8 +114,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.unblockUser(data);
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -143,8 +123,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.setProfileAvatar({ userId: auth.userId, data });
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e;
         }
     }
@@ -154,8 +132,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.setUsername({ user_id: auth.userId, user_name });
             return response
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e;
         }
     }
@@ -165,8 +141,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.setEmail({ user_id: auth.userId, user_email });
             return response;
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e;
         }
     }
@@ -176,8 +150,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
             const response = await service.deleteUser({ user_id: auth.userId });
             return response;
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e;
         }
     }

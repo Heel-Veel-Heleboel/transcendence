@@ -15,7 +15,6 @@ export function TwoFactor() {
             const result = await auth.setTwoFactor();
             setQr(result.data.qr_code);
         } catch (error) {
-            console.error("Error setting up 2fa");
             console.error(error);
             alert("setting up 2fa failed");
         }
