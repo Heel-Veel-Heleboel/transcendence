@@ -146,6 +146,60 @@ export class TournamentService {
     return { full: count >= tournament.maxPlayers };
   }
 
+  /**
+   * Leave an in-progress tournament by forfeiting the player's next pending match.
+   * Treated identically to declining a match ack: opponent wins 5-0, bracket advances.
+   * Returns the forfeited match so the caller can notify players and run lifecycle hooks.
+   */
+  async leaveTournament(tournamentId: number, userId: number): Promise<Match | null> {
+    const tournament = await this.tournamentDao.findById(tournamentId);
+    if (!tournament) {
+      throw new TournamentError('Tournament not found', 'NOT_FOUND');
+    }
+    if (tournament.status !== 'IN_PROGRESS') {
+      throw new TournamentError(
+        'Can only leave a tournament that is in progress',
+        'INVALID_STATUS'
+      );
+    }
+
+    const participant = await this.participantDao.findByTournamentAndUser(tournamentId, userId);
+    if (!participant) {
+      throw new TournamentError('Not a participant in this tournament', 'NOT_PARTICIPANT');
+    }
+    if (participant.eliminatedIn !== null) {
+      throw new TournamentError('Already eliminated from this tournament', 'ALREADY_ELIMINATED');
+    }
+
+    const match = await this.matchDao.findPendingMatchForUserInTournament(userId, tournamentId);
+
+    if (!match) {
+      // No active match (e.g. crash left match in cancelled state and retry never arrived).
+      // Just eliminate the participant so they are freed from the tournament.
+      const allMatches = await this.matchDao.findByTournamentId(tournamentId);
+      const lastRound = allMatches
+        .filter(m => m.player1Id === userId || m.player2Id === userId)
+        .reduce((max, m) => Math.max(max, m.round ?? 1), 1);
+      await this.participantDao.eliminate(tournamentId, userId, lastRound);
+      this.log('info', `User ${userId} left tournament ${tournamentId} with no pending match (eliminated at round ${lastRound})`);
+      return null;
+    }
+
+    const winnerId = match.player1Id === userId ? match.player2Id : match.player1Id;
+    const isPlayer1 = match.player1Id === userId;
+
+    await this.matchDao.completeMatch(match.id, {
+      winnerId,
+      player1Score: isPlayer1 ? 0 : 5,
+      player2Score: isPlayer1 ? 5 : 0,
+      resultSource: `forfeit:left_tournament:${userId}`
+    });
+
+    const forfeited = await this.matchDao.updateStatus(match.id, 'FORFEITED');
+    this.log('info', `User ${userId} left tournament ${tournamentId}, forfeiting match ${match.id}`);
+    return forfeited;
+  }
+
   async unregister(tournamentId: number, userId: number): Promise<void> {
     const tournament = await this.tournamentDao.findById(tournamentId);
 

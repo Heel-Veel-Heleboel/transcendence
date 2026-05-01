@@ -306,6 +306,21 @@ export class MatchDao {
   }
 
   /**
+   * Find a pending or scheduled match for a user within a specific tournament.
+   * Includes both activated matches (deadline set) and queued matches (deadline null).
+   */
+  async findPendingMatchForUserInTournament(userId: number, tournamentId: number): Promise<Match | null> {
+    return await this.prisma.match.findFirst({
+      where: {
+        tournamentId,
+        OR: [{ player1Id: userId }, { player2Id: userId }],
+        status: { in: ['PENDING_ACKNOWLEDGEMENT', 'SCHEDULED', 'IN_PROGRESS'] }
+      },
+      orderBy: [{ round: 'asc' }, { bracketPosition: 'asc' }]
+    });
+  }
+
+  /**
    * Find active match for a user (PENDING_ACKNOWLEDGEMENT, SCHEDULED, or IN_PROGRESS)
    */
   async findActiveMatchForUser(userId: number): Promise<Match | null> {

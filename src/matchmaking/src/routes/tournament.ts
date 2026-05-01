@@ -376,6 +376,76 @@ export async function registerTournamentRoutes(
     }
   });
 
+  /**
+   * POST /matchmaking/tournament/:id/leave
+   * Leave an in-progress tournament. Forfeits the player's next pending match (opponent
+   * wins 5-0), advances the bracket, and frees the player to join other games/tournaments.
+   */
+  server.post('/matchmaking/tournament/:id/leave', async (request: FastifyRequest, reply: FastifyReply) => {
+    const { id } = request.params as { id: string };
+    const tournamentId = parseInt(id, 10);
+    const userId = getUserIdFromHeader(request);
+
+    if (isNaN(tournamentId)) {
+      return reply.status(400).send({
+        error: 'Bad Request',
+        message: 'Invalid tournament ID'
+      });
+    }
+
+    if (userId === null) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Missing x-user-id header'
+      });
+    }
+
+    try {
+      const forfeited = await tournamentService.leaveTournament(tournamentId, userId);
+
+      if (forfeited) {
+        // Advance the bracket (same as declining an ack)
+        lifecycleManager?.onMatchCompleted(forfeited).catch(err => {
+          request.log.error({ error: err, tournamentId }, 'Error processing bracket after leave');
+        });
+
+        // Notify both players the match is done
+        gatewayNotificationClient.notifyUsers(
+          [forfeited.player1Id, forfeited.player2Id],
+          { type: 'MATCH_FINISHED' }
+        );
+      }
+
+      gatewayNotificationClient.broadcastEvent({
+        type: 'TOURNAMENT_UPDATE',
+        tournamentId
+      });
+
+      request.log.info({ tournamentId, userId, matchId: forfeited?.id ?? null }, 'User left tournament');
+
+      return reply.status(200).send({
+        success: true,
+        message: 'Successfully left tournament'
+      });
+    } catch (error) {
+      if (error instanceof TournamentError) {
+        const status = error.code === 'NOT_FOUND' ? 404
+          : error.code === 'NOT_PARTICIPANT' || error.code === 'ALREADY_ELIMINATED' ? 403
+            : 400;
+        return reply.status(status).send({
+          error: status === 404 ? 'Not Found' : status === 403 ? 'Forbidden' : 'Bad Request',
+          message: error.message,
+          code: error.code
+        });
+      }
+      request.log.error({ error, tournamentId, userId }, 'Error leaving tournament');
+      return reply.status(500).send({
+        error: 'Internal Server Error',
+        message: 'Failed to leave tournament'
+      });
+    }
+  });
+
   // ============================================================================
   // Tournament Data
   // ============================================================================

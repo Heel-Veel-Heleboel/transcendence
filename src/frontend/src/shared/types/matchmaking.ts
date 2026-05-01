@@ -131,6 +131,7 @@ export interface IMatchmakingService {
   cancelTournament: (tournamentId: string) => Promise<AxiosResponse>;
   registerTournament: (tournamentId: string) => Promise<AxiosResponse>;
   unregisterTournament: (tournamentId: string) => Promise<AxiosResponse>;
+  leaveTournament: (tournamentId: string) => Promise<AxiosResponse>;
   joinClassic: () => Promise<AxiosResponse>;
   leaveClassic: () => Promise<AxiosResponse>;
   joinPowerup: () => Promise<AxiosResponse>;
