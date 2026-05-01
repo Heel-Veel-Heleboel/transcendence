@@ -169,18 +169,18 @@ export class GameClient {
 
     scene.onPointerObservable.add(pointerInfo => {
       switch (pointerInfo.type) {
-      case PointerEventTypes.POINTERDOUBLETAP:
-        if (this.gameMode === 'powerup' && this.prota.powerShots) {
-          const forwardRay = this.powerCamera.getForwardRay();
-          this.room.send('powershot', {
-            origin: forwardRay.origin,
-            direction: forwardRay.direction.scale(50)
-          });
-        }
+        case PointerEventTypes.POINTERDOUBLETAP:
+          if (this.gameMode === 'powerup' && this.prota.powerShots) {
+            const forwardRay = this.powerCamera.getForwardRay();
+            this.room.send('powershot', {
+              origin: forwardRay.origin,
+              direction: forwardRay.direction.scale(50)
+            });
+          }
 
-        break;
-      default:
-        break;
+          break;
+        default:
+          break;
       }
     });
     scene.clearColor = new Color4(0, 0, 0, 1);
@@ -736,9 +736,6 @@ export class GameClient {
     const canvas = this.engine.getRenderingCanvas();
     this.powerCamera.attachControl(canvas, true);
     this.scene.activeCamera = this.powerCamera;
-    const cameraCast = this.powerCamera as UniversalCamera;
-    cameraCast.inputs.clear();
-    cameraCast.inputs.addMouse();
   }
 
   switchToGoalCamera() {

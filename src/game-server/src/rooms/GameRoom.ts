@@ -54,6 +54,7 @@ export class GameRoom extends Room {
   gameMode: string;
   tournamentId: number | null;
   deadline: Date | null;
+  direction: boolean = false;
   isGoldenGame: boolean;
 
   messages = {
@@ -121,7 +122,7 @@ export class GameRoom extends Room {
           player.powerup2();
           this.clock.setTimeout(() => {
             player.powerup2Reset();
-          }, 30 * 1000);
+          }, 10 * 1000);
         }
       }
     },
@@ -136,7 +137,7 @@ export class GameRoom extends Room {
           player.powerup3();
           this.clock.setTimeout(() => {
             player.powerup3Reset();
-          }, 30 * 1000);
+          }, 10 * 1000);
         }
       }
     },
@@ -207,7 +208,6 @@ export class GameRoom extends Room {
   update(_deltaTime: number) {
     if (this.gameMode === 'powerup') {
       this.state.players.forEach((key, _value) => {
-        key.updateMana(0.01);
         if (key.isDead) {
           this.gameFinished = true;
         }
@@ -275,15 +275,16 @@ export class GameRoom extends Room {
     hack.linearVelocityX = 0;
     hack.linearVelocityY = 0;
     hack.linearVelocityZ = 0;
-    const direction = Math.random() - 0.5 > 0 ? -200 : 200;
+    const directionForce = this.direction ? -200 : 200;
     hack.physicsMesh.aggregate.body.applyForce(
       new Vector3(
         Math.random() * 10,
         Math.random() * 10,
-        Math.random() * direction
+        Math.random() * directionForce
       ),
       hack.physicsMesh.mesh.absolutePosition
     );
+    this.direction = !this.direction;
     this.id++;
     this.state.hacks.set(String(this.id), hack);
   }
@@ -528,17 +529,17 @@ export class GameRoom extends Room {
     this.roomLogger.info({ clientId: client.sessionId, code }, 'client left');
 
     switch (code) {
-    case closeCodes.FAILED_TO_RECONNECT:
-      this.sendDisconnectResult();
-      break;
-    case closeCodes.GOING_AWAY:
-      this.sendDisconnectResult();
-      break;
-    case closeCodes.SERVER_SHUTDOWN:
-      this.sendCancelResult();
-      break;
-    default:
-      break;
+      case closeCodes.FAILED_TO_RECONNECT:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.GOING_AWAY:
+        this.sendDisconnectResult();
+        break;
+      case closeCodes.SERVER_SHUTDOWN:
+        this.sendCancelResult();
+        break;
+      default:
+        break;
     }
 
     const player = this.state.players.get(client.sessionId);
