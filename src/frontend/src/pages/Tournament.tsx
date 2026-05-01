@@ -36,7 +36,7 @@ export function Tournament(): JSX.Element {
 export function TournamentContainer({ children }: { children: ReactNode }): JSX.Element {
     return (
 
-        <div className="w-full min-h-full flex flex-col bg-blue-500/50">
+        <div className="w-full h-14/15 flex flex-col bg-blue-500/50">
             {children}
         </div>
 
