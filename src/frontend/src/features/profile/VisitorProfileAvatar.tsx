@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useUserService } from "../../components/providers/User";
 import { IProfile } from "../../shared/types/profile";
 import { DEFAULT_AVATAR, DEFAULT_PROFILE } from "../../shared/constants/defaults";
@@ -11,7 +11,7 @@ import { ProfilePictureContainer } from "./ProfilePictureContainer";
 import { ProfileAvatarContainer } from "./ProfileAvatarContainer";
 import { ProfileName } from "./ProfileName";
 
-export function VisitorProfileAvatar({ visitorId }: { visitorId?: string }) {
+export function VisitorProfileAvatar({ visitorId, setErrorPage }: { visitorId?: string, setErrorPage: Dispatch<SetStateAction<boolean>> }) {
     const userService = useUserService();
     const auth = useAuth();
     const { userStatusUpdate } = useNotifications();
@@ -28,6 +28,11 @@ export function VisitorProfileAvatar({ visitorId }: { visitorId?: string }) {
                 setProfile(result.data);
             } catch (e: any) {
                 setError(true);
+
+                if (e?.response?.status === 404) {
+                    console.log('here');
+                    setErrorPage(true);
+                }
             } finally {
                 setLoading(false);
             }

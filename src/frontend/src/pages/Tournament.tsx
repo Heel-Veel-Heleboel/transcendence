@@ -1,33 +1,37 @@
-import { JSX, ReactNode, useEffect, useState } from "react";
+import { Dispatch, JSX, ReactNode, useEffect, useState, SetStateAction } from "react";
 import { MainContainer } from "../components/layout/MainContainer";
 import { useNavigate, useParams } from "react-router-dom";
-import { IBracket, IMatches, IParticipants, IRanking, ITournament, ITournamentSketchProps } from "../shared/types/matchmaking";
+import { IBracket, IMatches, IRanking, ITournament, ITournamentSketchProps } from "../shared/types/matchmaking";
 import { Terminal } from "../components/layout/Terminal";
 import { useMatchMakingService } from "../components/providers/Match";
-import { DEFAULT_MATCHES, DEFAULT_PARTICIPANTS, DEFAULT_TOURNAMENT } from "../shared/constants/defaults";
+import { DEFAULT_MATCHES, DEFAULT_TOURNAMENT } from "../shared/constants/defaults";
 import { P5Canvas, P5CanvasInstance } from "@p5-wrapper/react"
-import p5 from 'p5';
 import { CONFIG } from "../shared/config/AppConfig";
 import { Widget } from "../components/layout/Widget";
+import { NotFound } from "../features/errors/NotFound";
 
 export function Tournament(): JSX.Element {
     const { tournamentId } = useParams()
+    const [errorPage, setErrorPage] = useState<boolean>(false);
 
-    if (tournamentId === undefined) {
-        throw new Error('no param');
+    if (typeof tournamentId === 'undefined') {
+        return <NotFound />
     }
 
     return (
         < MainContainer >
             <Widget logoPath={CONFIG.TOURNAMENT_LOGO} title={'tournament'} width="w-full" >
-                <TournamentContainer >
-                    <TournamentInfo>
-                        <TournamentGeneralInfo tournamentId={tournamentId} />
-                        <TournamentRankings tournamentId={tournamentId} />
-                        <TournamentParticipants tournamentId={tournamentId} />
-                    </TournamentInfo>
-                    <TournamentBrackets tournamentId={tournamentId} />
-                </TournamentContainer>
+                {!errorPage ?
+                    <TournamentContainer >
+                        <TournamentInfo>
+                            <TournamentGeneralInfo tournamentId={tournamentId} setErrorPage={setErrorPage} />
+                            <TournamentRankings tournamentId={tournamentId} />
+                            <TournamentParticipants tournamentId={tournamentId} />
+                        </TournamentInfo>
+                        <TournamentBrackets tournamentId={tournamentId} />
+                    </TournamentContainer> :
+                    <NotFound />
+                }
             </Widget>
         </MainContainer >
     )
@@ -320,7 +324,7 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
     )
 }
 
-export function TournamentGeneralInfo({ tournamentId }: { tournamentId: string }) {
+export function TournamentGeneralInfo({ tournamentId, setErrorPage }: { tournamentId: string, setErrorPage: Dispatch<SetStateAction<boolean>> }) {
     const service = useMatchMakingService();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
@@ -334,6 +338,10 @@ export function TournamentGeneralInfo({ tournamentId }: { tournamentId: string }
             } catch (e: any) {
                 console.error(e);
                 setError(e);
+
+                if (e?.response?.status === 404) {
+                    setErrorPage(true);
+                }
             } finally {
                 setLoading(false);
             }
