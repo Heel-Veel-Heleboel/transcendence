@@ -33,7 +33,7 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
     return (
         <ProfileContainer >
             {!errorPage ?
-                <div className="h-full w-full">
+                <div className="h-full w-full flex">
                     <VisitorProfileAvatar visitorId={userId} setErrorPage={setErrorPage} />
                     <ProfileProperties>
                         <VisitorProfilePropertiesPrimary userId={userId} />
