@@ -92,12 +92,7 @@ export async function registerMatchRoutes(
             [updatedMatch.player1Id, updatedMatch.player2Id],
             { type: 'MATCH_READY', matchId, roomId, gameMode: updatedMatch.gameMode }
           );
-          chatServiceClient.createGameSessionChannel(
-            [updatedMatch.player1Id, updatedMatch.player2Id],
-            roomId
-          ).catch(err => {
-            request.log.error({ err, matchId, roomId }, 'Failed to create game session channel in chat');
-          });
+
         } catch (err) {
           request.log.error({ err, matchId }, 'Failed to create game room after both players acknowledged');
           if (updatedMatch.tournamentId) {
