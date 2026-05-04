@@ -44,7 +44,7 @@ export function useNotifications() {
                         setChatUpdate(event.timeStamp);
                         setMessageUpdate(event.timeStamp);
                     }
-                    if (msg.type === 'TOURNAMENT_UPDATE') {
+                    if (msg.type === 'TOURNAMENT_UPDATE' || msg.type === 'TOURNAMENT_BRACKET_UPDATE') {
                         setTournamentUpdate(event.timeStamp);
                     }
                     if (msg.type === 'FRIENDSHIP_REQUEST') {
