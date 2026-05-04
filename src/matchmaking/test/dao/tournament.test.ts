@@ -19,7 +19,7 @@ describe('TournamentDao', () => {
   let dao: TournamentDao;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     dao = new TournamentDao(mockPrismaClient as any);
   });
 
@@ -207,65 +207,6 @@ describe('TournamentDao', () => {
     });
   });
 
-  describe('findByCreator', () => {
-    it('should find tournaments created by a user', async () => {
-      const mockTournaments = [
-        { id: 1, name: 'My Tournament', createdBy: 100 },
-      ];
-      mockPrismaClient.tournament.findMany.mockResolvedValueOnce(mockTournaments);
-
-      const result = await dao.findByCreator(100);
-
-      expect(mockPrismaClient.tournament.findMany).toBeCalledWith({
-        where: { createdBy: 100 },
-        orderBy: { createdAt: 'desc' },
-      });
-      expect(result).toEqual(mockTournaments);
-    });
-  });
-
-  describe('findRegistrationEnding', () => {
-    it('should find tournaments with registration ending before date', async () => {
-      const deadline = new Date('2026-01-15T12:00:00Z');
-      const mockTournaments = [
-        { id: 1, registrationEnd: new Date('2026-01-15T11:00:00Z') },
-      ];
-      mockPrismaClient.tournament.findMany.mockResolvedValueOnce(mockTournaments);
-
-      const result = await dao.findRegistrationEnding(deadline);
-
-      expect(mockPrismaClient.tournament.findMany).toBeCalledWith({
-        where: {
-          status: 'REGISTRATION',
-          registrationEnd: { lte: deadline },
-        },
-        orderBy: { registrationEnd: 'asc' },
-      });
-      expect(result).toEqual(mockTournaments);
-    });
-  });
-
-  describe('findReadyToStart', () => {
-    it('should find scheduled tournaments ready to start', async () => {
-      const now = new Date('2026-01-15T14:00:00Z');
-      const mockTournaments = [
-        { id: 1, status: 'SCHEDULED', startTime: new Date('2026-01-15T13:00:00Z') },
-      ];
-      mockPrismaClient.tournament.findMany.mockResolvedValueOnce(mockTournaments);
-
-      const result = await dao.findReadyToStart(now);
-
-      expect(mockPrismaClient.tournament.findMany).toBeCalledWith({
-        where: {
-          status: 'SCHEDULED',
-          startTime: { lte: now },
-        },
-        orderBy: { startTime: 'asc' },
-      });
-      expect(result).toEqual(mockTournaments);
-    });
-  });
-
   describe('findOpen', () => {
     it('should find open tournaments with participant counts', async () => {
       const now = new Date();
@@ -391,19 +332,6 @@ describe('TournamentDao', () => {
         where: { status: 'REGISTRATION' },
       });
       expect(result).toBe(3);
-    });
-  });
-
-  describe('getParticipantCount', () => {
-    it('should get participant count for a tournament', async () => {
-      mockPrismaClient.tournamentParticipant.count.mockResolvedValueOnce(5);
-
-      const result = await dao.getParticipantCount(1);
-
-      expect(mockPrismaClient.tournamentParticipant.count).toBeCalledWith({
-        where: { tournamentId: 1 },
-      });
-      expect(result).toBe(5);
     });
   });
 

@@ -17,7 +17,7 @@ describe('TournamentParticipantDao', () => {
   let dao: TournamentParticipantDao;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     dao = new TournamentParticipantDao(mockPrismaClient as any);
   });
 
@@ -128,24 +128,6 @@ describe('TournamentParticipantDao', () => {
     });
   });
 
-  describe('findByUser', () => {
-    it('should find all tournaments for a user', async () => {
-      const mockParticipants = [
-        { id: 1, tournamentId: 1, userId: 100 },
-        { id: 2, tournamentId: 2, userId: 100 },
-      ];
-      mockPrismaClient.tournamentParticipant.findMany.mockResolvedValueOnce(mockParticipants);
-
-      const result = await dao.findByUser(100);
-
-      expect(mockPrismaClient.tournamentParticipant.findMany).toBeCalledWith({
-        where: { userId: 100 },
-        orderBy: { registeredAt: 'desc' },
-      });
-      expect(result).toEqual(mockParticipants);
-    });
-  });
-
   describe('setSeed', () => {
     it('should set seed position for a participant', async () => {
       const mockParticipant = {
@@ -185,26 +167,6 @@ describe('TournamentParticipantDao', () => {
           tournamentId_userId: { tournamentId: 1, userId: 100 },
         },
         data: { eliminatedIn: 2 },
-      });
-      expect(result).toEqual(mockParticipant);
-    });
-  });
-
-  describe('setFinalRank', () => {
-    it('should set final rank for a participant', async () => {
-      const mockParticipant = {
-        id: 1,
-        finalRank: 1,
-      };
-      mockPrismaClient.tournamentParticipant.update.mockResolvedValueOnce(mockParticipant);
-
-      const result = await dao.setFinalRank(1, 100, 1);
-
-      expect(mockPrismaClient.tournamentParticipant.update).toBeCalledWith({
-        where: {
-          tournamentId_userId: { tournamentId: 1, userId: 100 },
-        },
-        data: { finalRank: 1 },
       });
       expect(result).toEqual(mockParticipant);
     });

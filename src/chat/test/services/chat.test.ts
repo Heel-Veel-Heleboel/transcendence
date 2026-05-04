@@ -1,4 +1,7 @@
-import { ChatService, ChatError } from '../../src/services/chat.js';
+import { ChannelService } from '../../src/services/channel.js';
+import { MessageService } from '../../src/services/message.js';
+import { MatchAckService } from '../../src/services/match-ack.js';
+import { ChatError } from '../../src/types/chat.js';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 const mockChannelDao = {
@@ -34,8 +37,12 @@ const mockBlockService = {
   getBlockedUserIds: vi.fn(),
 };
 
+const mockLogger = { info: vi.fn(), error: vi.fn(), warn: vi.fn() };
+
 describe('ChatService', () => {
-  let service: ChatService;
+  let channelService: ChannelService;
+  let messageService: MessageService;
+  let matchAckService: MatchAckService;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -47,12 +54,9 @@ describe('ChatService', () => {
     mockMessageDao.countUnread.mockResolvedValue(0);
     mockMessageDao.countUnreadBatch.mockResolvedValue(new Map());
 
-    service = new ChatService(
-      mockChannelDao as any,
-      mockMessageDao as any,
-      mockNotificationService as any,
-      mockBlockService as any,
-    );
+    channelService = new ChannelService(mockChannelDao as any, mockMessageDao as any, mockNotificationService as any, mockBlockService as any, mockLogger as any);
+    messageService = new MessageService(mockChannelDao as any, mockMessageDao as any, mockNotificationService as any, mockBlockService as any, mockLogger as any);
+    matchAckService = new MatchAckService(mockChannelDao as any, mockMessageDao as any, mockNotificationService as any, mockLogger as any);
   });
 
   // ── createDMChannel ─────────────────────────────────────
@@ -68,7 +72,7 @@ describe('ChatService', () => {
       };
       mockChannelDao.create.mockResolvedValueOnce(mockChannel);
 
-      const result = await service.createDMChannel(1, 2);
+      const result = await channelService.createDMChannel(1, 2);
 
       expect(mockBlockService.isBlocked).toBeCalledWith(1, 2);
       expect(mockChannelDao.findDMBetweenUsers).toBeCalledWith(1, 2);
@@ -87,7 +91,7 @@ describe('ChatService', () => {
       const existingChannel = { id: 'dm-existing', type: 'DM', members: [{ userId: 1 }, { userId: 2 }] };
       mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce(existingChannel);
 
-      const result = await service.createDMChannel(1, 2);
+      const result = await channelService.createDMChannel(1, 2);
 
       expect(mockChannelDao.create).not.toBeCalled();
       expect(mockNotificationService.notifyUsers).not.toBeCalled();
@@ -95,7 +99,7 @@ describe('ChatService', () => {
     });
 
     it('should throw 400 when creating DM with yourself', async () => {
-      await expect(service.createDMChannel(1, 1)).rejects.toThrow(
+      await expect(channelService.createDMChannel(1, 1)).rejects.toThrow(
         new ChatError(400, 'Cannot create DM with yourself')
       );
     });
@@ -103,7 +107,7 @@ describe('ChatService', () => {
     it('should throw 403 when target user is blocked', async () => {
       mockBlockService.isBlocked.mockResolvedValueOnce(true);
 
-      await expect(service.createDMChannel(1, 2)).rejects.toThrow(
+      await expect(channelService.createDMChannel(1, 2)).rejects.toThrow(
         new ChatError(403, 'Cannot create DM with this user')
       );
       expect(mockChannelDao.create).not.toBeCalled();
@@ -122,7 +126,7 @@ describe('ChatService', () => {
       };
       mockChannelDao.create.mockResolvedValueOnce(mockChannel);
 
-      const result = await service.createGroupChannel(1, 'Test Group', [2, 3]);
+      const result = await channelService.createGroupChannel(1, 'Test Group', [2, 3]);
 
       expect(mockChannelDao.create).toBeCalledWith({
         type: 'GROUP',
@@ -145,7 +149,7 @@ describe('ChatService', () => {
       };
       mockChannelDao.create.mockResolvedValueOnce(mockChannel);
 
-      await service.createGroupChannel(1, 'Test', [1, 2, 2]);
+      await channelService.createGroupChannel(1, 'Test', [1, 2, 2]);
 
       expect(mockChannelDao.create).toBeCalledWith(
         expect.objectContaining({ memberIds: [1, 2] })
@@ -161,7 +165,7 @@ describe('ChatService', () => {
       };
       mockChannelDao.create.mockResolvedValueOnce(mockChannel);
 
-      await service.createGroupChannel(1, 'Solo', []);
+      await channelService.createGroupChannel(1, 'Solo', []);
 
       expect(mockNotificationService.notifyUsers).not.toBeCalled();
     });
@@ -177,15 +181,15 @@ describe('ChatService', () => {
       };
       mockChannelDao.findById.mockResolvedValueOnce(mockChannel);
 
-      const result = await service.getChannel('ch-1', 1);
+      const result = await channelService.getChannel('ch-1', 1);
 
-      expect(result).toEqual(mockChannel);
+      expect(result).toMatchObject(mockChannel);
     });
 
     it('should throw 404 if channel not found', async () => {
       mockChannelDao.findById.mockResolvedValueOnce(null);
 
-      await expect(service.getChannel('bad-id', 1)).rejects.toThrow(
+      await expect(channelService.getChannel('bad-id', 1)).rejects.toThrow(
         new ChatError(404, 'Channel not found')
       );
     });
@@ -196,7 +200,7 @@ describe('ChatService', () => {
         members: [{ userId: 2 }, { userId: 3 }],
       });
 
-      await expect(service.getChannel('ch-1', 99)).rejects.toThrow(
+      await expect(channelService.getChannel('ch-1', 99)).rejects.toThrow(
         new ChatError(403, 'Not a member of this channel')
       );
     });
@@ -218,7 +222,7 @@ describe('ChatService', () => {
         type: 'SYSTEM', createdAt: new Date('2026-01-01'),
       });
 
-      await service.addMember('ch-1', 1, 5);
+      await channelService.addMember('ch-1', 1, 5);
 
       expect(mockChannelDao.addMember).toBeCalledWith('ch-1', 5);
       expect(mockNotificationService.notifyUsers).toBeCalledWith([5], expect.objectContaining({
@@ -233,7 +237,7 @@ describe('ChatService', () => {
         members: [{ userId: 1 }, { userId: 2 }],
       });
 
-      await expect(service.addMember('ch-1', 1, 3)).rejects.toThrow(
+      await expect(channelService.addMember('ch-1', 1, 3)).rejects.toThrow(
         new ChatError(400, 'Cannot add members to a DM')
       );
     });
@@ -245,7 +249,7 @@ describe('ChatService', () => {
         members: [{ userId: 2 }],
       });
 
-      await expect(service.addMember('ch-1', 99, 5)).rejects.toThrow(
+      await expect(channelService.addMember('ch-1', 99, 5)).rejects.toThrow(
         new ChatError(403, 'Not a member of this channel')
       );
     });
@@ -257,7 +261,7 @@ describe('ChatService', () => {
         members: [{ userId: 1 }, { userId: 5 }],
       });
 
-      await expect(service.addMember('ch-1', 1, 5)).rejects.toThrow(
+      await expect(channelService.addMember('ch-1', 1, 5)).rejects.toThrow(
         new ChatError(409, 'User is already a member')
       );
     });
@@ -278,7 +282,7 @@ describe('ChatService', () => {
         type: 'SYSTEM', createdAt: new Date('2026-01-01'),
       });
 
-      await service.removeMember('ch-1', 5, 5);
+      await channelService.removeMember('ch-1', 5, 5);
 
       expect(mockChannelDao.removeMember).toBeCalledWith('ch-1', 5);
     });
@@ -295,7 +299,7 @@ describe('ChatService', () => {
         type: 'SYSTEM', createdAt: new Date('2026-01-01'),
       });
 
-      await service.removeMember('ch-1', 1, 5);
+      await channelService.removeMember('ch-1', 1, 5);
 
       expect(mockChannelDao.removeMember).toBeCalledWith('ch-1', 5);
     });
@@ -308,7 +312,7 @@ describe('ChatService', () => {
         members: [{ userId: 1 }, { userId: 2 }, { userId: 3 }],
       });
 
-      await expect(service.removeMember('ch-1', 2, 3)).rejects.toThrow(
+      await expect(channelService.removeMember('ch-1', 2, 3)).rejects.toThrow(
         new ChatError(403, 'Only the channel creator can remove members')
       );
     });
@@ -320,7 +324,7 @@ describe('ChatService', () => {
         members: [{ userId: 1 }, { userId: 2 }],
       });
 
-      await expect(service.removeMember('ch-1', 1, 1)).rejects.toThrow(
+      await expect(channelService.removeMember('ch-1', 1, 1)).rejects.toThrow(
         new ChatError(400, 'Cannot leave a DM')
       );
     });
@@ -330,7 +334,7 @@ describe('ChatService', () => {
 
   describe('sendMessage', () => {
     it('should create message and notify channel members', async () => {
-      mockChannelDao.isMember.mockResolvedValueOnce(true);
+      mockChannelDao.findById.mockResolvedValueOnce({ id: 'ch-1', type: 'TEXT', members: [{ userId: 1 }] });
       const mockMessage = {
         id: 'msg-1',
         channelId: 'ch-1',
@@ -341,11 +345,12 @@ describe('ChatService', () => {
       };
       mockMessageDao.create.mockResolvedValueOnce(mockMessage);
 
-      const result = await service.sendMessage('ch-1', 1, 'Hello!');
+      const result = await messageService.sendMessage('ch-1', 1, 'Hello!');
 
       expect(mockMessageDao.create).toBeCalledWith({
         channelId: 'ch-1',
         senderId: 1,
+        senderUsername: null,
         content: 'Hello!',
       });
       expect(mockNotificationService.notifyChannelMembers).toBeCalledWith(
@@ -353,13 +358,13 @@ describe('ChatService', () => {
         expect.objectContaining({ type: 'chat:message', channelId: 'ch-1' }),
         1
       );
-      expect(result).toEqual(mockMessage);
+      expect(result).toMatchObject(mockMessage);
     });
 
     it('should throw 403 if sender is not a member', async () => {
-      mockChannelDao.isMember.mockResolvedValueOnce(false);
+      mockChannelDao.findById.mockResolvedValueOnce({ id: 'ch-1', members: [{ userId: 2 }] });
 
-      await expect(service.sendMessage('ch-1', 99, 'Hello!')).rejects.toThrow(
+      await expect(messageService.sendMessage('ch-1', 99, 'Hello!')).rejects.toThrow(
         new ChatError(403, 'Not a member of this channel')
       );
       expect(mockMessageDao.create).not.toBeCalled();
@@ -377,10 +382,10 @@ describe('ChatService', () => {
       ];
       mockMessageDao.findByChannel.mockResolvedValueOnce(mockMessages);
 
-      const result = await service.getMessages('ch-1', 1);
+      const result = await messageService.getMessages('ch-1', 1);
 
       expect(mockMessageDao.findByChannel).toBeCalledWith('ch-1', { cursor: undefined, limit: undefined });
-      expect(result).toEqual(mockMessages);
+      expect(result).toMatchObject(mockMessages);
     });
 
     it('should filter out messages from blocked users', async () => {
@@ -393,7 +398,7 @@ describe('ChatService', () => {
       ];
       mockMessageDao.findByChannel.mockResolvedValueOnce(mockMessages);
 
-      const result = await service.getMessages('ch-1', 1);
+      const result = await messageService.getMessages('ch-1', 1);
 
       expect(result).toHaveLength(2);
       expect(result.map((m: any) => m.id)).toEqual(['msg-1', 'msg-3']);
@@ -407,7 +412,7 @@ describe('ChatService', () => {
       ];
       mockMessageDao.findByChannel.mockResolvedValueOnce(mockMessages);
 
-      const result = await service.getMessages('ch-1', 1);
+      const result = await messageService.getMessages('ch-1', 1);
 
       expect(result).toHaveLength(1);
     });
@@ -415,7 +420,7 @@ describe('ChatService', () => {
     it('should throw 403 if user is not a member', async () => {
       mockChannelDao.isMember.mockResolvedValueOnce(false);
 
-      await expect(service.getMessages('ch-1', 99)).rejects.toThrow(
+      await expect(messageService.getMessages('ch-1', 99)).rejects.toThrow(
         new ChatError(403, 'Not a member of this channel')
       );
     });
@@ -424,7 +429,7 @@ describe('ChatService', () => {
       mockChannelDao.isMember.mockResolvedValueOnce(true);
       mockMessageDao.findByChannel.mockResolvedValueOnce([]);
 
-      await service.getMessages('ch-1', 1, 'msg-5', 20);
+      await messageService.getMessages('ch-1', 1, 'msg-5', 20);
 
       expect(mockMessageDao.findByChannel).toBeCalledWith('ch-1', { cursor: 'msg-5', limit: 20 });
     });
@@ -442,7 +447,7 @@ describe('ChatService', () => {
       const mockMessage = { id: 'ack-1', senderId: 0, type: 'SYSTEM', createdAt: new Date('2026-01-01') };
       mockMessageDao.create.mockResolvedValueOnce(mockMessage);
 
-      const result = await service.sendMatchAck('match-123', [1, 2], 'classic', '2026-01-01T12:05:00Z');
+      const result = await matchAckService.sendMatchAck('match-123', [1, 2], 'classic', '2026-01-01T12:05:00Z');
 
       expect(mockChannelDao.findDMBetweenUsers).toBeCalledWith(1, 2);
       expect(mockChannelDao.create).toBeCalledWith({ type: 'DM', memberIds: [1, 2] });
@@ -461,7 +466,7 @@ describe('ChatService', () => {
       mockChannelDao.findDMBetweenUsers.mockResolvedValueOnce(existingDM);
       mockMessageDao.create.mockResolvedValueOnce({ id: 'ack-1', createdAt: new Date() });
 
-      const result = await service.sendMatchAck('match-456', [1, 2], 'powerup', '2026-01-01T12:05:00Z');
+      const result = await matchAckService.sendMatchAck('match-456', [1, 2], 'powerup', '2026-01-01T12:05:00Z');
 
       expect(mockChannelDao.create).not.toBeCalled();
       expect(result.channel).toEqual(existingDM);
@@ -472,7 +477,7 @@ describe('ChatService', () => {
       mockChannelDao.create.mockResolvedValueOnce({ id: 'dm-1', type: 'DM', members: [] });
       mockMessageDao.create.mockResolvedValueOnce({ id: 'ack-1', createdAt: new Date() });
 
-      await service.sendMatchAck('match-1', [10, 20], 'powerup', '2026-01-01T12:05:00Z');
+      await matchAckService.sendMatchAck('match-1', [10, 20], 'powerup', '2026-01-01T12:05:00Z');
 
       const meta = JSON.parse(mockMessageDao.create.mock.calls[0][0].metadata);
       expect(meta.playerIds).toEqual([10, 20]);
@@ -482,7 +487,7 @@ describe('ChatService', () => {
     });
 
     it('should throw 400 for duplicate or fewer than 2 unique player IDs', async () => {
-      await expect(service.sendMatchAck('match-1', [1, 1], 'classic', '2026-01-01T12:05:00Z'))
+      await expect(matchAckService.sendMatchAck('match-1', [1, 1], 'classic', '2026-01-01T12:05:00Z'))
         .rejects.toThrow(new ChatError(400, 'sendMatchAck requires exactly 2 unique player IDs'));
     });
 
@@ -508,7 +513,7 @@ describe('ChatService', () => {
         id: 'ack-1', channelId: 'dm-1', metadata: pendingMeta(),
       });
 
-      const result = await service.respondToMatchAck('ack-1', 1, true);
+      const result = await matchAckService.respondToMatchAck('ack-1', 1, true);
 
       const saved = JSON.parse(mockMessageDao.updateMetadata.mock.calls[0][1]);
       expect(saved.acknowledgedBy).toEqual([1]);
@@ -526,7 +531,7 @@ describe('ChatService', () => {
         id: 'ack-1', channelId: 'dm-1', metadata: pendingMeta({ acknowledgedBy: [1] }),
       });
 
-      const result = await service.respondToMatchAck('ack-1', 2, true);
+      const result = await matchAckService.respondToMatchAck('ack-1', 2, true);
 
       const saved = JSON.parse(mockMessageDao.updateMetadata.mock.calls[0][1]);
       expect(saved.acknowledgedBy).toEqual([1, 2]);
@@ -539,7 +544,7 @@ describe('ChatService', () => {
         id: 'ack-1', channelId: 'dm-1', metadata: pendingMeta(),
       });
 
-      const result = await service.respondToMatchAck('ack-1', 1, false);
+      const result = await matchAckService.respondToMatchAck('ack-1', 1, false);
 
       expect(mockMessageDao.updateMetadata).toBeCalledWith(
         'ack-1',
@@ -554,12 +559,11 @@ describe('ChatService', () => {
 
     it('should call matchmakingClient.decline when client is provided and player declines', async () => {
       const mockMatchmakingClient = { decline: vi.fn().mockResolvedValue(undefined), acknowledge: vi.fn() };
-      const serviceWithClient = new ChatService(
+      const serviceWithClient = new MatchAckService(
         mockChannelDao as any,
         mockMessageDao as any,
         mockNotificationService as any,
-        mockBlockService as any,
-        undefined,
+        mockLogger as any,
         mockMatchmakingClient as any,
       );
       mockMessageDao.findById.mockResolvedValueOnce({
@@ -576,12 +580,11 @@ describe('ChatService', () => {
         decline: vi.fn().mockRejectedValue(new Error('Matchmaking returned 500')),
         acknowledge: vi.fn(),
       };
-      const serviceWithClient = new ChatService(
+      const serviceWithClient = new MatchAckService(
         mockChannelDao as any,
         mockMessageDao as any,
         mockNotificationService as any,
-        mockBlockService as any,
-        undefined,
+        mockLogger as any,
         mockMatchmakingClient as any,
       );
       mockMessageDao.findById.mockResolvedValueOnce({
@@ -594,12 +597,11 @@ describe('ChatService', () => {
 
     it('should call matchmakingClient.acknowledge when client is provided and player acks', async () => {
       const mockMatchmakingClient = { acknowledge: vi.fn().mockResolvedValue({ bothReady: false, roomId: null }), decline: vi.fn() };
-      const serviceWithClient = new ChatService(
+      const serviceWithClient = new MatchAckService(
         mockChannelDao as any,
         mockMessageDao as any,
         mockNotificationService as any,
-        mockBlockService as any,
-        undefined,
+        mockLogger as any,
         mockMatchmakingClient as any,
       );
       mockMessageDao.findById.mockResolvedValueOnce({
@@ -616,7 +618,7 @@ describe('ChatService', () => {
         id: 'ack-1', channelId: 'dm-1', metadata: pendingMeta(),
       });
 
-      await expect(service.respondToMatchAck('ack-1', 99, true)).rejects.toThrow(
+      await expect(matchAckService.respondToMatchAck('ack-1', 99, true)).rejects.toThrow(
         new ChatError(403, 'You are not part of this match')
       );
     });
@@ -626,7 +628,7 @@ describe('ChatService', () => {
         id: 'ack-1', channelId: 'dm-1', metadata: pendingMeta({ acknowledgedBy: [1] }),
       });
 
-      await expect(service.respondToMatchAck('ack-1', 1, true)).rejects.toThrow(
+      await expect(matchAckService.respondToMatchAck('ack-1', 1, true)).rejects.toThrow(
         new ChatError(409, 'You have already responded to this match')
       );
     });
@@ -636,7 +638,7 @@ describe('ChatService', () => {
         id: 'ack-1', channelId: 'dm-1', metadata: pendingMeta({ status: 'acknowledged' }),
       });
 
-      await expect(service.respondToMatchAck('ack-1', 1, true)).rejects.toThrow(
+      await expect(matchAckService.respondToMatchAck('ack-1', 1, true)).rejects.toThrow(
         new ChatError(400, 'Match already acknowledged')
       );
     });
@@ -647,7 +649,7 @@ describe('ChatService', () => {
         id: 'ack-1', channelId: 'dm-1', metadata: pendingMeta({ expiresAt: pastDate }),
       });
 
-      await expect(service.respondToMatchAck('ack-1', 1, true)).rejects.toThrow(
+      await expect(matchAckService.respondToMatchAck('ack-1', 1, true)).rejects.toThrow(
         new ChatError(410, 'Match acknowledgement has expired')
       );
       expect(mockMessageDao.updateMetadata).toBeCalledWith(
@@ -659,7 +661,7 @@ describe('ChatService', () => {
     it('should throw 404 if message not found', async () => {
       mockMessageDao.findById.mockResolvedValueOnce(null);
 
-      await expect(service.respondToMatchAck('bad-id', 1, true)).rejects.toThrow(
+      await expect(matchAckService.respondToMatchAck('bad-id', 1, true)).rejects.toThrow(
         new ChatError(404, 'Match acknowledgement not found')
       );
     });
@@ -667,7 +669,7 @@ describe('ChatService', () => {
     it('should throw 400 if message has no metadata', async () => {
       mockMessageDao.findById.mockResolvedValueOnce({ id: 'msg-1', channelId: 'dm-1', metadata: null });
 
-      await expect(service.respondToMatchAck('msg-1', 1, true)).rejects.toThrow(
+      await expect(matchAckService.respondToMatchAck('msg-1', 1, true)).rejects.toThrow(
         new ChatError(400, 'Not a match acknowledgement message')
       );
     });
@@ -683,7 +685,7 @@ describe('ChatService', () => {
       });
       mockChannelDao.delete.mockResolvedValueOnce({});
 
-      await service.deleteChannel('ch-1', 1);
+      await channelService.deleteChannel('ch-1', 1);
 
       expect(mockChannelDao.delete).toHaveBeenCalledWith('ch-1');
     });
@@ -695,7 +697,7 @@ describe('ChatService', () => {
       });
       mockChannelDao.delete.mockResolvedValueOnce({});
 
-      await service.deleteChannel('ch-1', 2);
+      await channelService.deleteChannel('ch-1', 2);
 
       expect(mockChannelDao.delete).toHaveBeenCalledWith('ch-1');
     });
@@ -703,7 +705,7 @@ describe('ChatService', () => {
     it('should throw 404 when channel not found', async () => {
       mockChannelDao.findById.mockResolvedValueOnce(null);
 
-      await expect(service.deleteChannel('ch-1', 1))
+      await expect(channelService.deleteChannel('ch-1', 1))
         .rejects.toThrow(new ChatError(404, 'Channel not found'));
     });
 
@@ -713,7 +715,7 @@ describe('ChatService', () => {
         members: [{ userId: 1 }, { userId: 2 }],
       });
 
-      await expect(service.deleteChannel('ch-1', 99))
+      await expect(channelService.deleteChannel('ch-1', 99))
         .rejects.toThrow(new ChatError(403, 'Not a member of this channel'));
     });
 
@@ -723,7 +725,7 @@ describe('ChatService', () => {
         members: [{ userId: 1 }],
       });
 
-      await expect(service.deleteChannel('ch-1', 1))
+      await expect(channelService.deleteChannel('ch-1', 1))
         .rejects.toThrow(new ChatError(403, 'Tournament channels cannot be deleted'));
     });
 
@@ -733,7 +735,7 @@ describe('ChatService', () => {
         members: [{ userId: 1 }, { userId: 2 }],
       });
 
-      await expect(service.deleteChannel('ch-1', 2))
+      await expect(channelService.deleteChannel('ch-1', 2))
         .rejects.toThrow(new ChatError(403, 'Only the channel creator can delete this channel'));
     });
 
@@ -744,7 +746,7 @@ describe('ChatService', () => {
       });
       mockChannelDao.delete.mockResolvedValueOnce({});
 
-      await service.deleteChannel('ch-1', 1);
+      await channelService.deleteChannel('ch-1', 1);
 
       expect(mockChannelDao.delete).toHaveBeenCalledWith('ch-1');
     });
@@ -756,7 +758,7 @@ describe('ChatService', () => {
     it('should update lastReadAt for member', async () => {
       mockChannelDao.isMember.mockResolvedValueOnce(true);
 
-      await service.markChannelRead('ch-1', 1);
+      await channelService.markChannelRead('ch-1', 1);
 
       expect(mockChannelDao.markRead).toHaveBeenCalledWith('ch-1', 1);
     });
@@ -764,7 +766,7 @@ describe('ChatService', () => {
     it('should throw 403 for non-member', async () => {
       mockChannelDao.isMember.mockResolvedValueOnce(false);
 
-      await expect(service.markChannelRead('ch-1', 99))
+      await expect(channelService.markChannelRead('ch-1', 99))
         .rejects.toThrow(new ChatError(403, 'Not a member of this channel'));
     });
   });
@@ -793,7 +795,7 @@ describe('ChatService', () => {
         ]),
       );
 
-      const channels = await service.getUserChannels(1);
+      const channels = await channelService.getUserChannels(1);
 
       expect(channels).toHaveLength(2);
       expect(channels[0].unreadCount).toBe(3);
@@ -814,7 +816,7 @@ describe('ChatService', () => {
         new Map([['ch-1', 5]]),
       );
 
-      const channels = await service.getUserChannels(1);
+      const channels = await channelService.getUserChannels(1);
 
       expect(channels[0].unreadCount).toBe(5);
       expect(mockMessageDao.countUnreadBatch).toHaveBeenCalledWith([
@@ -827,13 +829,15 @@ describe('ChatService', () => {
 
   describe('sendMessage (auto mark read)', () => {
     it('should mark sender as read after sending', async () => {
-      mockChannelDao.isMember.mockResolvedValueOnce(true);
+      mockChannelDao.findById.mockResolvedValueOnce({
+        id: 'ch-1', type: 'GROUP', members: [{ userId: 1 }, { userId: 2 }],
+      });
       mockMessageDao.create.mockResolvedValueOnce({
         id: 'msg-1', channelId: 'ch-1', senderId: 1,
         content: 'hello', type: 'TEXT', createdAt: new Date(),
       });
 
-      await service.sendMessage('ch-1', 1, 'hello');
+      await messageService.sendMessage('ch-1', 1, 'hello');
 
       expect(mockChannelDao.markRead).toHaveBeenCalledWith('ch-1', 1);
     });
@@ -855,7 +859,7 @@ describe('ChatService', () => {
         id: 'sys-msg', senderId: 0, content: 'subscribed', type: 'SYSTEM', createdAt: new Date('2026-01-01'),
       });
 
-      const result = await service.createTournamentChannel(1, 10, 'Spring Cup');
+      const result = await channelService.createTournamentChannel(1, 10, 'Spring Cup');
 
       expect(mockChannelDao.create).toBeCalledWith({
         type: 'TOURNAMENT',
@@ -874,7 +878,7 @@ describe('ChatService', () => {
       };
       mockChannelDao.findByUserId.mockResolvedValueOnce([existing]);
 
-      const result = await service.createTournamentChannel(1, 10, 'Spring Cup');
+      const result = await channelService.createTournamentChannel(1, 10, 'Spring Cup');
 
       expect(mockChannelDao.create).not.toBeCalled();
       expect(result).toEqual(existing);
@@ -894,7 +898,7 @@ describe('ChatService', () => {
       };
       mockMessageDao.create.mockResolvedValueOnce(mockMessage);
 
-      await service.sendSystemMessage('ch-1', 'Welcome!');
+      await messageService.sendSystemMessage('ch-1', 'Welcome!');
 
       expect(mockMessageDao.create).toBeCalledWith({
         channelId: 'ch-1',

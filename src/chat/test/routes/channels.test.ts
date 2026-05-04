@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Fastify, { FastifyInstance } from 'fastify';
 import { registerChannelRoutes } from '../../src/routes/channels.js';
-import { ChatError } from '../../src/services/chat.js';
+import { ChatError } from '../../src/types/chat.js';
 
 describe('Channel Routes', () => {
   let server: FastifyInstance;

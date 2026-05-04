@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Fastify, { FastifyInstance } from 'fastify';
 import { registerMessageRoutes } from '../../src/routes/messages.js';
-import { ChatError } from '../../src/services/chat.js';
+import { ChatError } from '../../src/types/chat.js';
 
 describe('Message Routes', () => {
   let server: FastifyInstance;
@@ -15,7 +15,7 @@ describe('Message Routes', () => {
       respondToMatchAck: vi.fn(),
     };
 
-    await registerMessageRoutes(server, mockChatService as any);
+    await registerMessageRoutes(server, mockChatService as any, mockChatService as any);
     await server.ready();
   });
 
@@ -44,7 +44,7 @@ describe('Message Routes', () => {
 
       expect(response.statusCode).toBe(201);
       expect(JSON.parse(response.body)).toEqual(mockMessage);
-      expect(mockChatService.sendMessage).toBeCalledWith('ch-1', 1, 'Hello!');
+      expect(mockChatService.sendMessage).toBeCalledWith('ch-1', 1, 'Hello!', null);
     });
 
     it('should trim message content', async () => {
@@ -57,7 +57,7 @@ describe('Message Routes', () => {
         payload: { content: '  Hello!  ' },
       });
 
-      expect(mockChatService.sendMessage).toBeCalledWith('ch-1', 1, 'Hello!');
+      expect(mockChatService.sendMessage).toBeCalledWith('ch-1', 1, 'Hello!', null);
     });
 
     it('should return 400 for empty content', async () => {
