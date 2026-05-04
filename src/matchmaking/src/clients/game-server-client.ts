@@ -1,5 +1,5 @@
 import { Match } from '../../generated/prisma/index.js';
-import { Logger } from '../types/logger.js';
+import type { FastifyBaseLogger } from 'fastify';
 
 /**
  * GameServerClient
@@ -11,7 +11,7 @@ import { Logger } from '../types/logger.js';
 export class GameServerClient {
   constructor(
     private readonly gameServerUrl: string,
-    private readonly logger?: Logger
+    private readonly logger?: FastifyBaseLogger
   ) {}
 
   /**

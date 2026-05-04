@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply, FastifyBaseLogger } from
 import { MatchDao } from '../dao/match.js';
 import { TournamentDao } from '../dao/tournament.js';
 import { MatchReporting } from '../services/match-reporting.js';
-import { TournamentLifecycleManager } from '../services/tournament-lifecycle.js';
+import { TournamentScheduler } from '../services/tournament-scheduler.js';
 import { getUserIdFromHeader } from './request-context.js';
 import { GameServerClient } from '../clients/game-server-client.js';
 import { ChatServiceClient } from '../clients/chat-service-client.js';
@@ -14,20 +14,20 @@ async function retryTournamentMatch(
   deps: {
     matchDao: MatchDao;
     tournamentDao: TournamentDao;
-    lifecycleManager?: TournamentLifecycleManager;
+    scheduler?: TournamentScheduler;
     gatewayNotificationClient: GatewayNotificationClient;
     chatServiceClient: ChatServiceClient;
     log: FastifyBaseLogger;
   }
 ): Promise<Match> {
-  const { matchDao, tournamentDao, lifecycleManager, gatewayNotificationClient, chatServiceClient, log } = deps;
+  const { matchDao, tournamentDao, scheduler, gatewayNotificationClient, chatServiceClient, log } = deps;
 
   const tournament = await tournamentDao.findById(match.tournamentId!);
   const ackMinutes = tournament?.ackDeadlineMin ?? 20;
   const newDeadline = new Date(Date.now() + ackMinutes * 60 * 1000);
   const resetMatch = await matchDao.resetToPendingAck(match.id, newDeadline);
 
-  lifecycleManager?.onMatchCreated(resetMatch);
+  scheduler?.onMatchCreated(resetMatch);
   gatewayNotificationClient.notifyUsers(
     [resetMatch.player1Id, resetMatch.player2Id],
     {
@@ -59,7 +59,7 @@ export async function registerMatchRoutes(
   gameServerClient: GameServerClient,
   chatServiceClient: ChatServiceClient,
   gatewayNotificationClient: GatewayNotificationClient,
-  lifecycleManager?: TournamentLifecycleManager
+  scheduler?: TournamentScheduler
 ): Promise<void> {
 
   server.post('/matchmaking/match/:matchId/acknowledge', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -101,7 +101,7 @@ export async function registerMatchRoutes(
         } catch (err) {
           request.log.error({ err, matchId }, 'Failed to create game room after both players acknowledged');
           if (updatedMatch.tournamentId) {
-            await retryTournamentMatch(updatedMatch, { matchDao, tournamentDao, lifecycleManager, gatewayNotificationClient, chatServiceClient, log: request.log });
+            await retryTournamentMatch(updatedMatch, { matchDao, tournamentDao, scheduler, gatewayNotificationClient, chatServiceClient, log: request.log });
             request.log.info({ matchId }, 'Tournament match reset to PENDING_ACK after game server failure');
           }
           // Casual match stays SCHEDULED — game server crash recovery handles it
@@ -149,7 +149,7 @@ export async function registerMatchRoutes(
           resultSource: `forfeit:declined:${userId}`
         });
         updatedMatch = await matchDao.updateStatus(matchId, 'FORFEITED');
-        lifecycleManager?.onMatchCompleted(updatedMatch).catch(err => {
+        scheduler?.onMatchCompleted(updatedMatch).catch(err => {
           request.log.error({ error: err, matchId }, 'Error processing tournament forfeit');
         });
       } else {
@@ -204,7 +204,7 @@ export async function registerMatchRoutes(
 
       if (!isFinished) {
         if (match.tournamentId) {
-          await retryTournamentMatch(match, { matchDao, tournamentDao, lifecycleManager, gatewayNotificationClient, chatServiceClient, log: request.log });
+          await retryTournamentMatch(match, { matchDao, tournamentDao, scheduler, gatewayNotificationClient, chatServiceClient, log: request.log });
           request.log.info({ matchId }, 'Tournament match reset to PENDING_ACK after game crash');
           return reply.status(200).send({ success: true, matchId, status: 'PENDING_ACKNOWLEDGEMENT' });
         }
@@ -233,7 +233,7 @@ export async function registerMatchRoutes(
       matchReporting.reportMatchResult(updatedMatch).catch(err => {
         request.log.error({ error: err, matchId }, 'Failed to report match result to user management');
       });
-      lifecycleManager?.onMatchCompleted(updatedMatch).catch(err => {
+      scheduler?.onMatchCompleted(updatedMatch).catch(err => {
         request.log.error({ error: err, matchId }, 'Error processing tournament match completion');
       });
 

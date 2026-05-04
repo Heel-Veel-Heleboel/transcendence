@@ -1,4 +1,4 @@
-import { Logger } from '../types/logger.js';
+import type { FastifyBaseLogger } from 'fastify';
 
 /**
  * ChatServiceClient
@@ -11,7 +11,7 @@ import { Logger } from '../types/logger.js';
 export class ChatServiceClient {
   constructor(
     private readonly chatServiceUrl: string,
-    private readonly logger?: Logger
+    private readonly logger?: FastifyBaseLogger
   ) {}
 
   /**

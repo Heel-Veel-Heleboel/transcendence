@@ -1,4 +1,4 @@
-import { Logger } from '../types/logger.js';
+import type { FastifyBaseLogger } from 'fastify';
 
 /**
  * GatewayNotificationClient
@@ -9,7 +9,7 @@ import { Logger } from '../types/logger.js';
 export class GatewayNotificationClient {
   constructor(
     private readonly gatewayUrl: string,
-    private readonly logger?: Logger
+    private readonly logger?: FastifyBaseLogger
   ) {}
 
   async notifyUsers(userIds: number[], event: { type: string; [key: string]: unknown }): Promise<void> {

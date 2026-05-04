@@ -1,7 +1,7 @@
 import { MatchDao } from '../dao/match.js';
 import { PlayerPool } from '../models/player-pool.js';
 import { PlayerPoolEntry, DEFAULT_ACK_TIMEOUT_MS } from '../types/match.js';
-import { Logger } from '../types/logger.js';
+import type { FastifyBaseLogger } from 'fastify';
 
 /**
  * Represents a pair of players ready to be matched
@@ -34,7 +34,7 @@ export class MatchmakingService {
   constructor(
     private readonly matchDao: MatchDao,
     gameMode: string,
-    private readonly logger?: Logger,
+    private readonly logger?: FastifyBaseLogger,
     config?: {
       ackTimeoutMs?: number;
       maxWaitTimeMs?: number;

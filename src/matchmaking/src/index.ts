@@ -17,15 +17,15 @@ const services = await createServices(prisma, clients, server.log);
 
 await registerHealthRoutes(server, prisma, services);
 await registerMatchmakingRoutes(server, services.pools, services.poolRegistry, clients.chatServiceClient, clients.gatewayNotificationClient, services.matchDao, services.participantDao);
-await registerMatchRoutes(server, services.matchDao, services.tournamentDao, services.matchReporting, clients.gameServerClient, clients.chatServiceClient, clients.gatewayNotificationClient, services.lifecycleManager);
-await registerTournamentRoutes(server, services.tournamentService, clients.gatewayNotificationClient, services.lifecycleManager);
+await registerMatchRoutes(server, services.matchDao, services.tournamentDao, services.matchReporting, clients.gameServerClient, clients.chatServiceClient, clients.gatewayNotificationClient, services.scheduler);
+await registerTournamentRoutes(server, services.tournamentService, clients.gatewayNotificationClient, services.scheduler);
 await registerDirectChallengeRoutes(server, services.matchDao, clients.chatServiceClient, services.pools, services.poolRegistry);
 await registerHistoryRoutes(server, services.matchReporting);
 
 const shutdown = async (signal: string) => {
   server.log.info(`Received ${signal}, shutting down gracefully`);
   try {
-    services.lifecycleManager.shutdown();
+    services.scheduler.shutdown();
     await services.pools.classic.shutdown();
     await services.pools.powerup.shutdown();
     await disconnectPrisma();

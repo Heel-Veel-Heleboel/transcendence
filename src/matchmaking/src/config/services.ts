@@ -7,7 +7,7 @@ import { MatchmakingService } from '../services/casual-matchmaking.js';
 import { PoolRegistry } from '../services/pool-registry.js';
 import { MatchReporting } from '../services/match-reporting.js';
 import { TournamentService } from '../services/tournament.js';
-import { TournamentLifecycleManager } from '../services/tournament-lifecycle.js';
+import { TournamentScheduler } from '../services/tournament-scheduler.js';
 import type { GameMode } from '../types/match.js';
 import type { Clients } from './clients.js';
 
@@ -24,7 +24,7 @@ export async function createServices(prisma: PrismaClient, clients: Clients, log
   const matchReporting = new MatchReporting(matchDao, clients.userManagementClient, log);
 
   const tournamentService = new TournamentService(tournamentDao, participantDao, matchDao, log);
-  const lifecycleManager = new TournamentLifecycleManager(
+  const scheduler = new TournamentScheduler(
     tournamentService,
     tournamentDao,
     matchDao,
@@ -36,9 +36,9 @@ export async function createServices(prisma: PrismaClient, clients: Clients, log
 
   await classicPool.initialize();
   await powerupPool.initialize();
-  await lifecycleManager.initialize();
+  await scheduler.initialize();
 
-  return { matchDao, tournamentDao, participantDao, pools, poolRegistry, matchReporting, tournamentService, lifecycleManager };
+  return { matchDao, tournamentDao, participantDao, pools, poolRegistry, matchReporting, tournamentService, scheduler };
 }
 
 export type Services = Awaited<ReturnType<typeof createServices>>;

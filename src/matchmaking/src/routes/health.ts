@@ -5,7 +5,7 @@ import type { Services } from '../config/services.js';
 export async function registerHealthRoutes(
   server: FastifyInstance,
   prisma: PrismaClient,
-  services: Pick<Services, 'pools' | 'lifecycleManager'>
+  services: Pick<Services, 'pools' | 'scheduler'>
 ) {
   server.get('/health', async () => ({
     status: 'healthy',
@@ -23,8 +23,8 @@ export async function registerHealthRoutes(
       server.log.error({ error }, 'Database health check failed');
     }
 
-    const { pools, lifecycleManager } = services;
-    const timerCounts = lifecycleManager.getTimerCounts();
+    const { pools, scheduler } = services;
+    const timerCounts = scheduler.getTimerCounts();
 
     return {
       status: dbHealthy ? 'healthy' : 'degraded',
