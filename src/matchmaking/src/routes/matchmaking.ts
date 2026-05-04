@@ -1,25 +1,42 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyRequest, FastifyReply, FastifyBaseLogger } from 'fastify';
 import { MatchmakingService } from '../services/casual-matchmaking.js';
 import { PoolRegistry } from '../services/pool-registry.js';
-import { ChatServiceClient } from '../services/chat-service-client.js';
+import { ChatServiceClient } from '../clients/chat-service-client.js';
 import { MatchDao } from '../dao/match.js';
 import { TournamentParticipantDao } from '../dao/tournament-participant.js';
 import { isValidGameMode, GameMode } from '../types/match.js';
 import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
-import { GatewayNotificationClient } from '../services/gateway-notification-client.js';
+import { GatewayNotificationClient } from '../clients/gateway-notification-client.js';
 
-/**
- * Pool lookup map - maps gameMode to MatchmakingService instance
- */
 type PoolMap = Record<GameMode, MatchmakingService>;
 
-/**
- * Register matchmaking routes
- *
- * Routes use :gameMode param to support multiple pools (classic, powerup)
- * PoolRegistry ensures users can only be in one pool at a time
- *
- */
+function handleAutoPair(
+  pool: MatchmakingService,
+  gameMode: GameMode,
+  poolRegistry: PoolRegistry,
+  chatServiceClient: ChatServiceClient,
+  log: FastifyBaseLogger,
+  userId: number
+): void {
+  pool.tryAutoPair().then(pairResult => {
+    if (pairResult.paired && pairResult.matchId && pairResult.player1Id && pairResult.player2Id && pairResult.deadline) {
+      log.info({ userId, gameMode, matchId: pairResult.matchId }, 'Players paired');
+      poolRegistry.unregisterUser(pairResult.player1Id);
+      poolRegistry.unregisterUser(pairResult.player2Id);
+      chatServiceClient.sendMatchAck(
+        pairResult.matchId,
+        [pairResult.player1Id, pairResult.player2Id],
+        gameMode,
+        pairResult.deadline
+      ).catch(err => {
+        log.error({ err, matchId: pairResult.matchId }, 'Failed to send match-ack via chat');
+      });
+    }
+  }).catch(err => {
+    log.error({ err, userId, gameMode }, 'Auto-pair failed after join');
+  });
+}
+
 export async function registerMatchmakingRoutes(
   server: FastifyInstance,
   pools: PoolMap,
@@ -48,9 +65,6 @@ export async function registerMatchmakingRoutes(
     }
 
     try {
-      // Check for an active match first — pool unregistering happens asynchronously
-      // around pairing, so there's a window where a match exists in DB but the user
-      // is still registered in-memory. DB is the source of truth.
       const activeMatch = await matchDao.findActiveMatchForUser(userId);
       const isExpiredPendingAck =
         activeMatch?.status === 'PENDING_ACKNOWLEDGEMENT' &&
@@ -72,7 +86,6 @@ export async function registerMatchmakingRoutes(
         });
       }
 
-      // Check pool membership (in-memory, only meaningful when no active match)
       const poolGameMode = poolRegistry.getCurrentPool(userId) ?? null;
       if (poolGameMode) {
         return reply.status(200).send({
@@ -85,7 +98,6 @@ export async function registerMatchmakingRoutes(
         });
       }
 
-      // Check tournament participation
       const activeTournament = await participantDao.getActiveTournament(userId);
       if (activeTournament) {
         const isRegistration = activeTournament.tournamentStatus === 'REGISTRATION';
@@ -172,30 +184,8 @@ export async function registerMatchmakingRoutes(
 
       request.log.info({ userId, gameMode, success: result.success }, 'User join pool attempt');
 
-      // Attempt to pair now that the pool has a new player.
-      // Fire-and-forget: pairing errors are logged but don't fail the join response.
-      // Both players poll GET /match/:matchId or listen for a push notification to
-      // discover the created match and roomId.
       if (result.success && pool.canFormPair()) {
-        pool.tryAutoPair().then(pairResult => {
-          if (pairResult.paired && pairResult.matchId && pairResult.player1Id && pairResult.player2Id && pairResult.deadline) {
-            request.log.info({ userId, gameMode, matchId: pairResult.matchId }, 'Players paired');
-            // Unregister both players — they're no longer in the queue
-            poolRegistry.unregisterUser(pairResult.player1Id);
-            poolRegistry.unregisterUser(pairResult.player2Id);
-            // Notify both players via chat so they can acknowledge readiness
-            chatServiceClient.sendMatchAck(
-              pairResult.matchId,
-              [pairResult.player1Id, pairResult.player2Id],
-              gameMode,
-              pairResult.deadline
-            ).catch(err => {
-              request.log.error({ err, matchId: pairResult.matchId }, 'Failed to send match-ack via chat');
-            });
-          }
-        }).catch(err => {
-          request.log.error({ err, userId, gameMode }, 'Auto-pair failed after join');
-        });
+        handleAutoPair(pool, gameMode, poolRegistry, chatServiceClient, request.log, userId);
       }
 
       return reply.status(200).send({

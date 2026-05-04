@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { TournamentService, TournamentError } from '../services/tournament.js';
 import { TournamentLifecycleManager } from '../services/tournament-lifecycle.js';
-import { GatewayNotificationClient } from '../services/gateway-notification-client.js';
+import { GatewayNotificationClient } from '../clients/gateway-notification-client.js';
 import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
 import { GameMode, isValidGameMode } from '../types/match.js';
 import {

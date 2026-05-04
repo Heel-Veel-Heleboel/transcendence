@@ -2,8 +2,8 @@ import { Tournament, Match } from '../../generated/prisma/index.js';
 import { TournamentService } from './tournament.js';
 import { TournamentDao } from '../dao/tournament.js';
 import { MatchDao } from '../dao/match.js';
-import { GatewayNotificationClient } from './gateway-notification-client.js';
-import { ChatServiceClient } from './chat-service-client.js';
+import { GatewayNotificationClient } from '../clients/gateway-notification-client.js';
+import { ChatServiceClient } from '../clients/chat-service-client.js';
 import { Logger } from '../types/logger.js';
 
 /**

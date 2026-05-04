@@ -1,7 +1,7 @@
 import type { FastifyBaseLogger } from 'fastify';
-import { GameServerClient } from '../services/game-server-client.js';
-import { ChatServiceClient } from '../services/chat-service-client.js';
-import { GatewayNotificationClient } from '../services/gateway-notification-client.js';
+import { GameServerClient } from '../clients/game-server-client.js';
+import { ChatServiceClient } from '../clients/chat-service-client.js';
+import { GatewayNotificationClient } from '../clients/gateway-notification-client.js';
 
 export function createClients(log: FastifyBaseLogger) {
   const gameServerClient = new GameServerClient(

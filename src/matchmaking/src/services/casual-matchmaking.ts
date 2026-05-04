@@ -21,7 +21,6 @@ export interface PlayerPair {
  * - Match creation is async but doesn't block queue operations
  * - If match creation fails, players who acked are returned to front of queue
  *
- * All pool operations are synchronous - no race conditions possible
  */
 export class MatchmakingService {
   // In-memory pool for fast pairing

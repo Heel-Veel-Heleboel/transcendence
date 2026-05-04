@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { MatchDao } from '../dao/match.js';
-import { ChatServiceClient } from '../services/chat-service-client.js';
+import { ChatServiceClient } from '../clients/chat-service-client.js';
 import { MatchmakingService } from '../services/casual-matchmaking.js';
 import { PoolRegistry } from '../services/pool-registry.js';
 import { isValidGameMode, GameMode, DEFAULT_ACK_TIMEOUT_MS } from '../types/match.js';
@@ -27,9 +27,6 @@ export async function registerDirectChallengeRoutes(
    *
    * If either player is currently in the matchmaking queue they are removed from
    * it — the direct challenge takes precedence.
-   *
-   * Headers: x-user-id (challenger), x-user-name (challenger username)
-   * Body: { inviteeId: number, inviteeUsername: string, gameMode: string }
    */
   server.post('/matchmaking/direct-challenge', async (request: FastifyRequest, reply: FastifyReply) => {
     const challengerId = getUserIdFromHeader(request);
