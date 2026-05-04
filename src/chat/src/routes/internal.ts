@@ -2,12 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { MatchAckService } from '../services/match-ack.js';
 import { ChannelService } from '../services/channel.js';
 import { MessageService } from '../services/message.js';
-import { ChatError } from '../types/chat.js';
-import type {
-  SendMatchAckRequest,
-  CreateTournamentChannelRequest,
-  SystemMessageRequest
-} from '../types/chat.js';
+import { ChatError, type SendMatchAckRequest, type CreateTournamentChannelRequest, type SystemMessageRequest } from '../types/chat.js';
 
 export async function registerInternalRoutes(
   server: FastifyInstance,

@@ -1,8 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { MessageService } from '../services/message.js';
 import { MatchAckService } from '../services/match-ack.js';
-import { ChatError } from '../types/chat.js';
-import type { SendMessageRequest, RespondToMatchAckRequest } from '../types/chat.js';
+import { ChatError, type SendMessageRequest, type RespondToMatchAckRequest } from '../types/chat.js';
 
 export async function registerMessageRoutes(
   server: FastifyInstance,

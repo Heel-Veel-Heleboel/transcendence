@@ -3,8 +3,7 @@ import { ChannelDao } from '../dao/channel.dao.js';
 import { MessageDao } from '../dao/message.dao.js';
 import { NotificationService } from './notification.js';
 import { MatchmakingClient } from '../clients/matchmaking-client.js';
-import { ChatError } from '../types/chat.js';
-import type { MatchAckMetadata } from '../types/chat.js';
+import { ChatError, type MatchAckMetadata } from '../types/chat.js';
 
 export class MatchAckService {
   constructor(

@@ -1,7 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { ChannelService } from '../services/channel.js';
-import { ChatError } from '../types/chat.js';
-import type { CreateChannelRequest } from '../types/chat.js';
+import { ChatError, type CreateChannelRequest } from '../types/chat.js';
 
 export async function registerChannelRoutes(
   server: FastifyInstance,
