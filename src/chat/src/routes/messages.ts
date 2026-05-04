@@ -1,22 +1,20 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { ChatService, ChatError } from '../services/chat.js';
+import { MessageService } from '../services/message.js';
+import { MatchAckService } from '../services/match-ack.js';
+import { ChatError } from '../types/chat.js';
 import type { SendMessageRequest, RespondToMatchAckRequest } from '../types/chat.js';
 
 export async function registerMessageRoutes(
   server: FastifyInstance,
-  chatService: ChatService
+  messageService: MessageService,
+  matchAckService: MatchAckService
 ): Promise<void> {
 
-  /**
-   * POST /chat/channels/:channelId/messages
-   * Send a message in a channel
-   */
   server.post('/chat/channels/:channelId/messages', async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = getUserId(request);
     if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
 
     const senderUsername = getUsername(request);
-
     const { channelId } = request.params as { channelId: string };
     const { content } = request.body as SendMessageRequest;
 
@@ -29,17 +27,13 @@ export async function registerMessageRoutes(
     }
 
     try {
-      const message = await chatService.sendMessage(channelId, userId, content.trim(), senderUsername);
+      const message = await messageService.sendMessage(channelId, userId, content.trim(), senderUsername);
       return reply.status(201).send(message);
     } catch (error) {
       return handleError(request, reply, error);
     }
   });
 
-  /**
-   * GET /chat/channels/:channelId/messages
-   * Get messages in a channel (paginated)
-   */
   server.get('/chat/channels/:channelId/messages', async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = getUserId(request);
     if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
@@ -50,17 +44,13 @@ export async function registerMessageRoutes(
     const cursor = query.cursor || undefined;
 
     try {
-      const messages = await chatService.getMessages(channelId, userId, cursor, limit);
+      const messages = await messageService.getMessages(channelId, userId, cursor, limit);
       return reply.send(messages);
     } catch (error) {
       return handleError(request, reply, error);
     }
   });
 
-  /**
-   * POST /chat/match-ack/:messageId/respond
-   * Respond to a match acknowledgement message
-   */
   server.post('/chat/match-ack/:messageId/respond', async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = getUserId(request);
     if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
@@ -73,13 +63,12 @@ export async function registerMessageRoutes(
     }
 
     try {
-      const result = await chatService.respondToMatchAck(messageId, userId, acknowledge);
+      const result = await matchAckService.respondToMatchAck(messageId, userId, acknowledge);
       return reply.send(result);
     } catch (error) {
       return handleError(request, reply, error);
     }
   });
-
 }
 
 function getUserId(request: FastifyRequest): number | null {

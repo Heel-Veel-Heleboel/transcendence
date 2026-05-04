@@ -1,9 +1,9 @@
+import type { FastifyBaseLogger } from 'fastify';
+
 export class BlockService {
   private readonly userServiceUrl: string;
 
-  constructor(
-    private readonly logger?: { info: Function; error: Function; warn: Function }
-  ) {
+  constructor(private readonly logger: FastifyBaseLogger) {
     this.userServiceUrl = process.env.USER_MANAGEMENT_URL || 'http://localhost:3004';
   }
 
@@ -16,12 +16,11 @@ export class BlockService {
       ]);
       return blockedByUser || blockedByTarget;
     } catch (error) {
-      this.logger?.error({ error, userId, targetUserId }, 'Error checking block status');
+      this.logger.error({ error, userId, targetUserId }, 'Error checking block status');
       return false;
     }
   }
 
-  // Returns true if blocker_id has blocked target_id (directional).
   // Fails closed: any error other than a clean 404 is treated as blocked for safety.
   private async isBlockedBy(blocker_id: number, target_id: number): Promise<boolean> {
     try {
@@ -31,16 +30,14 @@ export class BlockService {
 
       if (!response.ok) {
         if (response.status === 404) return false;
-        // Unexpected error from user-management — fail closed
-        this.logger?.warn({ status: response.status }, 'Unexpected response checking block status — treating as blocked');
+        this.logger.warn({ status: response.status }, 'Unexpected response checking block status — treating as blocked');
         return true;
       }
 
       const data = await response.json() as { blocked: boolean };
       return data.blocked;
     } catch (error) {
-      // Network error or service down — fail closed
-      this.logger?.error({ error, blocker_id, target_id }, 'Error checking block status — treating as blocked');
+      this.logger.error({ error, blocker_id, target_id }, 'Error checking block status — treating as blocked');
       return true;
     }
   }
@@ -54,12 +51,11 @@ export class BlockService {
       if (!response.ok) return [];
 
       const data = await response.json() as Array<{ requester_id: number; addressee_id: number }>;
-      // Only return users that this user has blocked (userId is the requester)
       return data
         .filter((f) => f.requester_id === userId)
         .map((f) => f.addressee_id);
     } catch (error) {
-      this.logger?.error({ error, userId }, 'Error fetching blocked users');
+      this.logger.error({ error, userId }, 'Error fetching blocked users');
       return [];
     }
   }

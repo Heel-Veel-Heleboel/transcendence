@@ -1,5 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { ChatService, ChatError } from '../services/chat.js';
+import { MatchAckService } from '../services/match-ack.js';
+import { ChannelService } from '../services/channel.js';
+import { MessageService } from '../services/message.js';
+import { ChatError } from '../types/chat.js';
 import type {
   SendMatchAckRequest,
   CreateTournamentChannelRequest,
@@ -8,14 +11,11 @@ import type {
 
 export async function registerInternalRoutes(
   server: FastifyInstance,
-  chatService: ChatService
+  matchAckService: MatchAckService,
+  channelService: ChannelService,
+  messageService: MessageService
 ): Promise<void> {
 
-  /**
-   * POST /chat/internal/match-ack
-   * Called by matchmaking when a pair is matched.
-   * Creates game session channel + ack messages for both players.
-   */
   server.post('/chat/internal/match-ack', async (request: FastifyRequest, reply: FastifyReply) => {
     const body = request.body as SendMatchAckRequest;
 
@@ -24,7 +24,7 @@ export async function registerInternalRoutes(
     }
 
     try {
-      const result = await chatService.sendMatchAck(
+      const result = await matchAckService.sendMatchAck(
         body.matchId,
         body.playerIds,
         body.gameMode,
@@ -43,10 +43,6 @@ export async function registerInternalRoutes(
     }
   });
 
-  /**
-   * POST /chat/internal/channels/tournament
-   * Called by matchmaking when user subscribes to a tournament.
-   */
   server.post('/chat/internal/channels/tournament', async (request: FastifyRequest, reply: FastifyReply) => {
     const body = request.body as CreateTournamentChannelRequest;
 
@@ -55,21 +51,13 @@ export async function registerInternalRoutes(
     }
 
     try {
-      const channel = await chatService.createTournamentChannel(
-        body.userId,
-        body.tournamentId,
-        body.tournamentName
-      );
+      const channel = await channelService.createTournamentChannel(body.userId, body.tournamentId, body.tournamentName);
       return reply.status(201).send(channel);
     } catch (error) {
       return handleError(request, reply, error);
     }
   });
 
-  /**
-   * POST /chat/internal/channels/:channelId/system-message
-   * Post a system message to a channel (for tournament notifications, etc.)
-   */
   server.post('/chat/internal/channels/:channelId/system-message', async (request: FastifyRequest, reply: FastifyReply) => {
     const { channelId } = request.params as { channelId: string };
     const { content } = request.body as SystemMessageRequest;
@@ -79,7 +67,7 @@ export async function registerInternalRoutes(
     }
 
     try {
-      const message = await chatService.sendSystemMessage(channelId, content);
+      const message = await messageService.sendSystemMessage(channelId, content);
       return reply.status(201).send(message);
     } catch (error) {
       return handleError(request, reply, error);

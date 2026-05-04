@@ -1,3 +1,4 @@
+import type { FastifyBaseLogger } from 'fastify';
 import { ChannelDao } from '../dao/channel.dao.js';
 import type { WebSocketEvent } from '../types/chat.js';
 
@@ -6,11 +7,7 @@ export class NotificationService {
 
   constructor(
     private readonly channelDao: ChannelDao,
-    private readonly logger?: {
-      info: Function;
-      error: Function;
-      warn: Function;
-    }
+    private readonly logger: FastifyBaseLogger
   ) {
     this.gatewayUrl = process.env.GATEWAY_URL || 'http://localhost:3000';
   }
@@ -27,14 +24,14 @@ export class NotificationService {
       });
 
       if (!response.ok) {
-        this.logger?.warn(
+        this.logger.warn(
           { status: response.status, event: event.type },
           'Gateway notify returned non-OK'
         );
       }
 
     } catch (error) {
-      this.logger?.error(
+      this.logger.error(
         { error, event: event.type },
         'Failed to notify via gateway'
       );

@@ -63,3 +63,13 @@ export interface WebSocketEvent {
   type: string;
   [key: string]: unknown;
 }
+
+export class ChatError extends Error {
+  constructor(
+    public readonly statusCode: number,
+    message: string
+  ) {
+    super(message);
+    this.name = 'ChatError';
+  }
+}

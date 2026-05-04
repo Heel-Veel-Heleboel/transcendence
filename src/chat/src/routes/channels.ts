@@ -1,16 +1,13 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { ChatService, ChatError } from '../services/chat.js';
+import { ChannelService } from '../services/channel.js';
+import { ChatError } from '../types/chat.js';
 import type { CreateChannelRequest } from '../types/chat.js';
 
 export async function registerChannelRoutes(
   server: FastifyInstance,
-  chatService: ChatService
+  channelService: ChannelService
 ): Promise<void> {
 
-  /**
-   * POST /chat/channels
-   * Create a new channel (DM or GROUP)
-   */
   server.post('/chat/channels', async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = getUserId(request);
     if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
@@ -26,7 +23,7 @@ export async function registerChannelRoutes(
         if (!body.targetUserId || typeof body.targetUserId !== 'number') {
           return reply.status(400).send({ error: 'targetUserId is required for DM' });
         }
-        const channel = await chatService.createDMChannel(userId, body.targetUserId);
+        const channel = await channelService.createDMChannel(userId, body.targetUserId);
         return reply.status(201).send(channel);
       }
 
@@ -37,33 +34,25 @@ export async function registerChannelRoutes(
         return reply.status(400).send({ error: 'memberIds must be an array' });
       }
 
-      const channel = await chatService.createGroupChannel(userId, body.name, body.memberIds);
+      const channel = await channelService.createGroupChannel(userId, body.name, body.memberIds);
       return reply.status(201).send(channel);
     } catch (error) {
       return handleError(request, reply, error);
     }
   });
 
-  /**
-   * GET /chat/channels
-   * List all channels for the authenticated user
-   */
   server.get('/chat/channels', async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = getUserId(request);
     if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
 
     try {
-      const channels = await chatService.getUserChannels(userId);
+      const channels = await channelService.getUserChannels(userId);
       return reply.send(channels);
     } catch (error) {
       return handleError(request, reply, error);
     }
   });
 
-  /**
-   * GET /chat/channels/:channelId
-   * Get channel details + members
-   */
   server.get('/chat/channels/:channelId', async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = getUserId(request);
     if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
@@ -71,17 +60,13 @@ export async function registerChannelRoutes(
     const { channelId } = request.params as { channelId: string };
 
     try {
-      const channel = await chatService.getChannel(channelId, userId);
+      const channel = await channelService.getChannel(channelId, userId);
       return reply.send(channel);
     } catch (error) {
       return handleError(request, reply, error);
     }
   });
 
-  /**
-   * DELETE /chat/channels/:channelId
-   * Soft-delete a channel (DM: any member; GROUP: creator only; TOURNAMENT: not allowed)
-   */
   server.delete('/chat/channels/:channelId', async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = getUserId(request);
     if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
@@ -89,17 +74,13 @@ export async function registerChannelRoutes(
     const { channelId } = request.params as { channelId: string };
 
     try {
-      await chatService.deleteChannel(channelId, userId);
+      await channelService.deleteChannel(channelId, userId);
       return reply.status(200).send({ success: true });
     } catch (error) {
       return handleError(request, reply, error);
     }
   });
 
-  /**
-   * POST /chat/channels/:channelId/read
-   * Mark all messages in a channel as read for the authenticated user
-   */
   server.post('/chat/channels/:channelId/read', async (request: FastifyRequest, reply: FastifyReply) => {
     const userId = getUserId(request);
     if (!userId) return reply.status(401).send({ error: 'Unauthorized' });
@@ -107,17 +88,13 @@ export async function registerChannelRoutes(
     const { channelId } = request.params as { channelId: string };
 
     try {
-      await chatService.markChannelRead(channelId, userId);
+      await channelService.markChannelRead(channelId, userId);
       return reply.status(200).send({ success: true });
     } catch (error) {
       return handleError(request, reply, error);
     }
   });
 
-  /**
-   * POST /chat/channels/:channelId/members
-   * Add a member to a group channel
-   */
   server.post('/chat/channels/:channelId/members', async (request: FastifyRequest, reply: FastifyReply) => {
     const requesterId = getUserId(request);
     if (!requesterId) return reply.status(401).send({ error: 'Unauthorized' });
@@ -130,17 +107,13 @@ export async function registerChannelRoutes(
     }
 
     try {
-      await chatService.addMember(channelId, requesterId, userId);
+      await channelService.addMember(channelId, requesterId, userId);
       return reply.status(201).send({ success: true });
     } catch (error) {
       return handleError(request, reply, error);
     }
   });
 
-  /**
-   * DELETE /chat/channels/:channelId/members/:userId
-   * Remove a member or leave a channel
-   */
   server.delete('/chat/channels/:channelId/members/:userId', async (request: FastifyRequest, reply: FastifyReply) => {
     const requesterId = getUserId(request);
     if (!requesterId) return reply.status(401).send({ error: 'Unauthorized' });
@@ -153,7 +126,7 @@ export async function registerChannelRoutes(
     }
 
     try {
-      await chatService.removeMember(channelId, requesterId, targetUserId);
+      await channelService.removeMember(channelId, requesterId, targetUserId);
       return reply.status(200).send({ success: true });
     } catch (error) {
       return handleError(request, reply, error);
