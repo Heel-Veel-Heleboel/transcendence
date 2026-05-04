@@ -191,6 +191,16 @@ export function MatchProvider({ children }: { children: ReactNode }) {
         }
     }
 
+    async function leaveTournament(tournamentId: string) {
+        try {
+            const response = await service.leaveTournament(tournamentId);
+            return response;
+        } catch (e: any) {
+            console.error(e);
+            throw e;
+        }
+    }
+
     return (
         <MatchmakingServiceContext.Provider value={{
             getStatus,
@@ -204,6 +214,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             cancelTournament,
             registerTournament,
             unregisterTournament,
+            leaveTournament,
             joinClassic,
             leaveClassic,
             joinPowerup,
