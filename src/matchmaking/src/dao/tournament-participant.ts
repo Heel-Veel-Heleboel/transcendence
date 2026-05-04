@@ -69,16 +69,6 @@ export class TournamentParticipantDao {
   }
 
   /**
-   * Find all tournaments a user is registered for
-   */
-  async findByUser(userId: number): Promise<TournamentParticipant[]> {
-    return await this.prisma.tournamentParticipant.findMany({
-      where: { userId },
-      orderBy: { registeredAt: 'desc' }
-    });
-  }
-
-  /**
    * Get the active tournament a user is participating in, if any.
    * Active = REGISTRATION, SCHEDULED, or IN_PROGRESS and not yet eliminated.
    * Returns tournamentId, createdBy, and tournamentStatus, or null.
@@ -134,22 +124,6 @@ export class TournamentParticipantDao {
         tournamentId_userId: { tournamentId, userId }
       },
       data: { eliminatedIn: round }
-    });
-  }
-
-  /**
-   * Set final rank for a participant
-   */
-  async setFinalRank(
-    tournamentId: number,
-    userId: number,
-    rank: number
-  ): Promise<TournamentParticipant> {
-    return await this.prisma.tournamentParticipant.update({
-      where: {
-        tournamentId_userId: { tournamentId, userId }
-      },
-      data: { finalRank: rank }
     });
   }
 

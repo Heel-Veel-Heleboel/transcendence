@@ -90,44 +90,6 @@ export class TournamentDao {
   }
 
   /**
-   * Find tournaments created by a specific user
-   */
-  async findByCreator(userId: number): Promise<Tournament[]> {
-    return await this.prisma.tournament.findMany({
-      where: { createdBy: userId },
-      orderBy: { createdAt: 'desc' }
-    });
-  }
-
-  /**
-   * Find tournaments with registration ending soon
-   * Used by scheduler to transition tournaments
-   */
-  async findRegistrationEnding(before: Date): Promise<Tournament[]> {
-    return await this.prisma.tournament.findMany({
-      where: {
-        status: 'REGISTRATION',
-        registrationEnd: { lte: before }
-      },
-      orderBy: { registrationEnd: 'asc' }
-    });
-  }
-
-  /**
-   * Find tournaments ready to start
-   * (SCHEDULED status and startTime has passed)
-   */
-  async findReadyToStart(now: Date): Promise<Tournament[]> {
-    return await this.prisma.tournament.findMany({
-      where: {
-        status: 'SCHEDULED',
-        startTime: { lte: now }
-      },
-      orderBy: { startTime: 'asc' }
-    });
-  }
-
-  /**
    * Find open tournaments (accepting registrations)
    */
   async findOpen(): Promise<TournamentSummary[]> {
@@ -202,15 +164,6 @@ export class TournamentDao {
   async countByStatus(status: TournamentStatus): Promise<number> {
     return await this.prisma.tournament.count({
       where: { status }
-    });
-  }
-
-  /**
-   * Get participant count for a tournament
-   */
-  async getParticipantCount(tournamentId: number): Promise<number> {
-    return await this.prisma.tournamentParticipant.count({
-      where: { tournamentId }
     });
   }
 

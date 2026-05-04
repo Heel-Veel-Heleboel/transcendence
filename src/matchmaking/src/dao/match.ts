@@ -86,34 +86,6 @@ export class MatchDao {
   }
 
   /**
-   * Find matches with expired acknowledgement deadline
-   * Returns matches in PENDING_ACKNOWLEDGEMENT status past their deadline
-   */
-  async findUnacknowledged(): Promise<Match[]> {
-    const now = new Date();
-    return await this.prisma.match.findMany({
-      where: {
-        deadline: { lt: now },
-        status: 'PENDING_ACKNOWLEDGEMENT'
-      }
-    });
-  }
-
-  /**
-   * Find overdue matches (past deadline and never started)
-   * Only SCHEDULED matches are considered overdue - IN_PROGRESS games are allowed to finish
-   */
-  async findOverdue(): Promise<Match[]> {
-    const now = new Date();
-    return await this.prisma.match.findMany({
-      where: {
-        deadline: { lt: now },
-        status: 'SCHEDULED'
-      }
-    });
-  }
-
-  /**
    * Update match status
    */
   async updateStatus(matchId: string, status: MatchStatus): Promise<Match> {
@@ -128,31 +100,6 @@ export class MatchDao {
     return await this.prisma.match.update({
       where: { id: matchId },
       data: updateData
-    });
-  }
-
-  /**
-   * Record match result
-   */
-  async recordResult(
-    matchId: string,
-    result: {
-      winnerId: number | null;
-      player1Score: number;
-      player2Score: number;
-      resultSource: string;
-    }
-  ): Promise<Match> {
-    return await this.prisma.match.update({
-      where: { id: matchId },
-      data: {
-        winnerId: result.winnerId,
-        player1Score: result.player1Score,
-        player2Score: result.player2Score,
-        resultSource: result.resultSource,
-        status: 'COMPLETED',
-        completedAt: new Date()
-      }
     });
   }
 
@@ -375,21 +322,6 @@ export class MatchDao {
   }
 
   /**
-   * Find the next match in a tournament's current round that hasn't been activated.
-   * Used for sequential match scheduling within a round.
-   */
-  async findNextQueuedMatch(tournamentId: number): Promise<Match | null> {
-    return await this.prisma.match.findFirst({
-      where: {
-        tournamentId,
-        status: 'PENDING_ACKNOWLEDGEMENT',
-        deadline: null
-      },
-      orderBy: [{ round: 'asc' }, { bracketPosition: 'asc' }]
-    });
-  }
-
-  /**
    * Find all queued (not yet activated) matches for a tournament.
    */
   async findAllQueuedMatches(tournamentId: number): Promise<Match[]> {
@@ -400,22 +332,6 @@ export class MatchDao {
         deadline: null
       },
       orderBy: [{ round: 'asc' }, { bracketPosition: 'asc' }]
-    });
-  }
-
-  /**
-   * Activate a queued match by setting its deadline.
-   * Also resets acknowledgement flags in case this is a retry.
-   */
-  async activateMatch(matchId: string, deadline: Date): Promise<Match> {
-    return await this.prisma.match.update({
-      where: { id: matchId },
-      data: {
-        deadline,
-        status: 'PENDING_ACKNOWLEDGEMENT',
-        player1Acknowledged: false,
-        player2Acknowledged: false
-      }
     });
   }
 

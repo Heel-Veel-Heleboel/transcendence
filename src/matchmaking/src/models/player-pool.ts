@@ -5,18 +5,8 @@ import { PlayerPoolEntry } from '../types/match.js';
  * No database persistence - if service restarts, players rejoin the queue
  */
 
-/**
- * In-memory PlayerPool implementation using deque (double-ended queue)
- * - New players are added to the back (push)
- * - Players returning after failed opponent ack are added to the front (unshift) - priority
- * - Pairing takes from the front (shift) - FIFO
- * Thread-safe operations handled by MatchmakingService mutex
- */
 export class PlayerPool {
-  // Deque: array for ordered queue
   private queue: PlayerPoolEntry[] = [];
-
-  // Map for O(1) lookup and duplicate checking
   private userMap: Map<number, PlayerPoolEntry> = new Map();
 
   /**
@@ -34,7 +24,6 @@ export class PlayerPool {
       lastActive: new Date()
     };
 
-    // Add to back of queue
     this.queue.push(entry);
     this.userMap.set(userId, entry);
 
@@ -56,7 +45,6 @@ export class PlayerPool {
       lastActive: new Date()
     };
 
-    // Add to front of queue (priority)
     this.queue.unshift(entry);
     this.userMap.set(userId, entry);
 
@@ -72,10 +60,8 @@ export class PlayerPool {
       return false;
     }
 
-    // Remove from map
     this.userMap.delete(userId);
 
-    // Remove from queue (find and splice)
     const index = this.queue.findIndex(e => e.userId === userId);
     if (index !== -1) {
       this.queue.splice(index, 1);
@@ -129,7 +115,6 @@ export class PlayerPool {
   removeStale(cutoffDate: Date): number {
     let removed = 0;
 
-    // Iterate backwards to avoid index issues when splicing
     for (let i = this.queue.length - 1; i >= 0; i--) {
       const entry = this.queue[i];
       if (entry.joinedAt < cutoffDate) {
