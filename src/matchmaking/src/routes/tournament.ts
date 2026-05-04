@@ -65,10 +65,26 @@ export async function registerTournamentRoutes(
       });
     }
 
-    if (body.name.length > 100) {
+    const trimmedName = body.name.trim();
+
+    if (trimmedName.length < 2) {
+      return reply.status(400).send({
+        error: 'Bad Request',
+        message: 'name must be at least 2 characters'
+      });
+    }
+
+    if (trimmedName.length > 100) {
       return reply.status(400).send({
         error: 'Bad Request',
         message: 'name must be 100 characters or less'
+      });
+    }
+
+    if (!/^[a-zA-Z0-9 _\-().]+$/.test(trimmedName)) {
+      return reply.status(400).send({
+        error: 'Bad Request',
+        message: 'name may only contain letters, numbers, spaces, and the characters: _ - ( ) .'
       });
     }
 
@@ -91,7 +107,7 @@ export async function registerTournamentRoutes(
 
     try {
       const tournament = await tournamentService.createTournament({
-        name: body.name.trim(),
+        name: trimmedName,
         gameMode,
         minPlayers: DEFAULT_MIN_PLAYERS,
         maxPlayers: DEFAULT_MAX_PLAYERS,

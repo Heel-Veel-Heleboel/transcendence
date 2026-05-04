@@ -65,7 +65,7 @@ export const RefreshSchema = {
 export const ChangePasswordSchemaBody = Type.Object({
   user_id: Type.Number(),
   current_password: Type.String(),
-  new_password: Type.String({ minLength: PasswordPolicyConfig.minLength })
+  new_password: Type.String({ minLength: PasswordPolicyConfig.minLength, maxLength: PasswordPolicyConfig.maxLength })
 });
 //type for change password schema
 export type ChangePasswordSchemaType = Static<typeof ChangePasswordSchemaBody>;

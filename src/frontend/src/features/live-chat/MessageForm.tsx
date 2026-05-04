@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { useChatService } from "../../components/providers/Chat";
 import { IChatMessage } from "../../shared/types/chat";
+import { extractApiError } from "../../shared/utils/error";
 
 export function MessageForm({ channelId, onMessageAdded }: { channelId: string, onMessageAdded: (msg: IChatMessage) => void }) {
     const service = useChatService();
@@ -14,8 +15,7 @@ export function MessageForm({ channelId, onMessageAdded }: { channelId: string, 
             setContent('');
             onMessageAdded(message);
         } catch (e: any) {
-            console.error(e);
-            alert('failed to send message');
+            alert(`Failed to send message: ${extractApiError(e)}`);
         }
     };
 
