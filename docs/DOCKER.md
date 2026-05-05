@@ -58,23 +58,21 @@ docker buildx use default
 
 ## Shared Service Environmental Vars
 
-Shared Env Var (e.g. Inter-service URLs (Docker internal hostnames)) are defined once in [`docker/shared.env`](docker/shread.env)
+Shared env vars (inter-service URLs, log shipping config, etc.) are defined once in [`docker/shared.env`](../docker/shared.env)
 and loaded by every service via `env_file`. To change a service's address — e.g. when deploying
 to a different host — edit that file instead of hunting through the compose file.
 
-```env
-AUTH_SERVICE_URL=http://auth:3003
-USER_MANAGEMENT_URL=http://user-management:3004
-CHAT_SERVICE_URL=http://chat:3006
-MATCHMAKING_URL=http://matchmaking:3005
-GAME_SERVER_URL=http://game-server:2567
-GATEWAY_URL=http://api-gateway:3000
+The following vars were added to wire up log shipping to the observability stack:
 
-NODE_ENV=production
+```env
+LOGSTASH_HOST=logstash
+LOGSTASH_PORT=5044
+ENABLE_LOG_SHIPPING=false
 ```
 
-App-specific config (CORS origins, JWT key paths, log levels, etc.) belongs in each
-service's own `.env` file — not in the compose file or `urls.env`.
+Set `ENABLE_LOG_SHIPPING=true` when running with the observability stack (`docker-compose.observability.yml`) to forward logs to Logstash/Kibana.
+
+App-specific config (CORS origins, JWT key paths, etc.) belongs in each service's own `.env` file — not in the shared env.
 
 ## Volumes
 
