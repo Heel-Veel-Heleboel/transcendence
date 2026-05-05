@@ -40,6 +40,7 @@ export function useNotifications() {
                     }
                     else if (msg.type === 'chat:match_ack_response') {
                         setMatchUpdate(event.timeStamp)
+                        setMessageUpdate(event.timeStamp);
                     }
                     if (msg.type === 'TOURNAMENT_MATCH_RETRY') {
                         setMatchUpdate(event.timeStamp);

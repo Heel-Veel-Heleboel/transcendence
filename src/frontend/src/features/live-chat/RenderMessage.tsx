@@ -2,8 +2,25 @@ import { ReactNode } from "react";
 import { IChatMessage } from "../../shared/types/chat";
 import { useChatService } from "../../components/providers/Chat";
 
+type AckStatus = 'pending' | 'acknowledged' | 'declined' | 'expired';
+
+function parseAckStatus(metadata: string): AckStatus {
+    try {
+        const parsed = JSON.parse(metadata);
+        if (parsed?.status) return parsed.status as AckStatus;
+    } catch { }
+    return 'pending';
+}
+
+const ACK_STATUS_LABELS: Record<Exclude<AckStatus, 'pending'>, { label: string; className: string }> = {
+    acknowledged: { label: 'Accepted', className: 'bg-green-500 opacity-60 cursor-default' },
+    declined:     { label: 'Rejected', className: 'bg-red-500 opacity-60 cursor-default' },
+    expired:      { label: 'Expired',  className: 'border opacity-60 cursor-default' },
+};
+
 export function RenderAckMessage({ item }: { item: IChatMessage }) {
     const service = useChatService();
+    const status = parseAckStatus(item.metadata);
 
     async function sendAck(messageId: string, response: boolean) {
         try {
@@ -13,6 +30,9 @@ export function RenderAckMessage({ item }: { item: IChatMessage }) {
             console.error(e);
         }
     }
+
+    const resolved = status !== 'pending' ? ACK_STATUS_LABELS[status] : null;
+
     return (
         <RenderMessageContainer id={item.id}>
             <RenderMessageDate item={item} />
@@ -23,9 +43,15 @@ export function RenderAckMessage({ item }: { item: IChatMessage }) {
                     <div className="flex justify-between">
                         <div></div>
                         <div className="flex justify-around w-1/4">
-                            <button onClick={() => sendAck(item.id, true)} className="bg-green-500">Accept</button>
-                            <div />
-                            <button onClick={() => sendAck(item.id, false)} className="bg-red-500">Cancel</button>
+                            {resolved ? (
+                                <button disabled className={resolved.className}>{resolved.label}</button>
+                            ) : (
+                                <>
+                                    <button onClick={() => sendAck(item.id, true)} className="bg-green-500 hover:opacity-80">Accept</button>
+                                    <div />
+                                    <button onClick={() => sendAck(item.id, false)} className="bg-red-500 hover:opacity-80">Cancel</button>
+                                </>
+                            )}
                         </div>
                         <div></div>
                     </div>
