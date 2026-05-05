@@ -15,7 +15,11 @@ export function MessageForm({ channelId, onMessageAdded }: { channelId: string, 
             setContent('');
             onMessageAdded(message);
         } catch (e: any) {
-            alert(`Failed to send message: ${extractApiError(e)}`);
+            if (e?.response?.status === 403) {
+                alert('You cannot send a message to this user.');
+            } else {
+                alert(`Failed to send message: ${extractApiError(e)}`);
+            }
         }
     };
 
