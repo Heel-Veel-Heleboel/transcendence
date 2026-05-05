@@ -6,7 +6,7 @@ import {
   MatchHistory,
   GameMode
 } from '../types/match.js';
-import { Logger } from '../types/logger.js';
+import type { FastifyBaseLogger } from 'fastify';
 
 /**
  * HTTP client interface for calling User Management service
@@ -27,7 +27,7 @@ export class MatchReporting {
   constructor(
     private readonly matchDao: MatchDao,
     private readonly userManagementClient: UserManagementClient,
-    private readonly logger?: Logger
+    private readonly logger?: FastifyBaseLogger
   ) {}
 
   /**

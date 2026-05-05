@@ -1,16 +1,56 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyRequest, FastifyReply, FastifyBaseLogger } from 'fastify';
 import { MatchDao } from '../dao/match.js';
 import { TournamentDao } from '../dao/tournament.js';
 import { MatchReporting } from '../services/match-reporting.js';
-import { TournamentLifecycleManager } from '../services/tournament-lifecycle.js';
+import { TournamentScheduler } from '../services/tournament-scheduler.js';
 import { getUserIdFromHeader } from './request-context.js';
-import { GameServerClient } from '../services/game-server-client.js';
-import { ChatServiceClient } from '../services/chat-service-client.js';
-import { GatewayNotificationClient } from '../services/gateway-notification-client.js';
+import { GameServerClient } from '../clients/game-server-client.js';
+import { ChatServiceClient } from '../clients/chat-service-client.js';
+import { GatewayNotificationClient } from '../clients/gateway-notification-client.js';
+import type { Match } from '../../generated/prisma/index.js';
 
-/**
- * Register match-related routes
- */
+async function retryTournamentMatch(
+  match: Match,
+  deps: {
+    matchDao: MatchDao;
+    tournamentDao: TournamentDao;
+    scheduler?: TournamentScheduler;
+    gatewayNotificationClient: GatewayNotificationClient;
+    chatServiceClient: ChatServiceClient;
+    log: FastifyBaseLogger;
+  }
+): Promise<Match> {
+  const { matchDao, tournamentDao, scheduler, gatewayNotificationClient, chatServiceClient, log } = deps;
+
+  const tournament = await tournamentDao.findById(match.tournamentId!);
+  const ackMinutes = tournament?.ackDeadlineMin ?? 20;
+  const newDeadline = new Date(Date.now() + ackMinutes * 60 * 1000);
+  const resetMatch = await matchDao.resetToPendingAck(match.id, newDeadline);
+
+  scheduler?.onMatchCreated(resetMatch);
+  gatewayNotificationClient.notifyUsers(
+    [resetMatch.player1Id, resetMatch.player2Id],
+    {
+      type: 'TOURNAMENT_MATCH_RETRY',
+      matchId: match.id,
+      tournamentId: resetMatch.tournamentId,
+      deadline: newDeadline.toISOString(),
+      gameMode: resetMatch.gameMode
+    }
+  );
+  chatServiceClient.sendMatchAck(
+    match.id,
+    [resetMatch.player1Id, resetMatch.player2Id],
+    resetMatch.gameMode,
+    newDeadline,
+    tournament ? { id: tournament.id, name: tournament.name } : undefined
+  ).catch(err => {
+    log.error({ err, matchId: match.id }, 'Failed to re-send match-ack after tournament match retry');
+  });
+
+  return resetMatch;
+}
+
 export async function registerMatchRoutes(
   server: FastifyInstance,
   matchDao: MatchDao,
@@ -19,141 +59,63 @@ export async function registerMatchRoutes(
   gameServerClient: GameServerClient,
   chatServiceClient: ChatServiceClient,
   gatewayNotificationClient: GatewayNotificationClient,
-  lifecycleManager?: TournamentLifecycleManager
+  scheduler?: TournamentScheduler
 ): Promise<void> {
 
-  /**
-   * POST /match/:matchId/acknowledge
-   * Player acknowledges they are ready for the match.
-   * When both players have acknowledged, a Colyseus room is created on the
-   * game server and the roomId is stored as gameSessionId on the match.
-   */
   server.post('/matchmaking/match/:matchId/acknowledge', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
     const userId = getUserIdFromHeader(request);
 
     if (userId === null) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Missing x-user-id header'
-      });
+      return reply.status(401).send({ error: 'Unauthorized', message: 'Missing x-user-id header' });
     }
 
     try {
       const match = await matchDao.findById(matchId);
-
       if (!match) {
-        return reply.status(404).send({
-          error: 'Not Found',
-          message: 'Match not found'
-        });
+        return reply.status(404).send({ error: 'Not Found', message: 'Match not found' });
       }
-
-      // Verify user is a player in this match
       if (match.player1Id !== userId && match.player2Id !== userId) {
-        return reply.status(403).send({
-          error: 'Forbidden',
-          message: 'You are not a player in this match'
-        });
+        return reply.status(403).send({ error: 'Forbidden', message: 'You are not a player in this match' });
       }
 
-      // Update acknowledgement — DAO transitions status to SCHEDULED when both have acked
       const updatedMatch = await matchDao.acknowledge(matchId, userId);
       const bothReady = updatedMatch.player1Acknowledged && updatedMatch.player2Acknowledged;
 
-      // Both players are ready: provision the Colyseus room so they can connect
       let roomId: string | null = null;
       if (bothReady) {
         request.log.info({ matchId, player1Id: updatedMatch.player1Id, player2Id: updatedMatch.player2Id }, 'Both players acknowledged, creating game room');
         try {
           roomId = await gameServerClient.createRoom(updatedMatch);
           await matchDao.setGameSessionId(matchId, roomId);
-          // Notify both players with the roomId so they can connect to the game
           gatewayNotificationClient.notifyUsers(
             [updatedMatch.player1Id, updatedMatch.player2Id],
-            {
-              type: 'MATCH_READY',
-              matchId,
-              roomId,
-              gameMode: updatedMatch.gameMode
-            }
+            { type: 'MATCH_READY', matchId, roomId, gameMode: updatedMatch.gameMode }
           );
 
-          // Create a shared game channel for both players (fire-and-forget)
-          chatServiceClient.createGameSessionChannel(
-            [updatedMatch.player1Id, updatedMatch.player2Id],
-            roomId
-          ).catch(err => {
-            request.log.error({ err, matchId, roomId }, 'Failed to create game session channel in chat');
-          });
         } catch (err) {
           request.log.error({ err, matchId }, 'Failed to create game room after both players acknowledged');
-
           if (updatedMatch.tournamentId) {
-            // Tournament match: reset to PENDING_ACK with a fresh deadline and notify players to re-ack
-            const tournament = await tournamentDao.findById(updatedMatch.tournamentId);
-            const ackMinutes = tournament?.ackDeadlineMin ?? 20;
-            const newDeadline = new Date(Date.now() + ackMinutes * 60 * 1000);
-            const resetMatch = await matchDao.resetToPendingAck(matchId, newDeadline);
-
-            // Reschedule the deadline timer and notify players
-            lifecycleManager?.onMatchCreated(resetMatch);
-            gatewayNotificationClient.notifyUsers(
-              [resetMatch.player1Id, resetMatch.player2Id],
-              {
-                type: 'TOURNAMENT_MATCH_RETRY',
-                matchId,
-                tournamentId: resetMatch.tournamentId,
-                deadline: newDeadline.toISOString(),
-                gameMode: resetMatch.gameMode
-              }
-            );
-
-            // Re-send the chat match-ack so players get a fresh acknowledgement prompt
-            chatServiceClient.sendMatchAck(
-              matchId,
-              [resetMatch.player1Id, resetMatch.player2Id],
-              resetMatch.gameMode,
-              newDeadline,
-              tournament ? { id: tournament.id, name: tournament.name } : undefined
-            ).catch(ackErr => {
-              request.log.error({ ackErr, matchId }, 'Failed to re-send match-ack after tournament match retry');
-            });
-
+            await retryTournamentMatch(updatedMatch, { matchDao, tournamentDao, scheduler, gatewayNotificationClient, chatServiceClient, log: request.log });
             request.log.info({ matchId }, 'Tournament match reset to PENDING_ACK after game server failure');
           }
-          // Casual match stays SCHEDULED — crash report flow (TRAN-274) handles recovery
+          // Casual match stays SCHEDULED — game server crash recovery handles it
         }
       }
 
-      return reply.status(200).send({
-        success: true,
-        matchId: updatedMatch.id,
-        bothReady,
-        roomId
-      });
+      return reply.status(200).send({ success: true, matchId: updatedMatch.id, bothReady, roomId });
     } catch (error) {
       request.log.error({ error, matchId, userId }, 'Error acknowledging match');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to acknowledge match'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to acknowledge match' });
     }
   });
 
-  /**
-   * POST /match/:matchId/decline
-   * Player declines the match. Match is cancelled (no scores, no winner).
-   */
   server.post('/matchmaking/match/:matchId/decline', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
     const userId = getUserIdFromHeader(request);
 
     if (userId === null) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Missing x-user-id header'
-      });
+      return reply.status(401).send({ error: 'Unauthorized', message: 'Missing x-user-id header' });
     }
 
     try {
@@ -165,7 +127,6 @@ export async function registerMatchRoutes(
         return reply.status(403).send({ error: 'Forbidden', message: 'You are not a player in this match' });
       }
       if (match.status === 'CANCELLED' || match.status === 'FORFEITED') {
-        // Already declined/cancelled — idempotent, return current state
         return reply.status(200).send({ success: true, matchId: match.id, status: match.status });
       }
       if (match.status !== 'PENDING_ACKNOWLEDGEMENT') {
@@ -174,7 +135,6 @@ export async function registerMatchRoutes(
 
       let updatedMatch;
       if (match.tournamentId) {
-        // Tournament match: treat decline as forfeit — other player wins 5-0
         const winnerId = match.player1Id === userId ? match.player2Id : match.player1Id;
         const isPlayer1Declining = match.player1Id === userId;
         updatedMatch = await matchDao.completeMatch(matchId, {
@@ -183,67 +143,38 @@ export async function registerMatchRoutes(
           player2Score: isPlayer1Declining ? 5 : 0,
           resultSource: `forfeit:declined:${userId}`
         });
-        // Override status to FORFEITED
         updatedMatch = await matchDao.updateStatus(matchId, 'FORFEITED');
-
-        // Process tournament result and chain to next match
-        lifecycleManager?.onMatchCompleted(updatedMatch).catch(err => {
+        scheduler?.onMatchCompleted(updatedMatch).catch(err => {
           request.log.error({ error: err, matchId }, 'Error processing tournament forfeit');
         });
       } else {
-        // Casual match: cancel as before
         updatedMatch = await matchDao.declineMatch(matchId, userId);
       }
 
       request.log.info({ matchId, userId, tournament: !!match.tournamentId }, 'Match declined');
-
-      return reply.status(200).send({
-        success: true,
-        matchId: updatedMatch.id,
-        status: updatedMatch.status
-      });
+      return reply.status(200).send({ success: true, matchId: updatedMatch.id, status: updatedMatch.status });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to decline match';
       request.log.error({ error, matchId, userId }, 'Error declining match');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message });
     }
   });
 
-  /**
-   * GET /match/:matchId
-   * Get match details
-   */
   server.get('/matchmaking/match/:matchId', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
 
     try {
       const match = await matchDao.findById(matchId);
-
       if (!match) {
-        return reply.status(404).send({
-          error: 'Not Found',
-          message: 'Match not found'
-        });
+        return reply.status(404).send({ error: 'Not Found', message: 'Match not found' });
       }
-
       return reply.status(200).send(match);
     } catch (error) {
       request.log.error({ error, matchId }, 'Error getting match');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to get match details'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to get match details' });
     }
   });
 
-  /**
-   * POST /match/:matchId/result
-   * Report match result (called by game-service).
-   * When isFinished is false the match is recorded as CANCELLED (premature end).
-   */
   server.post('/matchmaking/match/:matchId/result', async (request: FastifyRequest, reply: FastifyReply) => {
     const { matchId } = request.params as { matchId: string };
     const { winnerId, player1Score, player2Score, isFinished } = request.body as {
@@ -253,7 +184,6 @@ export async function registerMatchRoutes(
       isFinished?: boolean;
     };
 
-    // For finished matches, winnerId and scores are required
     if (isFinished && (!winnerId || player1Score === undefined || player2Score === undefined)) {
       return reply.status(400).send({
         error: 'Bad Request',
@@ -263,85 +193,31 @@ export async function registerMatchRoutes(
 
     try {
       const match = await matchDao.findById(matchId);
-
       if (!match) {
-        return reply.status(404).send({
-          error: 'Not Found',
-          message: 'Match not found'
-        });
+        return reply.status(404).send({ error: 'Not Found', message: 'Match not found' });
       }
 
       if (!isFinished) {
-        // Game ended prematurely
         if (match.tournamentId) {
-          // Tournament match: reset to PENDING_ACK with a fresh deadline so players re-acknowledge
-          const tournament = await tournamentDao.findById(match.tournamentId);
-          const ackMinutes = tournament?.ackDeadlineMin ?? 20;
-          const newDeadline = new Date(Date.now() + ackMinutes * 60 * 1000);
-          const resetMatch = await matchDao.resetToPendingAck(matchId, newDeadline);
-
-          lifecycleManager?.onMatchCreated(resetMatch);
-          gatewayNotificationClient.notifyUsers(
-            [resetMatch.player1Id, resetMatch.player2Id],
-            {
-              type: 'TOURNAMENT_MATCH_RETRY',
-              matchId,
-              tournamentId: resetMatch.tournamentId,
-              deadline: newDeadline.toISOString(),
-              gameMode: resetMatch.gameMode
-            }
-          );
-          chatServiceClient.sendMatchAck(
-            matchId,
-            [resetMatch.player1Id, resetMatch.player2Id],
-            resetMatch.gameMode,
-            newDeadline,
-            tournament ? { id: tournament.id, name: tournament.name } : undefined
-          ).catch(ackErr => {
-            request.log.error({ ackErr, matchId }, 'Failed to re-send match-ack after tournament game crash');
-          });
-
+          await retryTournamentMatch(match, { matchDao, tournamentDao, scheduler, gatewayNotificationClient, chatServiceClient, log: request.log });
           request.log.info({ matchId }, 'Tournament match reset to PENDING_ACK after game crash');
-          return reply.status(200).send({
-            success: true,
-            matchId,
-            status: 'PENDING_ACKNOWLEDGEMENT'
-          });
+          return reply.status(200).send({ success: true, matchId, status: 'PENDING_ACKNOWLEDGEMENT' });
         }
 
-        // Casual match: cancel
         const updatedMatch = await matchDao.cancelMatch(matchId, {
           player1Score: player1Score ?? 0,
           player2Score: player2Score ?? 0,
           resultSource: 'game_service_cancelled'
         });
-
         request.log.info({ matchId, player1Score, player2Score }, 'Match cancelled (premature end)');
-
-        gatewayNotificationClient.notifyUsers(
-          [updatedMatch.player1Id, updatedMatch.player2Id],
-          {
-            type: 'MATCH_FINISHED'
-          }
-        );
-
-        return reply.status(200).send({
-          success: true,
-          matchId: updatedMatch.id,
-          status: 'CANCELLED'
-        });
+        gatewayNotificationClient.notifyUsers([updatedMatch.player1Id, updatedMatch.player2Id], { type: 'MATCH_FINISHED' });
+        return reply.status(200).send({ success: true, matchId: updatedMatch.id, status: 'CANCELLED' });
       }
 
-      // Verify winner is one of the players
       if (winnerId !== match.player1Id && winnerId !== match.player2Id) {
-        return reply.status(400).send({
-          error: 'Bad Request',
-          message: 'Invalid winnerId'
-        });
+        return reply.status(400).send({ error: 'Bad Request', message: 'Invalid winnerId' });
       }
 
-      // Update match with result
-      // winnerId, player1Score, player2Score are guaranteed defined by the isFinished guard above
       const updatedMatch = await matchDao.completeMatch(matchId, {
         winnerId: winnerId!,
         player1Score: player1Score!,
@@ -349,35 +225,19 @@ export async function registerMatchRoutes(
         resultSource: 'game_service'
       });
 
-      // Report result to user management (fire and forget, don't block response)
       matchReporting.reportMatchResult(updatedMatch).catch(err => {
         request.log.error({ error: err, matchId }, 'Failed to report match result to user management');
       });
-
-      // Process tournament match completion (stats + chain to next match)
-      lifecycleManager?.onMatchCompleted(updatedMatch).catch(err => {
+      scheduler?.onMatchCompleted(updatedMatch).catch(err => {
         request.log.error({ error: err, matchId }, 'Error processing tournament match completion');
       });
 
       request.log.info({ matchId, winnerId, player1Score, player2Score }, 'Match completed');
-      
-      gatewayNotificationClient.notifyUsers(
-        [updatedMatch.player1Id, updatedMatch.player2Id],
-        {
-          type: 'MATCH_FINISHED'
-        }
-      );
-
-      return reply.status(200).send({
-        success: true,
-        matchId: updatedMatch.id
-      });
+      gatewayNotificationClient.notifyUsers([updatedMatch.player1Id, updatedMatch.player2Id], { type: 'MATCH_FINISHED' });
+      return reply.status(200).send({ success: true, matchId: updatedMatch.id });
     } catch (error) {
       request.log.error({ error, matchId }, 'Error recording match result');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to record match result'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to record match result' });
     }
   });
 }

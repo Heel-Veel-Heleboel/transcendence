@@ -1,7 +1,7 @@
 import { MatchDao } from '../dao/match.js';
 import { PlayerPool } from '../models/player-pool.js';
 import { PlayerPoolEntry, DEFAULT_ACK_TIMEOUT_MS } from '../types/match.js';
-import { Logger } from '../types/logger.js';
+import type { FastifyBaseLogger } from 'fastify';
 
 /**
  * Represents a pair of players ready to be matched
@@ -21,7 +21,6 @@ export interface PlayerPair {
  * - Match creation is async but doesn't block queue operations
  * - If match creation fails, players who acked are returned to front of queue
  *
- * All pool operations are synchronous - no race conditions possible
  */
 export class MatchmakingService {
   // In-memory pool for fast pairing
@@ -35,7 +34,7 @@ export class MatchmakingService {
   constructor(
     private readonly matchDao: MatchDao,
     gameMode: string,
-    private readonly logger?: Logger,
+    private readonly logger?: FastifyBaseLogger,
     config?: {
       ackTimeoutMs?: number;
       maxWaitTimeMs?: number;

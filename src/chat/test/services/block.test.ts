@@ -7,6 +7,8 @@ const mockLogger = {
   warn: vi.fn(),
 };
 
+const BASE_URL = 'http://localhost:3004';
+
 describe('BlockService', () => {
   let service: BlockService;
   let fetchSpy: ReturnType<typeof vi.fn>;
@@ -23,89 +25,90 @@ describe('BlockService', () => {
   });
 
   describe('isBlocked', () => {
-    it('should return true when friendship status is BLOCKED', async () => {
-      fetchSpy.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ status: 'BLOCKED' }),
-      });
+    it('should return true when user has blocked target', async () => {
+      fetchSpy
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ blocked: true }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ blocked: false }) });
 
       const result = await service.isBlocked(1, 2);
 
-      expect(fetchSpy).toBeCalledWith('http://localhost:3001/user/friendships/1/2');
+      expect(result).toBe(true);
+      expect(fetchSpy).toBeCalledWith(`${BASE_URL}/users/friendship/is-blocked-by/1/2`);
+    });
+
+    it('should return true when target has blocked user', async () => {
+      fetchSpy
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ blocked: false }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ blocked: true }) });
+
+      const result = await service.isBlocked(1, 2);
+
       expect(result).toBe(true);
     });
 
-    it('should return false when friendship status is ACCEPTED', async () => {
-      fetchSpy.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ status: 'ACCEPTED' }),
-      });
+    it('should return false when neither has blocked the other', async () => {
+      fetchSpy
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ blocked: false }) })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ blocked: false }) });
 
       const result = await service.isBlocked(1, 2);
 
       expect(result).toBe(false);
     });
 
-    it('should return false on 404 (no friendship record)', async () => {
-      fetchSpy.mockResolvedValueOnce({ ok: false, status: 404 });
+    it('should return false on 404 (no block record)', async () => {
+      fetchSpy
+        .mockResolvedValueOnce({ ok: false, status: 404 })
+        .mockResolvedValueOnce({ ok: false, status: 404 });
 
       const result = await service.isBlocked(1, 2);
 
       expect(result).toBe(false);
     });
 
-    it('should return false and log warning on non-404 error response', async () => {
-      fetchSpy.mockResolvedValueOnce({ ok: false, status: 500 });
+    it('should fail closed (return true) on non-404 error response', async () => {
+      fetchSpy
+        .mockResolvedValueOnce({ ok: false, status: 500 })
+        .mockResolvedValueOnce({ ok: true, json: async () => ({ blocked: false }) });
 
       const result = await service.isBlocked(1, 2);
 
-      expect(result).toBe(false);
-      expect(mockLogger.warn).toBeCalledWith(
-        { status: 500 },
-        'Failed to check block status'
-      );
+      expect(result).toBe(true);
+      expect(mockLogger.warn).toBeCalled();
     });
 
-    it('should return false and log error on fetch failure', async () => {
+    it('should fail closed (return true) and log error when fetch throws', async () => {
       const error = new Error('Connection refused');
-      fetchSpy.mockRejectedValueOnce(error);
+      fetchSpy.mockRejectedValue(error);
 
       const result = await service.isBlocked(1, 2);
 
-      expect(result).toBe(false);
-      expect(mockLogger.error).toBeCalledWith(
-        { error, userId: 1, targetUserId: 2 },
-        'Error checking block status'
-      );
+      expect(result).toBe(true);
+      expect(mockLogger.error).toBeCalled();
     });
   });
 
   describe('getBlockedUserIds', () => {
-    it('should return list of blocked user IDs', async () => {
+    it('should return list of blocked user IDs (only where user is requester)', async () => {
       fetchSpy.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ blockedIds: [3, 5, 7] }),
+        json: async () => ([
+          { requester_id: 1, addressee_id: 3 },
+          { requester_id: 2, addressee_id: 1 },
+          { requester_id: 1, addressee_id: 5 },
+        ]),
       });
 
       const result = await service.getBlockedUserIds(1);
 
-      expect(fetchSpy).toBeCalledWith('http://localhost:3001/user/friendships/1/blocked');
-      expect(result).toEqual([3, 5, 7]);
+      expect(fetchSpy).toBeCalledWith(
+        `${BASE_URL}/users/friendship/find-all-by-status-for-user/1/BLOCKED`
+      );
+      expect(result).toEqual([3, 5]);
     });
 
     it('should return empty array on non-OK response', async () => {
       fetchSpy.mockResolvedValueOnce({ ok: false, status: 500 });
-
-      const result = await service.getBlockedUserIds(1);
-
-      expect(result).toEqual([]);
-    });
-
-    it('should return empty array when blockedIds is null', async () => {
-      fetchSpy.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ blockedIds: null }),
-      });
 
       const result = await service.getBlockedUserIds(1);
 

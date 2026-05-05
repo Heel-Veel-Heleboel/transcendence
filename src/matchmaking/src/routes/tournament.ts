@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { TournamentService, TournamentError } from '../services/tournament.js';
-import { TournamentLifecycleManager } from '../services/tournament-lifecycle.js';
-import { GatewayNotificationClient } from '../services/gateway-notification-client.js';
+import { TournamentScheduler } from '../services/tournament-scheduler.js';
+import { GatewayNotificationClient } from '../clients/gateway-notification-client.js';
 import { getUserIdFromHeader, getUserNameFromHeader } from './request-context.js';
 import { GameMode, isValidGameMode } from '../types/match.js';
 import {
@@ -12,73 +12,38 @@ import {
   DEFAULT_REGISTRATION_DURATION_MIN
 } from '../types/tournament.js';
 
-/**
- * Register tournament routes
- *
- * Routes handle tournament lifecycle:
- * - Create/cancel tournaments
- * - Register/unregister for tournaments
- * - Get tournament info, matches, rankings
- *
- */
 export async function registerTournamentRoutes(
   server: FastifyInstance,
   tournamentService: TournamentService,
   gatewayNotificationClient: GatewayNotificationClient,
-  lifecycleManager?: TournamentLifecycleManager
+  scheduler?: TournamentScheduler
 ): Promise<void> {
 
-  // ============================================================================
-  // Tournament CRUD
-  // ============================================================================
-
-  /**
-   * POST /matchmaking/tournament
-   * Create a new tournament
-   */
   server.post('/matchmaking/tournament', async (request: FastifyRequest, reply: FastifyReply) => {
-    const body = request.body as {
-      name: string;
-      gameMode?: string;
-    };
+    const body = request.body as { name: string; gameMode?: string };
 
     const createdBy = getUserIdFromHeader(request);
     if (createdBy === null) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Missing x-user-id header'
-      });
+      return reply.status(401).send({ error: 'Unauthorized', message: 'Missing x-user-id header' });
     }
 
     const creatorUsername = getUserNameFromHeader(request);
     if (creatorUsername === null) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Missing x-user-name header'
-      });
+      return reply.status(401).send({ error: 'Unauthorized', message: 'Missing x-user-name header' });
     }
 
     if (!body.name || typeof body.name !== 'string') {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'name is required and must be a string'
-      });
+      return reply.status(400).send({ error: 'Bad Request', message: 'name is required and must be a string' });
     }
 
     const trimmedName = body.name.trim();
 
     if (trimmedName.length < 2) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'name must be at least 2 characters'
-      });
+      return reply.status(400).send({ error: 'Bad Request', message: 'name must be at least 2 characters' });
     }
 
     if (trimmedName.length > 100) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'name must be 100 characters or less'
-      });
+      return reply.status(400).send({ error: 'Bad Request', message: 'name must be 100 characters or less' });
     }
 
     if (!/^[a-zA-Z0-9 _\-().]+$/.test(trimmedName)) {
@@ -88,22 +53,15 @@ export async function registerTournamentRoutes(
       });
     }
 
-    // Validate and normalize game mode (defaults to 'classic')
     let gameMode: GameMode = 'classic';
     if (body.gameMode != null) {
       if (!isValidGameMode(body.gameMode)) {
-        return reply.status(400).send({
-          error: 'Bad Request',
-          message: 'gameMode must be one of: classic, powerup'
-        });
+        return reply.status(400).send({ error: 'Bad Request', message: 'gameMode must be one of: classic, powerup' });
       }
       gameMode = body.gameMode;
     }
 
-    // Compute registration end relative to current time (e.g. 60 minutes from now)
-    const registrationEnd = new Date(
-      Date.now() + DEFAULT_REGISTRATION_DURATION_MIN * 60 * 1000
-    );
+    const registrationEnd = new Date(Date.now() + DEFAULT_REGISTRATION_DURATION_MIN * 60 * 1000);
 
     try {
       const tournament = await tournamentService.createTournament({
@@ -120,129 +78,71 @@ export async function registerTournamentRoutes(
       });
 
       request.log.info({ tournamentId: tournament.id, createdBy }, 'Tournament created');
+      scheduler?.onTournamentCreated(tournament);
+      gatewayNotificationClient.broadcastEvent({ type: 'TOURNAMENT_UPDATE', tournamentId: tournament.id });
 
-      // Schedule registration end timer
-      lifecycleManager?.onTournamentCreated(tournament);
-
-      // Broadcast to all connected users so they can update the tournament list
-      gatewayNotificationClient.broadcastEvent({
-        type: 'TOURNAMENT_UPDATE',
-        tournamentId: tournament.id
-      });
-
-      return reply.status(201).send({
-        success: true,
-        tournament
-      });
+      return reply.status(201).send({ success: true, tournament });
     } catch (error) {
       if (error instanceof TournamentError) {
-        return reply.status(400).send({
-          error: 'Bad Request',
-          message: error.message,
-          code: error.code
-        });
+        return reply.status(400).send({ error: 'Bad Request', message: error.message, code: error.code });
       }
       request.log.error({ error }, 'Error creating tournament');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to create tournament'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to create tournament' });
     }
   });
 
-  /**
-   * GET /matchmaking/tournament/:id
-   * Get tournament details
-   */
   server.get('/matchmaking/tournament/:id', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
 
     if (isNaN(tournamentId)) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'Invalid tournament ID'
-      });
+      return reply.status(400).send({ error: 'Bad Request', message: 'Invalid tournament ID' });
     }
 
     try {
       const tournament = await tournamentService.getTournamentSummary(tournamentId);
 
       if (!tournament) {
-        return reply.status(404).send({
-          error: 'Not Found',
-          message: 'Tournament not found'
-        });
+        return reply.status(404).send({ error: 'Not Found', message: 'Tournament not found' });
       }
 
       return reply.status(200).send({ tournament });
     } catch (error) {
       request.log.error({ error, tournamentId }, 'Error getting tournament');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to get tournament'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to get tournament' });
     }
   });
 
-  /**
-   * GET /matchmaking/tournament
-   * Get list of open tournaments (accepting registrations)
-   */
   server.get('/matchmaking/tournament', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const tournaments = await tournamentService.getOpenTournaments();
-
       return reply.status(200).send({ tournaments });
     } catch (error) {
       request.log.error({ error }, 'Error listing tournaments');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to list tournaments'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to list tournaments' });
     }
   });
 
-  /**
-   * POST /matchmaking/tournament/:id/cancel
-   * Cancel a tournament (creator only)
-   */
   server.post('/matchmaking/tournament/:id/cancel', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
     const userId = getUserIdFromHeader(request);
 
     if (isNaN(tournamentId)) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'Invalid tournament ID'
-      });
+      return reply.status(400).send({ error: 'Bad Request', message: 'Invalid tournament ID' });
     }
 
     if (userId === null) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Missing x-user-id header'
-      });
+      return reply.status(401).send({ error: 'Unauthorized', message: 'Missing x-user-id header' });
     }
 
     try {
       const tournament = await tournamentService.cancelTournament(tournamentId, userId);
-
-      // Cancel any pending lifecycle timers
-      lifecycleManager?.onTournamentCancelled(tournamentId);
-
+      scheduler?.onTournamentCancelled(tournamentId);
       request.log.info({ tournamentId, userId }, 'Tournament cancelled');
+      gatewayNotificationClient.broadcastEvent({ type: 'TOURNAMENT_UPDATE', tournamentId });
 
-      gatewayNotificationClient.broadcastEvent({
-        type: 'TOURNAMENT_UPDATE',
-        tournamentId
-      });
-
-      return reply.status(200).send({
-        success: true,
-        tournament
-      });
+      return reply.status(200).send({ success: true, tournament });
     } catch (error) {
       if (error instanceof TournamentError) {
         const status = error.code === 'NOT_FOUND' ? 404
@@ -257,21 +157,10 @@ export async function registerTournamentRoutes(
         });
       }
       request.log.error({ error, tournamentId }, 'Error cancelling tournament');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to cancel tournament'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to cancel tournament' });
     }
   });
 
-  // ============================================================================
-  // Registration
-  // ============================================================================
-
-  /**
-   * POST /matchmaking/tournament/:id/register
-   * Register for a tournament
-   */
   server.post('/matchmaking/tournament/:id/register', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
@@ -279,48 +168,29 @@ export async function registerTournamentRoutes(
     const username = getUserNameFromHeader(request);
 
     if (isNaN(tournamentId)) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'Invalid tournament ID'
-      });
+      return reply.status(400).send({ error: 'Bad Request', message: 'Invalid tournament ID' });
     }
 
     if (userId === null) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Missing x-user-id header'
-      });
+      return reply.status(401).send({ error: 'Unauthorized', message: 'Missing x-user-id header' });
     }
 
     if (username === null) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Missing x-user-name header'
-      });
+      return reply.status(401).send({ error: 'Unauthorized', message: 'Missing x-user-name header' });
     }
 
     try {
       const { full } = await tournamentService.register(tournamentId, userId, username);
-
       request.log.info({ tournamentId, userId, full }, 'User registered for tournament');
+      gatewayNotificationClient.broadcastEvent({ type: 'TOURNAMENT_UPDATE', tournamentId });
 
-      gatewayNotificationClient.broadcastEvent({
-        type: 'TOURNAMENT_UPDATE',
-        tournamentId
-      });
-
-      // If tournament is now full, trigger early registration close
       if (full) {
-        lifecycleManager?.onRegistrationFull(tournamentId).catch(err => {
+        scheduler?.onRegistrationFull(tournamentId).catch(err => {
           request.log.error({ error: err, tournamentId }, 'Error handling registration full');
         });
       }
 
-      return reply.status(200).send({
-        success: true,
-        message: 'Successfully registered for tournament',
-        full
-      });
+      return reply.status(200).send({ success: true, message: 'Successfully registered for tournament', full });
     } catch (error) {
       if (error instanceof TournamentError) {
         const status = error.code === 'NOT_FOUND' ? 404 : 400;
@@ -331,50 +201,29 @@ export async function registerTournamentRoutes(
         });
       }
       request.log.error({ error, tournamentId, userId }, 'Error registering for tournament');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to register for tournament'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to register for tournament' });
     }
   });
 
-  /**
-   * POST /matchmaking/tournament/:id/unregister
-   * Unregister from a tournament
-   */
   server.post('/matchmaking/tournament/:id/unregister', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
     const userId = getUserIdFromHeader(request);
 
     if (isNaN(tournamentId)) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'Invalid tournament ID'
-      });
+      return reply.status(400).send({ error: 'Bad Request', message: 'Invalid tournament ID' });
     }
 
     if (userId === null) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Missing x-user-id header'
-      });
+      return reply.status(401).send({ error: 'Unauthorized', message: 'Missing x-user-id header' });
     }
 
     try {
       await tournamentService.unregister(tournamentId, userId);
-
       request.log.info({ tournamentId, userId }, 'User unregistered from tournament');
+      gatewayNotificationClient.broadcastEvent({ type: 'TOURNAMENT_UPDATE', tournamentId });
 
-      gatewayNotificationClient.broadcastEvent({
-        type: 'TOURNAMENT_UPDATE',
-        tournamentId
-      });
-
-      return reply.status(200).send({
-        success: true,
-        message: 'Successfully unregistered from tournament'
-      });
+      return reply.status(200).send({ success: true, message: 'Successfully unregistered from tournament' });
     } catch (error) {
       if (error instanceof TournamentError) {
         const status = error.code === 'NOT_FOUND' ? 404 : 400;
@@ -385,15 +234,11 @@ export async function registerTournamentRoutes(
         });
       }
       request.log.error({ error, tournamentId, userId }, 'Error unregistering from tournament');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to unregister from tournament'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to unregister from tournament' });
     }
   });
 
   /**
-   * POST /matchmaking/tournament/:id/leave
    * Leave an in-progress tournament. Forfeits the player's next pending match (opponent
    * wins 5-0), advances the bracket, and frees the player to join other games/tournaments.
    */
@@ -403,46 +248,30 @@ export async function registerTournamentRoutes(
     const userId = getUserIdFromHeader(request);
 
     if (isNaN(tournamentId)) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'Invalid tournament ID'
-      });
+      return reply.status(400).send({ error: 'Bad Request', message: 'Invalid tournament ID' });
     }
 
     if (userId === null) {
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: 'Missing x-user-id header'
-      });
+      return reply.status(401).send({ error: 'Unauthorized', message: 'Missing x-user-id header' });
     }
 
     try {
       const forfeited = await tournamentService.leaveTournament(tournamentId, userId);
 
       if (forfeited) {
-        // Advance the bracket (same as declining an ack)
-        lifecycleManager?.onMatchCompleted(forfeited).catch(err => {
+        scheduler?.onMatchCompleted(forfeited).catch(err => {
           request.log.error({ error: err, tournamentId }, 'Error processing bracket after leave');
         });
-
-        // Notify both players the match is done
         gatewayNotificationClient.notifyUsers(
           [forfeited.player1Id, forfeited.player2Id],
           { type: 'MATCH_FINISHED' }
         );
       }
 
-      gatewayNotificationClient.broadcastEvent({
-        type: 'TOURNAMENT_UPDATE',
-        tournamentId
-      });
-
+      gatewayNotificationClient.broadcastEvent({ type: 'TOURNAMENT_UPDATE', tournamentId });
       request.log.info({ tournamentId, userId, matchId: forfeited?.id ?? null }, 'User left tournament');
 
-      return reply.status(200).send({
-        success: true,
-        message: 'Successfully left tournament'
-      });
+      return reply.status(200).send({ success: true, message: 'Successfully left tournament' });
     } catch (error) {
       if (error instanceof TournamentError) {
         const status = error.code === 'NOT_FOUND' ? 404
@@ -455,56 +284,33 @@ export async function registerTournamentRoutes(
         });
       }
       request.log.error({ error, tournamentId, userId }, 'Error leaving tournament');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to leave tournament'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to leave tournament' });
     }
   });
 
-  // ============================================================================
-  // Tournament Data
-  // ============================================================================
-
-  /**
-   * GET /matchmaking/tournament/:id/rankings
-   * Get current rankings/standings for a tournament
-   */
   server.get('/matchmaking/tournament/:id/rankings', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
 
     if (isNaN(tournamentId)) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'Invalid tournament ID'
-      });
+      return reply.status(400).send({ error: 'Bad Request', message: 'Invalid tournament ID' });
     }
 
     try {
       const rankings = await tournamentService.getRankings(tournamentId);
-
       return reply.status(200).send({ rankings });
     } catch (error) {
       if (error instanceof TournamentError) {
-        return reply.status(404).send({
-          error: 'Not Found',
-          message: error.message,
-          code: error.code
-        });
+        return reply.status(404).send({ error: 'Not Found', message: error.message, code: error.code });
       }
       request.log.error({ error, tournamentId }, 'Error getting rankings');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to get rankings'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to get rankings' });
     }
   });
 
   /**
    * GET /matchmaking/tournament/:id/matches
-   * Get the bracket for a knockout tournament as a binary tree array.
-   * Index 0 = final, children of node i at 2i+1 and 2i+2.
+   * Returns bracket as a binary tree array: index 0 = final, children of node i at 2i+1 and 2i+2.
    * Total size = 2^totalRounds - 1. TBD nodes fill unplayed slots.
    */
   server.get('/matchmaking/tournament/:id/matches', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -512,61 +318,35 @@ export async function registerTournamentRoutes(
     const tournamentId = parseInt(id, 10);
 
     if (isNaN(tournamentId)) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'Invalid tournament ID'
-      });
+      return reply.status(400).send({ error: 'Bad Request', message: 'Invalid tournament ID' });
     }
 
     try {
       const bracket = await tournamentService.getBracket(tournamentId);
-
       return reply.status(200).send(bracket);
     } catch (error) {
       if (error instanceof TournamentError && error.code === 'NOT_FOUND') {
-        return reply.status(404).send({
-          error: 'Not Found',
-          message: 'Tournament not found',
-          code: error.code
-        });
+        return reply.status(404).send({ error: 'Not Found', message: 'Tournament not found', code: error.code });
       }
       request.log.error({ error, tournamentId }, 'Error getting bracket');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to get bracket'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to get bracket' });
     }
   });
 
-  /**
-   * GET /matchmaking/tournament/:id/participants
-   * Get participant list for a tournament
-   */
   server.get('/matchmaking/tournament/:id/participants', async (request: FastifyRequest, reply: FastifyReply) => {
     const { id } = request.params as { id: string };
     const tournamentId = parseInt(id, 10);
 
     if (isNaN(tournamentId)) {
-      return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'Invalid tournament ID'
-      });
+      return reply.status(400).send({ error: 'Bad Request', message: 'Invalid tournament ID' });
     }
 
     try {
       const participantIds = await tournamentService.getParticipantIds(tournamentId);
-
-      return reply.status(200).send({
-        tournamentId,
-        participantIds,
-        count: participantIds.length
-      });
+      return reply.status(200).send({ tournamentId, participantIds, count: participantIds.length });
     } catch (error) {
       request.log.error({ error, tournamentId }, 'Error getting participants');
-      return reply.status(500).send({
-        error: 'Internal Server Error',
-        message: 'Failed to get participants'
-      });
+      return reply.status(500).send({ error: 'Internal Server Error', message: 'Failed to get participants' });
     }
   });
 }

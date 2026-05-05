@@ -9,11 +9,8 @@ import {
   TournamentBracket,
   BracketNode
 } from '../types/tournament.js';
-import { Logger } from '../types/logger.js';
+import type { FastifyBaseLogger } from 'fastify';
 
-/**
- * Error thrown when a tournament operation fails
- */
 export class TournamentError extends Error {
   constructor(
     message: string,
@@ -24,22 +21,13 @@ export class TournamentError extends Error {
   }
 }
 
-/**
- * TournamentService
- * Manages single-elimination tournament lifecycle, registration, bracket generation,
- * and winner advancement.
- */
 export class TournamentService {
   constructor(
     private readonly tournamentDao: TournamentDao,
     private readonly participantDao: TournamentParticipantDao,
     private readonly matchDao: MatchDao,
-    private readonly logger?: Logger
+    private readonly logger?: FastifyBaseLogger
   ) {}
-
-  // ============================================================================
-  // Tournament CRUD
-  // ============================================================================
 
   async createTournament(data: CreateTournamentData): Promise<Tournament> {
     const active = await this.participantDao.getActiveTournament(data.createdBy);
@@ -48,8 +36,6 @@ export class TournamentService {
     }
 
     const tournament = await this.tournamentDao.create(data);
-
-    // Auto-register creator as participant
     await this.participantDao.register(tournament.id, data.createdBy, data.creatorUsername);
 
     this.log('info', `Tournament ${tournament.id} created by user ${data.createdBy}`, {
@@ -99,10 +85,6 @@ export class TournamentService {
 
     return updated;
   }
-
-  // ============================================================================
-  // Registration
-  // ============================================================================
 
   async register(tournamentId: number, userId: number, username: string): Promise<{ full: boolean }> {
     const tournament = await this.tournamentDao.findById(tournamentId);
@@ -238,10 +220,6 @@ export class TournamentService {
     return await this.participantDao.getParticipantUserIds(tournamentId);
   }
 
-  /**
-   * Check if user can create or join a tournament.
-   * Returns active tournament info if any, with whether user is its creator.
-   */
   async getUserTournamentStatus(userId: number): Promise<{
     activeTournamentId: number | null;
     isCreator: boolean;
@@ -255,10 +233,6 @@ export class TournamentService {
       isCreator: active.createdBy === userId
     };
   }
-
-  // ============================================================================
-  // Tournament Lifecycle
-  // ============================================================================
 
   async closeRegistration(tournamentId: number): Promise<Tournament> {
     const tournament = await this.tournamentDao.findById(tournamentId);
@@ -284,10 +258,6 @@ export class TournamentService {
     return updated;
   }
 
-  /**
-   * Start the tournament — generate the knockout bracket and activate all first-round matches.
-   * Returns all activated first-round matches.
-   */
   async startTournament(tournamentId: number): Promise<Match[]> {
     const tournament = await this.tournamentDao.findById(tournamentId);
 
@@ -326,10 +296,6 @@ export class TournamentService {
     }
   }
 
-  // ============================================================================
-  // Bracket Generation
-  // ============================================================================
-
   /**
    * Generate a single-elimination bracket.
    *
@@ -346,14 +312,12 @@ export class TournamentService {
     ackDeadlineMin: number,
     gameMode: string
   ): Promise<Match[]> {
-    // Fisher-Yates shuffle for unbiased random seeding
     const shuffled = [...participants];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
-    // Assign seeds
     for (let i = 0; i < shuffled.length; i++) {
       await this.participantDao.setSeed(tournamentId, shuffled[i].userId, i + 1);
     }
@@ -363,11 +327,9 @@ export class TournamentService {
     const fullBracketSize = Math.pow(2, totalRounds);
     const byeCount = fullBracketSize - n;
 
-    // Store totalRounds on the tournament
     await this.tournamentDao.update(tournamentId, { totalRounds });
 
-    // Players at the top of the seeding get byes (they advance to round 2 automatically).
-    // The remaining players pair up for round 1 matches.
+    // Top seeds get byes (advance to round 2 automatically); remaining players pair for round 1.
     const byePlayers = shuffled.slice(0, byeCount);
     const matchPlayers = shuffled.slice(byeCount);
 
@@ -406,14 +368,6 @@ export class TournamentService {
     return matches;
   }
 
-  // ============================================================================
-  // Match Result Handling & Winner Advancement
-  // ============================================================================
-
-  /**
-   * Activate all queued matches for the next round.
-   * Returns the activated matches, or empty array if none.
-   */
   async activateRoundMatches(tournamentId: number): Promise<Match[]> {
     const tournament = await this.tournamentDao.findById(tournamentId);
     if (!tournament) return [];
@@ -432,20 +386,12 @@ export class TournamentService {
     return activated;
   }
 
-  /**
-   * Process a completed tournament match.
-   * - Marks the loser as eliminated
-   * - Checks if the current round is complete
-   * - If complete, generates the next round (pairing winners + bye players)
-   * - If this was the final, finalizes the tournament
-   */
   async processMatchResult(match: Match): Promise<void> {
     if (!match.tournamentId || !match.round) return;
 
     const tournamentId = match.tournamentId;
     const currentRound = match.round;
 
-    // Mark loser(s) as eliminated
     if (!match.winnerId) {
       // Double forfeit — both eliminated
       await this.participantDao.eliminate(tournamentId, match.player1Id, currentRound);
@@ -455,27 +401,19 @@ export class TournamentService {
       await this.participantDao.eliminate(tournamentId, loserId, currentRound);
     }
 
-    // Check if all matches in this round are done
     const roundMatchCount = await this.matchDao.countInRound(tournamentId, currentRound);
     const completedMatches = await this.matchDao.findCompletedInRound(tournamentId, currentRound);
 
-    if (completedMatches.length < roundMatchCount) {
-      return; // Still matches left — lifecycle manager will activate the next one
-    }
+    if (completedMatches.length < roundMatchCount) return;
 
-    // All matches in this round are done — advance winners to next round
     await this.advanceToNextRound(tournamentId, currentRound, completedMatches);
   }
 
-  /**
-   * Create next round matches from current round winners + bye players (round 1 only).
-   */
   private async advanceToNextRound(
     tournamentId: number,
     completedRound: number,
     completedMatches: Match[]
   ): Promise<void> {
-    // Collect winners in bracket position order
     const winners: Array<{ userId: number; username: string }> = [];
     for (const match of completedMatches) {
       if (match.winnerId) {
@@ -486,9 +424,7 @@ export class TournamentService {
       }
     }
 
-    // Add non-eliminated players who didn't play in this round (byes).
-    // In round 1 these are players who got initial bracket byes;
-    // in later rounds these arise from double forfeits leaving an odd winner count.
+    // Players who didn't play this round (initial byes in round 1, or odd winners from double forfeits).
     const allParticipants = await this.participantDao.findByTournament(tournamentId);
     const roundPlayerIds = new Set(
       completedMatches.flatMap(m => [m.player1Id, m.player2Id])
@@ -500,13 +436,11 @@ export class TournamentService {
     // Bye players first (higher seeds), then round winners
     const advancingPlayers = [...byePlayers, ...winners];
 
-    // 0 or 1 players remaining = tournament over
     if (advancingPlayers.length <= 1) {
       await this.finalizeTournament(tournamentId, advancingPlayers[0]?.userId ?? null);
       return;
     }
 
-    // Generate next round matches
     const nextRound = completedRound + 1;
     let bracketPosition = 0;
 
@@ -518,9 +452,7 @@ export class TournamentService {
       const p2 = advancingPlayers[i + 1];
 
       if (!p2) {
-        // Odd player count (from double forfeits) — player gets a bye.
-        // They won't have a match this round, so advanceToNextRound will
-        // pick them up as a bye player when this round completes.
+        // Odd player count from double forfeit — player gets a bye this round.
         this.log('info', `Player ${p1.userId} gets bye in round ${nextRound}`);
         continue;
       }
@@ -550,10 +482,6 @@ export class TournamentService {
     });
   }
 
-  /**
-   * Finalize the tournament — set final ranks and mark as COMPLETED.
-   * Ranking: winner = 1, then by round eliminated (later = better).
-   */
   private async finalizeTournament(tournamentId: number, winnerId: number | null): Promise<void> {
     const participants = await this.participantDao.findByTournament(tournamentId);
 
@@ -573,15 +501,8 @@ export class TournamentService {
     await this.participantDao.setAllFinalRanks(rankData);
     await this.tournamentDao.updateStatus(tournamentId, 'COMPLETED');
 
-    this.log('info', `Tournament ${tournamentId} completed`, {
-      tournamentId,
-      winner: winnerId
-    });
+    this.log('info', `Tournament ${tournamentId} completed`, { tournamentId, winner: winnerId });
   }
-
-  // ============================================================================
-  // Rankings & Data
-  // ============================================================================
 
   async getRankings(tournamentId: number): Promise<TournamentRanking[]> {
     const tournament = await this.tournamentDao.findById(tournamentId);
@@ -646,7 +567,6 @@ export class TournamentService {
     const round1MatchCount = matches.filter(m => m.round === 1).length;
     const byeCount = leafSlots - round1MatchCount;
 
-    // Populate match nodes
     for (const match of matches) {
       if (match.round === null || match.bracketPosition === null) continue;
 
@@ -655,7 +575,6 @@ export class TournamentService {
         // Round 1 matches are shifted right past the bye slots at the leaf level
         index = leafDepthStart + byeCount + match.bracketPosition;
       } else {
-        // All later rounds: straightforward level-order mapping
         const depth = totalRounds - match.round;
         const depthStart = Math.pow(2, depth) - 1;
         index = depthStart + match.bracketPosition;
@@ -673,9 +592,7 @@ export class TournamentService {
       };
     }
 
-    // Populate bye slots: first byeCount positions at the leaf level.
-    // Bye players are the lowest-seeded participants (seed 1..byeCount).
-    // Leaf position i corresponds to the player with seed i+1.
+    // Bye players are lowest seeds (seed 1..byeCount), placed at the first byeCount leaf positions.
     if (byeCount > 0) {
       const participants = await this.participantDao.findByTournament(tournamentId);
       const byePlayers = participants
@@ -697,10 +614,6 @@ export class TournamentService {
 
     return { tournamentId, totalRounds, status: tournament.status, bracket };
   }
-
-  // ============================================================================
-  // Logging
-  // ============================================================================
 
   private log(
     level: 'info' | 'warn' | 'error',

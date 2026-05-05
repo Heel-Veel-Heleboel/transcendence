@@ -14,7 +14,7 @@ describe('Internal Routes', () => {
       sendSystemMessage: vi.fn(),
     };
 
-    await registerInternalRoutes(server, mockChatService as any);
+    await registerInternalRoutes(server, mockChatService as any, mockChatService as any, mockChatService as any);
     await server.ready();
   });
 
@@ -46,7 +46,7 @@ describe('Internal Routes', () => {
       expect(response.statusCode).toBe(201);
       expect(mockChatService.sendMatchAck).toBeCalledWith(
         'match-1', [1, 2], 'classic', '2026-01-01T12:05:00Z',
-        undefined, undefined
+        undefined, undefined, undefined
       );
     });
 

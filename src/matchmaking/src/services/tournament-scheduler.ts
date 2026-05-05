@@ -2,9 +2,9 @@ import { Tournament, Match } from '../../generated/prisma/index.js';
 import { TournamentService } from './tournament.js';
 import { TournamentDao } from '../dao/tournament.js';
 import { MatchDao } from '../dao/match.js';
-import { GatewayNotificationClient } from './gateway-notification-client.js';
-import { ChatServiceClient } from './chat-service-client.js';
-import { Logger } from '../types/logger.js';
+import { GatewayNotificationClient } from '../clients/gateway-notification-client.js';
+import { ChatServiceClient } from '../clients/chat-service-client.js';
+import type { FastifyBaseLogger } from 'fastify';
 
 /**
  * Timer abstraction for testability
@@ -36,7 +36,7 @@ interface ScheduledEvent {
 }
 
 /**
- * TournamentLifecycleManager
+ * TournamentScheduler
  *
  * Manages time-based events for tournaments:
  * - Registration end → Close registration, cancel if not enough players
@@ -46,7 +46,7 @@ interface ScheduledEvent {
  * Uses event-driven timers with database as source of truth.
  * On startup, recovers pending events from database.
  */
-export class TournamentLifecycleManager {
+export class TournamentScheduler {
   // Track scheduled timers: tournamentId/matchId → event
   private tournamentTimers = new Map<number, ScheduledEvent>();
   private matchTimers = new Map<string, ScheduledEvent>();
@@ -58,7 +58,7 @@ export class TournamentLifecycleManager {
     private readonly gatewayNotificationClient: GatewayNotificationClient,
     private readonly chatServiceClient: ChatServiceClient,
     private readonly timerProvider: TimerProvider = defaultTimerProvider,
-    private readonly logger?: Logger
+    private readonly logger?: FastifyBaseLogger
   ) {}
 
   /**

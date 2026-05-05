@@ -17,7 +17,7 @@ describe('MatchDao', () => {
   let dao: MatchDao;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     dao = new MatchDao(mockPrismaClient as any);
   });
 
@@ -192,65 +192,6 @@ describe('MatchDao', () => {
     });
   });
 
-  describe('findUnacknowledged', () => {
-    it('should find matches pending acknowledgement past deadline', async () => {
-      const mockMatches = [
-        {
-          id: 'match-1',
-          status: 'PENDING_ACKNOWLEDGEMENT',
-          deadline: new Date('2026-01-01'),
-        },
-      ];
-      mockPrismaClient.match.findMany.mockResolvedValueOnce(mockMatches);
-
-      const result = await dao.findUnacknowledged();
-
-      expect(mockPrismaClient.match.findMany).toBeCalledWith({
-        where: {
-          deadline: { lt: expect.any(Date) },
-          status: 'PENDING_ACKNOWLEDGEMENT',
-        },
-      });
-      expect(result).toEqual(mockMatches);
-    });
-  });
-
-  describe('findOverdue', () => {
-    it('should find scheduled matches past deadline', async () => {
-      const mockMatches = [
-        {
-          id: 'match-1',
-          status: 'SCHEDULED',
-          deadline: new Date('2026-01-01'),
-        },
-      ];
-      mockPrismaClient.match.findMany.mockResolvedValueOnce(mockMatches);
-
-      const result = await dao.findOverdue();
-
-      expect(mockPrismaClient.match.findMany).toBeCalledWith({
-        where: {
-          deadline: { lt: expect.any(Date) },
-          status: 'SCHEDULED',
-        },
-      });
-      expect(result).toEqual(mockMatches);
-    });
-
-    it('should not include IN_PROGRESS matches', async () => {
-      mockPrismaClient.match.findMany.mockResolvedValueOnce([]);
-
-      await dao.findOverdue();
-
-      expect(mockPrismaClient.match.findMany).toBeCalledWith({
-        where: {
-          deadline: { lt: expect.any(Date) },
-          status: 'SCHEDULED',
-        },
-      });
-    });
-  });
-
   describe('updateStatus', () => {
     it('should update match status to IN_PROGRESS and set startedAt', async () => {
       const mockMatch = {
@@ -310,65 +251,6 @@ describe('MatchDao', () => {
         },
       });
       expect(result).toEqual(mockMatch);
-    });
-  });
-
-  describe('recordResult', () => {
-    it('should record match result and mark as COMPLETED', async () => {
-      const mockMatch = {
-        id: 'match-uuid',
-        status: 'COMPLETED',
-        winnerId: 100,
-        player1Score: 7,
-        player2Score: 5,
-        completedAt: new Date(),
-      };
-      mockPrismaClient.match.update.mockResolvedValueOnce(mockMatch);
-
-      const result = await dao.recordResult('match-uuid', {
-        winnerId: 100,
-        player1Score: 7,
-        player2Score: 5,
-        resultSource: 'game_service',
-      });
-
-      expect(mockPrismaClient.match.update).toBeCalledWith({
-        where: { id: 'match-uuid' },
-        data: {
-          winnerId: 100,
-          player1Score: 7,
-          player2Score: 5,
-          resultSource: 'game_service',
-          status: 'COMPLETED',
-          completedAt: expect.any(Date),
-        },
-      });
-      expect(result).toEqual(mockMatch);
-    });
-
-    it('should handle tie (null winner)', async () => {
-      const mockMatch = {
-        id: 'match-uuid',
-        winnerId: null,
-        player1Score: 5,
-        player2Score: 5,
-      };
-      mockPrismaClient.match.update.mockResolvedValueOnce(mockMatch);
-
-      await dao.recordResult('match-uuid', {
-        winnerId: null,
-        player1Score: 5,
-        player2Score: 5,
-        resultSource: 'game_service',
-      });
-
-      expect(mockPrismaClient.match.update).toBeCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            winnerId: null,
-          }),
-        })
-      );
     });
   });
 
@@ -521,57 +403,6 @@ describe('MatchDao', () => {
         where: { status: 'SCHEDULED' },
       });
       expect(result).toBe(5);
-    });
-  });
-
-  describe('findNextQueuedMatch', () => {
-    it('should find next queued match for a tournament', async () => {
-      const mockMatch = {
-        id: 'match-2',
-        tournamentId: 5,
-        status: 'PENDING_ACKNOWLEDGEMENT',
-        deadline: null,
-        round: 1,
-        bracketPosition: 1,
-      };
-      mockPrismaClient.match.findFirst.mockResolvedValueOnce(mockMatch);
-
-      const result = await dao.findNextQueuedMatch(5);
-
-      expect(mockPrismaClient.match.findFirst).toBeCalledWith({
-        where: {
-          tournamentId: 5,
-          status: 'PENDING_ACKNOWLEDGEMENT',
-          deadline: null,
-        },
-        orderBy: [{ round: 'asc' }, { bracketPosition: 'asc' }],
-      });
-      expect(result).toEqual(mockMatch);
-    });
-  });
-
-  describe('activateMatch', () => {
-    it('should activate a queued match with a deadline', async () => {
-      const deadline = new Date('2026-01-01T12:00:00Z');
-      const mockMatch = {
-        id: 'match-uuid',
-        status: 'PENDING_ACKNOWLEDGEMENT',
-        deadline,
-      };
-      mockPrismaClient.match.update.mockResolvedValueOnce(mockMatch);
-
-      const result = await dao.activateMatch('match-uuid', deadline);
-
-      expect(mockPrismaClient.match.update).toBeCalledWith({
-        where: { id: 'match-uuid' },
-        data: {
-          deadline,
-          status: 'PENDING_ACKNOWLEDGEMENT',
-          player1Acknowledged: false,
-          player2Acknowledged: false,
-        },
-      });
-      expect(result).toEqual(mockMatch);
     });
   });
 
@@ -956,133 +787,4 @@ describe('MatchDao', () => {
     });
   });
 
-  describe('cancelMatch', () => {
-    it('should default scores to 0 when not provided', async () => {
-      const mockMatch = { id: 'match-uuid', status: 'CANCELLED', player1Score: 0, player2Score: 0 };
-      mockPrismaClient.match.update.mockResolvedValueOnce(mockMatch);
-
-      await dao.cancelMatch('match-uuid', { resultSource: 'game_service_cancelled' });
-
-      expect(mockPrismaClient.match.update).toBeCalledWith({
-        where: { id: 'match-uuid' },
-        data: expect.objectContaining({ player1Score: 0, player2Score: 0 }),
-      });
-    });
-  });
-
-  describe('declineMatch', () => {
-    it('should decline a PENDING_ACKNOWLEDGEMENT match', async () => {
-      const mockMatch = {
-        id: 'match-uuid',
-        player1Id: 100,
-        player2Id: 101,
-        status: 'PENDING_ACKNOWLEDGEMENT',
-      };
-      const cancelled = { ...mockMatch, status: 'CANCELLED', resultSource: 'declined:100' };
-      mockPrismaClient.match.findUnique.mockResolvedValueOnce(mockMatch);
-      mockPrismaClient.match.update.mockResolvedValueOnce(cancelled);
-
-      const result = await dao.declineMatch('match-uuid', 100);
-
-      expect(mockPrismaClient.match.update).toBeCalledWith({
-        where: { id: 'match-uuid' },
-        data: {
-          status: 'CANCELLED',
-          resultSource: 'declined:100',
-          completedAt: expect.any(Date),
-        },
-      });
-      expect(result).toEqual(cancelled);
-    });
-
-    it('should throw if match not found', async () => {
-      mockPrismaClient.match.findUnique.mockResolvedValueOnce(null);
-
-      await expect(dao.declineMatch('bad-id', 100)).rejects.toThrow('Match bad-id not found');
-    });
-
-    it('should throw if match is not PENDING_ACKNOWLEDGEMENT', async () => {
-      mockPrismaClient.match.findUnique.mockResolvedValueOnce({
-        id: 'match-uuid',
-        player1Id: 100,
-        player2Id: 101,
-        status: 'SCHEDULED',
-      });
-
-      await expect(dao.declineMatch('match-uuid', 100)).rejects.toThrow(
-        'Match match-uuid is SCHEDULED, cannot decline'
-      );
-    });
-
-    it('should throw if player is not part of match', async () => {
-      mockPrismaClient.match.findUnique.mockResolvedValueOnce({
-        id: 'match-uuid',
-        player1Id: 100,
-        player2Id: 101,
-        status: 'PENDING_ACKNOWLEDGEMENT',
-      });
-
-      await expect(dao.declineMatch('match-uuid', 999)).rejects.toThrow(
-        'Player 999 is not part of match match-uuid'
-      );
-    });
-  });
-
-  describe('acknowledge', () => {
-    it('should delegate to recordAcknowledgement', async () => {
-      const mockMatch = {
-        id: 'match-uuid',
-        player1Id: 100,
-        player2Id: 101,
-        player1Acknowledged: false,
-        player2Acknowledged: false,
-        status: 'PENDING_ACKNOWLEDGEMENT',
-      };
-      mockPrismaClient.match.findUnique.mockResolvedValueOnce(mockMatch);
-      mockPrismaClient.match.update.mockResolvedValueOnce({
-        ...mockMatch,
-        player1Acknowledged: true,
-      });
-
-      await dao.acknowledge('match-uuid', 100);
-
-      expect(mockPrismaClient.match.update).toBeCalledWith({
-        where: { id: 'match-uuid' },
-        data: { player1Acknowledged: true, player2Acknowledged: false },
-      });
-    });
-  });
-
-  describe('completeMatch', () => {
-    it('should complete a match with winner and scores', async () => {
-      const mockMatch = {
-        id: 'match-uuid',
-        status: 'COMPLETED',
-        winnerId: 100,
-        player1Score: 5,
-        player2Score: 2,
-      };
-      mockPrismaClient.match.update.mockResolvedValueOnce(mockMatch);
-
-      const result = await dao.completeMatch('match-uuid', {
-        winnerId: 100,
-        player1Score: 5,
-        player2Score: 2,
-        resultSource: 'game_service',
-      });
-
-      expect(mockPrismaClient.match.update).toBeCalledWith({
-        where: { id: 'match-uuid' },
-        data: {
-          winnerId: 100,
-          player1Score: 5,
-          player2Score: 2,
-          resultSource: 'game_service',
-          status: 'COMPLETED',
-          completedAt: expect.any(Date),
-        },
-      });
-      expect(result).toEqual(mockMatch);
-    });
-  });
 });

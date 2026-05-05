@@ -1,172 +1,33 @@
 import fastify from 'fastify';
-import cors from '@fastify/cors';
-import helmet from '@fastify/helmet';
 import { getPrismaClient, disconnectPrisma } from './db/prisma.client.js';
 import { loggerOptions } from './config/logger.js';
-import { MatchDao } from './dao/match.js';
-import { TournamentDao } from './dao/tournament.js';
-import { TournamentParticipantDao } from './dao/tournament-participant.js';
-import { MatchmakingService } from './services/casual-matchmaking.js';
-import { PoolRegistry } from './services/pool-registry.js';
-import { MatchReporting } from './services/match-reporting.js';
-import { GameServerClient } from './services/game-server-client.js';
-import { ChatServiceClient } from './services/chat-service-client.js';
-import { GatewayNotificationClient } from './services/gateway-notification-client.js';
-import { TournamentService } from './services/tournament.js';
-import { TournamentLifecycleManager } from './services/tournament-lifecycle.js';
+import { createClients } from './config/clients.js';
+import { createServices } from './config/services.js';
+import { registerHealthRoutes } from './routes/health.js';
 import { registerMatchmakingRoutes } from './routes/matchmaking.js';
 import { registerMatchRoutes } from './routes/match.js';
 import { registerTournamentRoutes } from './routes/tournament.js';
 import { registerDirectChallengeRoutes } from './routes/direct-challenge.js';
 import { registerHistoryRoutes } from './routes/history.js';
-import { GameMode } from './types/match.js';
 
 const server = fastify({ logger: loggerOptions });
-
-// Register plugins
-await server.register(cors, {
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-  credentials: true
-});
-
-await server.register(helmet, {
-  contentSecurityPolicy: false // Disable for API
-});
-
-// Initialize services
 const prisma = getPrismaClient();
-const matchDao = new MatchDao(prisma);
+const clients = createClients(server.log);
+const services = await createServices(prisma, clients, server.log);
 
-// Create matchmaking pools for each game mode
-const classicPool = new MatchmakingService(matchDao, 'classic', server.log);
-const powerupPool = new MatchmakingService(matchDao, 'powerup', server.log);
+await registerHealthRoutes(server, prisma, services);
+await registerMatchmakingRoutes(server, services.pools, services.poolRegistry, clients.chatServiceClient, clients.gatewayNotificationClient, services.matchDao, services.participantDao);
+await registerMatchRoutes(server, services.matchDao, services.tournamentDao, services.matchReporting, clients.gameServerClient, clients.chatServiceClient, clients.gatewayNotificationClient, services.scheduler);
+await registerTournamentRoutes(server, services.tournamentService, clients.gatewayNotificationClient, services.scheduler);
+await registerDirectChallengeRoutes(server, services.matchDao, clients.chatServiceClient, services.pools, services.poolRegistry);
+await registerHistoryRoutes(server, services.matchReporting);
 
-const gameServerClient = new GameServerClient(
-  process.env.GAME_SERVER_URL || 'http://localhost:2567',
-  server.log
-);
-
-const chatServiceClient = new ChatServiceClient(
-  process.env.CHAT_SERVICE_URL || 'http://localhost:3006',
-  server.log
-);
-
-const gatewayNotificationClient = new GatewayNotificationClient(
-  process.env.GATEWAY_URL || 'http://localhost:3000',
-  server.log
-);
-
-const pools: Record<GameMode, MatchmakingService> = {
-  classic: classicPool,
-  powerup: powerupPool
-};
-
-// Pool registry to track which pool each user is in
-const poolRegistry = new PoolRegistry();
-
-// HTTP client for User Management service
-const userManagementClient = {
-  async reportMatchResult(message: { playerId: number; isWinner: boolean }): Promise<void> {
-    const userManagementUrl = process.env.USER_MANAGEMENT_URL || 'http://localhost:3004';
-    try {
-      const response = await fetch(`${userManagementUrl}/users/profile/update-stats`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: message.playerId, is_winner: message.isWinner })
-      });
-      if (!response.ok) {
-        server.log.warn({ playerId: message.playerId, status: response.status }, 'Failed to report match result');
-      }
-    } catch (error) {
-      server.log.error({ error, playerId: message.playerId }, 'Error reporting match result');
-    }
-  }
-};
-
-// Match reporting service for sending results to user management
-const matchReporting = new MatchReporting(matchDao, userManagementClient, server.log);
-
-// Tournament services
-const tournamentDao = new TournamentDao(prisma);
-const participantDao = new TournamentParticipantDao(prisma);
-const tournamentService = new TournamentService(
-  tournamentDao,
-  participantDao,
-  matchDao,
-  server.log
-);
-const lifecycleManager = new TournamentLifecycleManager(
-  tournamentService,
-  tournamentDao,
-  matchDao,
-  gatewayNotificationClient,
-  chatServiceClient,
-  undefined, // use default timer provider
-  server.log
-);
-
-// Initialize matchmaking pools
-await classicPool.initialize();
-await powerupPool.initialize();
-
-// Initialize tournament lifecycle (recovers pending events from DB)
-await lifecycleManager.initialize();
-
-// Health check endpoint
-server.get('/health', async () => {
-  return {
-    status: 'healthy',
-    service: 'matchmaking-service',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  };
-});
-
-// Detailed health check (includes database)
-server.get('/health/detailed', async () => {
-  let dbHealthy = false;
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    dbHealthy = true;
-  } catch (error) {
-    server.log.error({ error }, 'Database health check failed');
-  }
-
-  const timerCounts = lifecycleManager.getTimerCounts();
-
-  return {
-    status: dbHealthy ? 'healthy' : 'degraded',
-    service: 'matchmaking-service',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    database: dbHealthy ? 'connected' : 'disconnected',
-    poolSize: {
-      classic: classicPool.getPoolSize(),
-      powerup: powerupPool.getPoolSize(),
-      total: classicPool.getPoolSize() + powerupPool.getPoolSize()
-    },
-    tournaments: {
-      activeTimers: timerCounts.tournaments,
-      matchTimers: timerCounts.matches
-    }
-  };
-});
-
-// Register routes
-await registerMatchmakingRoutes(server, pools, poolRegistry, chatServiceClient,gatewayNotificationClient, matchDao, participantDao);
-await registerMatchRoutes(server, matchDao, tournamentDao, matchReporting, gameServerClient, chatServiceClient, gatewayNotificationClient, lifecycleManager);
-await registerTournamentRoutes(server, tournamentService, gatewayNotificationClient, lifecycleManager);
-await registerDirectChallengeRoutes(server, matchDao, chatServiceClient, pools, poolRegistry);
-await registerHistoryRoutes(server, matchReporting);
-
-// Graceful shutdown
 const shutdown = async (signal: string) => {
   server.log.info(`Received ${signal}, shutting down gracefully`);
-
   try {
-    lifecycleManager.shutdown();
-    await classicPool.shutdown();
-    await powerupPool.shutdown();
+    services.scheduler.shutdown();
+    await services.pools.classic.shutdown();
+    await services.pools.powerup.shutdown();
     await disconnectPrisma();
     await server.close();
     server.log.info('Server closed successfully');
@@ -180,12 +41,10 @@ const shutdown = async (signal: string) => {
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
-// Start server
 const start = async () => {
   try {
     const host = process.env.HOST || '0.0.0.0';
     const port = parseInt(process.env.PORT || '3005', 10);
-
     await server.listen({ port, host });
     server.log.info(`Matchmaking service listening on ${host}:${port}`);
   } catch (error) {

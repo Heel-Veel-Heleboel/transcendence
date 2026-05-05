@@ -1,17 +1,17 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import {
-  TournamentLifecycleManager,
+  TournamentScheduler,
   TimerProvider
-} from '../../src/services/tournament-lifecycle.js';
+} from '../../src/services/tournament-scheduler.js';
 import { TournamentService } from '../../src/services/tournament.js';
 import { TournamentDao } from '../../src/dao/tournament.js';
 import { MatchDao } from '../../src/dao/match.js';
-import { GatewayNotificationClient } from '../../src/services/gateway-notification-client.js';
-import { ChatServiceClient } from '../../src/services/chat-service-client.js';
+import { GatewayNotificationClient } from '../../src/clients/gateway-notification-client.js';
+import { ChatServiceClient } from '../../src/clients/chat-service-client.js';
 import { Tournament, Match, TournamentStatus } from '../../generated/prisma/index.js';
 
-describe('TournamentLifecycleManager', () => {
-  let manager: TournamentLifecycleManager;
+describe('TournamentScheduler', () => {
+  let manager: TournamentScheduler;
   let mockTournamentService: TournamentService;
   let mockTournamentDao: TournamentDao;
   let mockMatchDao: MatchDao;
@@ -29,6 +29,7 @@ describe('TournamentLifecycleManager', () => {
     matchDurationMin: 3,
     ackDeadlineMin: 20,
     createdBy: 100,
+    createdByUserName: 'testuser',
     registrationStart: new Date(),
     registrationEnd: new Date(Date.now() + 3600000), // 1 hour from now
     startTime: null,
@@ -110,7 +111,7 @@ describe('TournamentLifecycleManager', () => {
       sendMatchAck: vi.fn().mockResolvedValue(undefined),
     } as unknown as ChatServiceClient;
 
-    manager = new TournamentLifecycleManager(
+    manager = new TournamentScheduler(
       mockTournamentService,
       mockTournamentDao,
       mockMatchDao,
