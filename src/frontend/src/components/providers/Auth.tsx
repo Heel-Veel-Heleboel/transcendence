@@ -143,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         const refreshIntercept = api.interceptors.response.use((config) => {
             return config;
         }, async (error) => {
-            if (error.response?.status === 401) {
+            if (error.response?.status === 401 && !error.config?.url?.endsWith('/login')) {
                 if (isRefreshing.current) {
                     return Promise.reject(error);
                 }
