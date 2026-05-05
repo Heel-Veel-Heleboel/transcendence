@@ -22,6 +22,8 @@ export function VisitorProfileAvatar({ visitorId }: { visitorId?: string }) {
     const watchedId = visitorId ?? auth.userId;
 
     useEffect(() => {
+        setLoading(true);
+        setError(false);
         async function getProfile() {
             try {
                 const result = await userService.getProfile(watchedId);
@@ -33,7 +35,7 @@ export function VisitorProfileAvatar({ visitorId }: { visitorId?: string }) {
             }
         }
         getProfile();
-    }, [])
+    }, [watchedId])
 
     useEffect(() => {
         if (userStatusUpdate && String(userStatusUpdate.userId) === String(watchedId)) {
@@ -79,6 +81,8 @@ export function VisitorProfilePicture({ profile }: { profile: IProfile }) {
     const [error, setError] = useState<boolean>(false);
 
     useEffect(() => {
+        setLoading(true);
+        setError(false);
         async function getProfileAvatar() {
             try {
                 if (profile.avatar_url === null) {
@@ -95,7 +99,7 @@ export function VisitorProfilePicture({ profile }: { profile: IProfile }) {
             }
         }
         getProfileAvatar();
-    }, [])
+    }, [profile.avatar_url])
 
     if (loading) {
         return (
