@@ -25,6 +25,7 @@ export function TwoFactor() {
         try {
             await auth.verifyTwoFactor(token);
             alert('verification succes');
+            window.location.reload();
         } catch (e: any) {
             alert('verification failed');
             console.error(e);
@@ -35,7 +36,7 @@ export function TwoFactor() {
         <div id={'Two-Factor Authentication'.toLowerCase().replace(' ', '-')}>
             <div className="flex flex-col">
                 <div className="w-full">
-                    <button onClick={handleDropDown}>{'Two-Factor Authentication'}</button>
+                    <button onClick={handleDropDown} className="hover:underline">{'Two-Factor Authentication'}</button>
                 </div>
             </div>
             {
@@ -45,7 +46,7 @@ export function TwoFactor() {
                         <span>Two-Factor Authenticator App</span>
                     </div>
                     <div className="flex w-3/5">
-                        <button className="border w-1/2" onClick={request}>setup</button>
+                        <button className="border w-1/2 hover:bg-white/10" onClick={request}>setup</button>
                     </div>
                 </div>
             }

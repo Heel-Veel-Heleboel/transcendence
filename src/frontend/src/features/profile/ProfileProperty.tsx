@@ -11,7 +11,7 @@ export function DisplayedProfileProperty({ title, property, toggleDropDown, show
                 <div className="w-2/5 text-left truncate">{property}</div>
                 <div className="w-1/10">•</div>
                 <div className="w-1/5">
-                    <button onClick={toggleDropDown}>{showDropdown ? "Cancel" : "Change"}</button>
+                    <button onClick={toggleDropDown} className="hover:underline">{showDropdown ? "Cancel" : "Change"}</button>
                 </div>
             </div>
             {showDropdown && children}
@@ -24,7 +24,7 @@ export function HiddenProfileProperty({ title, toggleDropDown, showDropdown, chi
         <div id={htmlIdefier(title) + '-property'}>
             <div className="flex">
                 <div className="w-full text-xl truncate">
-                    <button onClick={toggleDropDown}>{showDropdown ? "Cancel " + title : title}</button>
+                    <button onClick={toggleDropDown} className="hover:underline">{showDropdown ? "Cancel " + title : title}</button>
                 </div>
             </div>
             {showDropdown && children}

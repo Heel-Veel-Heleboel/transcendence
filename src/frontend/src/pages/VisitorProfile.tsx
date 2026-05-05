@@ -38,11 +38,11 @@ export function VisitorProfileContent({ userId }: { userId: string }): JSX.Eleme
                     <ProfileProperties>
                         <VisitorProfilePropertiesPrimary userId={userId} />
                         <ProfilePropertiesSecundary>
-                            <div className="w-3/10">
+                            <div className="w-3/10 h-44">
                                 <ProfileStats userId={userId} />
                             </div>
                             <div className="w-1/20"></div>
-                            <div className="w-5/10 min-h-1/2">
+                            <div className="w-5/10 h-44">
                                 <MatchHistory userId={userId} />
                             </div>
                             <div className="w-1/20"></div>
