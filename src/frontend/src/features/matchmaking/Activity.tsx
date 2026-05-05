@@ -136,7 +136,7 @@ export function PendingMatch({ status }: { status: IMatchmakingStatus }) {
                 if (status.activeMatchId) {
                     const result = await service.getMatchInfo(status.activeMatchId);
                     const match = result.data;
-                    const name = String(match.player1Id) === auth.userId ? match.player2Username : match.player1Username;
+                    const name = String(match.player1Id) === auth.userId ? match.player2Username : String(match.player2Id) === auth.userId ? match.player1Username : 'unknown';
                     setOpponent(name);
                 }
             } catch (e: any) {

@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { HOME_NAVIGATION } from "../../shared/constants/navigation";
 import { useMatchMakingService } from "../../components/providers/Match";
+import { extractApiError } from "../../shared/utils/error";
 
 export function TournamentCreationForm({ mode }: { mode: string }) {
     const navigate = useNavigate()
@@ -22,11 +23,10 @@ export function TournamentCreationForm({ mode }: { mode: string }) {
 
         try {
             await service.setTournament({ name, gameMode })
-            alert(`tournament: ${name} created`)
+            alert(`${gameMode} tournament: ${name} created`)
             navigate(HOME_NAVIGATION);
         } catch (e: any) {
-            alert('failed to create tournament')
-            console.error(e);
+            alert(`Failed to create tournament: ${extractApiError(e)}`);
         }
     };
     return (

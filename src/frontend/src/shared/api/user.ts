@@ -6,7 +6,12 @@ import {
   IGetProfileAvatar,
   ISetProfileAvatar
 } from '../types/profile';
-import { IBlockUser, ICancelRequest, IFriendshipBetween, ISetFriendshipStatus } from '../types/friendship';
+import {
+  IBlockUser,
+  ICancelRequest,
+  IFriendshipBetween,
+  ISetFriendshipStatus
+} from '../types/friendship';
 
 export class UserService {
   private base: string;
@@ -68,7 +73,10 @@ export class UserService {
       headers: {
         'Content-Type': 'application/json'
       },
-      data: JSON.stringify({ requester_id: Number(data.requester_id), addressee_id: Number(data.addressee_id) })
+      data: JSON.stringify({
+        requester_id: Number(data.requester_id),
+        addressee_id: Number(data.addressee_id)
+      })
     } as AxiosRequestConfig;
     const response = await api(config);
     return response;
@@ -81,7 +89,11 @@ export class UserService {
       headers: {
         'Content-Type': 'application/json'
       },
-      data: JSON.stringify({ id: Number(data.id), status: data.status, addressee_id: data.addressee_id })
+      data: JSON.stringify({
+        id: Number(data.id),
+        status: data.status,
+        addressee_id: data.addressee_id
+      })
     } as AxiosRequestConfig;
     const response = await api(config);
     return response;
@@ -94,7 +106,10 @@ export class UserService {
       headers: {
         'Content-Type': 'application/json'
       },
-      data: JSON.stringify({ friendship_id: data.friendship_id, requester_id: data.requester_id })
+      data: JSON.stringify({
+        friendship_id: data.friendship_id,
+        requester_id: data.requester_id
+      })
     } as AxiosRequestConfig;
     const response = await api(config);
     return response;
@@ -107,7 +122,10 @@ export class UserService {
       headers: {
         'Content-Type': 'application/json'
       },
-      data: JSON.stringify({ blocker_id: data.blocker_id, blocked_id: data.blocked_id })
+      data: JSON.stringify({
+        blocker_id: data.blocker_id,
+        blocked_id: data.blocked_id
+      })
     } as AxiosRequestConfig;
     const response = await api(config);
     return response;
@@ -120,7 +138,10 @@ export class UserService {
       headers: {
         'Content-Type': 'application/json'
       },
-      data: JSON.stringify({ blocker_id: data.blocker_id, blocked_id: data.blocked_id })
+      data: JSON.stringify({
+        blocker_id: data.blocker_id,
+        blocked_id: data.blocked_id
+      })
     } as AxiosRequestConfig;
     const response = await api(config);
     return response;
@@ -173,6 +194,19 @@ export class UserService {
         'Content-Type': 'application/json'
       },
       data: JSON.stringify({ user_id: Number(data.user_id) })
+    } as AxiosRequestConfig;
+    const response = await api(config);
+    return response;
+  }
+
+  async deleteFriendship(data: string) {
+    const config = {
+      url: this.base + '/friendship/delete',
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: JSON.stringify({ id: Number(data) })
     } as AxiosRequestConfig;
     const response = await api(config);
     return response;

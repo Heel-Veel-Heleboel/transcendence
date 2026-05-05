@@ -109,6 +109,17 @@ export async function registerMatchRoutes(
               }
             );
 
+            // Re-send the chat match-ack so players get a fresh acknowledgement prompt
+            chatServiceClient.sendMatchAck(
+              matchId,
+              [resetMatch.player1Id, resetMatch.player2Id],
+              resetMatch.gameMode,
+              newDeadline,
+              tournament ? { id: tournament.id, name: tournament.name } : undefined
+            ).catch(ackErr => {
+              request.log.error({ ackErr, matchId }, 'Failed to re-send match-ack after tournament match retry');
+            });
+
             request.log.info({ matchId }, 'Tournament match reset to PENDING_ACK after game server failure');
           }
           // Casual match stays SCHEDULED — crash report flow (TRAN-274) handles recovery
@@ -163,13 +174,13 @@ export async function registerMatchRoutes(
 
       let updatedMatch;
       if (match.tournamentId) {
-        // Tournament match: treat decline as forfeit — other player wins 7-0
+        // Tournament match: treat decline as forfeit — other player wins 5-0
         const winnerId = match.player1Id === userId ? match.player2Id : match.player1Id;
         const isPlayer1Declining = match.player1Id === userId;
         updatedMatch = await matchDao.completeMatch(matchId, {
           winnerId,
-          player1Score: isPlayer1Declining ? 0 : 7,
-          player2Score: isPlayer1Declining ? 7 : 0,
+          player1Score: isPlayer1Declining ? 0 : 5,
+          player2Score: isPlayer1Declining ? 5 : 0,
           resultSource: `forfeit:declined:${userId}`
         });
         // Override status to FORFEITED
@@ -261,7 +272,44 @@ export async function registerMatchRoutes(
       }
 
       if (!isFinished) {
-        // Game ended prematurely — cancel the match
+        // Game ended prematurely
+        if (match.tournamentId) {
+          // Tournament match: reset to PENDING_ACK with a fresh deadline so players re-acknowledge
+          const tournament = await tournamentDao.findById(match.tournamentId);
+          const ackMinutes = tournament?.ackDeadlineMin ?? 20;
+          const newDeadline = new Date(Date.now() + ackMinutes * 60 * 1000);
+          const resetMatch = await matchDao.resetToPendingAck(matchId, newDeadline);
+
+          lifecycleManager?.onMatchCreated(resetMatch);
+          gatewayNotificationClient.notifyUsers(
+            [resetMatch.player1Id, resetMatch.player2Id],
+            {
+              type: 'TOURNAMENT_MATCH_RETRY',
+              matchId,
+              tournamentId: resetMatch.tournamentId,
+              deadline: newDeadline.toISOString(),
+              gameMode: resetMatch.gameMode
+            }
+          );
+          chatServiceClient.sendMatchAck(
+            matchId,
+            [resetMatch.player1Id, resetMatch.player2Id],
+            resetMatch.gameMode,
+            newDeadline,
+            tournament ? { id: tournament.id, name: tournament.name } : undefined
+          ).catch(ackErr => {
+            request.log.error({ ackErr, matchId }, 'Failed to re-send match-ack after tournament game crash');
+          });
+
+          request.log.info({ matchId }, 'Tournament match reset to PENDING_ACK after game crash');
+          return reply.status(200).send({
+            success: true,
+            matchId,
+            status: 'PENDING_ACKNOWLEDGEMENT'
+          });
+        }
+
+        // Casual match: cancel
         const updatedMatch = await matchDao.cancelMatch(matchId, {
           player1Score: player1Score ?? 0,
           player2Score: player2Score ?? 0,
@@ -269,7 +317,6 @@ export async function registerMatchRoutes(
         });
 
         request.log.info({ matchId, player1Score, player2Score }, 'Match cancelled (premature end)');
-
 
         gatewayNotificationClient.notifyUsers(
           [updatedMatch.player1Id, updatedMatch.player2Id],

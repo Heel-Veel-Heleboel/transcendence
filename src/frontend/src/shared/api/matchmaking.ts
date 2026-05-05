@@ -85,6 +85,15 @@ export class MatchmakingService {
     return response;
   }
 
+  async leaveTournament(tournamentId: string) {
+    const config = {
+      url: this.base + `/tournament/${tournamentId}/leave`,
+      method: 'POST'
+    } as AxiosRequestConfig;
+    const response = await api(config);
+    return response;
+  }
+
   async joinClassic() {
     const config = {
       url: this.base + '/classic/join',
