@@ -17,7 +17,7 @@ export async function registerHealthRoutes(
   server.get('/health/detailed', async () => {
     let dbHealthy = false;
     try {
-      await prisma.match.count();
+      await prisma.match.findFirst({ select: { id: true } });
       dbHealthy = true;
     } catch (error) {
       server.log.error({ error }, 'Database health check failed');
