@@ -33,7 +33,6 @@ export function LoginForm(): JSX.Element {
                 navigate(TWO_FACTOR_NAVIGATION, { state: { email, password } });
             } else {
                 setErrorMessage(extractApiError(e));
-                console.error(e);
             }
         }
     };

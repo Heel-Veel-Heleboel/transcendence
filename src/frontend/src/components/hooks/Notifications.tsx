@@ -41,7 +41,12 @@ export function useNotifications() {
                     else if (msg.type === 'chat:match_ack_response') {
                         setMatchUpdate(event.timeStamp)
                     }
-                    else if (msg.type === 'TOURNAMENT_UPDATE') {
+                    if (msg.type === 'TOURNAMENT_MATCH_RETRY') {
+                        setMatchUpdate(event.timeStamp);
+                        setChatUpdate(event.timeStamp);
+                        setMessageUpdate(event.timeStamp);
+                    }
+                    if (msg.type === 'TOURNAMENT_UPDATE' || msg.type === 'TOURNAMENT_BRACKET_UPDATE') {
                         setTournamentUpdate(event.timeStamp);
                     }
                     else if (msg.type === 'FRIENDSHIP_REQUEST' || msg.type === 'FRIENDSHIP_REQUEST_CANCELLED' || msg.type === 'FRIENDSHIP_CHANGED' || msg.type === 'FRIENDSHIP_DELETED' || msg.type === 'BLOCK' || msg.type === 'UNBLOCK') {

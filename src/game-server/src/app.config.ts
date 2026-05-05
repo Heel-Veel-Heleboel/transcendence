@@ -46,6 +46,10 @@ const server = defineServer({
   express: app => {
     app.use(express.json());
 
+    app.get('/health', (_req, res) => {
+      res.json({ status: 'healthy', service: 'game-server' });
+    });
+
     /**
      * Called by matchmaking service when two players are paired.
      * Creates a Colyseus room with the match context so the game server can

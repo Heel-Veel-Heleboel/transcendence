@@ -9,6 +9,8 @@ import { P5Canvas, P5CanvasInstance } from "@p5-wrapper/react"
 import p5 from 'p5';
 import { CONFIG } from "../shared/config/AppConfig";
 import { Widget } from "../components/layout/Widget";
+import { useAuth } from "../components/providers/Auth";
+import { useNotifications } from "../components/hooks/Notifications";
 
 export function Tournament(): JSX.Element {
     const { tournamentId } = useParams()
@@ -36,7 +38,7 @@ export function Tournament(): JSX.Element {
 export function TournamentContainer({ children }: { children: ReactNode }): JSX.Element {
     return (
 
-        <div className="w-full min-h-full flex flex-col bg-blue-500/50">
+        <div className="w-full h-14/15 flex flex-col bg-blue-500/50">
             {children}
         </div>
 
@@ -55,6 +57,7 @@ export function TournamentInfo({ children }: { children: ReactNode }) {
 
 export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
     const service = useMatchMakingService();
+    const { tournamentUpdate } = useNotifications();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
     const [matches, setMatches] = useState<IMatches>(DEFAULT_MATCHES);
@@ -72,7 +75,7 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
             }
         }
         getTournamentBrackets();
-    }, [])
+    }, [tournamentUpdate])
 
     if (loading) {
         return (
@@ -322,9 +325,13 @@ export function TournamentBrackets({ tournamentId }: { tournamentId: string }) {
 
 export function TournamentGeneralInfo({ tournamentId }: { tournamentId: string }) {
     const service = useMatchMakingService();
+    const auth = useAuth();
+    const navigate = useNavigate();
+    const { tournamentUpdate } = useNotifications();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
     const [tournament, setTournament] = useState<ITournament>(DEFAULT_TOURNAMENT);
+    const [leaving, setLeaving] = useState<boolean>(false);
 
     useEffect(() => {
         async function getTournament() {
@@ -339,7 +346,19 @@ export function TournamentGeneralInfo({ tournamentId }: { tournamentId: string }
             }
         }
         getTournament();
-    }, [])
+    }, [tournamentUpdate])
+
+    async function handleLeave() {
+        if (!confirm('Leave tournament? Your next match will be forfeited.')) return;
+        setLeaving(true);
+        try {
+            await service.leaveTournament(tournamentId);
+            navigate('/');
+        } catch (e: any) {
+            console.error(e);
+            setLeaving(false);
+        }
+    }
 
     if (loading) {
         return (
@@ -356,6 +375,9 @@ export function TournamentGeneralInfo({ tournamentId }: { tournamentId: string }
             </div>
         )
     }
+
+    const canLeave = tournament.status === 'IN_PROGRESS' && !!auth.userId;
+
     return (
         <div id='tournament-general-info' className="w-1/3 flex flex-col justify-between">
             <div id="tournament-general-info-top-buffer" className="h-1/10"></div>
@@ -408,6 +430,18 @@ export function TournamentGeneralInfo({ tournamentId }: { tournamentId: string }
                     </div>
                 </Terminal>
             </div>
+            {canLeave && (
+                <div id="tournament-general-info-leave" className="flex justify-center py-2">
+                    <button
+                        id="tournament-leave-button"
+                        onClick={handleLeave}
+                        disabled={leaving}
+                        className="text-red-400 hover:text-red-300 disabled:opacity-50"
+                    >
+                        {leaving ? 'leaving...' : '[ leave tournament ]'}
+                    </button>
+                </div>
+            )}
             <div id="tournament-general-info-bottom-buffer" className="h-1/10"></div>
         </div>
     )
@@ -503,6 +537,7 @@ export function TournamentParticipants({ tournamentId }: { tournamentId: string 
 
 export function TournamentRankings({ tournamentId }: { tournamentId: string }) {
     const service = useMatchMakingService();
+    const { tournamentUpdate } = useNotifications();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
     const [rankings, setRankings] = useState<IRanking[]>([]);
@@ -521,7 +556,7 @@ export function TournamentRankings({ tournamentId }: { tournamentId: string }) {
             }
         }
         getTournamentRankings();
-    }, [])
+    }, [tournamentUpdate])
 
     if (loading) {
         return (

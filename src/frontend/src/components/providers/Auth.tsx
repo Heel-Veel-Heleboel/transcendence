@@ -43,8 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             const response = await service.register(data);
             return response
         } catch (e: any) {
-            console.error(e)
-            // TODO: error handling
             throw e
         }
     }
@@ -59,7 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             setIsAuthenticated(true);
             return response;
         } catch (e: any) {
-            console.error(e)
             setToken(failedToken);
             throw e
         }
@@ -75,8 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             }
             return response
         } catch (e: any) {
-            console.error(e);
-            // TODO: error handling
             throw e
         }
     }
@@ -90,8 +85,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             setIsLoading(false);
             return response;
         } catch (e: any) {
-            console.error(e);
-            // TODO: error handling
             failedAuthentication();
             throw e
         }
@@ -107,8 +100,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             }
             return response
         } catch (e: any) {
-            console.error(e);
-            // TODO: error handling
             throw e
         }
     }
@@ -118,8 +109,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             const response = await service.setTwoFactor({ user_id: Number(userId) })
             return response
         } catch (e: any) {
-            console.error(e);
-            // TODO: error handling
             throw e
         }
     }
@@ -129,8 +118,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             const response = await service.verifyTwoFactor({ user_id: Number(userId), token })
             return response
         } catch (e: any) {
-            console.error(e);
-            // TODO: error handling
             throw e
         }
     }
@@ -190,7 +177,11 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
             if (!userId) {
                 failedAuthentication();
             } else if (userId && !token) {
-                await refresh();
+                try {
+                    await refresh();
+                } catch (e: any) {
+                    console.error('autoLogin: token refresh failed:', e?.response?.status ?? e?.message);
+                }
             }
         }
         autoLogin();

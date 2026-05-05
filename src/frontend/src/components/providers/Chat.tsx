@@ -21,8 +21,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             const response = await service.getChannels();
             return (response.data);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -32,8 +30,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             const response = await service.getChannelMessages(channelId);
             return (response.data);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -42,8 +38,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         try {
             await service.setAck(data);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -52,8 +46,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         try {
             return await service.sendMessage(data);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -62,7 +54,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         try {
             return await service.createOrGetDMChannel(targetUserId);
         } catch (e: any) {
-            console.error(e);
             throw e
         }
     }
@@ -71,7 +62,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         try {
             return await service.markChannelRead(channelId);
         } catch (e: any) {
-            console.error(e);
             throw e
         }
     }

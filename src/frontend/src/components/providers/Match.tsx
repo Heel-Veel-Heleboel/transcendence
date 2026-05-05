@@ -21,8 +21,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.getStatus();
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -32,7 +30,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.getMatchInfo(matchId);
             return response
         } catch (e: any) {
-            console.error(e);
             throw e
         }
     }
@@ -42,7 +39,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.getTournamentInfo(tournamentId);
             return response
         } catch (e: any) {
-            console.error(e);
             throw e
         }
     }
@@ -52,7 +48,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.getTournamentRanking(tournamentId);
             return response
         } catch (e: any) {
-            console.error(e);
             throw e
         }
     }
@@ -62,7 +57,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.getTournamentMatches(tournamentId);
             return response
         } catch (e: any) {
-            console.error(e);
             throw e
         }
     }
@@ -72,7 +66,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.getTournamentParticipants(tournamentId);
             return response
         } catch (e: any) {
-            console.error(e);
             throw e
         }
     }
@@ -82,7 +75,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.getTournaments();
             return response
         } catch (e: any) {
-            console.error(e);
             throw e
         }
     }
@@ -92,7 +84,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.setTournament(data);
             return response
         } catch (e: any) {
-            console.error(e);
             throw e
         }
     }
@@ -102,7 +93,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.cancelTournament(tournamentId);
             return response
         } catch (e: any) {
-            console.error(e);
             throw e
         }
     }
@@ -112,7 +102,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.registerTournament(tournamentId);
             return response
         } catch (e: any) {
-            console.error(e);
             throw e
         }
     }
@@ -122,7 +111,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.unregisterTournament(tournamentId);
             return response
         } catch (e: any) {
-            console.error(e);
             throw e
         }
     }
@@ -132,8 +120,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.joinClassic();
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -143,8 +129,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.leaveClassic();
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -154,8 +138,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.joinPowerup();
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -165,8 +147,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.leavePowerup();
             return (response);
         } catch (e: any) {
-            console.error(e);
-            // TODO: add error handling
             throw e
         }
     }
@@ -176,7 +156,6 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.sendDirectChallenge(data);
             return response;
         } catch (e: any) {
-            console.error(e);
             throw e;
         }
     }
@@ -186,7 +165,15 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             const response = await service.getPlayerHistory(userId, limit);
             return response;
         } catch (e: any) {
-            console.error(e);
+            throw e;
+        }
+    }
+
+    async function leaveTournament(tournamentId: string) {
+        try {
+            const response = await service.leaveTournament(tournamentId);
+            return response;
+        } catch (e: any) {
             throw e;
         }
     }
@@ -204,6 +191,7 @@ export function MatchProvider({ children }: { children: ReactNode }) {
             cancelTournament,
             registerTournament,
             unregisterTournament,
+            leaveTournament,
             joinClassic,
             leaveClassic,
             joinPowerup,

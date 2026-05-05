@@ -5,8 +5,8 @@ import { ActivityStatus } from '../../generated/prisma/enums.js';
 //user schema
 
 export const CreateUserSchema = Type.Object({
-  user_name: Type.String(),
-  user_email: Type.String()
+  user_name: Type.String({ minLength: 3, maxLength: 20, pattern: '^[a-zA-Z0-9_]+$' }),
+  user_email: Type.String({ format: 'email', maxLength: 254 })
 });
 //type for create user schema
 export type CreateUserSchemaType = Static<typeof CreateUserSchema>;
@@ -26,7 +26,8 @@ export type DeleteUserSchemaType = Static<typeof DeleteUserSchema>;
 export const UpdateUserEmailSchema = Type.Object({
   user_id: Type.Number(),
   user_email: Type.String({
-    format: 'email'
+    format: 'email',
+    maxLength: 254
   })
 });
 //type for update user email schema

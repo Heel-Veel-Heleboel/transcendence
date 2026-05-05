@@ -19,8 +19,7 @@ import {
   Mesh,
   GlowLayer,
   StandardMaterial,
-  InstancedMesh,
-  UniversalCamera
+  InstancedMesh
 } from '@babylonjs/core';
 import {
   debugLayerListener,
@@ -736,9 +735,6 @@ export class GameClient {
     const canvas = this.engine.getRenderingCanvas();
     this.powerCamera.attachControl(canvas, true);
     this.scene.activeCamera = this.powerCamera;
-    const cameraCast = this.powerCamera as UniversalCamera;
-    cameraCast.inputs.clear();
-    cameraCast.inputs.addMouse();
   }
 
   switchToGoalCamera() {
