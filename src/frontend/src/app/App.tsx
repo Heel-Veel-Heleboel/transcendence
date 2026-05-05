@@ -60,12 +60,14 @@ export function App() {
                                     <Route path={CREDITS_PAGE} element={<Credits />} />
                                     <Route element={<PrivateRoutes />}>
                                         <Route path={HOME_PAGE} element={<ErrorBoundary FallbackComponent={FeatureErrorFallback}><Home /></ErrorBoundary>} />
-                                        <Route path={PROFILE_PAGE} >
+                                        <Route path={PROFILE_PAGE}>
+                                            <Route index element={<NotFound />} />
                                             <Route path={USER_PAGE} element={<ErrorBoundary FallbackComponent={FeatureErrorFallback}><Profile /></ErrorBoundary>} />
                                             <Route path={USER_PAGE + '/' + RELATIONSHIPS_PAGE} element={<ErrorBoundary FallbackComponent={FeatureErrorFallback}><Relationships /></ErrorBoundary>} />
                                             <Route path={VISITOR_PAGE} element={<ErrorBoundary FallbackComponent={FeatureErrorFallback}><VisitorProfile /></ErrorBoundary>} />
                                         </Route >
                                         <Route path={TOURNAMENT_BASE} >
+                                            <Route index element={<NotFound />} />
                                             <Route path={TOURNAMENT_PAGE} element={<ErrorBoundary FallbackComponent={FeatureErrorFallback}><Tournament /></ErrorBoundary>} />
                                             <Route path={TOURNAMENT_CREATION_PAGE} element={<ErrorBoundary FallbackComponent={FeatureErrorFallback}><TournamentCreation /></ErrorBoundary>} />
                                         </Route  >
