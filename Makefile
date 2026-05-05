@@ -83,4 +83,8 @@ $(NAME):
 	$(COMPOSE_APP) up --build
 	touch $(NAME)
 
-.PHONY: all clean fclean re cert dev dev-build dev-down prod prod-down obs obs-down
+stop:
+	$(COMPOSE_APP) stop
+	$(COMPOSE_OBS) stop
+
+.PHONY: all clean fclean re cert dev dev-build dev-down prod prod-down obs obs-down stop
