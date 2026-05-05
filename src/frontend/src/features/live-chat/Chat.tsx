@@ -20,6 +20,9 @@ export function Chat({ channelId, messageUpdate }: { channelId: string, messageU
                     setError(false)
                     const result = await service.getChannelMessages(channelId);
                     setChat([...result].reverse());
+                    service.markChannelRead(channelId).catch((e: any) => {
+                        console.error("Failed to mark channel as read:", e);
+                    });
                 } catch (e: any) {
                     console.error(e);
                     setError(e);
