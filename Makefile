@@ -79,17 +79,8 @@ obs-down:
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 
-logs:
-	$(COMPOSE_APP) logs -f
-
-obs-logs:
-	$(COMPOSE_OBS) logs -f
-
-ps:
-	$(COMPOSE_APP) ps
-
 $(NAME):
 	$(COMPOSE_APP) up --build
 	touch $(NAME)
 
-.PHONY: all clean fclean re cert dev dev-build dev-down prod prod-down obs obs-down logs obs-logs ps
+.PHONY: all clean fclean re cert dev dev-build dev-down prod prod-down obs obs-down
