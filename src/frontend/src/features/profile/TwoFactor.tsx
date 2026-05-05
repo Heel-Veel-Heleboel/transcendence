@@ -24,7 +24,7 @@ export function TwoFactor() {
         const token = form.get("token") as string;
         try {
             await auth.verifyTwoFactor(token);
-            alert('verification succes');
+            alert('verification success');
             window.location.reload();
         } catch (e: any) {
             alert('verification failed');
