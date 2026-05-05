@@ -8,9 +8,10 @@ import { useNavigate } from "react-router-dom";
 import { FriendshipStatus, IFriendship } from "../../shared/types/friendship";
 import { useChatService } from "../../components/providers/Chat";
 import { useMatchMakingService } from "../../components/providers/Match";
+import { useNotifications } from "../../components/hooks/Notifications";
 
 export function LiveChatUsers({ setChannelId, hasPendingInvite, setHasPendingInvite }: {
-    setChannelId: Dispatch<SetStateAction<string>>,
+    setChannelId: Function,
     hasPendingInvite: boolean,
     setHasPendingInvite: Dispatch<SetStateAction<boolean>>
 }): JSX.Element {
@@ -31,6 +32,7 @@ export function LiveChatUsers({ setChannelId, hasPendingInvite, setHasPendingInv
 
 export function UserSearchBar({ setProfile }: { setProfile: Dispatch<SetStateAction<IUser>> }) {
     const service = useUserService();
+    const auth = useAuth();
     const [content, setContent] = useState<string>('');
 
     async function submit(event: FormEvent<HTMLFormElement>) {
@@ -44,10 +46,18 @@ export function UserSearchBar({ setProfile }: { setProfile: Dispatch<SetStateAct
 
         try {
             const result = await service.getUserByName(user);
+            if (String(result.id) === auth.userId) {
+                throw new Error('same-user');
+
+            }
             setProfile(result);
         } catch (e: any) {
             if (e.response?.status === 404) {
                 alert('no user found')
+                return;
+            }
+            if (e.message === 'same-user') {
+                alert('You found yourself, congratulations!');
                 return;
             }
             alert('failed to search for User');
@@ -86,7 +96,7 @@ export function UserSearchBar({ setProfile }: { setProfile: Dispatch<SetStateAct
 
 export function UserSearchResult({ profile, setChannelId, hasPendingInvite, setHasPendingInvite }: {
     profile: IUser,
-    setChannelId: Dispatch<SetStateAction<string>>,
+    setChannelId: Function,
     hasPendingInvite: boolean,
     setHasPendingInvite: Dispatch<SetStateAction<boolean>>
 }) {
@@ -126,13 +136,14 @@ export function UserSearchResult({ profile, setChannelId, hasPendingInvite, setH
 
 export function UserDropDown({ profile, setChannelId, hasPendingInvite, setHasPendingInvite }: {
     profile: IUser,
-    setChannelId: Dispatch<SetStateAction<string>>,
+    setChannelId: Function,
     hasPendingInvite: boolean,
     setHasPendingInvite: Dispatch<SetStateAction<boolean>>
 }) {
     const navigate = useNavigate();
     const service = useUserService();
     const auth = useAuth();
+    const notif = useNotifications();
     const [friendship, setFriendship] = useState<IFriendship | null>(null);
 
     async function loadFriendship() {
@@ -146,7 +157,7 @@ export function UserDropDown({ profile, setChannelId, hasPendingInvite, setHasPe
 
     useEffect(() => {
         loadFriendship();
-    }, [profile.id]);
+    }, [profile.id, notif.friendshipUpdate]);
 
     const status = friendship?.status ?? FriendshipStatus.UNDEFINED;
     // Directional: only the one who initiated the block is the requester
@@ -161,8 +172,8 @@ export function UserDropDown({ profile, setChannelId, hasPendingInvite, setHasPe
             </div>
             <UserDropDownContainer>
                 {status === FriendshipStatus.UNDEFINED && <SendFriendshipRequest profile={profile} />}
-                {status === FriendshipStatus.PENDING && <CancelFriendshipRequest profile={profile} />}
-                {status === FriendshipStatus.ACCEPTED && <Unfriend profile={profile} />}
+                {status === FriendshipStatus.PENDING && <CancelFriendshipRequest friendship={friendship} />}
+                {status === FriendshipStatus.ACCEPTED && <Unfriend friendship={friendship} />}
                 {status === FriendshipStatus.REJECTED && <SendFriendshipRequest profile={profile} />}
                 <SendMessage profile={profile} setChannelId={setChannelId} />
                 {status !== FriendshipStatus.BLOCKED && <SendGameInvite profile={profile} hasPendingInvite={hasPendingInvite} setHasPendingInvite={setHasPendingInvite} />}
@@ -203,12 +214,16 @@ export function SendFriendshipRequest({ profile }: { profile: IUser }) {
     )
 }
 
-export function CancelFriendshipRequest({ profile }: { profile: IUser }) {
+export function CancelFriendshipRequest({ friendship }: { friendship: IFriendship | null }) {
     const service = useUserService();
+    const auth = useAuth();
 
     async function cancelFriendshipRequest() {
         try {
-            await service.setFriendshipStatus({ id: String(profile.id), status: FriendshipStatus.REJECTED });
+            await service.cancelFriendshipRequest({
+                friendship_id: friendship!.id,
+                requester_id: Number(auth.userId),
+            });
         } catch (e: any) {
             console.error(e);
             alert('failed to cancel friendship request');
@@ -222,12 +237,12 @@ export function CancelFriendshipRequest({ profile }: { profile: IUser }) {
     )
 }
 
-export function Unfriend({ profile }: { profile: IUser }) {
+export function Unfriend({ friendship }: { friendship: IFriendship }) {
     const service = useUserService();
 
     async function unFriend() {
         try {
-            await service.setFriendshipStatus({ id: String(profile.id), status: FriendshipStatus.REJECTED });
+            await service.deleteFriendship(String(friendship.id));
         } catch (e: any) {
             console.error(e);
             alert('failed to unfriend');
@@ -282,7 +297,7 @@ export function UnBlockUser({ blocker_id, blocked_id, onSuccess }: { blocker_id:
 }
 
 
-export function SendMessage({ profile, setChannelId }: { profile: IUser, setChannelId: Dispatch<SetStateAction<string>> }) {
+export function SendMessage({ profile, setChannelId }: { profile: IUser, setChannelId: Function }) {
     const service = useChatService();
 
     async function sendMessage() {

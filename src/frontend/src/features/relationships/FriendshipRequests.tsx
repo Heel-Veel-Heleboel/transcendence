@@ -1,13 +1,13 @@
 import { JSX } from "react";
-import api from "../../shared/api/api";
-import { CONFIG } from "../../shared/config/AppConfig";
 import { RelationsColumn } from "./RelationsColumn";
 import { Terminal } from "../../components/layout/Terminal";
 import { IFriendship } from "../../shared/types/friendship";
 import { useAuth } from "../../components/providers/Auth";
+import { useUserService } from "../../components/providers/User";
 
 export function FriendshipRequests({ requests, onRefresh }: { requests: IFriendship[], onRefresh: () => void }) {
     const auth = useAuth();
+    const service = useUserService();
 
     // Split into received (addressee) and sent (requester) pending requests
     const received = requests.filter((r) => !r.isRequester);
@@ -16,14 +16,11 @@ export function FriendshipRequests({ requests, onRefresh }: { requests: IFriends
     async function handleFriendship(id: number, accept: boolean) {
         try {
             const status = accept ? 'ACCEPTED' : 'REJECTED'
-            await api({
-                url: CONFIG.REQUEST_FRIEND_UPDATE,
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                data: JSON.stringify({ id: String(id), status: status, addressee_id: Number(auth.userId) }),
-            })
+            if (status === 'ACCEPTED') {
+                service.setFriendshipStatus({ id: String(id), status: status, addressee_id: Number(auth.userId) })
+            } else if (status === 'REJECTED'){
+                await service.deleteFriendship(String(id));
+            }
             onRefresh();
         } catch (error) {
             console.error(error);
@@ -33,14 +30,7 @@ export function FriendshipRequests({ requests, onRefresh }: { requests: IFriends
 
     async function handleCancelRequest(friendship_id: number) {
         try {
-            await api({
-                url: CONFIG.REQUEST_FRIEND_CANCEL,
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                data: JSON.stringify({ friendship_id, requester_id: Number(auth.userId) }),
-            })
+            await service.cancelFriendshipRequest( { friendship_id, requester_id: Number(auth.userId) })
             onRefresh();
         } catch (error) {
             console.error(error);

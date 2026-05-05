@@ -21,22 +21,24 @@ export function useNotifications() {
                 onOpen: () => { notif.sendMessage(JSON.stringify({ type: 'AUTH', token: (auth.token) })) },
                 onMessage: (event) => {
                     const msg = JSON.parse(event.data);
+                    console.log('websocket msg');
+                    console.log(msg);
 
                     if (msg.type === 'MATCH_READY') {
                         navigate(`/game/${msg.gameMode}/${msg.matchId}/${msg.roomId}`)
                     }
-                    if (msg.type === 'MATCH_JOINED_POOL' || msg.type === 'MATCH_LEAVED_POOL' || msg.type === 'MATCH_FINISHED') {
+                    else if (msg.type === 'MATCH_JOINED_POOL' || msg.type === 'MATCH_LEAVED_POOL' || msg.type === 'MATCH_FINISHED') {
                         setMatchUpdate(event.timeStamp)
                     }
-                    if (msg.type === 'chat:channel_created') {
+                    else if (msg.type === 'chat:channel_created') {
                         setChatUpdate(event.timeStamp);
                     }
-                    if (msg.type === 'chat:match_ack_required') {
+                    else if (msg.type === 'chat:match_ack_required') {
                         setMatchUpdate(event.timeStamp)
                         setChatUpdate(event.timeStamp);
                         setMessageUpdate(event.timeStamp);
                     }
-                    if (msg.type === 'chat:match_ack_response') {
+                    else if (msg.type === 'chat:match_ack_response') {
                         setMatchUpdate(event.timeStamp)
                     }
                     if (msg.type === 'TOURNAMENT_MATCH_RETRY') {
@@ -47,14 +49,14 @@ export function useNotifications() {
                     if (msg.type === 'TOURNAMENT_UPDATE' || msg.type === 'TOURNAMENT_BRACKET_UPDATE') {
                         setTournamentUpdate(event.timeStamp);
                     }
-                    if (msg.type === 'FRIENDSHIP_REQUEST') {
+                    else if (msg.type === 'FRIENDSHIP_REQUEST' || msg.type === 'FRIENDSHIP_REQUEST_CANCELLED' || msg.type === 'FRIENDSHIP_CHANGED' || msg.type === 'FRIENDSHIP_DELETED' || msg.type === 'BLOCK' || msg.type === 'UNBLOCK') {
                         setFriendshipUpdate(event.timeStamp);
                     }
-                    if (msg.type === 'chat:message') {
+                    else if (msg.type === 'chat:message') {
                         setMessageUpdate(event.timeStamp);
                         setLastMessageChannelId(msg.channelId ?? null);
                     }
-                    if (msg.type === 'USER_STATUS_UPDATED') {
+                    else if (msg.type === 'USER_STATUS_UPDATED') {
                         setUserStatusUpdate({ userId: String(msg.user_id), activityStatus: msg.activity_status as string });
                     }
                 },

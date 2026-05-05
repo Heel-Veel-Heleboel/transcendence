@@ -46,4 +46,5 @@ export interface IUserService {
   setUsername: (user_name: string) => Promise<AxiosResponse>;
   setEmail: (user_email: string) => Promise<AxiosResponse>;
   deleteUser: () => Promise<AxiosResponse>;
+  deleteFriendship: (id: string) => Promise<AxiosResponse>;
 }

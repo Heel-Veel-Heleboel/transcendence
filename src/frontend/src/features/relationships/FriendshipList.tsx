@@ -1,24 +1,17 @@
 import { JSX } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../shared/api/api";
-import { CONFIG } from "../../shared/config/AppConfig";
 import { RelationsColumn } from "./RelationsColumn";
 import { Terminal } from "../../components/layout/Terminal";
 import { IFriendship } from "../../shared/types/friendship";
+import { useUserService } from "../../components/providers/User";
 
 export function FriendshipList({ friends, onRefresh }: { friends: IFriendship[], onRefresh: () => void }) {
     const navigate = useNavigate();
+    const service = useUserService();
 
     async function removeFriend(friendshipId: number) {
         try {
-            await api({
-                url: CONFIG.REQUEST_FRIEND_DELETE,
-                method: 'DELETE',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                data: JSON.stringify({ id: friendshipId }),
-            })
+            await service.deleteFriendship(String(friendshipId));
             alert("Friendship Removed");
             onRefresh();
         } catch (error) {
