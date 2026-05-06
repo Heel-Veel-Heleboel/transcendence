@@ -4,8 +4,10 @@ import { useMatchMakingService } from "../../components/providers/Match";
 import { useAuth } from "../../components/providers/Auth";
 import { Terminal } from "../../components/layout/Terminal";
 import { IMatchHistoryEntry } from "../../shared/types/matchmaking";
+import { useNotifications } from "../../components/hooks/Notifications";
 
 export function MatchHistory({ userId }: { userId?: string }): JSX.Element {
+    const { matchUpdate } = useNotifications();
     const matchService = useMatchMakingService();
     const auth = useAuth();
     const navigate = useNavigate();
@@ -26,7 +28,7 @@ export function MatchHistory({ userId }: { userId?: string }): JSX.Element {
             }
         }
         fetchHistory();
-    }, [userId]);
+    }, [userId, matchUpdate]);
 
     return (
         <Terminal title="match history">

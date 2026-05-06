@@ -456,6 +456,7 @@ export function TournamentGeneralInfo({ tournamentId, setErrorPage }: { tourname
 }
 
 export function TournamentParticipants({ tournamentId }: { tournamentId: string }) {
+    const { tournamentUpdate } = useNotifications();
     const service = useMatchMakingService();
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<boolean>(false);
@@ -475,7 +476,7 @@ export function TournamentParticipants({ tournamentId }: { tournamentId: string 
             }
         }
         getTournamentParticipants();
-    }, [])
+    }, [tournamentUpdate])
 
     if (loading) {
         return (
