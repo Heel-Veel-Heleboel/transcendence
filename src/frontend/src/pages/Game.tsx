@@ -35,6 +35,15 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
     const [error, setError] = useState<Error | null>(null);
     const roomProv = useRoom();
 
+    function reset() {
+        setRoom(null);
+        setGame(null);
+        setError(null);
+        if (roomProv) {
+            roomProv.reset();
+        }
+    }
+
     const onSceneReady = async (scene: Scene) => {
         try {
             setGame(new GameClient(scene, gameMode, matchId, setError))
@@ -80,18 +89,18 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
             const err = error;
             if (error.message === '0') {
                 room?.send('client-error', { payload: 'init-fail' });
-                setError(null);
+                reset();
                 throw err
             }
             else {
                 room?.send('client-error', { payload: 'crash' });
-                setError(null);
+                reset();
                 throw new Error('1');
             }
         }
         if (roomProv?.error) {
             const error = roomProv.error
-            roomProv.reset();
+            reset();
             throw new Error(String(error))
         }
     }, [error, roomProv?.error]);
