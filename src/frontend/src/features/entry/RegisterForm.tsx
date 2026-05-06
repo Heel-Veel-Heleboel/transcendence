@@ -7,6 +7,10 @@ import { extractApiError } from "../../shared/utils/error.ts";
 function validateFields(email: string, user_name: string, password: string): string {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
         return 'Please enter a valid email address.';
+    if (email.split('@')[0].length > 64)
+        return 'Email local part (before @) must not exceed 64 characters.';
+    if (email.split('@')[1].length > 255)
+        return 'Email domain (after @) must not exceed 255 characters.';
     if (!user_name)
         return 'Username is required.';
     if (user_name.length < 3 || user_name.length > 20)

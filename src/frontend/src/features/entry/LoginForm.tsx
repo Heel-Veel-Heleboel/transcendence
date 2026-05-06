@@ -20,6 +20,14 @@ export function LoginForm(): JSX.Element {
             setErrorMessage('Please enter a valid email address.');
             return;
         }
+        if (email.split('@')[0].length > 64) {
+            setErrorMessage('Email local part (before @) must not exceed 64 characters.');
+            return;
+        }
+        if (email.split('@')[1].length > 255) {
+            setErrorMessage('Email domain (after @) must not exceed 255 characters.');
+            return;
+        }
         if (!password) {
             setErrorMessage('Password is required.');
             return;

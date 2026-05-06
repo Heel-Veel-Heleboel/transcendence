@@ -9,7 +9,8 @@ export const RegistrationSchemaBody = Type.Object({
     pattern: '^[a-zA-Z0-9_]+$'
   }),
   email: Type.String({
-    format: 'email'
+    format: 'email',
+    maxLength: 320
   }),
   password: Type.String({ minLength: PasswordPolicyConfig.minLength })
 });
@@ -22,7 +23,7 @@ export const RegistrationSchema = {
 
 //login schema
 export const LoginSchemaBody = Type.Object({
-  email: Type.String(),
+  email: Type.String({ format: 'email', maxLength: 320 }),
   password: Type.String(),
   two_factor_token: Type.Optional(
     Type.String({
