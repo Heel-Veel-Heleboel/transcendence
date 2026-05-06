@@ -178,6 +178,12 @@ export const CONFIG = {
   // NOTE: HTML ID
   MATCHMAKING_CONTAINER_ID: 'MatchmakingContainer',
 
+  // NOTE: FILE UPLOADS
+  // Mirrors BODY_LIMIT_BYTES from docker/shared.env, baked in at build time via VITE_BODY_LIMIT_BYTES.
+  UPLOAD_MAX_BYTES: Number(import.meta.env.VITE_BODY_LIMIT_BYTES ?? 1048576),
+  UPLOAD_ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp'] as const,
+  UPLOAD_ALLOWED_LABEL: 'JPG, PNG, WEBP',
+
   // NOTE: NOTIFICATIONS
   // Derives wss:// from the VITE_API_URL (https → wss, http → ws).
   NOTIFICATION_URI: `${(import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(/^http/, 'ws')}/ws`

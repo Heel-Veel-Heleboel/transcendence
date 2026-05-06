@@ -10,8 +10,10 @@ COPY . .
 #   VITE_API_URL=https://10.x.x.x VITE_GAME_URL=https://10.x.x.x/colyseus docker compose up --build
 ARG VITE_API_URL=https://localhost:7140
 ARG VITE_GAME_URL=https://localhost:7140/colyseus
+ARG VITE_BODY_LIMIT_BYTES=1048576
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_GAME_URL=$VITE_GAME_URL
+ENV VITE_BODY_LIMIT_BYTES=$VITE_BODY_LIMIT_BYTES
 
 RUN npm run build
 CMD npm run prod

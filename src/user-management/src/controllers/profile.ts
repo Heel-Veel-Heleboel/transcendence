@@ -62,28 +62,33 @@ export class ProfileController {
 
     if (!file.mimetype.startsWith('image/')) {
       file.file.resume();
-      return reply.status(400).send({ message: 'Invalid file type' });
+      return reply.status(400).send({ message: 'Invalid file type. Only images are allowed (JPG, PNG, WEBP).' });
     }
 
     if (!allowedExtensions.includes(file_extension)) {
-      file.file.resume(); 
-      return reply.status(400).send({ message: 'Invalid file extension' });
+      file.file.resume();
+      return reply.status(400).send({ message: `Invalid file extension "${file_extension}". Allowed: JPG, PNG, WEBP.` });
     }
 
     const unique_filename = crypto.randomUUID() + file_extension;
     const filePath = path.join(uploadDir, unique_filename);
 
+    const maxMB = Math.round(env.BODY_LIMIT_BYTES / (1024 * 1024));
+
     try {
       await pump(file.file, fs.createWriteStream(filePath));
-    } catch (error) {
+    } catch (error: any) {
       await fs.promises.unlink(filePath).catch(() => {});
+      if (error?.code === 'FST_REQ_FILE_TOO_LARGE' || file.file.truncated) {
+        return reply.code(413).send({ message: `File too large. Maximum allowed size is ${maxMB} MB.` });
+      }
       request.log.error({ error }, 'Error uploading file');
       return reply.status(500).send({ message: 'Upload failed' });
     }
 
     if (file.file.truncated) {
       await fs.promises.unlink(filePath).catch(() => {});
-      return reply.code(413).send({ message: 'File too large' });
+      return reply.code(413).send({ message: `File too large. Maximum allowed size is ${maxMB} MB.` });
     }
 
     const pub_url = `/uploads/${unique_filename}`;
