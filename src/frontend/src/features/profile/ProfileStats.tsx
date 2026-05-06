@@ -4,8 +4,11 @@ import { useAuth } from "../../components/providers/Auth";
 import { Terminal } from "../../components/layout/Terminal";
 import { IProfile } from "../../shared/types/profile";
 import { DEFAULT_PROFILE } from "../../shared/constants/defaults";
+import { useNotifications } from "../../components/hooks/Notifications";
 
 export function ProfileStats({ userId }: { userId?: string }) {
+
+    const { matchUpdate } = useNotifications();
     const userService = useUserService();
     const auth = useAuth();
     const [loading, setLoading] = useState<boolean>(true);
@@ -25,7 +28,7 @@ export function ProfileStats({ userId }: { userId?: string }) {
             }
         }
         fetchProfile();
-    }, [userId]);
+    }, [userId, matchUpdate]);
 
     return (
         <Terminal title="statistics">
