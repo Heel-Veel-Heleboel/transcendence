@@ -21,8 +21,6 @@ export function useNotifications() {
                 onOpen: () => { notif.sendMessage(JSON.stringify({ type: 'AUTH', token: (auth.token) })) },
                 onMessage: (event) => {
                     const msg = JSON.parse(event.data);
-                    console.log('websocket msg');
-                    console.log(msg);
 
                     if (msg.type === 'MATCH_READY') {
                         navigate(`/game/${msg.gameMode}/${msg.matchId}/${msg.roomId}`)

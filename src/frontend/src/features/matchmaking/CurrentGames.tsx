@@ -16,7 +16,7 @@ export function CurrentGames(): JSX.Element {
         <ul>
             {rooms.map((room) => (
                 <li key={room.roomId}>
-                    {room.name} — {room.clients}/{room.maxClients} players | {room.roomId} roomId
+                    {room.name} — {room.clients}/{room.maxClients} players
                 </li>
             ))}
         </ul>

@@ -25,6 +25,7 @@ export function TwoFactor() {
         try {
             await auth.verifyTwoFactor(token);
             alert('verification success');
+            window.location.reload();
         } catch (e: any) {
             alert('verification failed');
             console.error(e);

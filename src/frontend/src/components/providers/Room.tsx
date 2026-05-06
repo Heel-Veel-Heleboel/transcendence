@@ -10,8 +10,9 @@ export interface RoomContextType {
     isConnected: boolean;
     isReconnecting: boolean;
     room: Room;
-    join: (roomId: string) => Promise<Room>;
+    join: (roomId: string) => Promise<Room | undefined>;
     error: number;
+    reset: Function;
 }
 
 export const RoomContext = createContext<RoomContextType | null>(null);
@@ -120,7 +121,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <RoomContext.Provider value={{ isConnecting, isConnected, isReconnecting, room, join, error }}>
+        <RoomContext.Provider value={{ isConnecting, isConnected, isReconnecting, room, join, error, reset }}>
             {children}
         </RoomContext.Provider>
     );

@@ -63,7 +63,9 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
                 try {
                     await game.initGame();
                     const newRoom = await roomProv.join(roomId);
-                    setRoom(newRoom);
+                    if (newRoom) {
+                        setRoom(newRoom);
+                    }
                 } catch (e: any) {
                     console.error(e);
                     setError(new Error('0'))
@@ -75,18 +77,22 @@ export function GameRender({ gameMode, matchId, roomId }: { gameMode: string, ma
 
     useEffect(() => {
         if (error) {
+            const err = error;
             if (error.message === '0') {
                 room?.send('client-error', { payload: 'init-fail' });
-                throw error
+                setError(null);
+                throw err
             }
             else {
-                console.error(error);
                 room?.send('client-error', { payload: 'crash' });
+                setError(null);
                 throw new Error('1');
             }
         }
         if (roomProv?.error) {
-            throw new Error(String(roomProv.error))
+            const error = roomProv.error
+            roomProv.reset();
+            throw new Error(String(error))
         }
     }, [error, roomProv?.error]);
 
