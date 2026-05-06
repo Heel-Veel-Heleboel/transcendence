@@ -16,8 +16,8 @@ export function LoginForm(): JSX.Element {
         const email = form.get("email") as string;
         const password = form.get("password") as string;
 
-        if (!email) {
-            setErrorMessage('Email is required.');
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setErrorMessage('Please enter a valid email address.');
             return;
         }
         if (!password) {
