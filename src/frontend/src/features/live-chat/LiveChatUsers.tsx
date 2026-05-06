@@ -166,14 +166,14 @@ export function UserDropDown({ profile, setChannelId, hasPendingInvite, setHasPe
     return (
         <div id="user-dropdown" className="flex flex-col">
             <div>
-                <button id="go-to-profile" onClick={() => navigate(VISITOR_PAGE_REDIRECTION(String(profile.id)))}>
+                <button id="go-to-profile" onClick={() => navigate(VISITOR_PAGE_REDIRECTION(String(profile.id)))} className="hover:underline">
                     show profile
                 </button>
             </div>
             <UserDropDownContainer>
                 {status === FriendshipStatus.UNDEFINED && <SendFriendshipRequest profile={profile} />}
                 {status === FriendshipStatus.PENDING && <CancelFriendshipRequest friendship={friendship} />}
-                {status === FriendshipStatus.ACCEPTED && <Unfriend friendship={friendship} />}
+                {status === FriendshipStatus.ACCEPTED && <Unfriend friendship={friendship!} />}
                 {status === FriendshipStatus.REJECTED && <SendFriendshipRequest profile={profile} />}
                 <SendMessage profile={profile} setChannelId={setChannelId} />
                 {status !== FriendshipStatus.BLOCKED && <SendGameInvite profile={profile} hasPendingInvite={hasPendingInvite} setHasPendingInvite={setHasPendingInvite} />}
@@ -208,7 +208,7 @@ export function SendFriendshipRequest({ profile }: { profile: IUser }) {
     }
 
     return (
-        <button id='send-friendship' onClick={() => sendFriendship()} className="text-left">
+        <button id='send-friendship' onClick={() => sendFriendship()} className="text-left hover:underline">
             send friendship
         </button>
     )
@@ -231,7 +231,7 @@ export function CancelFriendshipRequest({ friendship }: { friendship: IFriendshi
     }
 
     return (
-        <button id='cancel-friendship' onClick={() => cancelFriendshipRequest()} className="text-left">
+        <button id='cancel-friendship' onClick={() => cancelFriendshipRequest()} className="text-left hover:underline">
             cancel friendship request
         </button>
     )
@@ -250,7 +250,7 @@ export function Unfriend({ friendship }: { friendship: IFriendship }) {
     }
 
     return (
-        <button id='unfriend' onClick={() => unFriend()} className="text-left">
+        <button id='unfriend' onClick={() => unFriend()} className="text-left hover:underline">
             unfriend
         </button>
     )
@@ -270,7 +270,7 @@ export function BlockUser({ blocker_id, blocked_id, onSuccess }: { blocker_id: n
     }
 
     return (
-        <button id='block' onClick={() => block()} className="text-left">
+        <button id='block' onClick={() => block()} className="text-left hover:underline">
             block
         </button>
     )
@@ -290,7 +290,7 @@ export function UnBlockUser({ blocker_id, blocked_id, onSuccess }: { blocker_id:
     }
 
     return (
-        <button id='unblock' onClick={() => unBlock()} className="text-left">
+        <button id='unblock' onClick={() => unBlock()} className="text-left hover:underline">
             unblock
         </button>
     )
@@ -311,7 +311,7 @@ export function SendMessage({ profile, setChannelId }: { profile: IUser, setChan
     }
 
     return (
-        <button id='send-message' onClick={() => sendMessage()} className="text-left">
+        <button id='send-message' onClick={() => sendMessage()} className="text-left hover:underline">
             send message
         </button>
     )
@@ -356,15 +356,15 @@ export function SendGameInvite({ profile, hasPendingInvite, setHasPendingInvite 
 
     return (
         <div>
-            <button id='send-game-invite' onClick={handleToggle} className="text-left">
+            <button id='send-game-invite' onClick={handleToggle} className="text-left hover:underline">
                 send game invite
             </button>
             {expanded ?
                 <div className="flex flex-col pl-2">
-                    <button id='invite-classic' onClick={() => invite('classic')} className="text-left" disabled={inFlight}>
+                    <button id='invite-classic' onClick={() => invite('classic')} className="text-left hover:underline disabled:opacity-50" disabled={inFlight}>
                         classic
                     </button>
-                    <button id='invite-powerup' onClick={() => invite('powerup')} className="text-left" disabled={inFlight}>
+                    <button id='invite-powerup' onClick={() => invite('powerup')} className="text-left hover:underline disabled:opacity-50" disabled={inFlight}>
                         powerup
                     </button>
                 </div>

@@ -37,7 +37,7 @@ export function AddFriend({ friendship, userId, onRefresh }: { friendship: IFrie
     }
     if (friendship && friendship.status === 'PENDING') {
         if (friendship.isRequester) {
-            return <button className="bg-yellow-500" onClick={handleCancelRequest}>Cancel request</button>;
+            return <button className="bg-yellow-500 hover:opacity-80" onClick={handleCancelRequest}>Cancel request</button>;
         }
         // Addressee sees nothing here — they handle it in the requests page
         return <div className="bg-blue-500">Request pending</div>;
@@ -49,7 +49,7 @@ export function AddFriend({ friendship, userId, onRefresh }: { friendship: IFrie
 
     return (
         <div id="friendship-container">
-            <button onClick={handleFriendshipRequest}>Add friend</button>
+            <button onClick={handleFriendshipRequest} className="hover:underline">Add friend</button>
         </div>
     );
 }

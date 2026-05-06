@@ -51,7 +51,7 @@ export function SubmitPropertyChangeYesNo({ props }: { props: IPropertyChangeYes
         <div id={htmlIdefier(props.title)}>
             <div className="flex flex-col">
                 <div className="w-full">
-                    <button onClick={props.handleDropDown}>{props.title}</button>
+                    <button onClick={props.handleDropDown} className="hover:underline">{props.title}</button>
                 </div>
             </div>
             {
@@ -61,8 +61,8 @@ export function SubmitPropertyChangeYesNo({ props }: { props: IPropertyChangeYes
                         <span>Are you sure?: </span>
                     </div>
                     <div className="flex w-3/5">
-                        <button className="border w-1/2" onClick={props.yes}>Yes</button>
-                        <button className="border w-1/2" onClick={props.no}>No</button>
+                        <button className="border w-1/2 hover:bg-white/10" onClick={props.yes}>Yes</button>
+                        <button className="border w-1/2 hover:bg-white/10" onClick={props.no}>No</button>
                     </div>
                 </div>
             }
