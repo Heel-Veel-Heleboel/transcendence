@@ -61,6 +61,7 @@ services:
       args:
         - VITE_API_URL=${VITE_API_URL:-https://localhost:7140}
         - VITE_GAME_URL=${VITE_GAME_URL:-https://localhost:7140/colyseus}
+        - VITE_BODY_LIMIT_BYTES=${BODY_LIMIT_BYTES:-1048576}
     environment:
       - NODE_ENV=production
       - LOGSTASH_HOST=logstash

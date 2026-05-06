@@ -7,6 +7,8 @@ import { ProfilePictureImage } from "./ProfilePictureImage";
 import { ProfilePictureContainer } from "./ProfilePictureContainer";
 import { ProfileAvatarContainer } from "./ProfileAvatarContainer";
 import { ProfileName } from "./ProfileName";
+import { CONFIG } from "../../shared/config/AppConfig";
+import { extractApiError } from "../../shared/utils/error";
 
 export function ProfileAvatar() {
     const userService = useUserService();
@@ -104,6 +106,9 @@ export function ProfilePictureForm({ setImage }: { setImage: Dispatch<SetStateAc
     const userService = useUserService();
     const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
+    const maxMB = Math.round(CONFIG.UPLOAD_MAX_BYTES / (1024 * 1024));
+    const hint = `Accepted: ${CONFIG.UPLOAD_ALLOWED_LABEL} · Max ${maxMB} MB`;
+
     async function uploadFiles(formData: FormData) {
         try {
             await userService.setProfileAvatar(formData);
@@ -111,10 +116,10 @@ export function ProfilePictureForm({ setImage }: { setImage: Dispatch<SetStateAc
                 const imageObjectUrl = URL.createObjectURL(selectedFiles[0]);
                 setImage(imageObjectUrl);
             }
-            alert("Files uploaded!");
+            alert("Profile picture updated!");
         } catch (error) {
             console.error("Error uploading files:", error);
-            alert("Upload failed.");
+            alert(extractApiError(error));
         }
     };
 
@@ -125,13 +130,25 @@ export function ProfilePictureForm({ setImage }: { setImage: Dispatch<SetStateAc
     async function handleSubmit(event: BaseSyntheticEvent) {
         event.preventDefault();
 
-        if (!selectedFiles) {
-            alert("Please select files first!");
+        if (!selectedFiles || selectedFiles.length === 0) {
+            alert("Please select a file first.");
+            return;
+        }
+
+        const file = selectedFiles[0];
+
+        if (!CONFIG.UPLOAD_ALLOWED_TYPES.includes(file.type as any)) {
+            alert(`Invalid file type "${file.type}". Allowed formats: ${CONFIG.UPLOAD_ALLOWED_LABEL}.`);
+            return;
+        }
+
+        if (file.size > CONFIG.UPLOAD_MAX_BYTES) {
+            alert(`File is too large (${(file.size / (1024 * 1024)).toFixed(1)} MB). Maximum allowed size is ${maxMB} MB.`);
             return;
         }
 
         const formData = new FormData();
-        formData.append("images", selectedFiles[0]);
+        formData.append("images", file);
 
         await uploadFiles(formData);
     };
@@ -153,12 +170,13 @@ export function ProfilePictureForm({ setImage }: { setImage: Dispatch<SetStateAc
                                            file:bg-gray-200 file:text-white-700"
                                 id="file_input"
                                 type="file"
-                                accept="image/*"
+                                accept={CONFIG.UPLOAD_ALLOWED_TYPES.join(',')}
                                 onChange={handleFileChange}
 
                             />
                             <button className="text-sm border" type="submit">Upload Image</button>
                         </div>
+                        <div className="text-left text-xs text-gray-400 mt-1">{hint}</div>
                     </div>
 
                 </form>
