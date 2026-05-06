@@ -39,8 +39,12 @@ export function UserSearchBar({ setProfile }: { setProfile: Dispatch<SetStateAct
         event.preventDefault();
         const user = content.trim();
 
-        if (user.indexOf(' ') >= 0) {
-            alert('username must be one word, without space');
+        if (user.length < 3 || user.length > 20) {
+            alert('Username must be between 3 and 20 characters.');
+            return;
+        }
+        if (!/^[a-zA-Z0-9_]+$/.test(user)) {
+            alert('Username may only contain letters, numbers, and underscores.');
             return;
         }
 

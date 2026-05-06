@@ -24,5 +24,8 @@ export function extractApiError(e: unknown): string {
   if (typeof data.message === 'string' && data.message) {
     return data.message;
   }
+  if (typeof data.error === 'string' && data.error) {
+    return data.error;
+  }
   return err?.message || 'An unexpected error occurred';
 }
